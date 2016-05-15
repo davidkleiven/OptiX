@@ -18,5 +18,8 @@ SHARED_LIBS := -lmeep
 planeReflection.out: $(PLANE_WAVE_OBJ)
 	$(CXX) -o $@ $^ -L $(MEEP_LDIR) -L $(HDF5_LDIR) $(STATIC_LIBS) $(SHARED_LIBS)
 
+subtractBkg.out: ${ODIR}/subtractBkg.o
+	$(CXX) -o $@ $^
+
 $(ODIR)/%.o: $(SDIR)/%.cpp
 	$(CXX) -MMD -c -fPIC $< -o $@ -I $(IDIR) -I $(MEEP_IDIR)
