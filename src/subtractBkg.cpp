@@ -2,6 +2,8 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <cmath>
+#define CLOSE_DELTA 1E-8
 
 using namespace std;
 
@@ -74,6 +76,14 @@ int main(int argc, char** argv)
 
   for ( unsigned int i=0;i<timeIn.size();i++)
   {
+    if ( abs( timeIn[i] - timeBkg[i] ) > CLOSE_DELTA )
+    {
+      cout << "Timepoints on step " << i << "does not match!\n";
+      cout << "Input file: " << timeIn[i] << endl;
+      cout << "Bkg file: " << timeBkg[i] << endl << endl;
+      return 1;
+    }
+
     realIn[i] -= realBkg[i];
     imagIn[i] -= imagBkg[i];
   }
