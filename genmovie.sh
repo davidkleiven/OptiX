@@ -1,4 +1,4 @@
-DDIR="dataPlane/NoBoundary"
+DDIR="dataPlane/NormalInc"
 PREFIX="ez"
 PREFIX="${DDIR}/${PREFIX}"
 
