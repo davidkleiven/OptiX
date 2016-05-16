@@ -11,7 +11,7 @@
 using namespace std;
 
 const double EPS_LOW = 1.0;
-const double EPS_HIGH = 15.0;
+const double EPS_HIGH = 2.25;
 char OUTDIR[ODIRLEN] = "dataPlane/NormalInc";
 const double XSIZE = 10.0;
 const double YSIZE = 10.0;
@@ -37,73 +37,65 @@ complex<double> amplitude(const meep::vec &pos)
   return 1.0;
 }
 
-double sourceX()
-{
-  double xcenter = XSIZE/2.0;
-  double delta = SOURCE_Y*tan(ANGLE*PI/180.0);
-  if ( delta > xcenter )
-  {
-    cout << "The angle is too large. Increase size in xdirection\n";
-    return xcenter;
-  }
-  return xcenter-delta;
-} 
-
+//----------------- MAIN FUNCTION ----------------------------//
 int main(int argc, char **argv)
 {
   cout << "This program simulates scattering of a plane wave onto a smooth surface\n";
   meep::initialize mpi(argc, argv);
 
-  double resolution = 20.0; // pixels per distance
+  double resolution = 10.0; // pixels per distance
+
+  // Initialize computational cell
   meep::grid_volume vol = meep::vol2d(XSIZE, YSIZE, resolution);
+
+  // Add line source to get plane wave
   meep::vec srcCorner1(0.0, SOURCE_Y);
   meep::vec srcCorner2(XSIZE, SOURCE_Y);
   meep::volume srcvol(srcCorner1, srcCorner2);
 
+  // Initalize structure. Add PML in y-direction
   meep::structure srct(vol, dielectric, meep::pml(1.0, meep::Y));
-  srct.Courant = 0.4;
+
+  srct.Courant = 0.1;
   meep::fields field(&srct);
+  
+  // Add periodic boundary conditions in x-direction
   double blochK = 2.0*PI/(XSIZE-1.0);
   field.use_bloch( meep::X, blochK ); 
 
-  char* outdirheap = new char[ODIRLEN]; // This is deleted in the destructor of the meep::fields class
-  memcpy(outdirheap, OUTDIR, ODIRLEN);
-  
-  // Check that field.outdir is not allocated
-  if ( field.outdir != NULL )
-  {
-    cout << "The out directory is already allocated! Will deallocate it!\n";
-    cout << "Content:\n";
-    unsigned int indx=0;
-    while ( (field.outdir[indx] != '\0') && (indx < 100000) )
-    {
-      cout << field.outdir[indx];
-      indx++;
-    }
-    cout << endl;
-    delete [] field.outdir;
-  }
-  field.outdir = outdirheap;
+
+  field.set_output_directory(OUTDIR); 
+
+  // Write dielectric function to file
   field.output_hdf5(meep::Dielectric, vol.surroundings()); 
 
-  double freq = 0.3;
-  meep::continuous_src_time src(freq);
+  // Set source type. Use Gaussian, had some problems with the continous
+  double freq = 0.5;
+  double fwidth = 0.2;
+  meep::gaussian_src_time src(freq, fwidth);
   field.add_volume_source(meep::Ez, src, srcvol, amplitude);
 
-  unsigned int nOut = 20;
-  double dt = NSTEPS/static_cast<double>(nOut);
+  unsigned int nOut = 20; // Number of output files
+  double dt = ( field.last_source_time() + NSTEPS )/static_cast<double>(nOut); // Timestep between output hdf5
   double nextOutputTime = 0.0;
-  meep::vec monitorPos(XSIZE/2.0, 6.0);
-  vector<double> fieldAtCenterReal;
-  vector<double> fieldAtCenterImag;
-  vector<double> timepoints;
-  while ( field.time() < NSTEPS )
+
+  // Put a field monitor at the center of the geometry 
+  meep::vec monitorPos(XSIZE/2.0, 7.0);
+
+  vector<double> fieldAtCenterReal; // Container for the real field component
+  vector<double> timepoints; // Container for the timepoints
+
+  // Main loop.
+  // TODO: Check if NSTEPS is correct. Maybe tune for frequency resulution in DFT
+  while ( field.time() < field.last_source_time() + NSTEPS )
   {
     field.step();
+
+    // Get field amplitude
     complex<double> fieldAmp = field.get_field(meep::Ez, monitorPos);
     fieldAtCenterReal.push_back(real(fieldAmp));
-    fieldAtCenterImag.push_back(imag(fieldAmp));
     timepoints.push_back(field.time());
+
     if ( field.time() > nextOutputTime )
     {
       field.output_hdf5(meep::Ez, vol.surroundings());
@@ -111,7 +103,6 @@ int main(int argc, char **argv)
     }
   } 
   field.output_hdf5(meep::Ez, vol.surroundings());
-
 
   // Write monitor to file
   ofstream os(OUT_MONITOR_FNAME.c_str());
@@ -122,10 +113,10 @@ int main(int argc, char **argv)
   }
 
   os << "# Field monitored at positions\n";
-  os << "# Time, Ez.real, Ez.imag\n";
+  os << "# Time, Ez.real\n";
   for ( unsigned int i=0;i<timepoints.size();i++ )
   {
-    os << timepoints[i] << "," << fieldAtCenterReal[i] << "," << fieldAtCenterImag[i] << "\n";
+    os << timepoints[i] << "," << fieldAtCenterReal[i] << "\n";
   }
   os.close(); 
   return 0;
