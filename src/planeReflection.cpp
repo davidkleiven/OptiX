@@ -11,20 +11,21 @@
 using namespace std;
 
 const double EPS_LOW = 1.0;
-const double EPS_HIGH = 1.5;
+const double EPS_HIGH = 15.0;
 char OUTDIR[ODIRLEN] = "dataPlane/NormalInc";
 const double XSIZE = 10.0;
 const double YSIZE = 10.0;
-const double SOURCE_Y = 7.0;
+const double SOURCE_Y = 8.0;
 const double ANGLE=10.0;
 const double PI = acos(-1.0);
 const complex<double> IMAG_UNIT(0,1.0);
 const string OUT_MONITOR_FNAME("dataPlane/NormalInc/ezMonitor.csv");
+const unsigned int NSTEPS = 20;
 
 
 double dielectric(const meep::vec &pos)
 { 
-  if ( pos.y() < 5.0 )
+  if ( pos.y() < 3.0 )
   {
     return EPS_HIGH;
   }
@@ -86,18 +87,17 @@ int main(int argc, char **argv)
   field.output_hdf5(meep::Dielectric, vol.surroundings()); 
 
   double freq = 0.3;
-  double freqwidth = 0.1;
-  meep::gaussian_src_time src(freq, freqwidth);
+  meep::continuous_src_time src(freq);
   field.add_volume_source(meep::Ez, src, srcvol, amplitude);
 
   unsigned int nOut = 20;
-  double dt = field.last_source_time()/static_cast<double>(nOut);
+  double dt = NSTEPS/static_cast<double>(nOut);
   double nextOutputTime = 0.0;
   meep::vec monitorPos(XSIZE/2.0, 6.0);
   vector<double> fieldAtCenterReal;
   vector<double> fieldAtCenterImag;
   vector<double> timepoints;
-  while ( field.time() < field.last_source_time() )
+  while ( field.time() < NSTEPS )
   {
     field.step();
     complex<double> fieldAmp = field.get_field(meep::Ez, monitorPos);
