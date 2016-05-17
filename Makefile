@@ -21,5 +21,8 @@ planeReflection.out: $(PLANE_WAVE_OBJ)
 subtractBkg.out: ${ODIR}/subtractBkg.o
 	$(CXX) -o $@ $^
 
+normalizeDFTFlux.out: ${ODIR}/normalizeDFTFlux.o
+	$(CXX) -o $@ $^
+
 $(ODIR)/%.o: $(SDIR)/%.cpp
 	$(CXX) -MMD -c -fPIC $< -o $@ -I $(IDIR) -I $(MEEP_IDIR)
