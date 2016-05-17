@@ -11,10 +11,10 @@
 using namespace std;
 
 const double EPS_LOW = 1.0;
-const double EPS_HIGH = 2.25;
-char OUTDIR[ODIRLEN] = "dataPlane/NormalInc";
+const double EPS_HIGH = 1.0;
+char OUTDIR[ODIRLEN] = "dataPlane/NoBoundary";
 
-const double XSIZE = 10.0;
+const double XSIZE = 20.0;
 const double YSIZE = 10.0;
 const double SOURCE_Y = 8.0;
 const double ANGLE=10.0;
@@ -54,14 +54,15 @@ int main(int argc, char **argv)
   meep::volume srcvol(srcCorner1, srcCorner2);
 
   // Initalize structure. Add PML in y-direction
-  meep::structure srct(vol, dielectric, meep::pml(1.0, meep::Y));
+  //meep::structure srct(vol, dielectric, meep::pml(1.0, meep::Y));
+  meep::structure srct(vol, dielectric, meep::pml(1.0));
 
   srct.Courant = 0.1;
   meep::fields field(&srct);
   
   // Add periodic boundary conditions in x-direction
-  double blochK = 2.0*PI/(XSIZE-1.0);
-  field.use_bloch( meep::X, blochK ); 
+  //double blochK = 2.0*PI/(XSIZE-1.0);
+  //field.use_bloch( meep::X, blochK ); 
 
   field.set_output_directory(OUTDIR); 
 
@@ -76,14 +77,15 @@ int main(int argc, char **argv)
 
   // Add DFT fluxplane
   meep::volume dftVol = meep::volume(meep::vec(0.0,3.0), meep::vec(0.0,XSIZE));
-  meep::volume dftVolX = meep::volume(meep::vec(XSIZE, 0.0), meep::vec(XSIZE, 5.0));
+  meep::volume dftVolX = meep::volume(meep::vec(XSIZE*0.75, 0.0), meep::vec(XSIZE*0.75, 4.0));
   unsigned int nfreq = 20;
   meep::dft_flux transFluxY = field.add_dft_flux_plane(dftVol, freq+fwidth, freq-fwidth, nfreq);
   meep::dft_flux transFluxX = field.add_dft_flux_plane(dftVolX, freq+fwidth, freq-fwidth, nfreq);
   
 
   unsigned int nOut = 20; // Number of output files
-  double dt = ( field.last_source_time() + NSTEPS )/static_cast<double>(nOut); // Timestep between output hdf5
+  //double dt = ( field.last_source_time() + NSTEPS )/static_cast<double>(nOut); // Timestep between output hdf5
+  double dt = nfreq/(nOut*fwidth);
   double nextOutputTime = 0.0;
 
   // Put a field monitor at the center of the geometry 
@@ -94,7 +96,7 @@ int main(int argc, char **argv)
 
   // Main loop.
   // TODO: Check if NSTEPS is correct. Maybe tune for frequency resulution in DFT
-  while ( field.time() < nfreq/fwidth + NSTEPS )
+  while ( field.time() < nfreq/fwidth )
   {
     field.step();
 
