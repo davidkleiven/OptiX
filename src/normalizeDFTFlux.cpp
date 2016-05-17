@@ -5,6 +5,8 @@
 #include <sstream>
 #include <cmath>
 #include <stdexcept>
+#include <cstring>
+#define DELTA_CLOSE 1E-6
 
 using namespace std;
 
@@ -38,7 +40,7 @@ void readFluxFile(const string &fname, vector<double> &frequencies, vector<doubl
 // ------------ MAIN FUNCTION -------------------//
 int main(int argc, char** argv)
 {
-  if ( argc != 4 )
+  if ( argc != 3 )
   {
     cout << "Usage: ./normalizeDFTFllux.cpp <infile> <bkgfile>\n";
     cout << "Arguments given:\n";
@@ -47,6 +49,7 @@ int main(int argc, char** argv)
       string arg(argv[i]);
       cout << arg << endl;
     }
+    return 1;
   }
 
   string infile(argv[1]);
@@ -71,6 +74,47 @@ int main(int argc, char** argv)
   {
     cout << "Unknown exception...\n";
   }
+
+  // Normalize
+  if ( bkgTot.size() != inTot.size() )
+  {
+    cout << "Different number of samplesin bkgfile and infile\n";
+    return 1;
+  }
+  for ( unsigned int i=0;i<inTot.size(); i++ )
+  {
+    if ( abs(inFreq[i] - frequencies[i]) > DELTA_CLOSE )
+    {
+      cout << "Frequencies in bkgfile and infile does not match\n";
+      return 1;
+    }
+    inTot[i] /= bkgTot[i];
+  }
+
+  // Construct out filename from infile name
+  size_t pos = infile.find(".");
+  string ofname = infile.substr(0, pos);
+  ofname += "Norm.csv";
+
+  // Write results to file
+  ofstream out(ofname.c_str());
+  if ( !out.good() )
+  {
+    cout << "Problems when opening file " << ofname << endl;
+    return 1;
+  }
+
+  out << "# Normalized total flux\n";
+  out << "# Infile: " << infile << endl;
+  out << "# Bkgfile: " << bkgfile << endl;
+  out << "# Frequency, Normalized total flux\n";
+  for ( unsigned int i=0;i<inTot.size();i++)
+  {
+    out << inFreq[i] << "," << inTot[i] << "\n";
+  }
+  out.close();
+ 
+  cout << "Normalized flux written to " << ofname << endl;
   return 0;
 }
 
