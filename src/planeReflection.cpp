@@ -25,7 +25,7 @@ const unsigned int NSTEPS = 20;
 
 double dielectric(const meep::vec &pos)
 { 
-  if ( pos.y() < 3.0 )
+  if ( pos.y() < 5.0 )
   {
     return EPS_HIGH;
   }
@@ -63,7 +63,6 @@ int main(int argc, char **argv)
   double blochK = 2.0*PI/(XSIZE-1.0);
   field.use_bloch( meep::X, blochK ); 
 
-
   field.set_output_directory(OUTDIR); 
 
   // Write dielectric function to file
@@ -77,8 +76,11 @@ int main(int argc, char **argv)
 
   // Add DFT fluxplane
   meep::volume dftVol = meep::volume(meep::vec(0.0,3.0), meep::vec(0.0,XSIZE));
+  meep::volume dftVolX = meep::volume(meep::vec(XSIZE, 0.0), meep::vec(XSIZE, 5.0));
   unsigned int nfreq = 20;
-  meep::dft_flux transFlux = field.add_dft_flux_plane(dftVol, freq+fwidth, freq-fwidth, nfreq);
+  meep::dft_flux transFluxY = field.add_dft_flux_plane(dftVol, freq+fwidth, freq-fwidth, nfreq);
+  meep::dft_flux transFluxX = field.add_dft_flux_plane(dftVolX, freq+fwidth, freq-fwidth, nfreq);
+  
 
   unsigned int nOut = 20; // Number of output files
   double dt = ( field.last_source_time() + NSTEPS )/static_cast<double>(nOut); // Timestep between output hdf5
@@ -120,17 +122,25 @@ int main(int argc, char **argv)
   }
   os << "# Flux from transmitted wave\n";
   os << "# Volume description\n";
+  os << "# Flux in y-direction\n";
   os << "# Corner 1: (x,y) = (" << dftVol.get_min_corner().x() << ","<<dftVol.get_min_corner().y() << ")\n";
   os << "# Corner 2: (x,y) = (" << dftVol.get_max_corner().x() << "," << dftVol.get_max_corner().y() << ")\n"; 
+  os << "# Flux in x-direction:\n";
+  os << "# Corner 1: (x,y) = (" << dftVolX.get_min_corner().x() << ","<<dftVolX.get_min_corner().y() << ")\n";
+  os << "# Corner 2: (x,y) = (" << dftVolX.get_max_corner().x() << "," << dftVolX.get_max_corner().y() << ")\n"; 
+  os << "# Frequency, Flux Y, Flux X\n";
   double dfreq = 2.0*fwidth/static_cast<double>(nfreq);
   double currentFreq = freq-fwidth;
-  double *transmittedFlux = transFlux.flux();
+  double *transmittedFlux = transFluxY.flux();
+  double *transmittedFluxX = transFluxX.flux();
   for ( unsigned int i=0;i<nfreq;i++ )
   {
-    os << currentFreq << "," << transmittedFlux[i] << "\n";
+    os << currentFreq << "," << transmittedFlux[i] << "," << transmittedFluxX[i] << "\n";
     currentFreq += dfreq;
   }
   os.close();
+  delete [] transmittedFlux;
+  delete [] transmittedFluxX;
   
 
   // Write monitor to file
