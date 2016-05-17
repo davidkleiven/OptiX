@@ -13,13 +13,13 @@ using namespace std;
 const double EPS_LOW = 1.0;
 const double EPS_HIGH = 2.25;
 char OUTDIR[ODIRLEN] = "dataPlane/NormalInc";
+
 const double XSIZE = 10.0;
 const double YSIZE = 10.0;
 const double SOURCE_Y = 8.0;
 const double ANGLE=10.0;
 const double PI = acos(-1.0);
 const complex<double> IMAG_UNIT(0,1.0);
-const string OUT_MONITOR_FNAME("dataPlane/NormalInc/ezMonitor.csv");
 const unsigned int NSTEPS = 20;
 
 
@@ -75,6 +75,11 @@ int main(int argc, char **argv)
   meep::gaussian_src_time src(freq, fwidth);
   field.add_volume_source(meep::Ez, src, srcvol, amplitude);
 
+  // Add DFT fluxplane
+  meep::volume dftVol = meep::volume(meep::vec(0.0,3.0), meep::vec(0.0,XSIZE));
+  unsigned int nfreq = 20;
+  meep::dft_flux transFlux = field.add_dft_flux_plane(dftVol, freq+fwidth, freq-fwidth, nfreq);
+
   unsigned int nOut = 20; // Number of output files
   double dt = ( field.last_source_time() + NSTEPS )/static_cast<double>(nOut); // Timestep between output hdf5
   double nextOutputTime = 0.0;
@@ -87,7 +92,7 @@ int main(int argc, char **argv)
 
   // Main loop.
   // TODO: Check if NSTEPS is correct. Maybe tune for frequency resulution in DFT
-  while ( field.time() < field.last_source_time() + NSTEPS )
+  while ( field.time() < nfreq/fwidth + NSTEPS )
   {
     field.step();
 
@@ -104,14 +109,39 @@ int main(int argc, char **argv)
   } 
   field.output_hdf5(meep::Ez, vol.surroundings());
 
-  // Write monitor to file
-  ofstream os(OUT_MONITOR_FNAME.c_str());
+  // Write transmitted flux to file
+  string ddir(OUTDIR);
+  string fluxOut("transmittedFlux.csv");
+  fluxOut = ddir+"/"+fluxOut; 
+  ofstream os(fluxOut.c_str());
   if ( !os.good() )
   {
-    cout << "Problem when opening file " << OUT_MONITOR_FNAME << endl;
+    cout << "Problem when opening file " << fluxOut << endl;
+  }
+  os << "# Flux from transmitted wave\n";
+  os << "# Volume description\n";
+  os << "# Corner 1: (x,y) = (" << dftVol.get_min_corner().x() << ","<<dftVol.get_min_corner().y() << ")\n";
+  os << "# Corner 2: (x,y) = (" << dftVol.get_max_corner().x() << "," << dftVol.get_max_corner().y() << ")\n"; 
+  double dfreq = 2.0*fwidth/static_cast<double>(nfreq);
+  double currentFreq = freq-fwidth;
+  double *transmittedFlux = transFlux.flux();
+  for ( unsigned int i=0;i<nfreq;i++ )
+  {
+    os << currentFreq << "," << transmittedFlux[i] << "\n";
+    currentFreq += dfreq;
+  }
+  os.close();
+  
+
+  // Write monitor to file
+  string monitorOut("ezMonitor.csv");
+  monitorOut = ddir + "/" + monitorOut;
+  os.open(monitorOut.c_str());
+  if ( !os.good() )
+  {
+    cout << "Problem when opening file " << monitorOut << endl;
     return 1;
   }
-
   os << "# Field monitored at positions\n";
   os << "# Time, Ez.real\n";
   for ( unsigned int i=0;i<timepoints.size();i++ )
