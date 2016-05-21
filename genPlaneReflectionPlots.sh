@@ -13,4 +13,3 @@ gnuplot -e "ofile='${OFILE}';ifile='${IFILE}'" plotFieldComponent.plt
 OFILE="${FDIR}/normalInc.png"
 IFILE="${DDIR}/NormalInc/ezMonitor.csv"
 gnuplot -e "ofile='${OFILE}';ifile='${IFILE}'" plotFieldComponent.plt
-

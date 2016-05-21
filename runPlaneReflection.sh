@@ -11,7 +11,7 @@ do
   if [ ${RUN_ALL} ]; then
     DIR=${DDIR[$i]}
     # Clean directory
-    rm -f "${DIR}/*.h5" "${DIR}/*.png" "${DIR}/*.csv"
+    rm -f ${DIR}/*.h5 ${DIR}/*.png ${DIR}/*.csv ${DIR}/*.gif
     
     # Run simulation
     ./planeReflection.out ${DIR} ${EPS_HIGH[$i]} ${ANGLE[$i]}
