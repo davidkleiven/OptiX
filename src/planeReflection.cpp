@@ -6,6 +6,7 @@
 #include <vector>
 #include <fstream>
 #include <string>
+#include <sstream>
 #define ODIRLEN 60
 
 /**
@@ -24,7 +25,8 @@ double EPS_HIGH = 1.0;
 
 double ANGLE = 0.0;
 const double XSIZE = 20.0;
-const double YSIZE = 10.0;
+const double YSIZE = 12.0;
+const double PML_THICK = 4.0;
 const double SOURCE_Y = 8.0;
 const double PI = acos(-1.0);
 const complex<double> IMAG_UNIT(0,1.0);
@@ -65,8 +67,12 @@ int main(int argc, char **argv)
   }
 
   const char* OUTDIR = argv[1];
-  EPS_HIGH = *argv[2];
-  ANGLE = *argv[3];
+  stringstream ss;
+  ss << argv[2];
+  ss >> EPS_HIGH;
+  ss.clear();
+  ss << argv[3];
+  ss >> ANGLE;
 
   double resolution = 20.0; // pixels per distance
 
@@ -80,7 +86,7 @@ int main(int argc, char **argv)
 
   // Initalize structure. Add PML in y-direction
   //meep::structure srct(vol, dielectric, meep::pml(1.0, meep::Y));
-  meep::structure srct(vol, dielectric, meep::pml(1.0));
+  meep::structure srct(vol, dielectric, meep::pml(PML_THICK));
 
   srct.Courant = 0.1;
   meep::fields field(&srct);
@@ -101,8 +107,8 @@ int main(int argc, char **argv)
   field.add_volume_source(meep::Ez, src, srcvol, amplitude);
 
   // Add DFT fluxplane
-  meep::volume dftVol = meep::volume(meep::vec(0.0,3.0), meep::vec(0.0,XSIZE));
-  meep::volume dftVolX = meep::volume(meep::vec(XSIZE*0.75, 0.0), meep::vec(XSIZE*0.75, 4.0));
+  meep::volume dftVol = meep::volume(meep::vec(0.0,PML_THICK), meep::vec(XSIZE,PML_THICK));
+  meep::volume dftVolX = meep::volume(meep::vec(XSIZE*0.75, 4.0), meep::vec(XSIZE*0.75, 5.0));
   unsigned int nfreq = 20;
   meep::dft_flux transFluxY = field.add_dft_flux_plane(dftVol, freq+fwidth, freq-fwidth, nfreq);
   meep::dft_flux transFluxX = field.add_dft_flux_plane(dftVolX, freq+fwidth, freq-fwidth, nfreq);
@@ -155,6 +161,7 @@ int main(int argc, char **argv)
   os << "# Flux in x-direction:\n";
   os << "# Corner 1: (x,y) = (" << dftVolX.get_min_corner().x() << ","<<dftVolX.get_min_corner().y() << ")\n";
   os << "# Corner 2: (x,y) = (" << dftVolX.get_max_corner().x() << "," << dftVolX.get_max_corner().y() << ")\n"; 
+  os << "# EPS_HIGH = " << EPS_HIGH << endl;
   os << "# Frequency, Flux Y, Flux X\n";
   double dfreq = 2.0*fwidth/static_cast<double>(nfreq);
   double currentFreq = freq-fwidth;
