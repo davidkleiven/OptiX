@@ -8,16 +8,24 @@
 #include <string>
 #define ODIRLEN 60
 
+/**
+* This program takes 3 command line arguments
+* Arg 1 - out directory. Directory where the datafiles will be stored
+* Arg 2 - Relative dielectriv permittivity in scattering region. The wave starts in a region with epsilon=1.
+* Arg 3 - angle of incidence in degrees
+*
+* Example:
+*   ./planeReflection data/planewave 2.25 30
+*/
 using namespace std;
 
 const double EPS_LOW = 1.0;
-const double EPS_HIGH = 1.0;
-char OUTDIR[ODIRLEN] = "dataPlane/NoBoundary";
+double EPS_HIGH = 1.0;
 
+double ANGLE = 0.0;
 const double XSIZE = 20.0;
 const double YSIZE = 10.0;
 const double SOURCE_Y = 8.0;
-const double ANGLE=10.0;
 const double PI = acos(-1.0);
 const complex<double> IMAG_UNIT(0,1.0);
 const unsigned int NSTEPS = 20;
@@ -43,7 +51,24 @@ int main(int argc, char **argv)
   cout << "This program simulates scattering of a plane wave onto a smooth surface\n";
   meep::initialize mpi(argc, argv);
 
-  double resolution = 10.0; // pixels per distance
+  // Read command line arguments
+  if ( argc != 4 )
+  {
+    cout << "Usage: ./planeReflection.out <outi directory> <epsInScattered> <incidend angle>\n";
+    cout << "The following arguments were given:\n";
+    for ( unsigned int i=0;i<argc;i++ )
+    {
+      string arg(argv[i]);
+      cout << arg << endl;
+    }
+    return 1;
+  }
+
+  const char* OUTDIR = argv[1];
+  EPS_HIGH = *argv[2];
+  ANGLE = *argv[3];
+
+  double resolution = 20.0; // pixels per distance
 
   // Initialize computational cell
   meep::grid_volume vol = meep::vol2d(XSIZE, YSIZE, resolution);
