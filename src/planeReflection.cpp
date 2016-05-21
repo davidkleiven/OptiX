@@ -7,6 +7,7 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <cassert>
 #define ODIRLEN 60
 
 /**
@@ -25,17 +26,18 @@ double EPS_HIGH = 1.0;
 
 double ANGLE = 0.0;
 const double XSIZE = 20.0;
-const double YSIZE = 12.0;
+const double YSIZE = 20.0;
 const double PML_THICK = 4.0;
-const double SOURCE_Y = 8.0;
+const double SOURCE_Y = YSIZE-PML_THICK - 1.0;
+const double YC_PLANE = YSIZE/2.0;
 const double PI = acos(-1.0);
 const complex<double> IMAG_UNIT(0,1.0);
 const unsigned int NSTEPS = 20;
 
 
 double dielectric(const meep::vec &pos)
-{ 
-  if ( pos.y() < 5.0 )
+{
+  if ( pos.y() < (YC_PLANE + (pos.x()-XSIZE/2.0)*tan(ANGLE*PI/180.0)) )
   {
     return EPS_HIGH;
   }
@@ -74,6 +76,24 @@ int main(int argc, char **argv)
   ss << argv[3];
   ss >> ANGLE;
 
+  // Check that angle is within range
+  const double maxAngle = atan( 2.0*(YC_PLANE-PML_THICK)/XSIZE )*180.0/PI;
+  if ( ANGLE > maxAngle )
+  {
+    cout << "The incident angle is too large\n";
+    cout << "Maximum angle is " << maxAngle << endl;
+    return 1;
+  }
+  else if ( ANGLE < 0.0 )
+  {
+    cout << "Negative angle given. Has to be in range [0,MAX_ANGLE)\n";
+    return 1;
+  }
+
+  // Verify that the size of the domain is big enough (for debugging only)
+  const double minHeight = 2.0*PML_THICK + 4.0;
+  assert ( YSIZE > minHeight );
+  
   double resolution = 20.0; // pixels per distance
 
   // Initialize computational cell
@@ -108,7 +128,7 @@ int main(int argc, char **argv)
 
   // Add DFT fluxplane
   meep::volume dftVol = meep::volume(meep::vec(0.0,PML_THICK), meep::vec(XSIZE,PML_THICK));
-  meep::volume dftVolX = meep::volume(meep::vec(XSIZE*0.75, 4.0), meep::vec(XSIZE*0.75, 5.0));
+  meep::volume dftVolX = meep::volume(meep::vec(XSIZE-PML_THICK-1.0, PML_THICK), meep::vec(XSIZE-PML_THICK-1.0, YC_PLANE));
   unsigned int nfreq = 20;
   meep::dft_flux transFluxY = field.add_dft_flux_plane(dftVol, freq+fwidth, freq-fwidth, nfreq);
   meep::dft_flux transFluxX = field.add_dft_flux_plane(dftVolX, freq+fwidth, freq-fwidth, nfreq);
