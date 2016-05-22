@@ -17,9 +17,10 @@
 * Arg 1 - out directory. Directory where the datafiles will be stored
 * Arg 2 - Relative dielectriv permittivity in scattering region. The wave starts in a region with epsilon=1.
 * Arg 3 - angle of incidence in degrees
+* Arg 4 - Polarization (s or p)
 *
 * Example:
-*   ./planeReflection data/planewave 2.25 30
+*   ./planeReflection data/planewave 2.25 30 s
 */
 using namespace std;
 
@@ -28,10 +29,11 @@ double EPS_HIGH = 1.0;
 
 double ANGLE = 0.0;
 const double XSIZE = 20.0;
-const double YSIZE = 20.0;
+const double YSIZE = 30.0;
 const double PML_THICK = 4.0;
 const double SOURCE_Y = YSIZE-PML_THICK - 1.0;
-const double YC_PLANE = YSIZE/2.0;
+//const double YC_PLANE = YSIZE/2.0;
+const double YC_PLANE = PML_THICK+1.0;
 const double PI = acos(-1.0);
 const complex<double> IMAG_UNIT(0,1.0);
 const unsigned int NSTEPS = 20;
@@ -58,9 +60,9 @@ int main(int argc, char **argv)
   meep::initialize mpi(argc, argv);
 
   // Read command line arguments
-  if ( argc != 4 )
+  if ( argc != 5 )
   {
-    cout << "Usage: ./planeReflection.out <outi directory> <epsInScattered> <incidend angle>\n";
+    cout << "Usage: ./planeReflection.out <outi directory> <epsInScattered> <incidend angle> <polarization>\n";
     cout << "The following arguments were given:\n";
     for ( unsigned int i=0;i<argc;i++ )
     {
@@ -77,6 +79,7 @@ int main(int argc, char **argv)
   ss.clear();
   ss << argv[3];
   ss >> ANGLE;
+  char polarization = argv[4][0];
 
   // Check that angle is within range
   const double maxAngle = atan( 2.0*(YC_PLANE-PML_THICK)/XSIZE )*180.0/PI;
@@ -89,6 +92,14 @@ int main(int argc, char **argv)
   else if ( ANGLE < 0.0 )
   {
     cout << "Negative angle given. Has to be in range [0,MAX_ANGLE)\n";
+    return 1;
+  }
+
+  // Check that polarization holds a valid value
+  if ( (polarization != 's') && (polarization != 'p') )
+  {
+    cout << "Invalid polarization value. Has to be either s or p\n";
+    cout << "Value given: " << polarization << endl;
     return 1;
   }
 
@@ -121,16 +132,23 @@ int main(int argc, char **argv)
   double freq = 0.5;
   double fwidth = 0.2;
   meep::gaussian_src_time src(freq, fwidth);
-  field.add_volume_source(meep::Ez, src, srcvol, amplitude);
+  
+  if ( polarization == 's' )
+  {
+    field.add_volume_source(meep::Ez, src, srcvol, amplitude);
+  }
+  else
+  {
+    field.add_volume_source(meep::Hz, src, srcvol, amplitude);
+  }
 
   // Add DFT fluxplane
-  meep::volume dftVol = meep::volume(meep::vec(0.0,PML_THICK), meep::vec(XSIZE,PML_THICK));
+  meep::volume dftVol = meep::volume(meep::vec(0.0,PML_THICK), meep::vec(XSIZE-1.0,PML_THICK));
   meep::volume dftVolX = meep::volume(meep::vec(XSIZE-PML_THICK-1.0, PML_THICK), meep::vec(XSIZE-PML_THICK-1.0, YC_PLANE));
-  unsigned int nfreq = 20;
+  unsigned int nfreq = 10;
   meep::dft_flux transFluxY = field.add_dft_flux_plane(dftVol, freq+fwidth, freq-fwidth, nfreq);
   meep::dft_flux transFluxX = field.add_dft_flux_plane(dftVolX, freq+fwidth, freq-fwidth, nfreq);
   
-
   unsigned int nOut = 20; // Number of output files
   //double dt = ( field.last_source_time() + NSTEPS )/static_cast<double>(nOut); // Timestep between output hdf5
   double dt = nfreq/(nOut*fwidth);
@@ -144,11 +162,18 @@ int main(int argc, char **argv)
   vector<double> timepoints; // Container for the timepoints
   vector<double> fieldAtFluxPlane; // Container for the real field component at the center of the flux plane
 
+  // Time required to propagate over the domain with the slowest speed
+  double speed = 1.0/sqrt(EPS_HIGH);
+  double tPropagate = field.last_source_time() + SOURCE_Y/speed;
+
   // Main loop.
   // TODO: Check if NSTEPS is correct. Maybe tune for frequency resulution in DFT
   double transYWidth = abs( dftVol.get_max_corner().x() - dftVol.get_min_corner().x() );
   double transXWidth = abs( dftVolX.get_max_corner().y() - dftVolX.get_min_corner().y() );
-  while ( field.time() < nfreq/fwidth )
+  double timeToRegisterFourier = nfreq/fwidth;
+
+  double tend = timeToRegisterFourier > tPropagate ? timeToRegisterFourier:tPropagate;
+  while ( field.time() < tPropagate )
   {
     field.step();
 
