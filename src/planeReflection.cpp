@@ -142,7 +142,7 @@ int main(int argc, char **argv)
   double nextOutputTime = 0.0;
 
   // Put a field monitor at the center of the geometry 
-  meep::vec monitorPos(XSIZE/2.0, 7.0);
+  meep::vec monitorPos(XSIZE/2.0, SOURCE_Y-0.1);
   meep::vec monitorTransPlanePos(XSIZE/2.0, PML_THICK);
 
   vector<double> fieldAtCenterReal; // Container for the real field component
