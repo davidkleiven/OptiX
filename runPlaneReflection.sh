@@ -7,6 +7,7 @@ EPS_HIGH=(1.0 2.25)
 ANGLE=(0.0 0.0)
 
 POLARIZATION="s"
+COMP_FFT=false
 for ((i=0;i<${#DDIR[@]};i++));
 do
   DIR=${DDIR[$i]}
@@ -16,17 +17,23 @@ do
     
     # Run simulation
     ./planeReflection.out ${DIR} ${EPS_HIGH[$i]} ${ANGLE[$i]} ${POLARIZATION}
-
+    COMP_FFT=true
   elif [ ! -d "$DIR" ]; then
     # Directory does not exist
     mkdir ${DIR}
     # Run simulation
     ./planeReflection.out ${DIR} ${EPS_HIGH[$i]} ${ANGLE[$i]} ${POLARIZATION}
+    COMP_FFT=true
   fi
+
+  if [ ${COMP_FFT} == true ]; then
+    ./fourierPulse.out ${DIR}/ezMonitorTrans.csv
+  fi
+  COMP_FFT=false
 done
 
 # Normalize fluxes
 for ((i=1;i<${#DDIR[@]};i++));
 do
-  ./normalizeDFTFlux.out "${DDIR[$i]}/transmittedFlux.csv" "${DDIR[0]}/transmittedFlux.csv"
+  ./normalizeDFTFlux.out "${DDIR[$i]}/ezMonitorTransFourier.csv" "${DDIR[0]}/ezMonitorTransFourier.csv"
 done

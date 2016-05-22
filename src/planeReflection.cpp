@@ -29,11 +29,12 @@ double EPS_HIGH = 1.0;
 
 double ANGLE = 0.0;
 const double XSIZE = 20.0;
-const double YSIZE = 30.0;
+const double YSIZE = 50.0;
 const double PML_THICK = 4.0;
 const double SOURCE_Y = YSIZE-PML_THICK - 1.0;
 //const double YC_PLANE = YSIZE/2.0;
-const double YC_PLANE = PML_THICK+1.0;
+const double YC_PLANE = 20.0; // Reflected pulse cannot reach the source before the source is finished
+//const double YC_PLANE = PML_THICK+1.0;
 const double PI = acos(-1.0);
 const complex<double> IMAG_UNIT(0,1.0);
 const unsigned int NSTEPS = 20;
@@ -107,7 +108,11 @@ int main(int argc, char **argv)
   const double minHeight = 2.0*PML_THICK + 4.0;
   assert ( YSIZE > minHeight );
   
-  double resolution = 20.0; // pixels per distance
+  double freq = 0.3;
+  double fwidth = 0.2;
+  double maxFreq = freq+2.0*fwidth;
+  double lambdaMin = 1.0/maxFreq;
+  double resolution = 4.0*lambdaMin; // pixels per distance
 
   // Initialize computational cell
   meep::grid_volume vol = meep::vol2d(XSIZE, YSIZE, resolution);
@@ -120,7 +125,7 @@ int main(int argc, char **argv)
   // Initalize structure. Add PML in y-direction
   meep::structure srct(vol, dielectric, meep::pml(PML_THICK));
 
-  srct.Courant = 0.1;
+  //srct.Courant = 0.1;
   meep::fields field(&srct);
   
   field.set_output_directory(OUTDIR); 
@@ -129,8 +134,6 @@ int main(int argc, char **argv)
   field.output_hdf5(meep::Dielectric, vol.surroundings()); 
 
   // Set source type. Use Gaussian, had some problems with the continous
-  double freq = 0.5;
-  double fwidth = 0.2;
   meep::gaussian_src_time src(freq, fwidth);
   
   if ( polarization == 's' )

@@ -24,5 +24,8 @@ subtractBkg.out: ${ODIR}/subtractBkg.o
 normalizeDFTFlux.out: ${ODIR}/normalizeDFTFlux.o
 	$(CXX) -o $@ $^
 
+fourierPulse.out: ${ODIR}/fourierPulse.o
+	$(CXX) -o $@ $^ -llapack -lcblas -lgsl -lm
+
 $(ODIR)/%.o: $(SDIR)/%.cpp
 	$(CXX) -MMD -c -fPIC $< -o $@ -I $(IDIR) -I $(MEEP_IDIR)
