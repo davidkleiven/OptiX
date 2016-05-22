@@ -176,7 +176,7 @@ int main(int argc, char **argv)
   double timeToRegisterFourier = nfreq/fwidth;
 
   double tend = timeToRegisterFourier > tPropagate ? timeToRegisterFourier:tPropagate;
-  while ( field.time() < tPropagate )
+  while ( field.time() < tend )
   {
     field.step();
 
