@@ -32,8 +32,7 @@ const double XSIZE = 20.0;
 const double YSIZE = 50.0;
 const double PML_THICK = 4.0;
 const double SOURCE_Y = YSIZE-PML_THICK - 1.0;
-const double YC_PLANE = YSIZE/2.0;
-//const double YC_PLANE = 20.0; // Reflected pulse cannot reach the source before the source is finished
+const double YC_PLANE = 20.0; // Reflected pulse cannot reach the source before the source is finished
 //const double YC_PLANE = PML_THICK+1.0;
 const double PI = acos(-1.0);
 const complex<double> IMAG_UNIT(0,1.0);
@@ -83,7 +82,8 @@ int main(int argc, char **argv)
   char polarization = argv[4][0];
 
   // Check that angle is within range
-  const double maxAngle = atan( 2.0*(YC_PLANE-PML_THICK)/XSIZE )*180.0/PI;
+  //const double maxAngle = atan( 2.0*(YC_PLANE-PML_THICK)/XSIZE )*180.0/PI;
+  const double maxAngle = 90.0;
   if ( ANGLE > maxAngle )
   {
     cout << "The incident angle is too large\n";
