@@ -25,14 +25,14 @@ void readFluxFile(const string &fname, vector<double> &frequencies, vector<doubl
   stringstream firstLine;
   char comma;
   firstLine << line;
-  double freq, newX, newY;
-  firstLine >> freq >> comma >> newX >> comma >> newY;
+  double freq, newP;
+  firstLine >> freq >> comma >> newP;
   frequencies.push_back(freq);
-  totFlux.push_back( sqrt( pow(newX, 2) + pow(newY, 2) ));
-  while ( in >> freq >> comma >> newX >> comma >> newY )
+  totFlux.push_back( newP );
+  while ( in >> freq >> comma >> newP )
   {
     frequencies.push_back(freq);
-    totFlux.push_back( sqrt( pow(newX, 2) + pow(newY, 2) ));
+    totFlux.push_back( newP );
   }
   in.close();
 }
@@ -76,19 +76,29 @@ int main(int argc, char** argv)
   }
 
   // Normalize
-  if ( bkgTot.size() != inTot.size() )
-  {
-    cout << "Different number of samplesin bkgfile and infile\n";
-    return 1;
-  }
+  unsigned int currentBkg=0;
   for ( unsigned int i=0;i<inTot.size(); i++ )
   {
-    if ( abs(inFreq[i] - frequencies[i]) > DELTA_CLOSE )
+    while ( inFreq[i] > frequencies[currentBkg] )
     {
-      cout << "Frequencies in bkgfile and infile does not match\n";
-      return 1;
+      currentBkg++;
     }
-    inTot[i] /= bkgTot[i];
+
+    if ( currentBkg == 0 )
+    {
+      inTot[i] /= bkgTot[0];
+    }
+    else if ( currentBkg >= frequencies.size() )
+    {
+      inTot[i] /= bkgTot[bkgTot.size()-1];
+    }
+    else 
+    {
+      double weight = (inFreq[i] - frequencies[currentBkg-1])/(frequencies[currentBkg]-frequencies[currentBkg-1]);
+      double bkgPow = weight*(bkgTot[currentBkg] - bkgTot[currentBkg-1]) + bkgTot[currentBkg-1];
+      // Interpolate 
+      inTot[i] /= bkgPow;
+    }
   }
 
   // Construct out filename from infile name
