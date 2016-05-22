@@ -6,7 +6,7 @@
 #include <vector>
 #include <cmath>
 #include <cstring>
-#define MIN_SAVE_VAL 0.0
+#define MIN_SAVE_VAL 1E-4
 
 using namespace std;
 int main(int argc, char** argv)
@@ -46,6 +46,13 @@ int main(int argc, char** argv)
   }
   infile.close();
 
+  // Compute sum
+  double fieldSum;
+  for ( unsigned int i=0;i<field.size();i++)
+  {
+    fieldSum += field[i]*field[i];
+  }
+
   // Compute fourier transform of the signal
   double dt = time[1] - time[0];
   
@@ -76,11 +83,27 @@ int main(int argc, char** argv)
     {
       field[i] = pow( field[2*i-1], 2 ) + pow( field[2*i], 2 );
     }
-    field[field.size()/2] *= field[field.size()/2];
+    field[field.size()/2-1] *= field[field.size()/2];
+  }
+
+  // Compute sum of spectrum
+  double fieldFFTSum = 0.0;
+  for ( unsigned int i=0;i<field.size()/2;i++)
+  {
+    fieldFFTSum += field[i];
+  }
+  fieldFFTSum = 2*fieldFFTSum - field[0];
+  
+  // Check Parseval
+  if ( abs(fieldFFTSum/static_cast<double>(field.size()) - fieldSum) > 1E-3 )
+  {
+    cout << "Warning! Parseval identity is not fulfilled\n";
+    cout << "Sum of field: " << fieldSum << endl;
+    cout << "Sum of power spectrum (/N): " << fieldFFTSum/static_cast<double>(field.size()) << endl;
   }
   
   // Write results to file
-  double df = 1.0/dt;
+  double df = 1.0/static_cast<double>(field.size());
   unsigned int pos = fname.find(".");
   string ofname = fname.substr(0,pos);
   ofname += "Fourier.csv";
@@ -92,7 +115,7 @@ int main(int argc, char** argv)
   {
     if ( field[i] > MIN_SAVE_VAL )
     {
-      os << freq << "," << field[i] << "\n";
+      os << freq << "," << field[i]/static_cast<double>(field.size()) << "\n";
     }
     freq += df;
   }
