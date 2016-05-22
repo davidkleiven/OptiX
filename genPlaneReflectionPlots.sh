@@ -5,11 +5,17 @@ FDIR="Figures/planeReflection"
 mkdir -p ${FDIR}
 echo "Plotting raw fields at monitor..."
 # Generate plot for the case with no reflections
-OFILE="${FDIR}/noBoundary.png"
-IFILE="${DDIR}/NoBoundary/ezMonitor.csv"
+OFILE="${FDIR}/noBoundarySource.png"
+IFILE="${DDIR}/NoBoundary/ezMonitorSource.csv"
+gnuplot -e "ofile='${OFILE}';ifile='${IFILE}'" plotFieldComponent.plt
+OFILE="${FDIR}/noBoundaryTrans.png"
+IFILE="${DDIR}/NoBoundary/ezMonitorTrans.csv"
 gnuplot -e "ofile='${OFILE}';ifile='${IFILE}'" plotFieldComponent.plt
 
 # Normal incidence
-OFILE="${FDIR}/normalInc.png"
-IFILE="${DDIR}/NormalInc/ezMonitor.csv"
+OFILE="${FDIR}/normalIncSource.png"
+IFILE="${DDIR}/NormalInc/ezMonitorSource.csv"
+gnuplot -e "ofile='${OFILE}';ifile='${IFILE}'" plotFieldComponent.plt
+OFILE="${FDIR}/normalIncTrans.png"
+IFILE="${DDIR}/NormalInc/ezMonitorTrans.csv"
 gnuplot -e "ofile='${OFILE}';ifile='${IFILE}'" plotFieldComponent.plt
