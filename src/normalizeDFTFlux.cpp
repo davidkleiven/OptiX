@@ -77,18 +77,27 @@ int main(int argc, char** argv)
 
   // Normalize
   unsigned int currentBkg=0;
+  bool useLastForNormalization = false;
   for ( unsigned int i=0;i<inTot.size(); i++ )
   {
-    while ( inFreq[i] > frequencies[currentBkg] )
+    if ( currentBkg < frequencies.size() )
     {
-      currentBkg++;
+      while (( inFreq[i] > frequencies[currentBkg] ) )
+      {
+        currentBkg++;
+      }
+    }
+    else if ( inFreq[i] > frequencies[frequencies.size()-1] )
+    {
+      useLastForNormalization = true;
     }
 
+    // Interpolate 
     if ( currentBkg == 0 )
     {
       inTot[i] /= bkgTot[0];
     }
-    else if ( currentBkg >= frequencies.size() )
+    else if ( useLastForNormalization )
     {
       inTot[i] /= bkgTot[bkgTot.size()-1];
     }
@@ -96,7 +105,6 @@ int main(int argc, char** argv)
     {
       double weight = (inFreq[i] - frequencies[currentBkg-1])/(frequencies[currentBkg]-frequencies[currentBkg-1]);
       double bkgPow = weight*(bkgTot[currentBkg] - bkgTot[currentBkg-1]) + bkgTot[currentBkg-1];
-      // Interpolate 
       inTot[i] /= bkgPow;
     }
   }
