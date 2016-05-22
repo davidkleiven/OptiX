@@ -7,7 +7,7 @@ MEEP_IDIR = /home/david/Documents/MEEP/meep-1.3/src
 MEEP_LDIR = /home/david/Documents/MEEP/meep-1.3/install/lib
 HDF5_LDIR = /usr/lib/x86_64-linux-gnu/hdf5/serial
 
-PLANE_WAVE := planeReflection.cpp
+PLANE_WAVE := planeReflection.cpp dataToFile.cpp
 PLANE_WAVE_OBJ := $(PLANE_WAVE:.cpp=.o)
 PLANE_WAVE := $(addprefix $(SDIR)/, $(PLANE_WAVE))
 PLANE_WAVE_OBJ := $(addprefix $(ODIR)/, $(PLANE_WAVE_OBJ))

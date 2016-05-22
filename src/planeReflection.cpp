@@ -8,6 +8,8 @@
 #include <string>
 #include <sstream>
 #include <cassert>
+#include <stdexcept>
+#include "dataToFile.h"
 #define ODIRLEN 60
 
 /**
@@ -141,9 +143,11 @@ int main(int argc, char **argv)
 
   // Put a field monitor at the center of the geometry 
   meep::vec monitorPos(XSIZE/2.0, 7.0);
+  meep::vec monitorTransPlanePos(XSIZE/2.0, PML_THICK);
 
   vector<double> fieldAtCenterReal; // Container for the real field component
   vector<double> timepoints; // Container for the timepoints
+  vector<double> fieldAtFluxPlane; // Container for the real field component at the center of the flux plane
 
   // Main loop.
   // TODO: Check if NSTEPS is correct. Maybe tune for frequency resulution in DFT
@@ -153,7 +157,9 @@ int main(int argc, char **argv)
 
     // Get field amplitude
     complex<double> fieldAmp = field.get_field(meep::Ez, monitorPos);
+    complex<double> fieldAmpTrans = field.get_field(meep::Ez, monitorTransPlanePos);
     fieldAtCenterReal.push_back(real(fieldAmp));
+    fieldAtFluxPlane.push_back(real( fieldAmpTrans ));
     timepoints.push_back(field.time());
 
     if ( field.time() > nextOutputTime )
@@ -173,46 +179,50 @@ int main(int argc, char **argv)
   {
     cout << "Problem when opening file " << fluxOut << endl;
   }
-  os << "# Flux from transmitted wave\n";
-  os << "# Volume description\n";
-  os << "# Flux in y-direction\n";
-  os << "# Corner 1: (x,y) = (" << dftVol.get_min_corner().x() << ","<<dftVol.get_min_corner().y() << ")\n";
-  os << "# Corner 2: (x,y) = (" << dftVol.get_max_corner().x() << "," << dftVol.get_max_corner().y() << ")\n"; 
-  os << "# Flux in x-direction:\n";
-  os << "# Corner 1: (x,y) = (" << dftVolX.get_min_corner().x() << ","<<dftVolX.get_min_corner().y() << ")\n";
-  os << "# Corner 2: (x,y) = (" << dftVolX.get_max_corner().x() << "," << dftVolX.get_max_corner().y() << ")\n"; 
-  os << "# EPS_HIGH = " << EPS_HIGH << endl;
-  os << "# Frequency, Flux Y, Flux X\n";
-  double dfreq = 2.0*fwidth/static_cast<double>(nfreq);
-  double currentFreq = freq-fwidth;
-  double *transmittedFlux = transFluxY.flux();
-  double *transmittedFluxX = transFluxX.flux();
-  for ( unsigned int i=0;i<nfreq;i++ )
+  else
   {
-    os << currentFreq << "," << transmittedFlux[i] << "," << transmittedFluxX[i] << "\n";
-    currentFreq += dfreq;
+    os << "# Flux from transmitted wave\n";
+    os << "# Volume description\n";
+    os << "# Flux in y-direction\n";
+    os << "# Corner 1: (x,y) = (" << dftVol.get_min_corner().x() << ","<<dftVol.get_min_corner().y() << ")\n";
+    os << "# Corner 2: (x,y) = (" << dftVol.get_max_corner().x() << "," << dftVol.get_max_corner().y() << ")\n"; 
+    os << "# Flux in x-direction:\n";
+    os << "# Corner 1: (x,y) = (" << dftVolX.get_min_corner().x() << ","<<dftVolX.get_min_corner().y() << ")\n";
+    os << "# Corner 2: (x,y) = (" << dftVolX.get_max_corner().x() << "," << dftVolX.get_max_corner().y() << ")\n"; 
+    os << "# EPS_HIGH = " << EPS_HIGH << endl;
+    os << "# Frequency, Flux Y, Flux X\n";
+    double dfreq = 2.0*fwidth/static_cast<double>(nfreq);
+    double currentFreq = freq-fwidth;
+    double *transmittedFlux = transFluxY.flux();
+    double *transmittedFluxX = transFluxX.flux();
+    for ( unsigned int i=0;i<nfreq;i++ )
+    {
+      os << currentFreq << "," << transmittedFlux[i] << "," << transmittedFluxX[i] << "\n";
+      currentFreq += dfreq;
+    }
+    os.close();
+    delete [] transmittedFlux;
+    delete [] transmittedFluxX;
   }
-  os.close();
-  delete [] transmittedFlux;
-  delete [] transmittedFluxX;
   
 
   // Write monitor to file
-  string monitorOut("ezMonitor.csv");
-  monitorOut = ddir + "/" + monitorOut;
-  os.open(monitorOut.c_str());
-  if ( !os.good() )
+  try
   {
-    cout << "Problem when opening file " << monitorOut << endl;
-    return 1;
+    string monitorOut("ezMonitorSource.csv");
+    monitorOut = ddir + "/" + monitorOut;
+    monitorToFile(monitorOut, timepoints, fieldAtCenterReal, monitorPos);
+    monitorOut = ddir + "/" + "ezMonitorTrans.csv";
+    monitorToFile(monitorOut, timepoints, fieldAtFluxPlane, monitorTransPlanePos);
   }
-  os << "# Field monitored at positions\n";
-  os << "# Time, Ez.real\n";
-  for ( unsigned int i=0;i<timepoints.size();i++ )
+  catch ( runtime_error &exc )
   {
-    os << timepoints[i] << "," << fieldAtCenterReal[i] << "\n";
+    cout << exc.what() << endl;
   }
-  os.close(); 
+  catch (...)
+  {
+    cout << "An unexpected exception occured...";
+  }
   return 0;
 }
 
