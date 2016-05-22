@@ -92,7 +92,7 @@ int main(int argc, char** argv)
   {
     fieldFFTSum += field[i];
   }
-  fieldFFTSum = 2*fieldFFTSum - field[0];
+  fieldFFTSum = 2.0*fieldFFTSum - field[0];
   
   // Check Parseval
   if ( abs(fieldFFTSum/static_cast<double>(field.size()) - fieldSum) > 1E-3 )
@@ -113,18 +113,13 @@ int main(int argc, char** argv)
   double freq = 0.0;
   for ( unsigned int i=0;i<field.size()/2;i++)
   {
-    if ( field[i] > MIN_SAVE_VAL )
+    double fieldSave = field[i];//static_cast<double>(field.size());
+    if ( fieldSave > MIN_SAVE_VAL )
     {
-      os << freq << "," << field[i]/static_cast<double>(field.size()) << "\n";
+      os << freq << "," << fieldSave << "\n";
     }
     freq += df;
   }
   os.close();
   return 0;
-}
-  
-      
-
-  
-  
-  
+} 

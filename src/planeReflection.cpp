@@ -32,8 +32,8 @@ const double XSIZE = 20.0;
 const double YSIZE = 50.0;
 const double PML_THICK = 4.0;
 const double SOURCE_Y = YSIZE-PML_THICK - 1.0;
-//const double YC_PLANE = YSIZE/2.0;
-const double YC_PLANE = 20.0; // Reflected pulse cannot reach the source before the source is finished
+const double YC_PLANE = YSIZE/2.0;
+//const double YC_PLANE = 20.0; // Reflected pulse cannot reach the source before the source is finished
 //const double YC_PLANE = PML_THICK+1.0;
 const double PI = acos(-1.0);
 const complex<double> IMAG_UNIT(0,1.0);
