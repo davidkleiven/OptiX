@@ -107,16 +107,11 @@ int main(int argc, char **argv)
   meep::volume srcvol(srcCorner1, srcCorner2);
 
   // Initalize structure. Add PML in y-direction
-  //meep::structure srct(vol, dielectric, meep::pml(1.0, meep::Y));
   meep::structure srct(vol, dielectric, meep::pml(PML_THICK));
 
   srct.Courant = 0.1;
   meep::fields field(&srct);
   
-  // Add periodic boundary conditions in x-direction
-  //double blochK = 2.0*PI/(XSIZE-1.0);
-  //field.use_bloch( meep::X, blochK ); 
-
   field.set_output_directory(OUTDIR); 
 
   // Write dielectric function to file
@@ -151,6 +146,8 @@ int main(int argc, char **argv)
 
   // Main loop.
   // TODO: Check if NSTEPS is correct. Maybe tune for frequency resulution in DFT
+  double transYWidth = abs( dftVol.get_max_corner().x() - dftVol.get_min_corner().x() );
+  double transXWidth = abs( dftVolX.get_max_corner().y() - dftVolX.get_min_corner().y() );
   while ( field.time() < nfreq/fwidth )
   {
     field.step();
@@ -197,7 +194,7 @@ int main(int argc, char **argv)
     double *transmittedFluxX = transFluxX.flux();
     for ( unsigned int i=0;i<nfreq;i++ )
     {
-      os << currentFreq << "," << transmittedFlux[i] << "," << transmittedFluxX[i] << "\n";
+      os << currentFreq << "," << transmittedFlux[i]/transYWidth << "," << transmittedFluxX[i]/transXWidth << "\n";
       currentFreq += dfreq;
     }
     os.close();
