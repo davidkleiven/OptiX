@@ -146,9 +146,9 @@ int main(int argc, char **argv)
   }
 
   // Add DFT fluxplane
-  meep::volume dftVol = meep::volume(meep::vec(0.0,PML_THICK), meep::vec(XSIZE-1.0,PML_THICK));
+  meep::volume dftVol = meep::volume(meep::vec(XSIZE/2.0,PML_THICK), meep::vec(XSIZE-PML_THICK-1.0,PML_THICK));
   meep::volume dftVolX = meep::volume(meep::vec(XSIZE-PML_THICK-1.0, PML_THICK), meep::vec(XSIZE-PML_THICK-1.0, YC_PLANE));
-  unsigned int nfreq = 10;
+  unsigned int nfreq = 20;
   meep::dft_flux transFluxY = field.add_dft_flux_plane(dftVol, freq+fwidth, freq-fwidth, nfreq);
   meep::dft_flux transFluxX = field.add_dft_flux_plane(dftVolX, freq+fwidth, freq-fwidth, nfreq);
   
@@ -222,7 +222,8 @@ int main(int argc, char **argv)
     double *transmittedFluxX = transFluxX.flux();
     for ( unsigned int i=0;i<nfreq;i++ )
     {
-      os << currentFreq << "," << transmittedFlux[i]/transYWidth << "," << transmittedFluxX[i]/transXWidth << "\n";
+      //os << currentFreq << "," << transmittedFlux[i]/transYWidth << "," << transmittedFluxX[i]/transXWidth << "\n";
+      os << currentFreq << "," << transmittedFlux[i]/transYWidth << "\n";
       currentFreq += dfreq;
     }
     os.close();
