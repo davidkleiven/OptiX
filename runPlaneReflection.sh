@@ -37,7 +37,6 @@ do
     COMP_FFT=true
   fi
 
-  COMP_FFT=false
   if [ ${COMP_FFT} == true ]; then
     ./fourierPulse.out ${DIR}/ezMonitorTrans.csv
   fi
@@ -49,6 +48,6 @@ done
 # Normalize fluxes
 for ((i=0;i<${#DDIR[@]};i++));
 do
-  #./normalizeDFTFlux.out "${DDIR[$i]}/ezMonitorTransFourier.csv" "${BKGDIR}/ezMonitorTransFourier.csv"
-  ./normalizeDFTFlux.out "${DDIR[$i]}/transmittedFlux.csv" "${BKGDIR}/transmittedFlux.csv"
+  ./normalizeDFTFlux.out "${DDIR[$i]}/ezMonitorTransFourier.csv" "${BKGDIR}/ezMonitorTransFourier.csv"
+  #./normalizeDFTFlux.out "${DDIR[$i]}/transmittedFlux.csv" "${BKGDIR}/transmittedFlux.csv"
 done
