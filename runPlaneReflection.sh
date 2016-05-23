@@ -5,7 +5,7 @@ RUN_ALL=true # If false only non-exsisting simulations will be started
 BKGDIR="dataPlane/NoBoundary"
 EPS_HIGH=2.25
 DELTA_ANGLE=5
-ANGLE_MAX=80
+ANGLE_MAX=90
 ANGLE=0
 
 POLARIZATION="s"
