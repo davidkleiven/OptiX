@@ -16,7 +16,7 @@ void readFluxFile(const string &fname, vector<double> &frequencies, vector<doubl
   if ( !in.good() )
   {
     stringstream msg;
-    msg << "Problems when opening file " << in;
+    msg << "Problems when opening file " << fname;
     throw (msg.str());
   } 
   
