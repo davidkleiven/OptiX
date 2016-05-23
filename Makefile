@@ -27,5 +27,8 @@ normalizeDFTFlux.out: ${ODIR}/normalizeDFTFlux.o
 fourierPulse.out: ${ODIR}/fourierPulse.o
 	$(CXX) -o $@ $^ -llapack -lcblas -lgsl -lm
 
+transmittanceAngle.out: ${ODIR}/transmittanceAngle.o ${ODIR}/readCSVdata.o
+	$(CXX) -o $@ $^
+
 $(ODIR)/%.o: $(SDIR)/%.cpp
 	$(CXX) -MMD -c -fPIC $< -o $@ -I $(IDIR) -I $(MEEP_IDIR)
