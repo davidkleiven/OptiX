@@ -37,6 +37,7 @@ void ReadCSVData::read(const string &fname, unsigned int nColumn)
       data.push_back(newVal);
     }
   }
+  infile.close();
 }
       
 double ReadCSVData::get(unsigned int row, unsigned int col) const
