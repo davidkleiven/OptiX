@@ -32,3 +32,10 @@ transmittanceAngle.out: ${ODIR}/transmittanceAngle.o ${ODIR}/readCSVdata.o
 
 $(ODIR)/%.o: $(SDIR)/%.cpp
 	$(CXX) -MMD -c -fPIC $< -o $@ -I $(IDIR) -I $(MEEP_IDIR)
+
+
+clean:
+	rm ${ODIR}/*.o
+
+cleanExec:
+	rm *.out
