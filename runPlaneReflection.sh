@@ -6,7 +6,7 @@ BKGDIR="dataPlane/NoBoundary"
 EPS_HIGH=2.25
 DELTA_ANGLE=5
 ANGLE_MAX=90
-ANGLE=0
+ANGLE=5
 
 POLARIZATION="s"
 COMP_FFT=false
@@ -48,6 +48,6 @@ done
 # Normalize fluxes
 for ((i=0;i<${#DDIR[@]};i++));
 do
-  ./normalizeDFTFlux.out "${DDIR[$i]}/ezMonitorTransFourier.csv" "${BKGDIR}/ezMonitorTransFourier.csv"
-  #./normalizeDFTFlux.out "${DDIR[$i]}/transmittedFlux.csv" "${BKGDIR}/transmittedFlux.csv"
+  #./normalizeDFTFlux.out "${DDIR[$i]}/ezMonitorTransFourier.csv" "${BKGDIR}/ezMonitorTransFourier.csv"
+  ./normalizeDFTFlux.out "${DDIR[$i]}/transmittedFlux.csv" "${BKGDIR}/transmittedFlux.csv"
 done
