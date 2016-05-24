@@ -77,19 +77,20 @@ int main(int argc, char **argv)
   ss >> EPS_HIGH;
   ss.clear();
   ss << argv[3];
-  ss >> ANGLE;
+  double angle;
+  ss >> angle;
   char polarization = argv[4][0];
 
 
   // Check that angle is within range
   const double maxAngle = 90.0;
-  if ( ANGLE > maxAngle )
+  if ( angle > maxAngle )
   {
     cout << "The incident angle is too large\n";
     cout << "Maximum angle is " << maxAngle << endl;
     return 1;
   }
-  else if ( ANGLE < 0.0 )
+  else if ( angle < 0.0 )
   {
     cout << "Negative angle given. Has to be in range [0,MAX_ANGLE)\n";
     return 1;
@@ -108,7 +109,7 @@ int main(int argc, char **argv)
 
   // Compute kx
   double k = 2.0*PI*freq;
-  KX = k*sin( ANGLE*PI/180.0 );
+  KX = k*sin( angle*PI/180.0 );
   XSIZE = 2.0*PI/KX;
 
   const double minHeight = 2.0*PML_THICK + 4.0;
@@ -116,7 +117,7 @@ int main(int argc, char **argv)
   // Verify that the size of the domain is big enough (for debugging only)
   assert ( YSIZE > minHeight );
   
-  double resoution = 10.0;
+  double resolution = 10.0;
 
   // Initialize computational cell
   meep::grid_volume vol = meep::vol2d(XSIZE, YSIZE, resolution);
