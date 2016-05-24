@@ -27,7 +27,6 @@ using namespace std;
 const double EPS_LOW = 1.0;
 double EPS_HIGH = 1.0;
 
-double ANGLE = 0.0;
 double XSIZE = 20.0;
 const double YSIZE = 30.0;
 const double PML_THICK = 4.0;
@@ -83,7 +82,6 @@ int main(int argc, char **argv)
 
 
   // Check that angle is within range
-  //const double maxAngle = atan( 2.0*(YC_PLANE-PML_THICK)/XSIZE )*180.0/PI;
   const double maxAngle = 90.0;
   if ( ANGLE > maxAngle )
   {
