@@ -28,7 +28,7 @@ const double EPS_LOW = 1.0;
 double EPS_HIGH = 1.0;
 
 double ANGLE = 0.0;
-const double XSIZE = 20.0;
+double XSIZE = 20.0;
 const double YSIZE = 30.0;
 const double PML_THICK = 4.0;
 const double SOURCE_Y = YSIZE-PML_THICK - 1.0;
@@ -37,11 +37,11 @@ const double YC_PLANE = PML_THICK+1.0;
 const double PI = acos(-1.0);
 const complex<double> IMAG_UNIT(0,1.0);
 const unsigned int NSTEPS = 20;
-
+double KX = 1.0;
 
 double dielectric(const meep::vec &pos)
 {
-  if ( pos.y() < (YC_PLANE + (pos.x()-XSIZE/2.0)*tan(ANGLE*PI/180.0)) )
+  if ( pos.y() < YC_PLANE )
   {
     return EPS_HIGH;
   }
@@ -50,7 +50,7 @@ double dielectric(const meep::vec &pos)
 
 complex<double> amplitude(const meep::vec &pos)
 {
-  return 1.0;
+  return exp(IMAG_UNIT*KX*pos.x());
 }
 
 //----------------- MAIN FUNCTION ----------------------------//
@@ -81,8 +81,10 @@ int main(int argc, char **argv)
   ss >> ANGLE;
   char polarization = argv[4][0];
 
+
   // Check that angle is within range
-  const double maxAngle = atan( 2.0*(YC_PLANE-PML_THICK)/XSIZE )*180.0/PI;
+  //const double maxAngle = atan( 2.0*(YC_PLANE-PML_THICK)/XSIZE )*180.0/PI;
+  const double maxAngle = 90.0;
   if ( ANGLE > maxAngle )
   {
     cout << "The incident angle is too large\n";
@@ -103,11 +105,20 @@ int main(int argc, char **argv)
     return 1;
   }
 
-  // Verify that the size of the domain is big enough (for debugging only)
+  double freq = 0.3;
+  double fwidth = 0.2;
+
+  // Compute kx
+  double k = 2.0*PI*freq;
+  KX = k*sin( ANGLE*PI/180.0 );
+  XSIZE = 2.0*PI/KX;
+
   const double minHeight = 2.0*PML_THICK + 4.0;
+
+  // Verify that the size of the domain is big enough (for debugging only)
   assert ( YSIZE > minHeight );
   
-  double resolution = 20.0; // pixels per distance
+  double resolution = 10.0; // pixels per distance
 
   // Initialize computational cell
   meep::grid_volume vol = meep::vol2d(XSIZE, YSIZE, resolution);
@@ -118,10 +129,11 @@ int main(int argc, char **argv)
   meep::volume srcvol(srcCorner1, srcCorner2);
 
   // Initalize structure. Add PML in y-direction
-  meep::structure srct(vol, dielectric, meep::pml(PML_THICK));
+  meep::structure srct(vol, dielectric, meep::pml( PML_THICK, meep::Y ) );
 
   srct.Courant = 0.1;
   meep::fields field(&srct);
+  field.use_bloch( meep::X, 0.0 ); 
   
   field.set_output_directory(OUTDIR); 
 
@@ -129,9 +141,7 @@ int main(int argc, char **argv)
   field.output_hdf5(meep::Dielectric, vol.surroundings()); 
 
   // Set source type. Use Gaussian, had some problems with the continous
-  double freq = 0.5;
-  double fwidth = 0.2;
-  meep::gaussian_src_time src(freq, fwidth);
+  meep::continuous_src_time src(freq, freq/4.0);
   
   if ( polarization == 's' )
   {
@@ -150,7 +160,6 @@ int main(int argc, char **argv)
   meep::dft_flux transFluxX = field.add_dft_flux_plane(dftVolX, freq+fwidth, freq-fwidth, nfreq);
   
   unsigned int nOut = 20; // Number of output files
-  //double dt = ( field.last_source_time() + NSTEPS )/static_cast<double>(nOut); // Timestep between output hdf5
   double dt = nfreq/(nOut*fwidth);
   double nextOutputTime = 0.0;
 
@@ -164,7 +173,7 @@ int main(int argc, char **argv)
 
   // Time required to propagate over the domain with the slowest speed
   double speed = 1.0/sqrt(EPS_HIGH);
-  double tPropagate = field.last_source_time() + SOURCE_Y/speed;
+  double tPropagate = 10.0*SOURCE_Y/speed;
 
   // Main loop.
   // TODO: Check if NSTEPS is correct. Maybe tune for frequency resulution in DFT
@@ -172,8 +181,8 @@ int main(int argc, char **argv)
   double transXWidth = abs( dftVolX.get_max_corner().y() - dftVolX.get_min_corner().y() );
   double timeToRegisterFourier = nfreq/fwidth;
 
-  double tend = timeToRegisterFourier > tPropagate ? timeToRegisterFourier:tPropagate;
-  while ( field.time() < tPropagate )
+  double tEnd = timeToRegisterFourier > tPropagate ? timeToRegisterFourier:tPropagate;
+  while ( field.time() < tEnd )
   {
     field.step();
 
