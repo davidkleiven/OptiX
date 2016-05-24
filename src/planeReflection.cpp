@@ -31,8 +31,8 @@ double XSIZE = 20.0;
 const double YSIZE = 30.0;
 const double PML_THICK = 4.0;
 const double SOURCE_Y = YSIZE-PML_THICK - 1.0;
-//const double YC_PLANE = YSIZE/2.0;
-const double YC_PLANE = PML_THICK+1.0;
+const double YC_PLANE = 20.0; // Reflected pulse cannot reach the source before the source is finished
+//const double YC_PLANE = PML_THICK+1.0;
 const double PI = acos(-1.0);
 const complex<double> IMAG_UNIT(0,1.0);
 const unsigned int NSTEPS = 20;
@@ -116,7 +116,7 @@ int main(int argc, char **argv)
   // Verify that the size of the domain is big enough (for debugging only)
   assert ( YSIZE > minHeight );
   
-  double resolution = 10.0; // pixels per distance
+  double resoution = 10.0;
 
   // Initialize computational cell
   meep::grid_volume vol = meep::vol2d(XSIZE, YSIZE, resolution);
@@ -129,7 +129,7 @@ int main(int argc, char **argv)
   // Initalize structure. Add PML in y-direction
   meep::structure srct(vol, dielectric, meep::pml( PML_THICK, meep::Y ) );
 
-  srct.Courant = 0.1;
+  //srct.Courant = 0.1;
   meep::fields field(&srct);
   field.use_bloch( meep::X, 0.0 ); 
   
@@ -151,9 +151,9 @@ int main(int argc, char **argv)
   }
 
   // Add DFT fluxplane
-  meep::volume dftVol = meep::volume(meep::vec(0.0,PML_THICK), meep::vec(XSIZE-1.0,PML_THICK));
+  meep::volume dftVol = meep::volume(meep::vec(XSIZE/2.0,PML_THICK), meep::vec(XSIZE-PML_THICK-1.0,PML_THICK));
   meep::volume dftVolX = meep::volume(meep::vec(XSIZE-PML_THICK-1.0, PML_THICK), meep::vec(XSIZE-PML_THICK-1.0, YC_PLANE));
-  unsigned int nfreq = 10;
+  unsigned int nfreq = 20;
   meep::dft_flux transFluxY = field.add_dft_flux_plane(dftVol, freq+fwidth, freq-fwidth, nfreq);
   meep::dft_flux transFluxX = field.add_dft_flux_plane(dftVolX, freq+fwidth, freq-fwidth, nfreq);
   
@@ -226,7 +226,8 @@ int main(int argc, char **argv)
     double *transmittedFluxX = transFluxX.flux();
     for ( unsigned int i=0;i<nfreq;i++ )
     {
-      os << currentFreq << "," << transmittedFlux[i]/transYWidth << "," << transmittedFluxX[i]/transXWidth << "\n";
+      //os << currentFreq << "," << transmittedFlux[i]/transYWidth << "," << transmittedFluxX[i]/transXWidth << "\n";
+      os << currentFreq << "," << transmittedFlux[i]/transYWidth << "\n";
       currentFreq += dfreq;
     }
     os.close();
