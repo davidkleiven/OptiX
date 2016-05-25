@@ -10,7 +10,7 @@
 
 using namespace std;
 
-void readFluxFile(const string &fname, vector<double> &frequencies, vector<double> &totFlux)
+void readFluxFile(const string &fname, vector<double> &angles, vector<double> &totFlux)
 {
   ifstream in(fname.c_str());
   if ( !in.good() )
@@ -25,13 +25,13 @@ void readFluxFile(const string &fname, vector<double> &frequencies, vector<doubl
   stringstream firstLine;
   char comma;
   firstLine << line;
-  double freq, newP;
-  firstLine >> freq >> comma >> newP;
-  frequencies.push_back(freq);
+  double freq, newP, angle;
+  firstLine >> freq >> comma >> angle >> comma >> newP;
+  angles.push_back(angle);
   totFlux.push_back( newP );
-  while ( in >> freq >> comma >> newP )
+  while ( in >> freq >> comma >> angle >> comma >> newP )
   {
-    frequencies.push_back(freq);
+    angles.push_back( angle );
     totFlux.push_back( newP );
   }
   in.close();
@@ -80,6 +80,8 @@ int main(int argc, char** argv)
   bool useLastForNormalization = false;
   for ( unsigned int i=0;i<inTot.size(); i++ )
   {
+    inTot[i] = inTot[i]/bkgTot[i];
+    /*
     if ( currentBkg < frequencies.size() )
     {
       while (( inFreq[i] > frequencies[currentBkg] ) )
@@ -106,7 +108,7 @@ int main(int argc, char** argv)
       double weight = (inFreq[i] - frequencies[currentBkg-1])/(frequencies[currentBkg]-frequencies[currentBkg-1]);
       double bkgPow = weight*(bkgTot[currentBkg] - bkgTot[currentBkg-1]) + bkgTot[currentBkg-1];
       inTot[i] /= bkgPow;
-    }
+    }*/
   }
 
   // Construct out filename from infile name
@@ -125,7 +127,7 @@ int main(int argc, char** argv)
   out << "# Normalized total flux\n";
   out << "# Infile: " << infile << endl;
   out << "# Bkgfile: " << bkgfile << endl;
-  out << "# Frequency, Normalized total flux\n";
+  out << "# Angle, Normalized total flux\n";
   for ( unsigned int i=0;i<inTot.size();i++)
   {
     out << inFreq[i] << "," << inTot[i] << "\n";
