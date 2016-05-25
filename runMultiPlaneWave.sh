@@ -15,3 +15,6 @@ mkdir -p ${ODIR}
 rm -f ${ODIR}/*
 
 ./planeReflection.out ${ODIR} ${EPS_HIGH} ${ANGLE} s
+
+# Normalize
+./normalizeDFTFlux.out ${ODIR}/transmittedFlux.csv ${BKGDIR}/transmittedFlux.csv
