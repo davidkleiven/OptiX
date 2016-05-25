@@ -105,7 +105,7 @@ int main(int argc, char **argv)
   }
 
   double freq = 0.3;
-  double fwidth = 0.2;
+  double fwidth = 0.3;
 
   // Compute kx
   double k = 2.0*PI*freq;
@@ -140,7 +140,7 @@ int main(int argc, char **argv)
   field.output_hdf5(meep::Dielectric, vol.surroundings()); 
 
   // Set source type. Use Gaussian, had some problems with the continous
-  meep::continuous_src_time src(freq, freq/4.0);
+  meep::gaussian_src_time src(freq, fwidth);
   
   if ( polarization == 's' )
   {
@@ -172,7 +172,7 @@ int main(int argc, char **argv)
 
   // Time required to propagate over the domain with the slowest speed
   double speed = 1.0/sqrt(EPS_HIGH);
-  double tPropagate = 10.0*SOURCE_Y/speed;
+  double tPropagate = field.last_source_time() + SOURCE_Y/speed;
 
   // Main loop.
   // TODO: Check if NSTEPS is correct. Maybe tune for frequency resulution in DFT
@@ -216,19 +216,25 @@ int main(int argc, char **argv)
     os << "# Flux in y-direction\n";
     os << "# Corner 1: (x,y) = (" << dftVol.get_min_corner().x() << ","<<dftVol.get_min_corner().y() << ")\n";
     os << "# Corner 2: (x,y) = (" << dftVol.get_max_corner().x() << "," << dftVol.get_max_corner().y() << ")\n"; 
-    os << "# Flux in x-direction:\n";
-    os << "# Corner 1: (x,y) = (" << dftVolX.get_min_corner().x() << ","<<dftVolX.get_min_corner().y() << ")\n";
-    os << "# Corner 2: (x,y) = (" << dftVolX.get_max_corner().x() << "," << dftVolX.get_max_corner().y() << ")\n"; 
     os << "# EPS_HIGH = " << EPS_HIGH << endl;
-    os << "# Frequency, Flux Y, Flux X\n";
+    os << "# Frequency, Angle, Flux Y\n";
     double dfreq = 2.0*fwidth/static_cast<double>(nfreq);
     double currentFreq = freq-fwidth;
     double *transmittedFlux = transFluxY.flux();
     double *transmittedFluxX = transFluxX.flux();
     for ( unsigned int i=0;i<nfreq;i++ )
     {
-      //os << currentFreq << "," << transmittedFlux[i]/transYWidth << "," << transmittedFluxX[i]/transXWidth << "\n";
-      os << currentFreq << "," << transmittedFlux[i]/transYWidth << "\n";
+      double sinCurrentAngle = freq*sin(angle)/currentFreq;
+      double currentAngle = 0.0;
+      if ( abs(sinCurrentAngle) > 1.0 )
+      {
+        currentAngle = -90.0;
+      }
+      else
+      {
+        currentAngle = asin(sinCurrentAngle)*180.0/PI;
+      }
+      os << currentFreq << "," << currentAngle << "," << transmittedFlux[i]/transYWidth << "\n";
       currentFreq += dfreq;
     }
     os.close();
@@ -236,7 +242,6 @@ int main(int argc, char **argv)
     delete [] transmittedFluxX;
   }
   
-
   // Write monitor to file
   try
   {
