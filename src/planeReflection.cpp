@@ -117,7 +117,7 @@ int main(int argc, char **argv)
   // Verify that the size of the domain is big enough (for debugging only)
   assert ( YSIZE > minHeight );
   
-  double resolution = 10.0;
+  double resolution = 20.0;
 
   // Initialize computational cell
   meep::grid_volume vol = meep::vol2d(XSIZE, YSIZE, resolution);
@@ -152,10 +152,10 @@ int main(int argc, char **argv)
   }
 
   // Add DFT fluxplane
-  meep::volume dftVol = meep::volume(meep::vec(XSIZE/2.0,PML_THICK), meep::vec(XSIZE-PML_THICK-1.0,PML_THICK));
+  meep::volume dftVol = meep::volume(meep::vec(0.0,PML_THICK), meep::vec(XSIZE-1.0,PML_THICK));
   meep::volume dftVolX = meep::volume(meep::vec(XSIZE-PML_THICK-1.0, PML_THICK), meep::vec(XSIZE-PML_THICK-1.0, YC_PLANE));
-  unsigned int nfreq = 20;
-  meep::dft_flux transFluxY = field.add_dft_flux_plane(dftVol, freq+fwidth, freq-fwidth, nfreq);
+  unsigned int nfreq = 40;
+  meep::dft_flux transFluxY = field.add_dft_flux_plane(dftVol, freq+fwidth/2.0, freq-fwidth/2.0, nfreq);
   meep::dft_flux transFluxX = field.add_dft_flux_plane(dftVolX, freq+fwidth, freq-fwidth, nfreq);
   
   unsigned int nOut = 20; // Number of output files
@@ -172,10 +172,9 @@ int main(int argc, char **argv)
 
   // Time required to propagate over the domain with the slowest speed
   double speed = 1.0/sqrt(EPS_HIGH);
-  double tPropagate = field.last_source_time() + SOURCE_Y/speed;
+  double tPropagate = field.last_source_time() + 8.0*SOURCE_Y/speed;
 
   // Main loop.
-  // TODO: Check if NSTEPS is correct. Maybe tune for frequency resulution in DFT
   double transYWidth = abs( dftVol.get_max_corner().x() - dftVol.get_min_corner().x() );
   double transXWidth = abs( dftVolX.get_max_corner().y() - dftVolX.get_min_corner().y() );
   double timeToRegisterFourier = nfreq/fwidth;
@@ -218,13 +217,13 @@ int main(int argc, char **argv)
     os << "# Corner 2: (x,y) = (" << dftVol.get_max_corner().x() << "," << dftVol.get_max_corner().y() << ")\n"; 
     os << "# EPS_HIGH = " << EPS_HIGH << endl;
     os << "# Frequency, Angle, Flux Y\n";
-    double dfreq = 2.0*fwidth/static_cast<double>(nfreq);
-    double currentFreq = freq-fwidth;
+    double dfreq = fwidth/static_cast<double>(nfreq);
+    double currentFreq = freq-fwidth/2.0+dfreq;
     double *transmittedFlux = transFluxY.flux();
     double *transmittedFluxX = transFluxX.flux();
     for ( unsigned int i=0;i<nfreq;i++ )
     {
-      double sinCurrentAngle = freq*sin(angle)/currentFreq;
+      double sinCurrentAngle = freq*sin(angle*PI/180.0)/currentFreq;
       double currentAngle = 0.0;
       if ( abs(sinCurrentAngle) > 1.0 )
       {
