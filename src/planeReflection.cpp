@@ -116,7 +116,7 @@ int main(int argc, char **argv)
   // Verify that the size of the domain is big enough (for debugging only)
   assert ( YSIZE > minHeight );
   
-  double resolution = 10.0;
+  double resolution = 5.0;
 
   // Initialize computational cell
   meep::grid_volume vol = meep::vol2d(XSIZE, YSIZE, resolution);
@@ -131,7 +131,7 @@ int main(int argc, char **argv)
 
   //srct.Courant = 0.1;
   meep::fields field(&srct);
-  field.use_bloch( meep::X, KX/(2.0*PI) ); 
+  field.use_bloch( meep::X, KX/(2.0*PI) ); // MEEP leaves out the factor 2pi (k = 1/lambda)
   
   field.set_output_directory(OUTDIR); 
 
@@ -155,9 +155,6 @@ int main(int argc, char **argv)
   unsigned int nfreq = 40;
   meep::dft_flux transFluxY = field.add_dft_flux_plane(dftVol, freq+fwidth/2.0, freq-fwidth/2.0, nfreq);
   
-  unsigned int nOut = 20; // Number of output files
-  double dt = nfreq/(nOut*fwidth);
-  double nextOutputTime = 0.0;
 
   // Put a field monitor at the center of the geometry 
   meep::vec monitorPos(XSIZE/2.0, SOURCE_Y-0.1);
@@ -176,6 +173,10 @@ int main(int argc, char **argv)
   double timeToRegisterFourier = nfreq/fwidth;
 
   double tEnd = timeToRegisterFourier > tPropagate ? timeToRegisterFourier:tPropagate;
+
+  unsigned int nOut = 80; // Number of output files
+  double dt = tEnd/nOut;
+  double nextOutputTime = 0.0;
   while ( field.time() < tEnd )
   {
     field.step();
