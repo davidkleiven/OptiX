@@ -27,11 +27,11 @@ using namespace std;
 const double EPS_LOW = 1.0;
 double EPS_HIGH = 1.0;
 
-double XSIZE = 20.0;
-const double YSIZE = 30.0;
-const double PML_THICK = 4.0;
+const double XSIZE = 5.0;
+const double YSIZE = 10.0;
+const double PML_THICK = 1.0;
 const double SOURCE_Y = YSIZE-PML_THICK - 1.0;
-const double YC_PLANE = 20.0; // Reflected pulse cannot reach the source before the source is finished
+const double YC_PLANE = 6.0; // Reflected pulse cannot reach the source before the source is finished
 //const double YC_PLANE = PML_THICK+1.0;
 const double PI = acos(-1.0);
 const complex<double> IMAG_UNIT(0,1.0);
@@ -105,19 +105,18 @@ int main(int argc, char **argv)
   }
 
   double freq = 0.3;
-  double fwidth = 0.3;
+  double fwidth = 0.03;
 
   // Compute kx
   double k = 2.0*PI*freq;
   KX = k*sin( angle*PI/180.0 );
-  XSIZE = 2.0*PI/KX;
 
   const double minHeight = 2.0*PML_THICK + 4.0;
 
   // Verify that the size of the domain is big enough (for debugging only)
   assert ( YSIZE > minHeight );
   
-  double resolution = 20.0;
+  double resolution = 10.0;
 
   // Initialize computational cell
   meep::grid_volume vol = meep::vol2d(XSIZE, YSIZE, resolution);
@@ -132,7 +131,7 @@ int main(int argc, char **argv)
 
   //srct.Courant = 0.1;
   meep::fields field(&srct);
-  field.use_bloch( meep::X, 0.0 ); 
+  field.use_bloch( meep::X, KX/(2.0*PI) ); 
   
   field.set_output_directory(OUTDIR); 
 
@@ -153,10 +152,8 @@ int main(int argc, char **argv)
 
   // Add DFT fluxplane
   meep::volume dftVol = meep::volume(meep::vec(0.0,PML_THICK), meep::vec(XSIZE-1.0,PML_THICK));
-  meep::volume dftVolX = meep::volume(meep::vec(XSIZE-PML_THICK-1.0, PML_THICK), meep::vec(XSIZE-PML_THICK-1.0, YC_PLANE));
   unsigned int nfreq = 40;
   meep::dft_flux transFluxY = field.add_dft_flux_plane(dftVol, freq+fwidth/2.0, freq-fwidth/2.0, nfreq);
-  meep::dft_flux transFluxX = field.add_dft_flux_plane(dftVolX, freq+fwidth, freq-fwidth, nfreq);
   
   unsigned int nOut = 20; // Number of output files
   double dt = nfreq/(nOut*fwidth);
@@ -172,11 +169,10 @@ int main(int argc, char **argv)
 
   // Time required to propagate over the domain with the slowest speed
   double speed = 1.0/sqrt(EPS_HIGH);
-  double tPropagate = field.last_source_time() + 8.0*SOURCE_Y/speed;
+  double tPropagate = field.last_source_time() + 1.2*SOURCE_Y/speed;
 
   // Main loop.
   double transYWidth = abs( dftVol.get_max_corner().x() - dftVol.get_min_corner().x() );
-  double transXWidth = abs( dftVolX.get_max_corner().y() - dftVolX.get_min_corner().y() );
   double timeToRegisterFourier = nfreq/fwidth;
 
   double tEnd = timeToRegisterFourier > tPropagate ? timeToRegisterFourier:tPropagate;
@@ -220,7 +216,6 @@ int main(int argc, char **argv)
     double dfreq = fwidth/static_cast<double>(nfreq);
     double currentFreq = freq-fwidth/2.0+dfreq;
     double *transmittedFlux = transFluxY.flux();
-    double *transmittedFluxX = transFluxX.flux();
     for ( unsigned int i=0;i<nfreq;i++ )
     {
       double sinCurrentAngle = freq*sin(angle*PI/180.0)/currentFreq;
@@ -238,7 +233,6 @@ int main(int argc, char **argv)
     }
     os.close();
     delete [] transmittedFlux;
-    delete [] transmittedFluxX;
   }
   
   // Write monitor to file
