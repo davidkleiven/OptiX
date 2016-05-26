@@ -14,7 +14,6 @@ if [ ${RUN_ALL} == true ] || [ ! -d ${BKGDIR}]; then
     rm -f ${BKGDIR}/*.h5 ${BKGDIR}/*.png ${BKGDIR}/*.csv ${BKGDIR}/*.gif
     mkdir -p ${BKGDIR}
   ./planeReflection.out ${BKGDIR} 1.0 0.0 ${POLARIZATION}
-  ./fourierPulse.out ${BKGDIR}/ezMonitorTrans.csv
 fi
   
 DDIR=()
@@ -28,19 +27,13 @@ do
     
     # Run simulation
     ./planeReflection.out ${DIR} ${EPS_HIGH} ${ANGLE} ${POLARIZATION}
-    COMP_FFT=true
   elif [ ! -d "$DIR" ]; then
     # Directory does not exist
     mkdir ${DIR}
     # Run simulation
     ./planeReflection.out ${DIR} ${EPS_HIGH} ${ANGLE[$i]} ${POLARIZATION}
-    COMP_FFT=true
   fi
 
-  if [ ${COMP_FFT} == true ]; then
-    ./fourierPulse.out ${DIR}/ezMonitorTrans.csv
-  fi
-  COMP_FFT=false
   DDIR+=(${DIR})
   ANGLE=$[${ANGLE}+${DELTA_ANGLE}]
 done
@@ -48,6 +41,5 @@ done
 # Normalize fluxes
 for ((i=0;i<${#DDIR[@]};i++));
 do
-  #./normalizeDFTFlux.out "${DDIR[$i]}/ezMonitorTransFourier.csv" "${BKGDIR}/ezMonitorTransFourier.csv"
   ./normalizeDFTFlux.out "${DDIR[$i]}/transmittedFlux.csv" "${BKGDIR}/transmittedFlux.csv"
 done
