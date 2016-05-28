@@ -6,7 +6,13 @@ using namespace std;
 const double PI = acos(-1.0);
 complex<double> IMAG_UNIT(0.0,1.0);
 
-sinc_src_time::sinc_src_time(double f, double fwidth, double peak_time):freq(f), width(fwidth), peak_time(peak_time){};
+sinc_src_time::sinc_src_time(double f, double fwidth):freq(f), width(fwidth)
+{
+  const double zeroAmp = 0.05;
+  double domega = 2.0*PI*width;
+  peak_time = 2.0/(zeroAmp*width);
+};
+
 sinc_src_time::sinc_src_time(const sinc_src_time &copy):freq(copy.freq), width(copy.width), peak_time(copy.peak_time){};
 
 std::complex<double> sinc_src_time::dipole(double time) const

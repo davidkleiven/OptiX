@@ -6,7 +6,7 @@
 class sinc_src_time: public meep::src_time
 {
 public:
-  sinc_src_time(double f, double fwidth, double peak_time);
+  sinc_src_time(double f, double fwidth);
   sinc_src_time(const sinc_src_time &copy);
 
   virtual std::complex<double> dipole(double t) const;
