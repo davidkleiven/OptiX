@@ -19,3 +19,16 @@ gnuplot -e "ofile='${OFILE}';ifile='${IFILE}'" plotFieldComponent.plt
 OFILE="${FDIR}/normalIncTrans.png"
 IFILE="${DDIR}/NormalInc/ezMonitorTrans.csv"
 gnuplot -e "ofile='${OFILE}';ifile='${IFILE}'" plotFieldComponent.plt
+
+# Sinc functions
+OFILE="${FDIR}/sincSourceBkg.png"
+IFILE="${DDIR}/MultInc30/bkg/ezMonitorSource.csv"
+gnuplot -e "ofile='${OFILE}';ifile='${IFILE}'" plotFieldComponent.plt
+
+OFILE="${FDIR}/sincSourceWithEps.png"
+IFILE="${DDIR}/MultInc30/WithEps/ezMonitorSource.csv"
+gnuplot -e "ofile='${OFILE}';ifile='${IFILE}'" plotFieldComponent.plt
+
+OFILE="${FDIR}/sincSourceWithEpsTrans.png"
+IFILE="${DDIR}/MultInc30/WithEps/ezMonitorTrans.csv"
+gnuplot -e "ofile='${OFILE}';ifile='${IFILE}'" plotFieldComponent.plt
