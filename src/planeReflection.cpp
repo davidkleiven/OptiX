@@ -10,6 +10,7 @@
 #include <cassert>
 #include <stdexcept>
 #include "dataToFile.h"
+#include "sincSrc.h"
 #define ODIRLEN 60
 
 /**
@@ -28,10 +29,10 @@ const double EPS_LOW = 1.0;
 double EPS_HIGH = 1.0;
 
 const double XSIZE = 5.0;
-const double YSIZE = 10.0;
-const double PML_THICK = 1.0;
+const double YSIZE = 14.0;
+const double PML_THICK = 3.0;
 const double SOURCE_Y = YSIZE-PML_THICK - 1.0;
-const double YC_PLANE = 6.0; // Reflected pulse cannot reach the source before the source is finished
+const double YC_PLANE = YSIZE/2.0;
 //const double YC_PLANE = PML_THICK+1.0;
 const double PI = acos(-1.0);
 const complex<double> IMAG_UNIT(0,1.0);
@@ -151,8 +152,9 @@ int main(int argc, char **argv)
   }
 
   // Add DFT fluxplane
-  meep::volume dftVol = meep::volume(meep::vec(0.0,PML_THICK), meep::vec(XSIZE-1.0,PML_THICK));
-  unsigned int nfreq = 40;
+  const double fluxPlanePosY = 0.5*(YC_PLANE + PML_THICK);
+  meep::volume dftVol = meep::volume(meep::vec(0.0,fluxPlanePosY), meep::vec(XSIZE-1.0,fluxPlanePosY));
+  unsigned int nfreq = 4;
   meep::dft_flux transFluxY = field.add_dft_flux_plane(dftVol, freq+fwidth/2.0, freq-fwidth/2.0, nfreq);
   
 
@@ -166,7 +168,7 @@ int main(int argc, char **argv)
 
   // Time required to propagate over the domain with the slowest speed
   double speed = 1.0/sqrt(EPS_HIGH);
-  double tPropagate = field.last_source_time() + 1.2*SOURCE_Y/speed;
+  double tPropagate = field.last_source_time() + 1.2*SOURCE_Y/( speed*cos(angle*PI/180.0));
 
   // Main loop.
   double transYWidth = abs( dftVol.get_max_corner().x() - dftVol.get_min_corner().x() );
@@ -215,7 +217,7 @@ int main(int argc, char **argv)
     os << "# EPS_HIGH = " << EPS_HIGH << endl;
     os << "# Frequency, Angle, Flux Y\n";
     double dfreq = fwidth/static_cast<double>(nfreq);
-    double currentFreq = freq-fwidth/2.0+dfreq;
+    double currentFreq = freq+fwidth/2.0;
     double *transmittedFlux = transFluxY.flux();
     for ( unsigned int i=0;i<nfreq;i++ )
     {
@@ -230,7 +232,7 @@ int main(int argc, char **argv)
         currentAngle = asin(sinCurrentAngle)*180.0/PI;
       }
       os << currentFreq << "," << currentAngle << "," << transmittedFlux[i]/transYWidth << "\n";
-      currentFreq += dfreq;
+      currentFreq -= dfreq;
     }
     os.close();
     delete [] transmittedFlux;
