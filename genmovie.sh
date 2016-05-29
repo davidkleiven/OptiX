@@ -1,5 +1,5 @@
-DDIR="dataPlane/MultInc30/WithEps"
-PREFIX="ez"
+DDIR="dataPlane/MultInc70p/bkg"
+PREFIX="hz"
 PREFIX="${DDIR}/${PREFIX}"
 
 # Convert all hdf5 files to png

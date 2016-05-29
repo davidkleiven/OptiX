@@ -2,7 +2,7 @@ DDIR_BASE=dataPlane/MultInc
 EPS_HIGH=2.25
 ANGLES=(20 45 75 85)
 REL_BAND_WIDTHS=(0.5 0.5 0.05 0.01)
-NFREQ=(200 200 80 80)
+NFREQ=(200 200 200 200)
 
 
 for ((i=0;i<${#ANGLES[@]};i++));
