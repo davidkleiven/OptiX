@@ -12,6 +12,7 @@
 #include "dataToFile.h"
 #include "sincSrc.h"
 #define ODIRLEN 60
+//#define OUTPUT_HDF5
 
 /**
 * This program takes 3 command line arguments
@@ -62,7 +63,7 @@ int main(int argc, char **argv)
   // Read command line arguments
   if ( argc != 5 )
   {
-    cout << "Usage: ./planeReflection.out <outi directory> <epsInScattered> <incidend angle> <polarization>\n";
+    cout << "Usage: ./planeReflection.out <out directory> <epsInScattered> <incidend angle> <polarization>\n";
     cout << "The following arguments were given:\n";
     for ( unsigned int i=0;i<argc;i++ )
     {
@@ -106,7 +107,7 @@ int main(int argc, char **argv)
   }
 
   double freq = 0.3;
-  double fwidth = 0.03;
+  double fwidth = 0.2;
 
   // Compute kx
   double k = 2.0*PI*freq;
@@ -154,7 +155,7 @@ int main(int argc, char **argv)
   // Add DFT fluxplane
   const double fluxPlanePosY = 0.5*(YC_PLANE + PML_THICK);
   meep::volume dftVol = meep::volume(meep::vec(0.0,fluxPlanePosY), meep::vec(XSIZE-1.0,fluxPlanePosY));
-  unsigned int nfreq = 4;
+  unsigned int nfreq = 400;
   meep::dft_flux transFluxY = field.add_dft_flux_plane(dftVol, freq+fwidth/2.0, freq-fwidth/2.0, nfreq);
   
 
@@ -190,13 +191,17 @@ int main(int argc, char **argv)
     fieldAtFluxPlane.push_back(real( fieldAmpTrans ));
     timepoints.push_back(field.time());
 
-    if ( field.time() > nextOutputTime )
-    {
-      field.output_hdf5(meep::Ez, vol.surroundings());
-      nextOutputTime += dt;
-    }
+    #ifdef OUTPUT_HDF5
+      if ( field.time() > nextOutputTime )
+      {
+        field.output_hdf5(meep::Ez, vol.surroundings());
+        nextOutputTime += dt;
+      }
+    #endif
   } 
-  field.output_hdf5(meep::Ez, vol.surroundings());
+  #ifdef OUTPUT_HDF5
+    field.output_hdf5(meep::Ez, vol.surroundings());
+  #endif
 
   // Write transmitted flux to file
   string ddir(OUTDIR);
@@ -219,23 +224,25 @@ int main(int argc, char **argv)
     double dfreq = fwidth/static_cast<double>(nfreq);
     double currentFreq = freq+fwidth/2.0;
     double *transmittedFlux = transFluxY.flux();
+    unsigned int numberOfNonPropagating = 0;
     for ( unsigned int i=0;i<nfreq;i++ )
     {
       double sinCurrentAngle = freq*sin(angle*PI/180.0)/currentFreq;
       double currentAngle = 0.0;
       if ( abs(sinCurrentAngle) > 1.0 )
       {
-        currentAngle = -90.0;
+        numberOfNonPropagating++;
       }
       else
       {
         currentAngle = asin(sinCurrentAngle)*180.0/PI;
+        os << currentFreq << "," << currentAngle << "," << transmittedFlux[i]/transYWidth << "\n";
       }
-      os << currentFreq << "," << currentAngle << "," << transmittedFlux[i]/transYWidth << "\n";
       currentFreq -= dfreq;
     }
     os.close();
     delete [] transmittedFlux;
+    cout << numberOfNonPropagating << " of " << nfreq << " modes do not propagate\n";
   }
   
   // Write monitor to file
