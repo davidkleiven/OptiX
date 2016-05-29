@@ -69,10 +69,12 @@ int main(int argc, char** argv)
   catch (string &str)
   {
     cout << str << endl;
+    return 1;
   }
   catch(...)
   {
     cout << "Unknown exception...\n";
+    return 1;
   }
 
   // Normalize
