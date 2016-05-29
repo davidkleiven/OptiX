@@ -1,20 +1,25 @@
-DDIR=dataPlane/MultInc30
+DDIR_BASE=dataPlane/MultInc
 EPS_HIGH=2.25
-ANGLE=45
+ANGLES=(20 45 85)
 
-# Compute background
-BKGDIR=${DDIR}/bkg
-mkdir -p ${BKGDIR}
-rm -f ${BKGDIR}/*
 
-./planeReflection.out ${BKGDIR} 1.0 ${ANGLE} s
+for ((i=0;i<${#ANGLES[@]};i++));
+do
+  # Compute background
+  DDIR="${DDIR_BASE}${ANGLES[$i]}"
+  ODIR=${DDIR}/WithEps
+  BKGDIR=${DDIR}/bkg
+  rm -f ${ODIR}/*
+  rm -f ${BKGDIR}/*
+  mkdir -p ${BKGDIR}
 
-# Compute with reflection
-ODIR=${DDIR}/WithEps
-mkdir -p ${ODIR}
-rm -f ${ODIR}/*
+  ./planeReflection.out ${BKGDIR} 1.0 ${ANGLES[$i]} s
 
-./planeReflection.out ${ODIR} ${EPS_HIGH} ${ANGLE} s
+  # Compute with reflection
+  mkdir -p ${ODIR}
 
-# Normalize
-./normalizeDFTFlux.out ${ODIR}/transmittedFlux.csv ${BKGDIR}/transmittedFlux.csv
+  ./planeReflection.out ${ODIR} ${EPS_HIGH} ${ANGLES[$i]} s
+
+  # Normalize
+  ./normalizeDFTFlux.out ${ODIR}/transmittedFlux.csv ${BKGDIR}/transmittedFlux.csv
+done
