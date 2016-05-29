@@ -1,6 +1,6 @@
 DDIR=dataPlane/MultInc30
 EPS_HIGH=2.25
-ANGLE=0
+ANGLE=45
 
 # Compute background
 BKGDIR=${DDIR}/bkg
