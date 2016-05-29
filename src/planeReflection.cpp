@@ -107,7 +107,7 @@ int main(int argc, char **argv)
   }
 
   double freq = 0.3;
-  double fwidth = 0.2;
+  double fwidth = 0.15;
 
   // Compute kx
   double k = 2.0*PI*freq;
@@ -143,15 +143,17 @@ int main(int argc, char **argv)
   // Set source type. Use Gaussian, had some problems with the continous
   meep::gaussian_src_time src(freq, fwidth);
   
+  meep::component fieldComp;
   if ( polarization == 's' )
   {
-    field.add_volume_source(meep::Ez, src, srcvol, amplitude);
+    fieldComp = meep::Ez;
   }
   else
   {
-    field.add_volume_source(meep::Hz, src, srcvol, amplitude);
+    fieldComp = meep::Hz;
   }
 
+  field.add_volume_source(fieldComp, src, srcvol, amplitude);
   // Add DFT fluxplane
   const double fluxPlanePosY = 0.5*(YC_PLANE + PML_THICK);
   meep::volume dftVol = meep::volume(meep::vec(0.0,fluxPlanePosY), meep::vec(XSIZE-1.0,fluxPlanePosY));
@@ -185,8 +187,8 @@ int main(int argc, char **argv)
     field.step();
 
     // Get field amplitude
-    complex<double> fieldAmp = field.get_field(meep::Ez, monitorPos);
-    complex<double> fieldAmpTrans = field.get_field(meep::Ez, monitorTransPlanePos);
+    complex<double> fieldAmp = field.get_field(fieldComp, monitorPos);
+    complex<double> fieldAmpTrans = field.get_field(fieldComp, monitorTransPlanePos);
     fieldAtCenterReal.push_back(real(fieldAmp));
     fieldAtFluxPlane.push_back(real( fieldAmpTrans ));
     timepoints.push_back(field.time());
@@ -194,13 +196,13 @@ int main(int argc, char **argv)
     #ifdef OUTPUT_HDF5
       if ( field.time() > nextOutputTime )
       {
-        field.output_hdf5(meep::Ez, vol.surroundings());
+        field.output_hdf5(fieldComp, vol.surroundings());
         nextOutputTime += dt;
       }
     #endif
   } 
   #ifdef OUTPUT_HDF5
-    field.output_hdf5(meep::Ez, vol.surroundings());
+    field.output_hdf5(fieldComp, vol.surroundings());
   #endif
 
   // Write transmitted flux to file
