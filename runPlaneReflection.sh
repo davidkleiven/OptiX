@@ -9,13 +9,7 @@ ANGLE_MAX=90
 ANGLE=5
 
 POLARIZATION="s"
-COMP_FFT=false
-if [ ${RUN_ALL} == true ] || [ ! -d ${BKGDIR}]; then
-    rm -f ${BKGDIR}/*.h5 ${BKGDIR}/*.png ${BKGDIR}/*.csv ${BKGDIR}/*.gif
-    mkdir -p ${BKGDIR}
-  ./planeReflection.out ${BKGDIR} 1.0 0.0 ${POLARIZATION}
-fi
-  
+ 
 DDIR=()
 while [ ${ANGLE} -lt ${ANGLE_MAX} ];
 do
@@ -23,15 +17,23 @@ do
   if [ ${RUN_ALL} = true ]; then
     # Clean directory
     rm -f ${DIR}/*.h5 ${DIR}/*.png ${DIR}/*.csv ${DIR}/*.gif
+    rm -f ${DIR}/bkg/*.h5 ${DIR}/bkg/*.png ${DIR}/bkg/*.csv ${DIR}/bkg/*.gif
+    rm -f ${DIR}/scatter/*.h5 ${DIR}/scatter/*.png ${DIR}/scatter/*.csv ${DIR}/scatter/*.gif
     mkdir -p ${DIR}
+    mkdir -p ${DIR}/bkg
+    mkdir -p ${DIR}/scatter
     
     # Run simulation
-    ./planeReflection.out ${DIR} ${EPS_HIGH} ${ANGLE} ${POLARIZATION}
+    ./planeReflection.out ${DIR}/bkg 1.0 ${ANGLE} ${POLARIZATION}
+    ./planeReflection.out ${DIR}/scatter ${EPS_HIGH} ${ANGLE} ${POLARIZATION}
   elif [ ! -d "$DIR" ]; then
     # Directory does not exist
     mkdir ${DIR}
+    mkdir ${DIR}/bkg
+    mkdir ${DIR}/scatter
     # Run simulation
-    ./planeReflection.out ${DIR} ${EPS_HIGH} ${ANGLE[$i]} ${POLARIZATION}
+    ./planeReflection.out ${DIR}/bkg 1.0 ${ANGLE} ${POLARIZATION}
+    ./planeReflection.out ${DIR}/scatter ${EPS_HIGH} ${ANGLE} ${POLARIZATION}
   fi
 
   DDIR+=(${DIR})
@@ -41,5 +43,6 @@ done
 # Normalize fluxes
 for ((i=0;i<${#DDIR[@]};i++));
 do
-  ./normalizeDFTFlux.out "${DDIR[$i]}/transmittedFlux.csv" "${BKGDIR}/transmittedFlux.csv"
+  ./normalizeDFTFlux.out "${DDIR[$i]}/scatter/transmittedFlux.csv" "${DDIR[$i]}/bkg/transmittedFlux.csv" 
+
 done
