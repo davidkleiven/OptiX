@@ -30,8 +30,8 @@ const double EPS_LOW = 1.0;
 double EPS_HIGH = 1.0;
 
 const double XSIZE = 5.0;
-const double YSIZE = 14.0;
-const double PML_THICK = 3.0;
+const double YSIZE = 18.0;
+const double PML_THICK = 6.0;
 const double SOURCE_Y = YSIZE-PML_THICK - 1.0;
 const double YC_PLANE = YSIZE/2.0;
 //const double YC_PLANE = PML_THICK+1.0;
@@ -61,9 +61,10 @@ int main(int argc, char **argv)
   meep::initialize mpi(argc, argv);
 
   // Read command line arguments
-  if ( argc != 5 )
+  if ( argc != 7 )
   {
-    cout << "Usage: ./planeReflection.out <out directory> <epsInScattered> <incidend angle> <polarization>\n";
+    cout << "Usage: ./planeReflection.out <out directory> <epsInScattered> <incidend angle> <polarization> <relBandwidth>";
+    cout << "<number of frequencies>\n";
     cout << "The following arguments were given:\n";
     for ( unsigned int i=0;i<argc;i++ )
     {
@@ -82,6 +83,15 @@ int main(int argc, char **argv)
   double angle;
   ss >> angle;
   char polarization = argv[4][0];
+  double relFwidth;
+  ss.clear();
+  ss << argv[5];
+  ss >> relFwidth;
+
+  unsigned int nfreq;
+  ss.clear();
+  ss << argv[6];
+  ss >> nfreq;
 
 
   // Check that angle is within range
@@ -107,7 +117,7 @@ int main(int argc, char **argv)
   }
 
   double freq = 0.3;
-  double fwidth = 0.15;
+  double fwidth = freq*relFwidth;
 
   // Compute kx
   double k = 2.0*PI*freq;
@@ -157,7 +167,6 @@ int main(int argc, char **argv)
   // Add DFT fluxplane
   const double fluxPlanePosY = 0.5*(YC_PLANE + PML_THICK);
   meep::volume dftVol = meep::volume(meep::vec(0.0,fluxPlanePosY), meep::vec(XSIZE-1.0,fluxPlanePosY));
-  unsigned int nfreq = 400;
   meep::dft_flux transFluxY = field.add_dft_flux_plane(dftVol, freq+fwidth/2.0, freq-fwidth/2.0, nfreq);
   
 
@@ -171,7 +180,7 @@ int main(int argc, char **argv)
 
   // Time required to propagate over the domain with the slowest speed
   double speed = 1.0/sqrt(EPS_HIGH);
-  double tPropagate = field.last_source_time() + 1.2*SOURCE_Y/( speed*cos(angle*PI/180.0));
+  double tPropagate = field.last_source_time() + 1.2*SOURCE_Y/speed;
 
   // Main loop.
   double transYWidth = abs( dftVol.get_max_corner().x() - dftVol.get_min_corner().x() );
@@ -223,7 +232,7 @@ int main(int argc, char **argv)
     os << "# Corner 2: (x,y) = (" << dftVol.get_max_corner().x() << "," << dftVol.get_max_corner().y() << ")\n"; 
     os << "# EPS_HIGH = " << EPS_HIGH << endl;
     os << "# Frequency, Angle, Flux Y\n";
-    double dfreq = fwidth/static_cast<double>(nfreq);
+    double dfreq = fwidth/static_cast<double>(nfreq-1);
     double currentFreq = freq+fwidth/2.0;
     double *transmittedFlux = transFluxY.flux();
     unsigned int numberOfNonPropagating = 0;
