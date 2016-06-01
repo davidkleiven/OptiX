@@ -44,5 +44,4 @@ done
 for ((i=0;i<${#DDIR[@]};i++));
 do
   ./normalizeDFTFlux.out "${DDIR[$i]}/scatter/transmittedFlux.csv" "${DDIR[$i]}/bkg/transmittedFlux.csv" 
-
 done
