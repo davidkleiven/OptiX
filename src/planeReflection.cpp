@@ -166,9 +166,11 @@ int main(int argc, char **argv)
   field.add_volume_source(fieldComp, src, srcvol, amplitude);
   // Add DFT fluxplane
   const double fluxPlanePosY = 0.5*(YC_PLANE + PML_THICK);
+  const double fluxRefPlanePosY = 0.5*(YC_PLANE + SOURCE_Y);
   meep::volume dftVol = meep::volume(meep::vec(0.0,fluxPlanePosY), meep::vec(XSIZE-1.0,fluxPlanePosY));
-  meep::dft_flux transFluxY = field.add_dft_flux_plane(dftVol, freq+fwidth/2.0, freq-fwidth/2.0, nfreq);
-  
+  meep::volume dftVolR = meep::volume(meep::vec(0.0,fluxRefPlanePosY), meep::vec(XSIZE-1.0,fluxRefPlanePosY)); 
+  meep::dft_flux transFluxY = field.add_dft_flux_plane(dftVol, freq-fwidth/2.0, freq+fwidth/2.0, nfreq);
+  meep::dft_flux transFluxX = field.add_dft_flux_plane(dftVolR, freq-fwidth/2.0, freq+fwidth/2.0, nfreq); 
 
   // Put a field monitor at the center of the geometry 
   meep::vec monitorPos(XSIZE/2.0, SOURCE_Y-0.1);
@@ -233,7 +235,7 @@ int main(int argc, char **argv)
     os << "# EPS_HIGH = " << EPS_HIGH << endl;
     os << "# Frequency, Angle, Flux Y\n";
     double dfreq = fwidth/static_cast<double>(nfreq-1);
-    double currentFreq = freq+fwidth/2.0;
+    double currentFreq = freq-fwidth/2.0;
     double *transmittedFlux = transFluxY.flux();
     unsigned int numberOfNonPropagating = 0;
     for ( unsigned int i=0;i<nfreq;i++ )
@@ -249,7 +251,7 @@ int main(int argc, char **argv)
         currentAngle = asin(sinCurrentAngle)*180.0/PI;
         os << currentFreq << "," << currentAngle << "," << transmittedFlux[i]/transYWidth << "\n";
       }
-      currentFreq -= dfreq;
+      currentFreq += dfreq;
     }
     os.close();
     delete [] transmittedFlux;
