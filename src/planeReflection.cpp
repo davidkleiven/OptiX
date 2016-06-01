@@ -203,6 +203,7 @@ int main(int argc, char **argv)
     transFluxX.load_hdf5(field, fluxXFname.c_str()); 
     transFluxX.scale_dfts(-1.0);
   }
+
   while ( field.time() < tEnd )
   {
     field.step();
@@ -226,8 +227,11 @@ int main(int argc, char **argv)
     field.output_hdf5(fieldComp, vol.surroundings());
   #endif
 
-  // Save flux in the reflection plane to file
-  transFluxX.save_hdf5(field, fluxXFname.c_str());
+  if ( outdir.find("bkg") != string::npos )
+  {
+    // This is the background run --> save the fields 
+    transFluxX.save_hdf5(field, fluxXFname.c_str());
+  }
 
   // Write transmitted flux to file
   string ddir(OUTDIR);
