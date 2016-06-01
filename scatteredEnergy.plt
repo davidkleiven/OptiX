@@ -1,5 +1,5 @@
-set terminal pdfcairo dashed
-set output "Figures/energyScattered.pdf"
+set terminal epslatex size 3.5,2.62
+set output "Figures/energyScattered.tex"
 
 FNAME1="dataPlane/MultInc45/WithEps/transmittedFluxNorm.csv"
 FNAME2="dataPlane/MultInc20/WithEps/transmittedFluxNorm.csv"
@@ -36,3 +36,7 @@ FNAME2p every 10 using 1:2 with points pt 7 ps 0.3 lc "black" notitle,\
 FNAME3p every 1 using 1:2 with points pt 7 ps 0.3 lc "black" notitle,\
 FNAME4p every 1 using 1:2 with points pt 7 ps 0.3 lc "black" notitle
 
+set terminal pdfcairo dashed
+set output "Figures/energyScattered.pdf"
+replot
+set output "Figures/energy
