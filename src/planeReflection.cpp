@@ -193,6 +193,16 @@ int main(int argc, char **argv)
   unsigned int nOut = 80; // Number of output files
   double dt = tEnd/nOut;
   double nextOutputTime = 0.0;
+  string fluxXFname("dataPlane/transFluxX.h5");
+
+  string outdir(OUTDIR);
+  if ( outdir.find("bkg") == string::npos )
+  {
+    // Did not find bkg in the directory name. Reading background flux from file
+    // Load and subtract off the background fields
+    transFluxX.load_hdf5(field, fluxXFname.c_str()); 
+    transFluxX.scale_dfts(-1.0);
+  }
   while ( field.time() < tEnd )
   {
     field.step();
@@ -215,6 +225,9 @@ int main(int argc, char **argv)
   #ifdef OUTPUT_HDF5
     field.output_hdf5(fieldComp, vol.surroundings());
   #endif
+
+  // Save flux in the reflection plane to file
+  transFluxX.save_hdf5(field, fluxXFname.c_str());
 
   // Write transmitted flux to file
   string ddir(OUTDIR);
