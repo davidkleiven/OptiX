@@ -6,36 +6,10 @@
 #include <cmath>
 #include <stdexcept>
 #include <cstring>
+#include "readCSVdata.h"
 #define DELTA_CLOSE 1E-6
 
 using namespace std;
-
-void readFluxFile(const string &fname, vector<double> &angles, vector<double> &totFlux)
-{
-  ifstream in(fname.c_str());
-  if ( !in.good() )
-  {
-    stringstream msg;
-    msg << "Problems when opening file " << fname;
-    throw (msg.str());
-  } 
-  
-  string line;
-  while ( getline(in, line) && (line[0] == '#')){};
-  stringstream firstLine;
-  char comma;
-  firstLine << line;
-  double freq, newP, angle;
-  firstLine >> freq >> comma >> angle >> comma >> newP;
-  angles.push_back(angle);
-  totFlux.push_back( newP );
-  while ( in >> freq >> comma >> angle >> comma >> newP )
-  {
-    angles.push_back( angle );
-    totFlux.push_back( newP );
-  }
-  in.close();
-}
 
 // ------------ MAIN FUNCTION -------------------//
 int main(int argc, char** argv)
@@ -55,20 +29,22 @@ int main(int argc, char** argv)
   string infile(argv[1]);
   string bkgfile(argv[2]);
  
+  ReadCSVData bkg;
+  ReadCSVData transRun;
   vector<double> bkgTot;
   vector<double> frequencies;
-  vector<double> inTot;
-  vector<double> inFreq;
+  vector<double> transmitted;
+  vector<double> reflected;
 
   // Read the infiles
   try
   {
-    readFluxFile(bkgfile, frequencies, bkgTot);
-    readFluxFile(infile, inFreq, inTot);
+    bkg.read(bkgfile,3);
+    transRun.read(infile, 3);
   }
-  catch (string &str)
+  catch (runtime_error &exc)
   {
-    cout << str << endl;
+    cout << exc.what() << endl;
     return 1;
   }
   catch(...)
@@ -77,12 +53,21 @@ int main(int argc, char** argv)
     return 1;
   }
 
+  // Check that the number of entris in both files are the same
+  if ( bkg.numPoints() != transRun.numPoints() )
+  {
+    cout << "Error! Npoints bkg: "<< bkg.numPoints() <<". Npoints transmitted: " << transRun.numPoints() << endl;
+    return 1;
+  }
+
   // Normalize
   unsigned int currentBkg=0;
   bool useLastForNormalization = false;
-  for ( unsigned int i=0;i<inTot.size(); i++ )
+  for ( unsigned int i=0;i<bkg.numPoints(); i++ )
   {
-    inTot[i] = inTot[i]/bkgTot[i];
+    frequencies.push_back(bkg.get(i,0));
+    transmitted.push_back(transRun.get(i,1)/bkg.get(i,1));
+    reflected.push_back(transRun.get(i,2)/bkg.get(i,2));
   }
 
   // Construct out filename from infile name
@@ -101,10 +86,10 @@ int main(int argc, char** argv)
   out << "# Normalized total flux\n";
   out << "# Infile: " << infile << endl;
   out << "# Bkgfile: " << bkgfile << endl;
-  out << "# Angle, Normalized total flux\n";
-  for ( unsigned int i=0;i<inTot.size();i++)
+  out << "# Angle, Normalized transmitted flux, Normalized reflected\n";
+  for ( unsigned int i=0;i<frequencies.size();i++)
   {
-    out << inFreq[i] << "," << inTot[i] << "\n";
+    out << frequencies[i] << "," << transmitted[i] << "," << reflected[i] << "\n";
   }
   out.close();
  

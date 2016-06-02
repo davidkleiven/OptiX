@@ -21,7 +21,7 @@ planeReflection.out: $(PLANE_WAVE_OBJ)
 subtractBkg.out: ${ODIR}/subtractBkg.o
 	$(CXX) -o $@ $^
 
-normalizeDFTFlux.out: ${ODIR}/normalizeDFTFlux.o
+normalizeDFTFlux.out: ${ODIR}/normalizeDFTFlux.o ${ODIR}/readCSVdata.o
 	$(CXX) -o $@ $^
 
 fourierPulse.out: ${ODIR}/fourierPulse.o
