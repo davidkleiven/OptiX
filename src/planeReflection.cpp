@@ -144,9 +144,8 @@ int main(int argc, char **argv)
   //srct.Courant = 0.1;
   meep::fields field(&srct);
   field.use_bloch( meep::X, KX/(2.0*PI) ); // MEEP leaves out the factor 2pi (k = 1/lambda)
-  
   field.set_output_directory(OUTDIR); 
-
+  
   // Write dielectric function to file
   field.output_hdf5(meep::Dielectric, vol.surroundings()); 
 
@@ -170,7 +169,7 @@ int main(int argc, char **argv)
   meep::volume dftVol = meep::volume(meep::vec(0.0,fluxPlanePosY), meep::vec(XSIZE-1.0,fluxPlanePosY));
   meep::volume dftVolR = meep::volume(meep::vec(0.0,fluxRefPlanePosY), meep::vec(XSIZE-1.0,fluxRefPlanePosY)); 
   meep::dft_flux transFluxY = field.add_dft_flux_plane(dftVol, freq-fwidth/2.0, freq+fwidth/2.0, nfreq);
-  meep::dft_flux transFluxX = field.add_dft_flux_plane(dftVolR, freq-fwidth/2.0, freq+fwidth/2.0, nfreq); 
+  meep::dft_flux fluxYReflected = field.add_dft_flux_plane(dftVolR, freq-fwidth/2.0, freq+fwidth/2.0, nfreq); 
 
   // Put a field monitor at the center of the geometry 
   meep::vec monitorPos(XSIZE/2.0, SOURCE_Y-0.1);
@@ -193,16 +192,26 @@ int main(int argc, char **argv)
   unsigned int nOut = 80; // Number of output files
   double dt = tEnd/nOut;
   double nextOutputTime = 0.0;
-  string fluxXFname("dataPlane/transFluxX.h5");
+  string fluxXFname("fluxYReflected");
 
   string outdir(OUTDIR);
   if ( outdir.find("bkg") == string::npos )
   {
     // Did not find bkg in the directory name. Reading background flux from file
     // Load and subtract off the background fields
-    transFluxX.load_hdf5(field, fluxXFname.c_str()); 
-    transFluxX.scale_dfts(-1.0);
+    string loadFname = "dataPlane/"+fluxXFname;
+    // Check if the file can be accessed by trying to open it
+    ifstream in(loadFname.c_str(), ios::binary);
+    if ( !in.good() )
+    {
+      cout << "File " << loadFname << " cannot be accessed. Run a background run first. bkg has to enter in the outdir path...\n";
+      return 1;
+    }
+    in.close();
+    fluxYReflected.load_hdf5(field, loadFname.c_str());  
+    fluxYReflected.scale_dfts(-1.0);
   }
+  field.set_output_directory(OUTDIR); 
 
   while ( field.time() < tEnd )
   {
@@ -230,7 +239,8 @@ int main(int argc, char **argv)
   if ( outdir.find("bkg") != string::npos )
   {
     // This is the background run --> save the fields 
-    transFluxX.save_hdf5(field, fluxXFname.c_str());
+    field.set_output_directory("dataPlane");
+    fluxYReflected.save_hdf5(field, fluxXFname.c_str());
   }
 
   // Write transmitted flux to file
@@ -254,7 +264,7 @@ int main(int argc, char **argv)
     double dfreq = fwidth/static_cast<double>(nfreq-1);
     double currentFreq = freq-fwidth/2.0;
     double *transmittedFlux = transFluxY.flux();
-    double *reflectedFlux = transFluxX.flux();
+    double *reflectedFlux = fluxYReflected.flux();
     unsigned int numberOfNonPropagating = 0;
     for ( unsigned int i=0;i<nfreq;i++ )
     {
