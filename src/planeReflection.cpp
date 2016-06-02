@@ -250,10 +250,11 @@ int main(int argc, char **argv)
     os << "# Corner 1: (x,y) = (" << dftVol.get_min_corner().x() << ","<<dftVol.get_min_corner().y() << ")\n";
     os << "# Corner 2: (x,y) = (" << dftVol.get_max_corner().x() << "," << dftVol.get_max_corner().y() << ")\n"; 
     os << "# EPS_HIGH = " << EPS_HIGH << endl;
-    os << "# Frequency, Angle, Flux Y\n";
+    os << "# Frequency, Angle, Flux Y, Flux Reflection\n";
     double dfreq = fwidth/static_cast<double>(nfreq-1);
     double currentFreq = freq-fwidth/2.0;
     double *transmittedFlux = transFluxY.flux();
+    double *reflectedFlux = transFluxX.flux();
     unsigned int numberOfNonPropagating = 0;
     for ( unsigned int i=0;i<nfreq;i++ )
     {
@@ -266,12 +267,14 @@ int main(int argc, char **argv)
       else
       {
         currentAngle = asin(sinCurrentAngle)*180.0/PI;
-        os << currentFreq << "," << currentAngle << "," << transmittedFlux[i]/transYWidth << "\n";
+        os << currentFreq << "," << currentAngle << "," << transmittedFlux[i]/transYWidth;
+        os << "," << reflectedFlux[i]/transYWidth << "\n";
       }
       currentFreq += dfreq;
     }
     os.close();
     delete [] transmittedFlux;
+    delete [] reflectedFlux;
     cout << numberOfNonPropagating << " of " << nfreq << " modes do not propagate\n";
   }
   
