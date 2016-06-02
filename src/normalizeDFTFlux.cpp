@@ -83,34 +83,6 @@ int main(int argc, char** argv)
   for ( unsigned int i=0;i<inTot.size(); i++ )
   {
     inTot[i] = inTot[i]/bkgTot[i];
-    /*
-    if ( currentBkg < frequencies.size() )
-    {
-      while (( inFreq[i] > frequencies[currentBkg] ) )
-      {
-        currentBkg++;
-      }
-    }
-    else if ( inFreq[i] > frequencies[frequencies.size()-1] )
-    {
-      useLastForNormalization = true;
-    }
-
-    // Interpolate 
-    if ( currentBkg == 0 )
-    {
-      inTot[i] /= bkgTot[0];
-    }
-    else if ( useLastForNormalization )
-    {
-      inTot[i] /= bkgTot[bkgTot.size()-1];
-    }
-    else 
-    {
-      double weight = (inFreq[i] - frequencies[currentBkg-1])/(frequencies[currentBkg]-frequencies[currentBkg-1]);
-      double bkgPow = weight*(bkgTot[currentBkg] - bkgTot[currentBkg-1]) + bkgTot[currentBkg-1];
-      inTot[i] /= bkgPow;
-    }*/
   }
 
   // Construct out filename from infile name
