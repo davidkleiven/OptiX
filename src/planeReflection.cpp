@@ -199,7 +199,7 @@ int main(int argc, char **argv)
   {
     // Did not find bkg in the directory name. Reading background flux from file
     // Load and subtract off the background fields
-    string loadFname = "dataPlane/"+fluxXFname;
+    string loadFname = "dataPlane/"+fluxXFname+".h5";
     // Check if the file can be accessed by trying to open it
     ifstream in(loadFname.c_str(), ios::binary);
     if ( !in.good() )
@@ -208,7 +208,9 @@ int main(int argc, char **argv)
       return 1;
     }
     in.close();
-    fluxYReflected.load_hdf5(field, loadFname.c_str());  
+
+    field.set_output_directory("dataPlane");
+    fluxYReflected.load_hdf5(field, fluxXFname.c_str());  
     fluxYReflected.scale_dfts(-1.0);
   }
   field.set_output_directory(OUTDIR); 
