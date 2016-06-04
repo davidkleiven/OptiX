@@ -14,7 +14,7 @@ int main(int argc, char** argv)
 {
   if ( argc != 3 )
   {
-    cout << "Usage: ./subtractBackground.cpp <ifile> <bkgfile>\n";
+    cout << "Usage: ./subtractBkg.out <ifile> <bkgfile>\n";
     return 1;
   }
 
