@@ -31,16 +31,15 @@ int main(int argc, char** argv)
  
   ReadCSVData bkg;
   ReadCSVData transRun;
-  vector<double> bkgTot;
-  vector<double> frequencies;
+  vector<double> angles;
   vector<double> transmitted;
   vector<double> reflected;
 
   // Read the infiles
   try
   {
-    bkg.read(bkgfile,3);
-    transRun.read(infile, 3);
+    bkg.read(bkgfile, 4);
+    transRun.read(infile, 4);
   }
   catch (runtime_error &exc)
   {
@@ -56,7 +55,7 @@ int main(int argc, char** argv)
   // Check that the number of entris in both files are the same
   if ( bkg.numPoints() != transRun.numPoints() )
   {
-    cout << "Error! Npoints bkg: "<< bkg.numPoints() <<". Npoints transmitted: " << transRun.numPoints() << endl;
+    cerr << "Error! Npoints bkg: "<< bkg.numPoints() <<". Npoints transmitted: " << transRun.numPoints() << endl;
     return 1;
   }
 
@@ -65,9 +64,9 @@ int main(int argc, char** argv)
   bool useLastForNormalization = false;
   for ( unsigned int i=0;i<bkg.numPoints(); i++ )
   {
-    frequencies.push_back(bkg.get(i,0));
-    transmitted.push_back(transRun.get(i,1)/bkg.get(i,1));
-    reflected.push_back(transRun.get(i,2)/bkg.get(i,2));
+    angles.push_back(bkg.get(i,1));
+    transmitted.push_back(transRun.get(i,2)/bkg.get(i,2));
+    reflected.push_back(transRun.get(i,3)/bkg.get(i,3));
   }
 
   // Construct out filename from infile name
@@ -87,9 +86,9 @@ int main(int argc, char** argv)
   out << "# Infile: " << infile << endl;
   out << "# Bkgfile: " << bkgfile << endl;
   out << "# Angle, Normalized transmitted flux, Normalized reflected\n";
-  for ( unsigned int i=0;i<frequencies.size();i++)
+  for ( unsigned int i=0;i<angles.size();i++)
   {
-    out << frequencies[i] << "," << transmitted[i] << "," << reflected[i] << "\n";
+    out << angles[i] << "," << transmitted[i] << "," << reflected[i] << "\n";
   }
   out.close();
  
