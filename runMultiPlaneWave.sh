@@ -2,7 +2,7 @@ DDIR_BASE=dataPlane/MultInc
 EPS_HIGH=2.25
 ANGLES=(20 45 75 85)
 REL_BAND_WIDTHS=(0.5 0.5 0.05 0.01)
-NFREQ=(200 200 200 200)
+NFREQ=(200 200 20 20)
 
 # NOTE: It is important that the background run and the actual run is executed succesively.
 # The actual run relies on a temporary file created by the background run.
