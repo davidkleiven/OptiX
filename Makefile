@@ -24,7 +24,7 @@ subtractBkg.out: ${ODIR}/subtractBkg.o
 normalizeDFTFlux.out: ${ODIR}/normalizeDFTFlux.o ${ODIR}/readCSVdata.o
 	$(CXX) -o $@ $^
 
-fourierPulse.out: ${ODIR}/fourierPulse.o
+fourierPulse.out: ${ODIR}/fourierPulse.o ${ODIR}/readCSVdata.o
 	$(CXX) -o $@ $^ -llapack -lcblas -lgsl -lm
 
 transmittanceAngle.out: ${ODIR}/transmittanceAngle.o ${ODIR}/readCSVdata.o
