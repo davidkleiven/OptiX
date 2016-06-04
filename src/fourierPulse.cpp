@@ -117,9 +117,9 @@ int main(int argc, char** argv)
   }
 
   // Find position of maximum use the one from the transmitted signal
-  unsigned int currentMaxPos = 0;
+  unsigned int currentMaxPos = 1;
   double currentMax = -1.0;
-  for ( unsigned int i=0;i<fieldTrans.size();i++)
+  for ( unsigned int i=1;i<fieldTrans.size()/2;i++)
   {
     if ( fieldTrans[i] > currentMax )
     {
@@ -138,8 +138,9 @@ int main(int argc, char** argv)
   os << "# Fourier transformed signal\n";
   os << "# Freq, Transmitted, Reflected\n";
   double freq = 0.0;
-  for ( unsigned int i=0;i<fieldTrans.size()/2;i++)
+  for ( unsigned int i=0;i<fieldTrans.size()/2;i++ )
   {
+    double freq = static_cast<double>(i)/(dt*static_cast<double>(fieldTrans.size()));
     double angleArgument = 0.0;
     if ( freq > 0.0 )
     {
@@ -149,7 +150,7 @@ int main(int argc, char** argv)
     {
       continue;
     }
-
+  
     if ( abs(angleArgument) > 1.0 )
     {
       continue;
@@ -157,11 +158,10 @@ int main(int argc, char** argv)
     double currentAngle = asin( angleArgument )*180.0/PI;
     double fieldSaveTrans = fieldTrans[i];//static_cast<double>(field.size());
     double fieldSaveRefl = fieldRefl[i];
-    if ( (fieldSaveTrans > MIN_SAVE_VAL) || (fieldSaveRefl > MIN_SAVE_VAL) )
+    //if ( (fieldSaveTrans > MIN_SAVE_VAL) || (fieldSaveRefl > MIN_SAVE_VAL) )
     {
       os << freq << "," << currentAngle << "," << fieldSaveTrans << "," << fieldSaveRefl << "\n";
     }
-    freq += df;
   }
   os.close();
   return 0;
