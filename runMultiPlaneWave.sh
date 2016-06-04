@@ -4,6 +4,7 @@ ANGLES=(20 45 75 85)
 REL_BAND_WIDTHS=(0.5 0.5 0.05 0.01)
 NFREQ=(200 200 20 20)
 CONTROL_FILENAME="dataPlane/control.txt"
+VERBOSE=false
 
 # Control filename variables
 IS_SIMULATED="simulated"
@@ -23,7 +24,10 @@ do
   BKGDIR=${DDIR}/bkg
   if grep -Fxq "${CTR_MSG}${IS_SIMULATED}" "${CONTROL_FILENAME}" 
   then
-    echo "Nothing to simulate for ${ANGLES[$i]} degrees s-polarization"
+    if ${VERBOSE}
+    then
+      echo "Nothing to simulate for ${ANGLES[$i]} degrees s-polarization"
+    fi
   else
     # Compute background
     rm -f ${ODIR}/*
@@ -41,7 +45,10 @@ do
 
   if grep -Fxq "${CTR_MSG}${IS_NORMALIZED}" "${CONTROL_FILENAME}" 
   then
-    echo "Already normalized..."
+    if ${VERBOSE}
+    then
+      echo "Already normalized..."
+    fi
   else
     # Normalize
     ./normalizeDFTFlux.out ${ODIR}/transmittedFlux.csv ${BKGDIR}/transmittedFlux.csv
@@ -50,7 +57,10 @@ do
 
   if grep -Fxq "${CTR_MSG}${HAS_SUBTRACTED}" "${CONTROL_FILENAME}"
   then
-    echo "Already subtracted..."
+    if ${VERBOSE}
+    then
+      echo "Already subtracted..."
+    fi
   else
     # Subtract incident field from reflected
     ./subtractBkg.out "${ODIR}/realField.csv" "${BKGDIR}/realField.csv"
@@ -59,7 +69,10 @@ do
 
   if grep -Fxq "${CTR_MSG}${IS_FFT}" "${CONTROL_FILENAME}"
   then
-    echo "Has already FFT the fields..."
+    if ${VERBOSE}
+    then
+      echo "Has already FFT the fields..."
+    fi
   else
     ./fourierPulse.out ${ODIR}/realField.csv ${ANGLES[$i]} 
     ./fourierPulse.out ${BKGDIR}/realField.csv ${ANGLES[$i]}
@@ -68,7 +81,10 @@ do
 
   if grep -Fxq "${CTR_MSG}${FIELD_FFT_IS_NORMALIZED}" "${CONTROL_FILENAME}"
   then
-    echo "FFT of fields are already normalized..."
+    if ${VERBOSE}
+    then
+      echo "FFT of fields are already normalized..."
+    fi
   else
     ./normalizeDFTFlux.out ${ODIR}/realFieldFourier.csv ${BKGDIR}/realFieldFourier.csv
     echo "${CTR_MSG}${FIELD_FFT_IS_NORMALIZED}" >> ${CONTROL_FILENAME}
@@ -81,7 +97,10 @@ do
   CTR_MSG="p${ANGLES[$i]}Eps${EPS_HIGH}"
   if grep -Fxq "${CTR_MSG}${IS_SIMULATED}" "${CONTROL_FILENAME}" 
   then
-    echo "Nothing to simulate for ${ANGLES[$i]} degrees p-polarization"
+    if ${VERBOSE}
+    then
+      echo "Nothing to simulate for ${ANGLES[$i]} degrees p-polarization"
+    fi
   else
     # Compute background
     DDIR="${DDIR_BASE}${ANGLES[$i]}p"
@@ -102,7 +121,10 @@ do
 
   if grep -Fxq "${CTR_MSG}${IS_NORMALIZED}" "${CONTROL_FILENAME}" 
   then
-    echo "Already normalized..."
+    if ${VERBOSE}
+    then
+      echo "Already normalized..."
+    fi
   else
   # Normalize
     ./normalizeDFTFlux.out ${ODIR}/transmittedFlux.csv ${BKGDIR}/transmittedFlux.csv
@@ -111,7 +133,10 @@ do
 
   if grep -Fxq "${CTR_MSG}${HAS_SUBTRACTED}" "${CONTROL_FILENAME}"
   then
-    echo "Already subtracted..."
+    if ${VERBOSE}
+    then
+      echo "Already subtracted..."
+    fi
   else
     # Subtract incident field from reflected
     ./subtractBkg.out "${ODIR}/realField.csv" "${BKGDIR}/realField.csv"
@@ -120,7 +145,10 @@ do
 
   if grep -Fxq "${CTR_MSG}${IS_FFT}" "${CONTROL_FILENAME}"
   then
-    echo "Has already FFT the fields..."
+    if ${VERBOSE}
+    then
+      echo "Has already FFT the fields..."
+    fi
   else
     ./fourierPulse.out ${ODIR}/realField.csv ${ANGLES[$i]} 
     ./fourierPulse.out ${BKGDIR}/realField.csv ${ANGLES[$i]}
@@ -129,7 +157,10 @@ do
 
   if grep -Fxq "${CTR_MSG}${FIELD_FFT_IS_NORMALIZED}" "${CONTROL_FILENAME}"
   then
-    echo "FFT of fields are already normalized..."
+    if ${VERBOSE}
+    then
+      echo "FFT of fields are already normalized..."
+    fi
   else
     ./normalizeDFTFlux.out ${ODIR}/realFieldFourier.csv ${BKGDIR}/realFieldFourier.csv
     echo "${CTR_MSG}${FIELD_FFT_IS_NORMALIZED}" >> ${CONTROL_FILENAME}
