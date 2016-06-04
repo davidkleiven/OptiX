@@ -18,7 +18,7 @@ SHARED_LIBS := -lmeep
 planeReflection.out: $(PLANE_WAVE_OBJ)
 	$(CXX) -o $@ $^ -L $(MEEP_LDIR) -L $(HDF5_LDIR) $(STATIC_LIBS) $(SHARED_LIBS)
 
-subtractBkg.out: ${ODIR}/subtractBkg.o
+subtractBkg.out: ${ODIR}/subtractBkg.o ${ODIR}/readCSVdata.o
 	$(CXX) -o $@ $^
 
 normalizeDFTFlux.out: ${ODIR}/normalizeDFTFlux.o ${ODIR}/readCSVdata.o

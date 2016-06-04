@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 #include <cmath>
+#include "readCSVdata.h"
+#include <stdexcept>
 #define CLOSE_DELTA 1E-8
 
 using namespace std;
@@ -10,15 +12,14 @@ using namespace std;
 typedef vector<double> dvec;
 int main(int argc, char** argv)
 {
-  if ( argc != 4 )
+  if ( argc != 3 )
   {
-    cout << "Usage: ./subtractBackground.cpp <ifile> <bkgfile> <ofile>\n";
+    cout << "Usage: ./subtractBackground.cpp <ifile> <bkgfile>\n";
     return 1;
   }
 
   string ifile(argv[1]);
   string bkgfile(argv[2]);
-  string ofile(argv[3]);  
 
   dvec timeIn;
   dvec timeBkg;
@@ -27,82 +28,60 @@ int main(int argc, char** argv)
   dvec imagIn;
   dvec imagBkg;
 
-  // Read data from infile
-  string line;
-  ifstream is(ifile.c_str());
-  if ( !is.good() )
+  ReadCSVData bkgReader;
+  ReadCSVData ifileReader;
+  try
   {
-    cout << "Problem when opening file " << ifile << endl;
+    bkgReader.read(bkgfile, 3);
+    ifileReader.read(ifile, 3);
+  }
+  catch ( runtime_error &exc )
+  {
+    cerr << exc.what() << endl;
+    return 1;
+  }
+  catch (...)
+  {
+    cerr << "Unrecognized exception occured...\n";
     return 1;
   }
 
-  while ( getline(is, line) && (line[0] == '#') ){};
-
-  double time, realPart, imagPart;
-  char comma;
-  while ( is >> time  >> comma >> realPart >> comma >> imagPart )
-  {
-    timeIn.push_back(time);
-    realIn.push_back(realPart);
-    imagIn.push_back(imagPart);
-  }
-  is.close();
-
-  // Read data from bkgfile
-  is.open(bkgfile.c_str());
-  
-  if ( !is.good() )
-  {
-    cout << "Problem when opening file " << bkgfile << endl;
-    return 1;
-  }
-
-  while ( getline(is, line) && (line[0] == '#') ){};
-
-  while ( is >> time >> comma >> realPart >> comma >> imagPart )
-  {
-    timeBkg.push_back(time);
-    realBkg.push_back(realPart);
-    imagBkg.push_back(imagPart);
-  }
-  is.close();
 
   // Subtract off the background
-  if ( timeIn.size() != timeBkg.size() )
+  if ( bkgReader.numPoints() != bkgReader.numPoints() )
   {
     cout << "The background time and the bkg time must have exactly the same timepoints!\n";
     return 1;
   }
 
-  for ( unsigned int i=0;i<timeIn.size();i++)
+  vector<double> reflectedSubtracted;
+  for ( unsigned int i=0;i<bkgReader.numPoints();i++)
   {
-    if ( abs( timeIn[i] - timeBkg[i] ) > CLOSE_DELTA )
+    if ( abs( bkgReader.get(i,0) - ifileReader.get(i,0) ) > CLOSE_DELTA )
     {
       cout << "Timepoints on step " << i << "does not match!\n";
-      cout << "Input file: " << timeIn[i] << endl;
-      cout << "Bkg file: " << timeBkg[i] << endl << endl;
+      cout << "Input file: " << ifileReader.get(i,0) << endl;
+      cout << "Bkg file: " << bkgReader.get(i,0) << endl << endl;
       return 1;
     }
-
-    realIn[i] -= realBkg[i];
-    imagIn[i] -= imagBkg[i];
+    reflectedSubtracted.push_back( ifileReader.get(i,2) - bkgReader.get(i,2) );
   }
   
   // Write the results to file
-  ofstream os(ofile.c_str());
+  ofstream os(ifile.c_str());
   if ( !os.good() )
   {
-    cout << "Problems when opening file " << ofile << endl;
+    cout << "Problems when opening file " << ifile << " for writing...\n";
     return 1;
   }
 
   os << "# Field after subtracting of background\n";
   os << "# Infile: " << ifile << "\n";
   os << "# Background file " << bkgfile << "\n";
-  os << "# Time, Ez.real, Ez.imag\n";
-  for ( unsigned int i=0;i<timeIn.size();i++)
+  os << "# Time, Real field transmitted, Real field reflected (incident is subtracted)\n";
+  for ( unsigned int i=0;i<bkgReader.numPoints();i++)
   {
-    os << timeIn[i] << "," << realIn[i] << "," << imagIn[i] << "\n";
+    os << bkgReader.get(i,0) << "," << ifileReader.get(i,1) << "," << reflectedSubtracted[i] << "\n";
   }
   os.close();
   return 0;
