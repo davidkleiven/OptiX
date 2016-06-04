@@ -16,6 +16,7 @@ gnuplot -e "ofile='${OFILE}';ifile='${IFILE}'" plotFieldComponent.plt
 OFILE="${FDIR}/normalIncSource.png"
 IFILE="${DDIR}/NormalInc/ezMonitorSource.csv"
 gnuplot -e "ofile='${OFILE}';ifile='${IFILE}'" plotFieldComponent.plt
+
 OFILE="${FDIR}/normalIncTrans.png"
 IFILE="${DDIR}/NormalInc/ezMonitorTrans.csv"
 gnuplot -e "ofile='${OFILE}';ifile='${IFILE}'" plotFieldComponent.plt

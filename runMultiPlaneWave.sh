@@ -76,7 +76,7 @@ do
     echo "Already normalized..."
   else
   # Normalize
-  ./normalizeDFTFlux.out ${ODIR}/transmittedFlux.csv ${BKGDIR}/transmittedFlux.csv
+    ./normalizeDFTFlux.out ${ODIR}/transmittedFlux.csv ${BKGDIR}/transmittedFlux.csv
     echo "${CTR_MSG}${IS_NORMALIZED}" >> "${CONTROL_FILENAME}"
   fi
 done
