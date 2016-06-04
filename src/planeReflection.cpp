@@ -9,7 +9,6 @@
 #include <sstream>
 #include <cassert>
 #include <stdexcept>
-#include "dataToFile.h"
 #include "sincSrc.h"
 #define ODIRLEN 60
 //#define OUTPUT_HDF5
@@ -171,13 +170,9 @@ int main(int argc, char **argv)
   meep::dft_flux transFluxY = field.add_dft_flux_plane(dftVol, freq-fwidth/2.0, freq+fwidth/2.0, nfreq);
   meep::dft_flux fluxYReflected = field.add_dft_flux_plane(dftVolR, freq-fwidth/2.0, freq+fwidth/2.0, nfreq); 
 
-  // Put a field monitor at the center of the geometry 
-  meep::vec monitorPos(XSIZE/2.0, SOURCE_Y-0.1);
-  meep::vec monitorTransPlanePos(XSIZE/2.0, PML_THICK);
-
-  vector<double> fieldAtCenterReal; // Container for the real field component
+  vector<double> fieldTransmitted; // Container for the real field component
   vector<double> timepoints; // Container for the timepoints
-  vector<double> fieldAtFluxPlane; // Container for the real field component at the center of the flux plane
+  vector<double> fieldReflection; // Container for the real field component at the center of the flux plane
 
   // Time required to propagate over the domain with the slowest speed
   double speed = 1.0/sqrt(EPS_HIGH);
@@ -220,10 +215,10 @@ int main(int argc, char **argv)
     field.step();
 
     // Get field amplitude
-    complex<double> fieldAmp = field.get_field(fieldComp, monitorPos);
-    complex<double> fieldAmpTrans = field.get_field(fieldComp, monitorTransPlanePos);
-    fieldAtCenterReal.push_back(real(fieldAmp));
-    fieldAtFluxPlane.push_back(real( fieldAmpTrans ));
+    complex<double> fieldAmpTrans = field.get_field(fieldComp, meep::vec(XSIZE/2.0, fluxPlanePosY));
+    complex<double> fieldAmpRefl = field.get_field(fieldComp, meep::vec(XSIZE/2.0, fluxRefPlanePosY));
+    fieldTransmitted.push_back(real(fieldAmpTrans));
+    fieldReflection.push_back(real( fieldAmpRefl ));
     timepoints.push_back(field.time());
 
     #ifdef OUTPUT_HDF5
@@ -291,22 +286,20 @@ int main(int argc, char **argv)
   }
   
   // Write monitor to file
-  try
+  string monitorOut("realField.csv");
+  os.open(monitorOut.c_str());
+  if ( !os.good() )
   {
-    string monitorOut("ezMonitorSource.csv");
-    monitorOut = ddir + "/" + monitorOut;
-    monitorToFile(monitorOut, timepoints, fieldAtCenterReal, monitorPos);
-    monitorOut = ddir + "/" + "ezMonitorTrans.csv";
-    monitorToFile(monitorOut, timepoints, fieldAtFluxPlane, monitorTransPlanePos);
+    cerr << "Error when opening file " << monitorOut << endl;
+    return 1;
   }
-  catch ( runtime_error &exc )
+  os << "# Field monitored at positions\n";
+  os << "# Time, Real field transmitted, Real field Reflected (+incident)\n";
+  for ( unsigned int i=0;i<timepoints.size();i++ )
   {
-    cout << exc.what() << endl;
+    os << timepoints[i] << "," << fieldTransmitted[i] << "," << fieldReflection[i] << "\n";
   }
-  catch (...)
-  {
-    cout << "An unexpected exception occured...";
-  }
+  os.close(); 
   return 0;
 }
 
