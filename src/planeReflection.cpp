@@ -287,6 +287,7 @@ int main(int argc, char **argv)
   
   // Write monitor to file
   string monitorOut("realField.csv");
+  monitorOut = ddir + "/" + monitorOut;
   os.open(monitorOut.c_str());
   if ( !os.good() )
   {
