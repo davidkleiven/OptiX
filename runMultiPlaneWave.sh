@@ -9,6 +9,8 @@ CONTROL_FILENAME="dataPlane/control.txt"
 IS_SIMULATED="simulated"
 IS_NORMALIZED="normalized"
 HAS_SUBTRACTED="subtracted"
+IS_FFT="fourier"
+FIELD_FFT_IS_NORMALIZED="fieldFFTIsNormalized"
 
 # NOTE: It is important that the background run and the actual run is executed succesively.
 # The actual run relies on a temporary file created by the background run.
@@ -54,6 +56,23 @@ do
     ./subtractBkg.out "${ODIR}/realField.csv" "${BKGDIR}/realField.csv"
     echo "${CTR_MSG}${HAS_SUBTRACTED}" >> "${CONTROL_FILENAME}"
   fi
+
+  if grep -Fxq "${CTR_MSG}${IS_FFT}" "${CONTROL_FILENAME}"
+  then
+    echo "Has already FFT the fields..."
+  else
+    ./fourierPulse.out ${ODIR}/realField.csv ${ANGLES[$i]} 
+    ./fourierPulse.out ${BKGDIR}/realField.csv ${ANGLES[$i]}
+    echo "${CTR_MSG}${IS_FFT}" >> "${CONTROL_FILENAME}"
+  fi
+
+  if grep -Fxq "${CTR_MSG}${FIELD_FFT_IS_NORMALIZED}" "${CONTROL_FILENAME}"
+  then
+    echo "FFT of fields are already normalized..."
+  else
+    ./normalizeDFTFlux.out ${ODIR}/realFieldFourier.csv ${BKGDIR}/realFieldFourier.csv
+    echo "${CTR_MSG}${FIELD_FFT_IS_NORMALIZED}" >> ${CONTROL_FILENAME}
+  fi
 done
 
 # Run p-polrazation
@@ -97,5 +116,22 @@ do
     # Subtract incident field from reflected
     ./subtractBkg.out "${ODIR}/realField.csv" "${BKGDIR}/realField.csv"
     echo "${CTR_MSG}${HAS_SUBTRACTED}" >> "${CONTROL_FILENAME}"
+  fi
+
+  if grep -Fxq "${CTR_MSG}${IS_FFT}" "${CONTROL_FILENAME}"
+  then
+    echo "Has already FFT the fields..."
+  else
+    ./fourierPulse.out ${ODIR}/realField.csv ${ANGLES[$i]} 
+    ./fourierPulse.out ${BKGDIR}/realField.csv ${ANGLES[$i]}
+    echo "${CTR_MSG}${IS_FFT}" >> "${CONTROL_FILENAME}"
+  fi
+
+  if grep -Fxq "${CTR_MSG}${FIELD_FFT_IS_NORMALIZED}" "${CONTROL_FILENAME}"
+  then
+    echo "FFT of fields are already normalized..."
+  else
+    ./normalizeDFTFlux.out ${ODIR}/realFieldFourier.csv ${BKGDIR}/realFieldFourier.csv
+    echo "${CTR_MSG}${FIELD_FFT_IS_NORMALIZED}" >> ${CONTROL_FILENAME}
   fi
 done
