@@ -66,7 +66,7 @@ int main(int argc, char** argv)
   {
     angles.push_back(bkg.get(i,1));
     transmitted.push_back(transRun.get(i,2)/bkg.get(i,2));
-    reflected.push_back(transRun.get(i,3)/bkg.get(i,3));
+    reflected.push_back(-transRun.get(i,3)/bkg.get(i,3));
   }
 
   // Construct out filename from infile name
