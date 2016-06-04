@@ -6,6 +6,7 @@
 #include <vector>
 #include <cmath>
 #include <cstring>
+#include "readCSVdata.h"
 #define MIN_SAVE_VAL 1E-4
 
 using namespace std;
@@ -18,43 +19,25 @@ int main(int argc, char** argv)
   }
 
   // Read file
-  vector<double> time;
-  vector<double> field;
   string fname(argv[1]);
-  ifstream infile(fname.c_str()); 
-  if ( !infile.good() )
-  {
-    cout << "Problem when opening file " << fname << endl;
-    return 1;
-  }
-
-  string line;
-  while ( getline(infile, line) && (line[0] == '#') ){}
-  stringstream firstline;
-  firstline << line;
-  double newT, newF;
-  firstline >> newT >> newF;
-  
-  time.push_back(newT);
-  field.push_back(newF);
-
-  char comma;
-  while ( infile >> newT >> comma >> newF )
-  {
-    time.push_back(newT);
-    field.push_back(newF);
-  }
-  infile.close();
-
+  ReadCSVData reader;
+  reader.read(fname, 2);
   // Compute sum
   double fieldSum;
-  for ( unsigned int i=0;i<field.size();i++)
+  for ( unsigned int i=0;i<reader.numPoints();i++)
   {
-    fieldSum += field[i]*field[i];
+    fieldSum += reader.get(i,1)*reader.get(i,1);
   }
 
   // Compute fourier transform of the signal
-  double dt = time[1] - time[0];
+  double dt = reader.get(1,0) - reader.get(0,0);
+
+  vector<double> field;
+  // Store copy of field in array for FFT
+  for ( unsigned int i=0;i<reader.numPoints();i++ )
+  {
+    field.push_back(reader.get(i,1));
+  }
   
   gsl_fft_real_wavetable *realTab;
   gsl_fft_real_workspace *work;
