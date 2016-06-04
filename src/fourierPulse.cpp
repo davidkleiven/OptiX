@@ -9,17 +9,23 @@
 #include "readCSVdata.h"
 #define MIN_SAVE_VAL 1E-4
 
+const double PI = acos(-1.0);
 using namespace std;
 int main(int argc, char** argv)
 {
-  if ( argc != 2 )
+  if ( argc != 3 )
   {
-    cout << "Usage ./fourierPulse.out <pulsefile>\n";
+    cout << "Usage ./fourierPulse.out <pulsefile> <incident angle of peak>\n";
     return 1;
   }
 
   // Read file
   string fname(argv[1]);
+  stringstream ss;  
+  ss << argv[2];
+  double angle;
+  ss >> angle;
+
   ReadCSVData reader;
   reader.read(fname, 3);
   // Compute sum
@@ -109,9 +115,22 @@ int main(int argc, char** argv)
     cout << "Sum of field: " << fieldSumRefl << endl;
     cout << "Sum of power spectrum (/N): " << fieldReflFFTSum/static_cast<double>(fieldRefl.size()) << endl;
   }
-  
+
+  // Find position of maximum use the one from the transmitted signal
+  unsigned int currentMaxPos = 0;
+  double currentMax = -1.0;
+  for ( unsigned int i=0;i<fieldTrans.size();i++)
+  {
+    if ( fieldTrans[i] > currentMax )
+    {
+      currentMaxPos = i;
+      currentMax = fieldTrans[i];
+    }
+  }
+ 
   // Write results to file
-  double df = 1.0/static_cast<double>(fieldTrans.size());
+  double df = 1.0/(dt*static_cast<double>(fieldTrans.size()));
+  double frequencyAtMax = static_cast<double>(currentMaxPos)*df;
   unsigned int pos = fname.find(".");
   string ofname = fname.substr(0,pos);
   ofname += "Fourier.csv";
@@ -121,11 +140,26 @@ int main(int argc, char** argv)
   double freq = 0.0;
   for ( unsigned int i=0;i<fieldTrans.size()/2;i++)
   {
+    double angleArgument = 0.0;
+    if ( freq > 0.0 )
+    {
+      angleArgument = frequencyAtMax*sin( angle*PI/180.0 )/freq;
+    }
+    else
+    {
+      continue;
+    }
+
+    if ( abs(angleArgument) > 1.0 )
+    {
+      continue;
+    }
+    double currentAngle = asin( angleArgument )*180.0/PI;
     double fieldSaveTrans = fieldTrans[i];//static_cast<double>(field.size());
     double fieldSaveRefl = fieldRefl[i];
     if ( (fieldSaveTrans > MIN_SAVE_VAL) || (fieldSaveRefl > MIN_SAVE_VAL) )
     {
-      os << freq << "," << fieldSaveTrans << "," << fieldSaveRefl << "\n";
+      os << freq << "," << currentAngle << "," << fieldSaveTrans << "," << fieldSaveRefl << "\n";
     }
     freq += df;
   }
