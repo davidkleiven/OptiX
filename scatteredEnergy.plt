@@ -25,26 +25,26 @@ set ylabel "Scattered power"
 set yrange[0:1]
 set xrange[0:90]
 set key center left
-plot FNAME1 every 10 using 1:2 with points pt 6 ps 0.3 lc "black" notitle,\
-Ts(x) with lines lt 1 lc "black" lw 4 title "$T_s$",\
+plot FNAME1 every 10 using 1:2 with points pt 6 ps 0.3 lc "black" title "$T_s$",\
+Ts(x) with lines lt 1 lc "black" lw 4 notitle,\
 FNAME2 every 10 using 1:2 with points pt 6 ps 0.3 lc "black" notitle,\
 FNAME3 every 1 using 1:2 with points pt 6 ps 0.3 lc "black" notitle,\
 FNAME4 every 1 using 1:2 with points pt 6 ps 0.3 lc "black" notitle,\
-Tp(x) with lines lt 3 lc "black" lw 4 title "$T_p$",\
-FNAME1p every 10 using 1:2 with points pt 6 ps 0.3 lc "black" notitle,\
-FNAME2p every 10 using 1:2 with points pt 6 ps 0.3 lc "black" notitle,\
-FNAME3p every 1 using 1:2 with points pt 7 ps 0.3 lc "black" notitle,\
-FNAME4p every 1 using 1:2 with points pt 7 ps 0.3 lc "black" notitle,\
-FNAME1 every 10 using 1:3 with points pt 6 ps 0.3 lc "black" notitle,\
-FNAME2 every 10 using 1:3 with points pt 6 ps 0.3 lc "black" notitle,\
-FNAME3 every 1 using 1:3 with points pt 6 ps 0.3 lc "black" notitle,\
-FNAME4 every 1 using 1:3 with points pt 6 ps 0.3 lc "black" notitle,\
-Rs(x) with lines lt 1 lc "black" lw 4 title "$R_s$",\
-FNAME1p every 10 using 1:3 with points pt 6 ps 0.3 lc "black" notitle,\
-FNAME2p every 10 using 1:3 with points pt 6 ps 0.3 lc "black" notitle,\
-FNAME3p every 1 using 1:3 with points pt 7 ps 0.3 lc "black" notitle,\
-FNAME4p every 1 using 1:3 with points pt 7 ps 0.3 lc "black" notitle,\
-Rp(x) with lines lt 3 lc "black" lw 4 title "$R_p$"
+Tp(x) with lines lt 3 lc "black" lw 4 notitle,\
+FNAME1p every 10 using 1:2 with points pt 8 ps 0.4 lc "black" title "$T_p$",\
+FNAME2p every 10 using 1:2 with points pt 8 ps 0.4 lc "black" notitle,\
+FNAME3p every 1 using 1:2 with points pt 8 ps 0.4 lc "black" notitle,\
+FNAME4p every 1 using 1:2 with points pt 8 ps 0.4 lc "black" notitle,\
+FNAME1 every 10 using 1:3 with points pt 10 ps 0.4 lc "black" title "$R_s$",\
+FNAME2 every 10 using 1:3 with points pt 10 ps 0.4 lc "black" notitle,\
+FNAME3 every 1 using 1:3 with points pt 10 ps 0.4 lc "black" notitle,\
+FNAME4 every 1 using 1:3 with points pt 10 ps 0.4 lc "black" notitle,\
+Rs(x) with lines lt 1 lc "black" lw 4 notitle,\
+FNAME1p every 10 using 1:3 with points pt 4 ps 0.3 lc "black" title "$R_p$",\
+FNAME2p every 10 using 1:3 with points pt 4 ps 0.3 lc "black" notitle,\
+FNAME3p every 1 using 1:3 with points pt 4 ps 0.3 lc "black" notitle,\
+FNAME4p every 1 using 1:3 with points pt 4 ps 0.3 lc "black" notitle,\
+Rp(x) with lines lt 3 lc "black" lw 4 notitle
 
 set terminal pdfcairo dashed
 set output "Figures/energyScattered.pdf"
