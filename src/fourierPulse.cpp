@@ -183,12 +183,13 @@ int main(int argc, char** argv)
   // Find position of maximum use the one from the transmitted signal
   unsigned int currentMaxPos = 1;
   double currentMax = -1.0;
-  for ( unsigned int i=1;i<fieldTrans.size()/2;i++)
+  for ( unsigned int i=1;i<fieldTrans.size()/2-1;i++)
   {
-    if ( fieldTrans[i] > currentMax )
+    double normTrans = sqrt( fieldTrans[2*i-1]*fieldTrans[2*i-1] + fieldTrans[2*i]*fieldTrans[2*i] );
+    if ( normTrans > currentMax )
     {
       currentMaxPos = i;
-      currentMax = fieldTrans[i];
+      currentMax = normTrans;
     }
   }
  
@@ -202,7 +203,7 @@ int main(int argc, char** argv)
   ofstream os(ofname.c_str());
   os << "# Fourier transformed signal\n";
   os << "# Freq, Angle, Transmitted (real), Transmitted (imag), Reflected (real), Reflected (imag)\n";
-  double freq = 0.0;
+
   // Run from 1 to reflection.size()-1 --> Ignore the boundaries. These should not be important anyway 
   for ( unsigned int i=1;i<reflection.size()-1;i++ )
   {
