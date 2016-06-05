@@ -11,7 +11,18 @@
 #include <stdexcept>
 #define MIN_SAVE_VAL 1E-4
 //#define OUTPUT_SUBTRACTED
-
+/**
+* This file takes three command line arguments
+* 1) name of file with scatterer
+* 2) name of file without scatterer
+* 3) Incident angle in degrees of peak frequency
+*
+* Example:
+* ./fourierPulse.out fileWithSc.csv fileWithoutSc.csv 20
+*
+* The format of the csv files are assumed to be
+* <time> <field at transmission point> <field at reflection point>
+*/
 const double PI = acos(-1.0);
 using namespace std;
 int main(int argc, char** argv)
@@ -60,7 +71,7 @@ int main(int argc, char** argv)
   // Subtract off difference
   for ( unsigned int i=0;i<bkgreader.numPoints();i++ )
   {
-    fieldRefl.push_back( reader.get(0,2) - bkgreader.get(0,2) );
+    fieldRefl.push_back( reader.get(i,2) - bkgreader.get(i,2) );
   }
 
   // Compute sum
