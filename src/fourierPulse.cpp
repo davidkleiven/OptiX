@@ -7,48 +7,86 @@
 #include <cmath>
 #include <cstring>
 #include "readCSVdata.h"
+#include <complex>
+#include <stdexcept>
 #define MIN_SAVE_VAL 1E-4
+//#define OUTPUT_SUBTRACTED
 
 const double PI = acos(-1.0);
 using namespace std;
 int main(int argc, char** argv)
 {
-  if ( argc != 3 )
+  if ( argc != 4 )
   {
-    cout << "Usage ./fourierPulse.out <pulsefile> <incident angle of peak>\n";
+    cout << "Usage ./fourierPulse.out <infile> <bkgfile> <incident angle of peak>\n";
     return 1;
   }
 
   // Read file
   string fname(argv[1]);
+  string bkgfname(argv[2]);
   stringstream ss;  
-  ss << argv[2];
+  ss << argv[3];
   double angle;
   ss >> angle;
 
   ReadCSVData reader;
-  reader.read(fname, 3);
+  ReadCSVData bkgreader;
+  try
+  {
+    reader.read(fname, 3);
+    bkgreader.read(bkgfname, 3);
+  }
+  catch(runtime_error &exc)
+  {
+    cerr << exc.what() << endl;
+    return 1;
+  }
+  catch(...)
+  {
+    cerr << "Unknown exception...\n";
+    return 1;
+  }
+
+  vector<double> fieldRefl;
+  if ( bkgreader.numPoints() != reader.numPoints() )
+  {
+    cout << "Different number of points in infile and bkg file\n",  
+    cout << "Number of points in infile: " << reader.numPoints() << endl;
+    cout << "Number of points in bkgfile: " << bkgreader.numPoints() << endl;
+    return 1;
+  }
+
+  // Subtract off difference
+  for ( unsigned int i=0;i<bkgreader.numPoints();i++ )
+  {
+    fieldRefl.push_back( reader.get(0,2) - bkgreader.get(0,2) );
+  }
+
   // Compute sum
   double fieldSumTrans = 0.0;
   double fieldSumRefl = 0.0;
   for ( unsigned int i=0;i<reader.numPoints();i++)
   {
     fieldSumTrans += reader.get(i,1)*reader.get(i,1);
-    fieldSumRefl += reader.get(i,2)*reader.get(i,2);
+    fieldSumRefl += fieldRefl[i]*fieldRefl[i];
   }
 
   // Compute fourier transform of the signal
   double dt = reader.get(1,0) - reader.get(0,0);
 
   vector<double> fieldTrans;
-  vector<double> fieldRefl;
+  vector<double> bkgRefl;
+  vector<double> bkgTrans;
   // Store copy of field in array for FFT
   for ( unsigned int i=0;i<reader.numPoints();i++ )
   {
     fieldTrans.push_back(reader.get(i,1));
-    fieldRefl.push_back(reader.get(i,2));
+    bkgTrans.push_back(bkgreader.get(i,1));
+    bkgRefl.push_back(bkgreader.get(i,2));
   }
   
+  // Coompute Fourier transforms
   gsl_fft_real_wavetable *realTab;
   gsl_fft_real_workspace *work;
   
@@ -56,15 +94,20 @@ int main(int argc, char** argv)
   realTab = gsl_fft_real_wavetable_alloc(fieldTrans.size());
   gsl_fft_real_transform(&fieldTrans[0], 1, fieldTrans.size(), realTab, work);
   gsl_fft_real_transform(&fieldRefl[0], 1, fieldRefl.size(), realTab, work); 
+  gsl_fft_real_transform(&bkgTrans[0], 1, bkgTrans.size(), realTab, work);
+  gsl_fft_real_transform(&bkgRefl[0], 1, bkgRefl.size(), realTab, work);
 
   gsl_fft_real_wavetable_free(realTab);
   gsl_fft_real_workspace_free(work);
 
+  vector< complex<double> > reflection;
+  vector< complex<double> > transmission;
   if ( fieldTrans.size()%2 == 1 )
   {
     // Odd length
     fieldTrans[0] *= fieldTrans[0];
     fieldRefl[0] *= fieldRefl[0];
+    reflection.push_back( (fieldRefl[0]/bkgRefl[0],0.0) );
     for ( unsigned int i=1;i<fieldTrans.size()/2;i++ )
     {
       fieldTrans[i] = pow( fieldTrans[2*i-1], 2 ) + pow( fieldTrans[2*i], 2 );
