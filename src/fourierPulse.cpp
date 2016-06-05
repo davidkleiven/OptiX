@@ -78,6 +78,7 @@ int main(int argc, char** argv)
   vector<double> fieldTrans;
   vector<double> bkgRefl;
   vector<double> bkgTrans;
+
   // Store copy of field in array for FFT
   for ( unsigned int i=0;i<reader.numPoints();i++ )
   {
@@ -102,11 +103,11 @@ int main(int argc, char** argv)
 
   vector< complex<double> > reflection;
   vector< complex<double> > transmission;
+  double fieldTransFFTSum = fieldTrans[0];
+  double fieldReflFFTSum = fieldRefl[0];
   if ( fieldTrans.size()%2 == 1 )
   {
     // Odd length
-    fieldTrans[0] *= fieldTrans[0];
-    fieldRefl[0] *= fieldRefl[0];
     reflection.push_back( (fieldRefl[0]/bkgRefl[0],0.0) );
     transmission.push_back( (fieldTrans[0]/bkgTrans[0],0.0) );
     for ( unsigned int i=1;i<fieldTrans.size()/2;i++ )
@@ -118,13 +119,17 @@ int main(int argc, char** argv)
       complex<double> trans(fieldTrans[2*i-1], fieldTrans[2*i]);
       bkgVal = (bkgTrans[2*i-1], bkgTrans[2*i]);
       transmission.push_back(trans/bkgVal);
+
+      // For Parseval check
+      fieldTransFFTSum += pow(fieldTrans[2*i-1],2) + pow(fieldTrans[2*i],2);
+      fieldReflFFTSum += pow(fieldRefl[2*i-1],2) + pow(fieldRefl[2*i],2);
     }
   }
   else
   {
     // Even length
-    fieldTrans[0] *= fieldTrans[0];
-    fieldRefl[0] *= fieldRefl[0];
+    reflection.push_back( (fieldRefl[0]/bkgRefl[0],0.0) );
+    transmission.push_back( (fieldTrans[0]/bkgTrans[0],0.0) );
     for ( unsigned int i=1;i<fieldTrans.size()/2-1;i++)
     {
       complex<double> refl(fieldRefl[2*i-1], fieldRefl[2*i]);
@@ -134,20 +139,19 @@ int main(int argc, char** argv)
       complex<double> trans(fieldTrans[2*i-1], fieldTrans[2*i]);
       bkgVal = (bkgTrans[2*i-1], bkgTrans[2*i]);
       transmission.push_back(trans/bkgVal);
+
+      // For Parseval check
+      fieldTransFFTSum += pow(fieldTrans[2*i-1],2) + pow(fieldTrans[2*i],2);
+      fieldReflFFTSum += pow(fieldRefl[2*i-1],2) + pow(fieldRefl[2*i],2);
     }
     fieldTrans[fieldTrans.size()/2-1] *= fieldTrans[fieldTrans.size()/2];
     reflection.push_back( (fieldRefl[fieldRefl.size()/2-1]/bkgRefl[fieldRefl.size()/2 -1],0.0) );
     transmission.push_back( (fieldTrans[fieldTrans.size()/2-1]/bkgTrans[fieldTrans.size()/2 -1],0.0) ); 
+    
+    fieldTransFFTSum += pow(fieldTrans[fieldTrans.size()/2-1],2);
+    fieldReflFFTSum += pow(fieldRefl[fieldRefl.size()/2-1],2);
   }
 
-  // Compute sum of spectrum
-  double fieldTransFFTSum = 0.0;
-  double fieldReflFFTSum = 0.0;
-  for ( unsigned int i=0;i<fieldTrans.size()/2;i++)
-  {
-    fieldTransFFTSum += fieldTrans[i];
-    fieldReflFFTSum += fieldRefl[i];
-  }
   fieldTransFFTSum = 2.0*fieldTransFFTSum - fieldTrans[0];
   fieldReflFFTSum = 2.0*fieldReflFFTSum - fieldRefl[0];
   
@@ -205,8 +209,6 @@ int main(int argc, char** argv)
       continue;
     }
     double currentAngle = asin( angleArgument )*180.0/PI;
-    double fieldSaveTrans = fieldTrans[i];//static_cast<double>(field.size());
-    double fieldSaveRefl = fieldRefl[i];
     if ( (abs(reflection[i]) > MIN_SAVE_VAL) || (abs(transmission[i]) > MIN_SAVE_VAL) )
     {
       os << freq << "," << currentAngle << "," << transmission[i].real() << "," << transmission[i].imag();
