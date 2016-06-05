@@ -9,7 +9,7 @@
 #include "readCSVdata.h"
 #include <complex>
 #include <stdexcept>
-#define MIN_SAVE_VAL 1E-4
+#define MIN_RELATIVE_SAVE_VAL 0.05
 //#define OUTPUT_SUBTRACTED
 /**
 * This file takes three command line arguments
@@ -195,6 +195,7 @@ int main(int argc, char** argv)
   // Write results to file
   double df = 1.0/(dt*static_cast<double>(fieldTrans.size()));
   double frequencyAtMax = static_cast<double>(currentMaxPos)*df;
+  double estimateOfMaxTransValue = sqrt(2.0)*currentMax;
   unsigned int pos = fname.find(".");
   string ofname = fname.substr(0,pos);
   ofname += "Fourier.csv";
@@ -202,25 +203,23 @@ int main(int argc, char** argv)
   os << "# Fourier transformed signal\n";
   os << "# Freq, Transmitted (real), Transmitted (imag), Reflected (real), Reflected (imag)\n";
   double freq = 0.0;
-  for ( unsigned int i=0;i<fieldTrans.size()/2;i++ )
+  // Run from 1 to reflection.size()-1 --> Ignore the boundaries. These should not be important anyway 
+  for ( unsigned int i=1;i<reflection.size()-1;i++ )
   {
     double freq = static_cast<double>(i)/(dt*static_cast<double>(fieldTrans.size()));
-    double angleArgument = 0.0;
-    if ( freq > 0.0 )
-    {
-      angleArgument = frequencyAtMax*sin( angle*PI/180.0 )/freq;
-    }
-    else
-    {
-      continue;
-    }
+    double angleArgument = frequencyAtMax*sin( angle*PI/180.0 )/freq;
   
     if ( abs(angleArgument) > 1.0 )
     {
       continue;
     }
     double currentAngle = asin( angleArgument )*180.0/PI;
-    if ( (abs(reflection[i]) > MIN_SAVE_VAL) || (abs(transmission[i]) > MIN_SAVE_VAL) )
+
+    // Compute norm of reflected and transmitted fields and save only the significant
+    double reflNorm = sqrt(fieldRefl[2*i-1]*fieldRefl[2*i]);
+    double transNorm = sqrt(fieldTrans[2*i-1]*fieldTrans[2*i]);
+    if ( (reflNorm > MIN_RELATIVE_SAVE_VAL*estimateOfMaxTransValue) || \
+       ( transNorm > MIN_RELATIVE_SAVE_VAL*estimateOfMaxTransValue) )
     {
       os << freq << "," << currentAngle << "," << transmission[i].real() << "," << transmission[i].imag();
       os << "," << reflection[i].real() << "," << reflection[i].imag() << "\n";
