@@ -9,9 +9,7 @@ VERBOSE=false
 # Control filename variables
 IS_SIMULATED="simulated"
 IS_NORMALIZED="normalized"
-HAS_SUBTRACTED="subtracted"
 IS_FFT="fourier"
-FIELD_FFT_IS_NORMALIZED="fieldFFTIsNormalized"
 
 # NOTE: It is important that the background run and the actual run is executed succesively.
 # The actual run relies on a temporary file created by the background run.
@@ -55,18 +53,6 @@ do
     echo "${CTR_MSG}${IS_NORMALIZED}" >> "${CONTROL_FILENAME}"
   fi
 
-  if grep -Fxq "${CTR_MSG}${HAS_SUBTRACTED}" "${CONTROL_FILENAME}"
-  then
-    if ${VERBOSE}
-    then
-      echo "Already subtracted..."
-    fi
-  else
-    # Subtract incident field from reflected
-    ./subtractBkg.out "${ODIR}/realField.csv" "${BKGDIR}/realField.csv"
-    echo "${CTR_MSG}${HAS_SUBTRACTED}" >> "${CONTROL_FILENAME}"
-  fi
-
   if grep -Fxq "${CTR_MSG}${IS_FFT}" "${CONTROL_FILENAME}"
   then
     if ${VERBOSE}
@@ -74,20 +60,8 @@ do
       echo "Has already FFT the fields..."
     fi
   else
-    ./fourierPulse.out ${ODIR}/realField.csv ${ANGLES[$i]} 
-    ./fourierPulse.out ${BKGDIR}/realField.csv ${ANGLES[$i]}
+    ./fourierPulse.out ${ODIR}/realField.csv ${BKGDIR}/realField.csv ${ANGLES[$i]} 
     echo "${CTR_MSG}${IS_FFT}" >> "${CONTROL_FILENAME}"
-  fi
-
-  if grep -Fxq "${CTR_MSG}${FIELD_FFT_IS_NORMALIZED}" "${CONTROL_FILENAME}"
-  then
-    if ${VERBOSE}
-    then
-      echo "FFT of fields are already normalized..."
-    fi
-  else
-    ./normalizeDFTFlux.out ${ODIR}/realFieldFourier.csv ${BKGDIR}/realFieldFourier.csv
-    echo "${CTR_MSG}${FIELD_FFT_IS_NORMALIZED}" >> ${CONTROL_FILENAME}
   fi
 done
 
@@ -131,18 +105,6 @@ do
     echo "${CTR_MSG}${IS_NORMALIZED}" >> "${CONTROL_FILENAME}"
   fi
 
-  if grep -Fxq "${CTR_MSG}${HAS_SUBTRACTED}" "${CONTROL_FILENAME}"
-  then
-    if ${VERBOSE}
-    then
-      echo "Already subtracted..."
-    fi
-  else
-    # Subtract incident field from reflected
-    ./subtractBkg.out "${ODIR}/realField.csv" "${BKGDIR}/realField.csv"
-    echo "${CTR_MSG}${HAS_SUBTRACTED}" >> "${CONTROL_FILENAME}"
-  fi
-
   if grep -Fxq "${CTR_MSG}${IS_FFT}" "${CONTROL_FILENAME}"
   then
     if ${VERBOSE}
@@ -150,19 +112,7 @@ do
       echo "Has already FFT the fields..."
     fi
   else
-    ./fourierPulse.out ${ODIR}/realField.csv ${ANGLES[$i]} 
-    ./fourierPulse.out ${BKGDIR}/realField.csv ${ANGLES[$i]}
+    ./fourierPulse.out ${ODIR}/realField.csv ${BKGDIR}/realField.csv ${ANGLES[$i]} 
     echo "${CTR_MSG}${IS_FFT}" >> "${CONTROL_FILENAME}"
-  fi
-
-  if grep -Fxq "${CTR_MSG}${FIELD_FFT_IS_NORMALIZED}" "${CONTROL_FILENAME}"
-  then
-    if ${VERBOSE}
-    then
-      echo "FFT of fields are already normalized..."
-    fi
-  else
-    ./normalizeDFTFlux.out ${ODIR}/realFieldFourier.csv ${BKGDIR}/realFieldFourier.csv
-    echo "${CTR_MSG}${FIELD_FFT_IS_NORMALIZED}" >> ${CONTROL_FILENAME}
   fi
 done
