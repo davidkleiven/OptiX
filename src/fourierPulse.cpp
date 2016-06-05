@@ -108,13 +108,16 @@ int main(int argc, char** argv)
     fieldTrans[0] *= fieldTrans[0];
     fieldRefl[0] *= fieldRefl[0];
     reflection.push_back( (fieldRefl[0]/bkgRefl[0],0.0) );
+    transmission.push_back( (fieldTrans[0]/bkgTrans[0],0.0) );
     for ( unsigned int i=1;i<fieldTrans.size()/2;i++ )
     {
-      fieldTrans[i] = pow( fieldTrans[2*i-1], 2 ) + pow( fieldTrans[2*i], 2 );
-    }
-    for ( unsigned int i=1;i<fieldRefl.size()/2;i++ )
-    {
-      fieldRefl[i] = pow( fieldRefl[2*i-1], 2 ) + pow( fieldRefl[2*i], 2 );
+      complex<double> refl(fieldRefl[2*i-1], fieldRefl[2*i]);
+      complex<double> bkgVal(bkgRefl[2*i-1], bkgRefl[2*i]);
+      reflection.push_back(refl/bkgVal);
+      
+      complex<double> trans(fieldTrans[2*i-1], fieldTrans[2*i]);
+      bkgVal = (bkgTrans[2*i-1], bkgTrans[2*i]);
+      transmission.push_back(trans/bkgVal);
     }
   }
   else
@@ -124,14 +127,17 @@ int main(int argc, char** argv)
     fieldRefl[0] *= fieldRefl[0];
     for ( unsigned int i=1;i<fieldTrans.size()/2-1;i++)
     {
-      fieldTrans[i] = pow( fieldTrans[2*i-1], 2 ) + pow( fieldTrans[2*i], 2 );
+      complex<double> refl(fieldRefl[2*i-1], fieldRefl[2*i]);
+      complex<double> bkgVal(bkgRefl[2*i-1], bkgRefl[2*i]);
+      reflection.push_back(refl/bkgVal);
+      
+      complex<double> trans(fieldTrans[2*i-1], fieldTrans[2*i]);
+      bkgVal = (bkgTrans[2*i-1], bkgTrans[2*i]);
+      transmission.push_back(trans/bkgVal);
     }
     fieldTrans[fieldTrans.size()/2-1] *= fieldTrans[fieldTrans.size()/2];
-    for ( unsigned int i=1;i<fieldRefl.size()/2-1;i++)
-    {
-      fieldRefl[i] = pow( fieldRefl[2*i-1], 2 ) + pow( fieldRefl[2*i], 2 );
-    }
-    fieldRefl[fieldRefl.size()/2-1] *= fieldRefl[fieldRefl.size()/2];
+    reflection.push_back( (fieldRefl[fieldRefl.size()/2-1]/bkgRefl[fieldRefl.size()/2 -1],0.0) );
+    transmission.push_back( (fieldTrans[fieldTrans.size()/2-1]/bkgTrans[fieldTrans.size()/2 -1],0.0) ); 
   }
 
   // Compute sum of spectrum
@@ -179,7 +185,7 @@ int main(int argc, char** argv)
   ofname += "Fourier.csv";
   ofstream os(ofname.c_str());
   os << "# Fourier transformed signal\n";
-  os << "# Freq, Transmitted, Reflected\n";
+  os << "# Freq, Transmitted (real), Transmitted (imag), Reflected (real), Reflected (imag)\n";
   double freq = 0.0;
   for ( unsigned int i=0;i<fieldTrans.size()/2;i++ )
   {
@@ -201,9 +207,10 @@ int main(int argc, char** argv)
     double currentAngle = asin( angleArgument )*180.0/PI;
     double fieldSaveTrans = fieldTrans[i];//static_cast<double>(field.size());
     double fieldSaveRefl = fieldRefl[i];
-    //if ( (fieldSaveTrans > MIN_SAVE_VAL) || (fieldSaveRefl > MIN_SAVE_VAL) )
+    if ( (abs(reflection[i]) > MIN_SAVE_VAL) || (abs(transmission[i]) > MIN_SAVE_VAL) )
     {
-      os << freq << "," << currentAngle << "," << fieldSaveTrans << "," << fieldSaveRefl << "\n";
+      os << freq << "," << currentAngle << "," << transmission[i].real() << "," << transmission[i].imag();
+      os << "," << reflection[i].real() << "," << reflection[i].imag() << "\n";
     }
   }
   os.close();
