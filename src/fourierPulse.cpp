@@ -201,7 +201,7 @@ int main(int argc, char** argv)
   ofname += "Fourier.csv";
   ofstream os(ofname.c_str());
   os << "# Fourier transformed signal\n";
-  os << "# Freq, Transmitted (real), Transmitted (imag), Reflected (real), Reflected (imag)\n";
+  os << "# Freq, Angle, Transmitted (real), Transmitted (imag), Reflected (real), Reflected (imag)\n";
   double freq = 0.0;
   // Run from 1 to reflection.size()-1 --> Ignore the boundaries. These should not be important anyway 
   for ( unsigned int i=1;i<reflection.size()-1;i++ )
@@ -216,8 +216,8 @@ int main(int argc, char** argv)
     double currentAngle = asin( angleArgument )*180.0/PI;
 
     // Compute norm of reflected and transmitted fields and save only the significant
-    double reflNorm = sqrt(fieldRefl[2*i-1]*fieldRefl[2*i]);
-    double transNorm = sqrt(fieldTrans[2*i-1]*fieldTrans[2*i]);
+    double reflNorm = sqrt(fieldRefl[2*i-1]*fieldRefl[2*i-1] + fieldRefl[2*i]*fieldRefl[2*i]);
+    double transNorm = sqrt(fieldTrans[2*i-1]*fieldTrans[2*i-1] + fieldTrans[2*i]*fieldTrans[2*i]);
     if ( (reflNorm > MIN_RELATIVE_SAVE_VAL*estimateOfMaxTransValue) || \
        ( transNorm > MIN_RELATIVE_SAVE_VAL*estimateOfMaxTransValue) )
     {
