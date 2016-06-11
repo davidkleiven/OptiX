@@ -69,7 +69,7 @@ int main(int argc, char** argv)
   for ( unsigned int i=0;i<rootBkg["transmitted"].size(); i++ )
   {
     rootTrans["transmitted"][i] = rootTrans["transmitted"][i].asDouble()/rootBkg["transmitted"][i].asDouble();
-    rootTrans["reflected"][i] = rootTrans["reflected"][i].asDouble()/rootBkg["reflected"][i].asDouble();
+    rootTrans["reflected"][i] = -rootTrans["reflected"][i].asDouble()/rootBkg["reflected"][i].asDouble();
   }
 
   // Construct out filename from infile name
