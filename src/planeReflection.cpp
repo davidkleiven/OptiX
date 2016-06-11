@@ -253,9 +253,56 @@ int main(int argc, char **argv)
     fluxYReflected.save_hdf5(field, fluxXFname.c_str());
   }
 
+  double dfreq = fwidth/static_cast<double>(nfreq-1);
+  double currentFreq = freq-fwidth/2.0;
+  double *transmittedFlux = transFluxY.flux();
+  double *reflectedFlux = fluxYReflected.flux();
+  unsigned int numberOfNonPropagating = 0;
+  Json::Value flux;
+  Json::Value transmitted(Json::arrayValue);
+  Json::Value reflected(Json::arrayValue);
+  Json::Value freqArray(Json::arrayValue);
+  Json::Value angleArray(Json::arrayValue);
+  for ( unsigned int i=0;i<nfreq;i++ )
+  {
+    double sinCurrentAngle = freq*sin(angle*PI/180.0)/currentFreq;
+    double currentAngle = 0.0;
+    if ( abs(sinCurrentAngle) > 1.0 )
+    {
+      numberOfNonPropagating++;
+    }
+    else
+    {
+      currentAngle = asin(sinCurrentAngle)*180.0/PI;
+      freqArray.append(currentFreq);
+      angleArray.append(currentAngle);
+      transmitted.append( transmittedFlux[i]/transYWidth );
+      reflected.append( reflectedFlux[i]/transYWidth );
+      //os << currentFreq << "," << currentAngle << "," << transmittedFlux[i]/transYWidth;
+      //os << "," << reflectedFlux[i]/transYWidth << "\n";
+    }
+    currentFreq += dfreq;
+  }
+  delete [] transmittedFlux;
+  delete [] reflectedFlux;
+
+  flux["geometry"]["sourcePosition"] = SOURCE_Y;
+  flux["geometry"]["slabPosition"] = YC_PLANE;
+  flux["geometry"]["xsize"] = XSIZE;
+  flux["geometry"]["ysize"] = YSIZE;
+
+  flux["frequency"] = freqArray;
+  flux["incidentAngle"] = angleArray;
+  flux["reflected"] = reflected;
+  flux["transmitted"] = transmitted;
+  
+  Json::FastWriter fwFlux;
+
+  cout << numberOfNonPropagating << " of " << nfreq << " modes do not propagate\n";
+
   // Write transmitted flux to file
   string ddir(OUTDIR);
-  string fluxOut("transmittedFlux.csv");
+  string fluxOut("transmittedFlux.json");
   fluxOut = ddir+"/"+fluxOut; 
   ofstream os(fluxOut.c_str());
   if ( !os.good() )
@@ -264,44 +311,13 @@ int main(int argc, char **argv)
   }
   else
   {
-    os << "# Flux from transmitted wave\n";
-    os << "# Volume description\n";
-    os << "# Flux in y-direction\n";
-    os << "# Corner 1: (x,y) = (" << dftVol.get_min_corner().x() << ","<<dftVol.get_min_corner().y() << ")\n";
-    os << "# Corner 2: (x,y) = (" << dftVol.get_max_corner().x() << "," << dftVol.get_max_corner().y() << ")\n"; 
-    os << "# EPS_HIGH = " << EPS_HIGH << endl;
-    os << "# Frequency, Angle, Flux Y, Flux Reflection\n";
-    double dfreq = fwidth/static_cast<double>(nfreq-1);
-    double currentFreq = freq-fwidth/2.0;
-    double *transmittedFlux = transFluxY.flux();
-    double *reflectedFlux = fluxYReflected.flux();
-    unsigned int numberOfNonPropagating = 0;
-    for ( unsigned int i=0;i<nfreq;i++ )
-    {
-      double sinCurrentAngle = freq*sin(angle*PI/180.0)/currentFreq;
-      double currentAngle = 0.0;
-      if ( abs(sinCurrentAngle) > 1.0 )
-      {
-        numberOfNonPropagating++;
-      }
-      else
-      {
-        currentAngle = asin(sinCurrentAngle)*180.0/PI;
-        os << currentFreq << "," << currentAngle << "," << transmittedFlux[i]/transYWidth;
-        os << "," << reflectedFlux[i]/transYWidth << "\n";
-      }
-      currentFreq += dfreq;
-    }
-    os.close();
-    delete [] transmittedFlux;
-    delete [] reflectedFlux;
-    cout << numberOfNonPropagating << " of " << nfreq << " modes do not propagate\n";
+    os << fwFlux.write(flux) << endl;
   }
   
   // Write the monitors to file
   Json::Value monitors;
   monitors["time"] = timepoints;
-  monitors["geometry"]["sourcePositiion"] = SOURCE_Y;
+  monitors["geometry"]["sourcePosition"] = SOURCE_Y;
   monitors["geometry"]["slabPosition"] = YC_PLANE;
   monitors["geometry"]["xsize"] = XSIZE;
   monitors["geometry"]["ysize"] = YSIZE;
@@ -323,12 +339,5 @@ int main(int argc, char **argv)
   Json::FastWriter fw;
   os << fw.write(monitors) << endl;
   os.close();
-  /*os << "# Field monitored at positions\n";
-  os << "# Time, Real field transmitted, Real field Reflected (+incident)\n";
-  for ( unsigned int i=0;i<timepoints.size();i++ )
-  {
-    os << timepoints[i] << "," << fieldTransmitted[i] << "," << fieldReflection[i] << "\n";
-  }
-  os.close(); */
   return 0;
 }
