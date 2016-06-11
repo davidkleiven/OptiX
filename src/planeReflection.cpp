@@ -57,15 +57,16 @@ complex<double> amplitude(const meep::vec &pos)
 //----------------- MAIN FUNCTION ----------------------------//
 int main(int argc, char **argv)
 {
-  cout << "This program simulates scattering of a plane wave onto a smooth surface\n";
+  string id("[planeRef] ");
+  cout << id < "This program simulates scattering of a plane wave onto a smooth surface\n";
   meep::initialize mpi(argc, argv);
 
   // Read command line arguments
   if ( argc != 7 )
   {
-    cout << "Usage: ./planeReflection.out <out directory> <epsInScattered> <incidend angle> <polarization> <relBandwidth>";
-    cout << "<number of frequencies>\n";
-    cout << "The following arguments were given:\n";
+    cout << id << "Usage: ./planeReflection.out <out directory> <epsInScattered> <incidend angle> <polarization> <relBandwidth>";
+    cout << id << "<number of frequencies>\n";
+    cout << id << "The following arguments were given:\n";
     for ( unsigned int i=0;i<argc;i++ )
     {
       string arg(argv[i]);
@@ -98,21 +99,21 @@ int main(int argc, char **argv)
   const double maxAngle = 90.0;
   if ( angle > maxAngle )
   {
-    cout << "The incident angle is too large\n";
-    cout << "Maximum angle is " << maxAngle << endl;
+    cout << id << "The incident angle is too large\n";
+    cout << id << "Maximum angle is " << maxAngle << endl;
     return 1;
   }
   else if ( angle < 0.0 )
   {
-    cout << "Negative angle given. Has to be in range [0,MAX_ANGLE)\n";
+    cout << id << "Negative angle given. Has to be in range [0,MAX_ANGLE)\n";
     return 1;
   }
 
   // Check that polarization holds a valid value
   if ( (polarization != 's') && (polarization != 'p') )
   {
-    cout << "Invalid polarization value. Has to be either s or p\n";
-    cout << "Value given: " << polarization << endl;
+    cout << id << "Invalid polarization value. Has to be either s or p\n";
+    cout << id << "Value given: " << polarization << endl;
     return 1;
   }
 
@@ -207,7 +208,7 @@ int main(int argc, char **argv)
     ifstream in(loadFname.c_str(), ios::binary);
     if ( !in.good() )
     {
-      cout << "File " << loadFname << " cannot be accessed. Run a background run first. bkg has to enter in the outdir path...\n";
+      cout << id << "File " << loadFname << " cannot be accessed. Run a background run first. bkg has to enter in the outdir path...\n";
       return 1;
     }
     in.close();
@@ -298,7 +299,7 @@ int main(int argc, char **argv)
   
   Json::FastWriter fwFlux;
 
-  cout << numberOfNonPropagating << " of " << nfreq << " modes do not propagate\n";
+  cout << id << numberOfNonPropagating << " of " << nfreq << " modes do not propagate\n";
 
   // Write transmitted flux to file
   string ddir(OUTDIR);
@@ -307,11 +308,12 @@ int main(int argc, char **argv)
   ofstream os(fluxOut.c_str());
   if ( !os.good() )
   {
-    cout << "Problem when opening file " << fluxOut << endl;
+    cout << id << "Problem when opening file " << fluxOut << endl;
   }
   else
   {
     os << fwFlux.write(flux) << endl;
+    os.close();
   }
   
   // Write the monitors to file
@@ -327,15 +329,17 @@ int main(int argc, char **argv)
   monitors["transmitted"]["position"] = fluxPlanePosY;
   monitors["transmitted"]["real"] = fieldTransmittedReal;
   monitors["transimitted"]["imag"] = fieldTransmittedImag;
+
   // Write monitor to file
   string monitorOut("realField.json");
   monitorOut = ddir + "/" + monitorOut;
   os.open(monitorOut.c_str());
   if ( !os.good() )
   {
-    cerr << "Error when opening file " << monitorOut << endl;
+    cerr << id << "Error when opening file " << monitorOut << endl;
     return 1;
   }
+
   Json::FastWriter fw;
   os << fw.write(monitors) << endl;
   os.close();
