@@ -291,6 +291,8 @@ int main(int argc, char **argv)
   flux["geometry"]["slabPosition"] = YC_PLANE;
   flux["geometry"]["xsize"] = XSIZE;
   flux["geometry"]["ysize"] = YSIZE;
+  flux["geometry"]["EpsilonHigh"] = EPS_HIGH;
+  flux["geometry"]["EpsilonLow"] = EPS_LOW;
 
   flux["frequency"] = freqArray;
   flux["incidentAngle"] = angleArray;
