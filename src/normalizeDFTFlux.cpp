@@ -7,6 +7,8 @@
 #include <stdexcept>
 #include <cstring>
 #include "readCSVdata.h"
+#include <jsoncpp/json/reader.h>
+#include <jsoncpp/json/writer.h>
 #define DELTA_CLOSE 1E-6
 
 using namespace std;
@@ -14,10 +16,11 @@ using namespace std;
 // ------------ MAIN FUNCTION -------------------//
 int main(int argc, char** argv)
 {
+  string id("[normDFT]");
   if ( argc != 3 )
   {
-    cout << "Usage: ./normalizeDFTFllux.cpp <infile> <bkgfile>\n";
-    cout << "Arguments given:\n";
+    cout << id << "Usage: ./normalizeDFTFllux.cpp <infile> <bkgfile>\n";
+    cout << id << "Arguments given:\n";
     for ( unsigned int i=0;i<argc;i++)
     {
       string arg(argv[i]);
@@ -29,70 +32,65 @@ int main(int argc, char** argv)
   string infile(argv[1]);
   string bkgfile(argv[2]);
  
-  ReadCSVData bkg;
-  ReadCSVData transRun;
-  vector<double> angles;
-  vector<double> transmitted;
-  vector<double> reflected;
+  Json::Reader bkg;
+  Json::Reader transRun;
+  
+  ifstream ibkg(bkgfile.c_str());
+  if ( !ibkg.good() )
+  {
+    cerr << id << "Could not open file " << bkgfile << endl;
+    return 1;
+  }
+  Json::Value rootBkg;
+  bkg.parse(ibkg, rootBkg);
+  ibkg.close();
 
-  // Read the infiles
-  try
+  ifstream itrans(infile.c_str());
+  if ( !itrans.good() )
   {
-    bkg.read(bkgfile, 4);
-    transRun.read(infile, 4);
-  }
-  catch (runtime_error &exc)
-  {
-    cout << exc.what() << endl;
+    cerr << id << "Could not open file " << infile << endl;
     return 1;
   }
-  catch(...)
-  {
-    cout << "Unknown exception...\n";
-    return 1;
-  }
+
+  Json::Value rootTrans;
+  transRun.parse( itrans, rootTrans );
+  itrans.close(); 
 
   // Check that the number of entris in both files are the same
-  if ( bkg.numPoints() != transRun.numPoints() )
+  if ( rootBkg["incidentAngle"].size() != rootTrans["incidentAngle"].size() )
   {
-    cerr << "Error! Npoints bkg: "<< bkg.numPoints() <<". Npoints transmitted: " << transRun.numPoints() << endl;
+    cerr << id  << "Error! Different number of points in the background run and the transmission run\n";
     return 1;
   }
 
   // Normalize
   unsigned int currentBkg=0;
   bool useLastForNormalization = false;
-  for ( unsigned int i=0;i<bkg.numPoints(); i++ )
+  for ( unsigned int i=0;i<rootBkg["transmitted"].size(); i++ )
   {
-    angles.push_back(bkg.get(i,1));
-    transmitted.push_back(transRun.get(i,2)/bkg.get(i,2));
-    reflected.push_back(-transRun.get(i,3)/bkg.get(i,3));
+    rootTrans["transmitted"][i] = rootTrans["transmitted"][i].asDouble()/rootBkg["transmitted"][i].asDouble();
+    rootTrans["reflected"][i] = rootTrans["reflected"][i].asDouble()/rootBkg["reflected"][i].asDouble();
   }
 
   // Construct out filename from infile name
   size_t pos = infile.find(".");
   string ofname = infile.substr(0, pos);
-  ofname += "Norm.csv";
+  ofname += "Norm.json";
 
+  rootTrans["infile"] = infile;
+  rootTrans["bkgfile"] = bkgfile;
+  Json::FastWriter fw;
   // Write results to file
   ofstream out(ofname.c_str());
   if ( !out.good() )
   {
-    cout << "Problems when opening file " << ofname << endl;
+    cout << id << "Problems when opening file " << ofname << endl;
     return 1;
   }
 
-  out << "# Normalized total flux\n";
-  out << "# Infile: " << infile << endl;
-  out << "# Bkgfile: " << bkgfile << endl;
-  out << "# Angle, Normalized transmitted flux, Normalized reflected\n";
-  for ( unsigned int i=0;i<angles.size();i++)
-  {
-    out << angles[i] << "," << transmitted[i] << "," << reflected[i] << "\n";
-  }
-  out.close();
- 
-  cout << "Normalized flux written to " << ofname << endl;
+  out << fw.write(rootTrans) << endl; 
+  out.close(); 
+  cout << id << "Normalized flux written to " << ofname << endl;
   return 0;
 }
 
