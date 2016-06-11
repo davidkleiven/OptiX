@@ -10,6 +10,7 @@
 #include <cassert>
 #include <stdexcept>
 #include "sincSrc.h"
+#include <jsoncpp/json/writer.h>
 #define ODIRLEN 60
 //#define OUTPUT_HDF5
 
@@ -162,6 +163,7 @@ int main(int argc, char **argv)
   }
 
   field.add_volume_source(fieldComp, src, srcvol, amplitude);
+
   // Add DFT fluxplane
   const double fluxPlanePosY = 0.5*(YC_PLANE + PML_THICK);
   const double fluxRefPlanePosY = 0.5*(YC_PLANE + SOURCE_Y);
@@ -170,9 +172,15 @@ int main(int argc, char **argv)
   meep::dft_flux transFluxY = field.add_dft_flux_plane(dftVol, freq-fwidth/2.0, freq+fwidth/2.0, nfreq);
   meep::dft_flux fluxYReflected = field.add_dft_flux_plane(dftVolR, freq-fwidth/2.0, freq+fwidth/2.0, nfreq); 
 
-  vector<double> fieldTransmitted; // Container for the real field component
-  vector<double> timepoints; // Container for the timepoints
-  vector<double> fieldReflection; // Container for the real field component at the center of the flux plane
+  //vector<double> fieldTransmittedReal; // Container for the real field component
+  //vector<double> fieldTransmittedImag;
+  //vector<double> timepoints; // Container for the timepoints
+  //vector<double> fieldReflectionReal; // Container for the real field component at the center of the flux plane
+  Json::Value fieldTransmittedReal(Json::arrayValue);
+  Json::Value fieldTransmittedImag(Json::arrayValue);
+  Json::Value fieldReflectionReal(Json::arrayValue);
+  Json::Value fieldReflectionImag(Json::arrayValue);
+  Json::Value timepoints(Json::arrayValue);
 
   // Time required to propagate over the domain with the slowest speed
   double speed = 1.0/sqrt(EPS_HIGH);
@@ -217,9 +225,14 @@ int main(int argc, char **argv)
     // Get field amplitude
     complex<double> fieldAmpTrans = field.get_field(fieldComp, meep::vec(XSIZE/2.0, fluxPlanePosY));
     complex<double> fieldAmpRefl = field.get_field(fieldComp, meep::vec(XSIZE/2.0, fluxRefPlanePosY));
-    fieldTransmitted.push_back(real(fieldAmpTrans));
-    fieldReflection.push_back(real( fieldAmpRefl ));
-    timepoints.push_back(field.time());
+    fieldTransmittedReal.append( real(fieldAmpTrans) );
+    fieldTransmittedImag.append( imag(fieldAmpTrans) );
+    fieldReflectionReal.append( real(fieldAmpRefl) );
+    fieldReflectionImag.append( imag(fieldAmpRefl) );
+    timepoints.append( field.time() );
+    //fieldTransmitted.push_back(real(fieldAmpTrans));
+    //fieldReflection.push_back(real( fieldAmpRefl ));
+    //timepoints.push_back(field.time());
 
     #ifdef OUTPUT_HDF5
       if ( field.time() > nextOutputTime )
@@ -285,8 +298,21 @@ int main(int argc, char **argv)
     cout << numberOfNonPropagating << " of " << nfreq << " modes do not propagate\n";
   }
   
+  // Write the monitors to file
+  Json::Value monitors;
+  monitors["time"] = timepoints;
+  monitors["geometry"]["sourcePositiion"] = SOURCE_Y;
+  monitors["geometry"]["slabPosition"] = YC_PLANE;
+  monitors["geometry"]["xsize"] = XSIZE;
+  monitors["geometry"]["ysize"] = YSIZE;
+  monitors["reflected"]["position"] = fluxRefPlanePosY;
+  monitors["reflected"]["real"] = fieldReflectionReal;
+  monitors["reflected"]["imag"] = fieldReflectionImag;
+  monitors["transmitted"]["position"] = fluxPlanePosY;
+  monitors["transmitted"]["real"] = fieldTransmittedReal;
+  monitors["transimitted"]["imag"] = fieldTransmittedImag;
   // Write monitor to file
-  string monitorOut("realField.csv");
+  string monitorOut("realField.json");
   monitorOut = ddir + "/" + monitorOut;
   os.open(monitorOut.c_str());
   if ( !os.good() )
@@ -294,13 +320,15 @@ int main(int argc, char **argv)
     cerr << "Error when opening file " << monitorOut << endl;
     return 1;
   }
-  os << "# Field monitored at positions\n";
+  Json::FastWriter fw;
+  os << fw.write(monitors) << endl;
+  os.close();
+  /*os << "# Field monitored at positions\n";
   os << "# Time, Real field transmitted, Real field Reflected (+incident)\n";
   for ( unsigned int i=0;i<timepoints.size();i++ )
   {
     os << timepoints[i] << "," << fieldTransmitted[i] << "," << fieldReflection[i] << "\n";
   }
-  os.close(); 
+  os.close(); */
   return 0;
 }
-

@@ -12,7 +12,7 @@ PLANE_WAVE_OBJ := $(PLANE_WAVE:.cpp=.o)
 PLANE_WAVE := $(addprefix $(SDIR)/, $(PLANE_WAVE))
 PLANE_WAVE_OBJ := $(addprefix $(ODIR)/, $(PLANE_WAVE_OBJ))
 
-STATIC_LIBS := -lhdf5 -lz -lgsl -lharminv -llapack -lcblas -latlas -lfftw3 -lm
+STATIC_LIBS := -lhdf5 -lz -lgsl -lharminv -llapack -lcblas -latlas -lfftw3 -lm -ljsoncpp
 SHARED_LIBS := -lmeep
 
 planeReflection.out: $(PLANE_WAVE_OBJ)
