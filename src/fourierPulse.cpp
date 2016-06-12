@@ -133,10 +133,10 @@ int main(int argc, char** argv)
     }
   }
 
-  Json::Value transCoeffReal(Json::arrayValue);
-  Json::Value transCoeffImag(Json::arrayValue);
-  Json::Value reflCoeffReal(Json::arrayValue);
-  Json::Value reflCoeffImag(Json::arrayValue);
+  Json::Value transCoeffNorm(Json::arrayValue);
+  Json::Value transCoeffPhase(Json::arrayValue);
+  Json::Value reflCoeffNorm(Json::arrayValue);
+  Json::Value reflCoeffPhase(Json::arrayValue);
   Json::Value angleArray(Json::arrayValue);
   double df = 1.0/(dt*static_cast<double>(nPointsBkg));
   double frequencyAtMax = static_cast<double>(currentMaxPos)*df;
@@ -145,11 +145,14 @@ int main(int argc, char** argv)
   {
     complex<double> refl(reflectedRun[2*i], reflectedRun[2*i+1]);
     complex<double> bkgVal(reflectedBkg[2*i], reflectedBkg[2*i+1]);
-    complex<double> refCoeff = refl/bkgVal;
+    double refCoeff = abs( refl/bkgVal );
+    double refCoeffAngle = atan( imag(refl)/real(refl) );
     
     complex<double> trans(transmittedRun[2*i], transmittedRun[2*i+1]);
     bkgVal = (transmittedBkg[2*i], transmittedBkg[2*i+1]);
-    complex<double> transCoeff = trans/bkgVal;
+    // TODO: Handling of transmission coefficient is currently wrong
+    double transCoeff = abs( trans/bkgVal );
+    double transCoeffAngle = atan( imag(trans)/real(trans) );
 
     double freq = static_cast<double>(i)/(dt*static_cast<double>(nPointsBkg));
     double angleArgument = frequencyAtMax*sin( angle*PI/180.0 )/freq;
@@ -165,11 +168,11 @@ int main(int argc, char** argv)
     if ( (reflNorm > MIN_RELATIVE_SAVE_VAL*estimateOfMaxTransValue) || \
        ( transNorm > MIN_RELATIVE_SAVE_VAL*estimateOfMaxTransValue) )
     {
-      reflCoeffReal.append( real(refCoeff) );
-      reflCoeffImag.append( imag(refCoeff) );
+      reflCoeffNorm.append( refCoeff );
+      reflCoeffPhase.append( refCoeffAngle );
     
-      transCoeffReal.append( real( transCoeff ) );
-      transCoeffImag.append( imag( transCoeff ) );
+      transCoeffNorm.append( transCoeff  );
+      transCoeffPhase.append( transCoeffAngle );
       angleArray.append( currentAngle );
     }
   }
@@ -177,10 +180,10 @@ int main(int argc, char** argv)
   // Write results to file
   Json::Value base;
   base["geometry"] = run["geometry"];
-  base["reflection"]["real"] = reflCoeffReal;
-  base["reflection"]["imag"] = reflCoeffImag;
-  base["transmition"]["real"] = transCoeffReal;
-  base["transmition"]["imag"] = transCoeffImag;
+  base["reflection"]["norm"] = reflCoeffNorm;
+  base["reflection"]["phase"] = reflCoeffPhase;
+  base["transmition"]["norm"] = transCoeffNorm;
+  base["transmition"]["phase"] = transCoeffPhase;
   base["angle"] = angleArray;
   Json::FastWriter fw;
 
