@@ -5,3 +5,4 @@ data/*
 dataPlane/*
 Figures/*
 *.pyc
+pulse.py
