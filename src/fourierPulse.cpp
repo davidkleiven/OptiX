@@ -68,8 +68,8 @@ int main(int argc, char** argv)
   runStream.close();
   
   vector<double> fieldRefl;
-  unsigned int nPointsBkg = bkg["timepoints"].size();
-  unsigned int nPointsRun = run["timepoints"].size();
+  unsigned int nPointsBkg = bkg["time"].size();
+  unsigned int nPointsRun = run["time"].size();
   if ( nPointsBkg != nPointsRun )
   {
     cout << "Different number of points in infile and bkg file\n",  
@@ -86,7 +86,7 @@ int main(int argc, char** argv)
   }
 
   // Compute fourier transform of the signal
-  double dt = run["timepoints"][1].asDouble() - run["timepoints"][0].asDouble();
+  double dt = run["time"][1].asDouble() - run["time"][0].asDouble();
 
   // Store arrays as required by the FFT routines
   vector<double> reflectedBkg;
@@ -186,7 +186,7 @@ int main(int argc, char** argv)
 
   unsigned int pos = fname.find(".");
   string ofname = fname.substr(0,pos);
-  ofname += "Fourier.csv";
+  ofname += "Fourier.json";
   ofstream os(ofname.c_str());
 
   if ( !os.good() )
