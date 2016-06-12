@@ -11,7 +11,7 @@
 #include <stdexcept>
 #include <jsoncpp/json/reader.h>
 #include <jsoncpp/json/writer.h>
-#define MIN_RELATIVE_SAVE_VAL 0.05
+#define MIN_RELATIVE_SAVE_VAL 1E-8
 //#define OUTPUT_SUBTRACTED
 /**
 * This file takes three command line arguments
@@ -162,9 +162,10 @@ int main(int argc, char** argv)
       continue;
     }
     double currentAngle = asin( angleArgument )*180.0/PI;
+
     // Compute norm of reflected and transmitted fields and save only the significant
-    double reflNorm = abs( refCoeff );
-    double transNorm = abs( transCoeff );
+    double reflNorm = abs( refl );
+    double transNorm = abs( trans );
     if ( (reflNorm > MIN_RELATIVE_SAVE_VAL*estimateOfMaxTransValue) || \
        ( transNorm > MIN_RELATIVE_SAVE_VAL*estimateOfMaxTransValue) )
     {

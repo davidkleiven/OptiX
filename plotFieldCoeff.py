@@ -24,7 +24,7 @@ def main():
     theta = np.linspace(0.0, 90.0, 101)
     n1 = 1.0
     n2 = 1.5
-    ax.plot( theta, rs(theta, n1, n2), color='black' ) 
+    ax.plot( theta, np.abs(rs(theta, n1, n2)), color='black' ) 
     ax2 = ax.twinx()
 
     msize = 2
@@ -46,7 +46,7 @@ def main():
         ax2.plot( data["angle"], reflectionPhase, '.', color='grey', ms=msize)
 
     ax.set_ylim(-1.0, 1.0)
-    ax2.set_ylim(-1.0,1.0)
+    ax2.set_ylim(-np.pi/2.0,np.pi/2.0)
     fig.savefig( "Figures/fieldCoefficients.pdf", bbox_inches="tight" )
 
 if __name__ == '__main__':
