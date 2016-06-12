@@ -49,7 +49,7 @@ do
     fi
   else
     # Normalize
-    ./normalizeDFTFlux.out ${ODIR}/transmittedFlux.csv ${BKGDIR}/transmittedFlux.csv
+    ./normalizeDFTFlux.out ${ODIR}/transmittedFlux.json ${BKGDIR}/transmittedFlux.json
     echo "${CTR_MSG}${IS_NORMALIZED}" >> "${CONTROL_FILENAME}"
   fi
 
@@ -60,7 +60,7 @@ do
       echo "Has already FFT the fields..."
     fi
   else
-    ./fourierPulse.out ${ODIR}/realField.csv ${BKGDIR}/realField.csv ${ANGLES[$i]} 
+    ./fourierPulse.out ${ODIR}/realField.json ${BKGDIR}/realField.json ${ANGLES[$i]} 
     echo "${CTR_MSG}${IS_FFT}" >> "${CONTROL_FILENAME}"
   fi
 done
@@ -101,7 +101,7 @@ do
     fi
   else
   # Normalize
-    ./normalizeDFTFlux.out ${ODIR}/transmittedFlux.csv ${BKGDIR}/transmittedFlux.csv
+    ./normalizeDFTFlux.out ${ODIR}/transmittedFlux.json ${BKGDIR}/transmittedFlux.json
     echo "${CTR_MSG}${IS_NORMALIZED}" >> "${CONTROL_FILENAME}"
   fi
 
@@ -112,7 +112,7 @@ do
       echo "Has already FFT the fields..."
     fi
   else
-    ./fourierPulse.out ${ODIR}/realField.csv ${BKGDIR}/realField.csv ${ANGLES[$i]} 
+    ./fourierPulse.out ${ODIR}/realField.json ${BKGDIR}/realField.json ${ANGLES[$i]} 
     echo "${CTR_MSG}${IS_FFT}" >> "${CONTROL_FILENAME}"
   fi
 done
