@@ -31,7 +31,7 @@ double EPS_HIGH = 1.0;
 
 const double XSIZE = 5.0;
 const double YSIZE = 18.0;
-const double PML_THICK = 6.0;
+const double PML_THICK = 3.0;
 const double SOURCE_Y = YSIZE-PML_THICK - 1.0;
 const double YC_PLANE = YSIZE/2.0;
 //const double YC_PLANE = PML_THICK+1.0;
@@ -58,7 +58,7 @@ complex<double> amplitude(const meep::vec &pos)
 int main(int argc, char **argv)
 {
   string id("[planeRef] ");
-  cout << id < "This program simulates scattering of a plane wave onto a smooth surface\n";
+  cout << id << "This program simulates scattering of a plane wave onto a smooth surface\n";
   meep::initialize mpi(argc, argv);
 
   // Read command line arguments
