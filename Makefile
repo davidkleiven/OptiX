@@ -25,7 +25,7 @@ normalizeDFTFlux.out: ${ODIR}/normalizeDFTFlux.o ${ODIR}/readCSVdata.o
 	$(CXX) -o $@ $^ -ljsoncpp
 
 fourierPulse.out: ${ODIR}/fourierPulse.o ${ODIR}/readCSVdata.o
-	$(CXX) -o $@ $^ -llapack -lcblas -lgsl -lm
+	$(CXX) -o $@ $^ -llapack -lcblas -lgsl -lm -ljsoncpp
 
 transmittanceAngle.out: ${ODIR}/transmittanceAngle.o ${ODIR}/readCSVdata.o
 	$(CXX) -o $@ $^
