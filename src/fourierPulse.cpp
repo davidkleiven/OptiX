@@ -11,7 +11,7 @@
 #include <stdexcept>
 #include <jsoncpp/json/reader.h>
 #include <jsoncpp/json/writer.h>
-#define MIN_RELATIVE_SAVE_VAL 1E-8
+#define MIN_RELATIVE_SAVE_VAL 1E-2
 //#define OUTPUT_SUBTRACTED
 /**
 * This file takes three command line arguments
@@ -147,6 +147,16 @@ int main(int argc, char** argv)
     complex<double> bkgVal(reflectedBkg[2*i], reflectedBkg[2*i+1]);
     double refCoeff = abs( refl/bkgVal );
     double refCoeffAngle = atan( imag(refl)/real(refl) );
+    if (( imag(refl) < 0.0 ) && ( real(refl) < 0.0 ) )
+    {
+      // In third quadrant
+      refCoeffAngle -= PI;
+    }
+    else if ( ( imag(refl) > 0.0 ) && ( real(refl) < 0.0 ))
+    {
+      // In second quadrant
+      refCoeffAngle += PI;
+    }
     
     complex<double> trans(transmittedRun[2*i], transmittedRun[2*i+1]);
     bkgVal = (transmittedBkg[2*i], transmittedBkg[2*i+1]);
@@ -200,5 +210,6 @@ int main(int argc, char** argv)
   }
   os << fw.write( base ) << endl;
   os.close();
+  cout << id << "Coefficients written to " << ofname << endl;
   return 0;
 } 
