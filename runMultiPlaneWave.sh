@@ -69,6 +69,9 @@ done
 for ((i=0;i<${#ANGLES[@]};i++));
 do
   CTR_MSG="p${ANGLES[$i]}Eps${EPS_HIGH}"
+  DDIR="${DDIR_BASE}${ANGLES[$i]}p"
+  ODIR=${DDIR}/WithEps
+  BKGDIR=${DDIR}/bkg
   if grep -Fxq "${CTR_MSG}${IS_SIMULATED}" "${CONTROL_FILENAME}" 
   then
     if ${VERBOSE}
@@ -77,9 +80,6 @@ do
     fi
   else
     # Compute background
-    DDIR="${DDIR_BASE}${ANGLES[$i]}p"
-    ODIR=${DDIR}/WithEps
-    BKGDIR=${DDIR}/bkg
     rm -f ${ODIR}/*
     rm -f ${BKGDIR}/*
     mkdir -p ${BKGDIR}
