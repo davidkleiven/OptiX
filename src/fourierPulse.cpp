@@ -229,14 +229,14 @@ int main(int argc, char** argv)
       complex<double> refl(realRun, imagRun);
       complex<double> bkgVal(realBkg, imagBkg);
     #endif
-    double refCoeff = abs( refl/bkgVal );
-    double refCoeffAngle = atan( imag(refl)/real(refl) );
-    if (( imag(refl) < 0.0 ) && ( real(refl) < 0.0 ) )
+    complex<double> refCoeff = refl/bkgVal;
+    double refCoeffAngle = atan( imag(refCoeff)/real(refCoeff) );
+    if (( imag(refCoeff) < 0.0 ) && ( real(refCoeff) < 0.0 ) )
     {
       // In third quadrant
       refCoeffAngle -= PI;
     }
-    else if ( ( imag(refl) > 0.0 ) && ( real(refl) < 0.0 ))
+    else if ( ( imag(refCoeff) > 0.0 ) && ( real(refCoeff) < 0.0 ))
     {
       // In second quadrant
       refCoeffAngle += PI;
@@ -263,7 +263,7 @@ int main(int argc, char** argv)
     if ( (reflNorm > MIN_RELATIVE_SAVE_VAL*estimateOfMaxTransValue) || \
        ( transNorm > MIN_RELATIVE_SAVE_VAL*estimateOfMaxTransValue) )
     {
-      reflCoeffNorm.append( refCoeff );
+      reflCoeffNorm.append( abs(refCoeff) );
       reflCoeffPhase.append( refCoeffAngle );
     
       transCoeffNorm.append( transCoeff  );
