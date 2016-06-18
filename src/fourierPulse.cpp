@@ -10,7 +10,7 @@
 #include <stdexcept>
 #include <jsoncpp/json/reader.h>
 #include <jsoncpp/json/writer.h>
-#define USE_COMPLEX_FIELD
+//#define USE_COMPLEX_FIELD
 #ifdef USE_COMPLEX_FIELD
   #include <gsl/gsl_fft_complex.h>
 #else
@@ -166,10 +166,10 @@ int main(int argc, char** argv)
     work = gsl_fft_real_workspace_alloc(nPointsBkg);
     rTab = gsl_fft_real_wavetable_alloc(nPointsBkg);
     
-    gsl_fft_real_forward(&reflectedBkg[0], 1, nPointsBkg, rTab, work);
-    gsl_fft_real_forward(&transmittedBkg[0], 1, nPointsBkg, rTab, work); 
-    gsl_fft_real_forward(&reflectedRun[0], 1, nPointsBkg, rTab, work);
-    gsl_fft_real_forward(&transmittedRun[0], 1, nPointsBkg, rTab, work);
+    gsl_fft_real_transform(&reflectedBkg[0], 1, nPointsBkg, rTab, work);
+    gsl_fft_real_transform(&transmittedBkg[0], 1, nPointsBkg, rTab, work); 
+    gsl_fft_real_transform(&reflectedRun[0], 1, nPointsBkg, rTab, work);
+    gsl_fft_real_transform(&transmittedRun[0], 1, nPointsBkg, rTab, work);
 
     gsl_fft_real_wavetable_free(rTab);
     gsl_fft_real_workspace_free(work);
@@ -218,6 +218,7 @@ int main(int argc, char** argv)
         imagRun = reflectedRun[2*i];
         realBkg = reflectedBkg[2*i-1];
         imagBkg = reflectedBkg[2*i];
+      }
       else
       {
         realRun = reflectedRun[0];
