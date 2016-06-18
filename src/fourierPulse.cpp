@@ -1,6 +1,5 @@
 #include <fstream>
 #include <iostream>
-#include <gsl/gsl_fft_complex.h>
 #include <string>
 #include <sstream>
 #include <vector>
@@ -11,6 +10,12 @@
 #include <stdexcept>
 #include <jsoncpp/json/reader.h>
 #include <jsoncpp/json/writer.h>
+#define USE_COMPLEX_FIELD
+#ifdef USE_COMPLEX_FIELD
+  #include <gsl/gsl_fft_complex.h>
+#else
+  #include <gsl/gsl_fft_real.h>
+#endif
 #define MIN_RELATIVE_SAVE_VAL 1E-2
 //#define OUTPUT_SUBTRACTED
 /**
@@ -27,6 +32,21 @@
 */
 const double PI = acos(-1.0);
 using namespace std;
+
+double normRealOddFFT(const vector<double> &fftOut, unsigned int indx)
+{
+  if ( indx == 0 )
+  {
+    return fftOut[0]*fftOut[0];
+  }
+  return sqrt( pow(fftOut[2*indx-1],2) + pow(fftOut[2*indx],2));
+}
+
+double normComplexFFT(const vector<double> &fftOut, unsigned int indx)
+{
+  return sqrt(pow(fftOut[2*indx],2) + pow(fftOut[2*indx+1],2));
+}
+
 int main(int argc, char** argv)
 {
   string id("[FFT field] ");
@@ -78,11 +98,22 @@ int main(int argc, char** argv)
     return 1;
   }
 
+  #ifndef USE_COMPLEX_FIELD
+    // If real fields are used, make sure that the number of values are odd. 
+    // Real FFT are different depending on if the number is even or odd.
+    if ( nPointsBkg%2 == 0 )
+    {
+      nPointsBkg -= 1;
+    }
+  #endif
+
   // Subtract off difference
   for ( unsigned int i=0;i<nPointsBkg;i++ )
   {
     run["reflected"]["real"][i] = run["reflected"]["real"][i].asDouble() - bkg["reflected"]["real"][i].asDouble();
-    run["reflected"]["imag"][i] = run["reflected"]["imag"][i].asDouble() - bkg["reflected"]["imag"][i].asDouble();
+    #ifdef USE_COMPLEX_FIELD
+      run["reflected"]["imag"][i] = run["reflected"]["imag"][i].asDouble() - bkg["reflected"]["imag"][i].asDouble();
+    #endif
   }
 
   // Compute fourier transform of the signal
@@ -96,36 +127,69 @@ int main(int argc, char** argv)
   for ( unsigned int i=0;i<nPointsBkg;i++ )
   {
     reflectedBkg.push_back( bkg["reflected"]["real"][i].asDouble() );
-    reflectedBkg.push_back( bkg["reflected"]["imag"][i].asDouble() );
+    #ifdef USE_COMPLEX_FIELD
+      reflectedBkg.push_back( bkg["reflected"]["imag"][i].asDouble() );
+    #endif
     transmittedBkg.push_back( bkg["transmitted"]["real"][i].asDouble() );
-    transmittedBkg.push_back( bkg["transmitted"]["imag"][i].asDouble() );
+    #ifdef USE_COMPLEX_FIELD
+      transmittedBkg.push_back( bkg["transmitted"]["imag"][i].asDouble() );
+    #endif
 
     reflectedRun.push_back( run["reflected"]["real"][i].asDouble() );
-    reflectedRun.push_back( run["reflected"]["imag"][i].asDouble() );
+    #ifdef USE_COMPLEX_FIELD
+      reflectedRun.push_back( run["reflected"]["imag"][i].asDouble() );
+    #endif
     transmittedRun.push_back( run["transmitted"]["real"][i].asDouble() );
-    transmittedRun.push_back( run["transmitted"]["imag"][i].asDouble() );
+    #ifdef USE_COMPLEX_FIELD
+      transmittedRun.push_back( run["transmitted"]["imag"][i].asDouble() );
+    #endif
   }
   
   // Coompute Fourier transforms
-  gsl_fft_complex_wavetable *cTab;
-  gsl_fft_complex_workspace *work;
-  
-  work = gsl_fft_complex_workspace_alloc(nPointsBkg);
-  cTab = gsl_fft_complex_wavetable_alloc(nPointsBkg);
-  gsl_fft_complex_forward(&reflectedBkg[0], 1, nPointsBkg, cTab, work);
-  gsl_fft_complex_forward(&transmittedBkg[0], 1, nPointsBkg, cTab, work); 
-  gsl_fft_complex_forward(&reflectedRun[0], 1, nPointsBkg, cTab, work);
-  gsl_fft_complex_forward(&transmittedRun[0], 1, nPointsBkg, cTab, work);
+  #ifdef USE_COMPLEX_FIELD
+    gsl_fft_complex_wavetable *cTab;
+    gsl_fft_complex_workspace *work;
+    
+    work = gsl_fft_complex_workspace_alloc(nPointsBkg);
+    cTab = gsl_fft_complex_wavetable_alloc(nPointsBkg);
+    gsl_fft_complex_forward(&reflectedBkg[0], 1, nPointsBkg, cTab, work);
+    gsl_fft_complex_forward(&transmittedBkg[0], 1, nPointsBkg, cTab, work); 
+    gsl_fft_complex_forward(&reflectedRun[0], 1, nPointsBkg, cTab, work);
+    gsl_fft_complex_forward(&transmittedRun[0], 1, nPointsBkg, cTab, work);
 
-  gsl_fft_complex_wavetable_free(cTab);
-  gsl_fft_complex_workspace_free(work);
+    gsl_fft_complex_wavetable_free(cTab);
+    gsl_fft_complex_workspace_free(work);
+  #else
+    gsl_fft_real_wavetable *rTab;
+    gsl_fft_real_workspace *work;
+    
+    work = gsl_fft_real_workspace_alloc(nPointsBkg);
+    rTab = gsl_fft_real_wavetable_alloc(nPointsBkg);
+    
+    gsl_fft_real_forward(&reflectedBkg[0], 1, nPointsBkg, rTab, work);
+    gsl_fft_real_forward(&transmittedBkg[0], 1, nPointsBkg, rTab, work); 
+    gsl_fft_real_forward(&reflectedRun[0], 1, nPointsBkg, rTab, work);
+    gsl_fft_real_forward(&transmittedRun[0], 1, nPointsBkg, rTab, work);
+
+    gsl_fft_real_wavetable_free(rTab);
+    gsl_fft_real_workspace_free(work);
+  #endif
 
   // Find position of maximum use the one from the transmitted signal
   unsigned int currentMaxPos = 1;
   double currentMax = -1.0;
-  for ( unsigned int i=0;i<nPointsBkg;i++)
+  #ifdef USE_COMPLEX_FIELD
+    unsigned int endIteration = nPointsBkg;
+  #else
+    unsigned int endIteration = nPointsBkg/2;
+  #endif
+  for (unsigned int i=0;i<endIteration;i++)
   {
-    double normTrans = sqrt( transmittedRun[2*i]*transmittedRun[2*i] + transmittedRun[2*i+1]*transmittedRun[2*i+1] );
+    #ifdef USE_COMPLEX_FIELD
+      double normTrans = normComplexFFT(transmittedRun, i);
+    #else
+      double normTrans = normRealOddFFT(transmittedRun, i);
+    #endif
     if ( normTrans > currentMax )
     {
       currentMaxPos = i;
@@ -141,10 +205,29 @@ int main(int argc, char** argv)
   double df = 1.0/(dt*static_cast<double>(nPointsBkg));
   double frequencyAtMax = static_cast<double>(currentMaxPos)*df;
   double estimateOfMaxTransValue = sqrt(2.0)*currentMax;
-  for ( unsigned int i=0;i<nPointsBkg;i++ )
+  for ( unsigned int i=0;i<endIteration;i++ )
   {
-    complex<double> refl(reflectedRun[2*i], reflectedRun[2*i+1]);
-    complex<double> bkgVal(reflectedBkg[2*i], reflectedBkg[2*i+1]);
+    #ifdef USE_COMPLEX_FIELD
+      complex<double> refl(reflectedRun[2*i], reflectedRun[2*i+1]);
+      complex<double> bkgVal(reflectedBkg[2*i], reflectedBkg[2*i+1]);
+    #else 
+      double realRun, imagRun, realBkg, imagBkg;
+      if ( i > 0) 
+      {
+        realRun = reflectedRun[2*i-1];
+        imagRun = reflectedRun[2*i];
+        realBkg = reflectedBkg[2*i-1];
+        imagBkg = reflectedBkg[2*i];
+      else
+      {
+        realRun = reflectedRun[0];
+        imagRun = 0.0;  
+        realBkg = reflectedBkg[0];
+        imagBkg = 0.0;
+      }
+      complex<double> refl(realRun, imagRun);
+      complex<double> bkgVal(realBkg, imagBkg);
+    #endif
     double refCoeff = abs( refl/bkgVal );
     double refCoeffAngle = atan( imag(refl)/real(refl) );
     if (( imag(refl) < 0.0 ) && ( real(refl) < 0.0 ) )
@@ -158,9 +241,9 @@ int main(int argc, char** argv)
       refCoeffAngle += PI;
     }
     
+    // TODO: Handling of transmission coefficient is currently wrong
     complex<double> trans(transmittedRun[2*i], transmittedRun[2*i+1]);
     bkgVal = (transmittedBkg[2*i], transmittedBkg[2*i+1]);
-    // TODO: Handling of transmission coefficient is currently wrong
     double transCoeff = abs( trans/bkgVal );
     double transCoeffAngle = atan( imag(trans)/real(trans) );
 
