@@ -5,11 +5,12 @@ mpl.rcParams.update(mplLaTeX.params)
 from matplotlib import pyplot as plt
 import json
 
-FOLDERS_s = ["dataPlane/MultInc20/WithEps", "dataPlane/MultInc45/WithEps", "dataPlane/MultInc75/WithEps", "dataPlane/MultInc85/WithEps"]
+FOLDERS_s = ["dataPlane/MultInc5/WithEps", "dataPlane/MultInc20/WithEps", "dataPlane/MultInc45/WithEps", \
+"dataPlane/MultInc75/WithEps", "dataPlane/MultInc85/WithEps"]
 #FOLDERS_s = ["dataPlane/MultInc20/WithEps"]
-FOLDERS_p = ["dataPlane/MultInc20p/WithEps", "dataPlane/MultInc45p/WithEps", "dataPlane/MultInc75p/WithEps", \
-"dataPlane/MultInc85p/WithEps"]
-
+FOLDERS_p = ["dataPlane/MultInc5p/WithEps", "dataPlane/MultInc20p/WithEps", "dataPlane/MultInc45p/WithEps", \
+"dataPlane/MultInc75p/WithEps", "dataPlane/MultInc85p/WithEps"]
+#FOLDERS_p = ["dataPlane/MultInc20p/WithEps"]
 def transmittedTheta( theta, n1, n2 ):
     return np.arccos( np.sqrt( 1.0 - (n1*np.sin(theta)/n2)**2 ))
 
