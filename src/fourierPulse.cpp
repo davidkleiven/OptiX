@@ -202,6 +202,7 @@ int main(int argc, char** argv)
   Json::Value reflCoeffNorm(Json::arrayValue);
   Json::Value reflCoeffPhase(Json::arrayValue);
   Json::Value angleArray(Json::arrayValue);
+  Json::Value freqArray(Json::arrayValue);
   double df = 1.0/(dt*static_cast<double>(nPointsBkg));
   double frequencyAtMax = static_cast<double>(currentMaxPos)*df;
   double estimateOfMaxTransValue = sqrt(2.0)*currentMax;
@@ -269,6 +270,7 @@ int main(int argc, char** argv)
       transCoeffNorm.append( transCoeff  );
       transCoeffPhase.append( transCoeffAngle );
       angleArray.append( currentAngle );
+      freqArray.append( freq );
     }
   }
  
@@ -280,6 +282,7 @@ int main(int argc, char** argv)
   base["transmition"]["norm"] = transCoeffNorm;
   base["transmition"]["phase"] = transCoeffPhase;
   base["angle"] = angleArray;
+  base["frequency"] = freqArray;
   Json::FastWriter fw;
 
   unsigned int pos = fname.find(".");
