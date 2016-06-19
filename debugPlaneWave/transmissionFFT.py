@@ -2,8 +2,8 @@ import numpy as np
 from matplotlib import pyplot as plt
 import json
 
-FNAME_RUN = "dataPlane/MultInc20/WithEps/realField.json"
-FNAME_BKG = "dataPlane/MultInc20/bkg/realField.json"
+FNAME_RUN = "dataPlane/MultInc20p/WithEps/realField.json"
+FNAME_BKG = "dataPlane/MultInc20p/bkg/realField.json"
 
 def main():
     infile = open(FNAME_RUN, 'r')
