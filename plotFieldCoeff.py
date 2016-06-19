@@ -46,7 +46,7 @@ def main():
     ax.plot( theta, tp(theta, n1, n2)**2, color='black' )
 
     msize = 2
-    step = 5
+    step = 10
     for i in range(0, len(FOLDERS_s)):
         fname_s = FOLDERS_s[i]+'/realFieldFourier.json'
         fname_p = FOLDERS_p[i]+'/realFieldFourier.json'
@@ -66,23 +66,31 @@ def main():
             print ("Could not open file %s"%(fname_p))
             continue
 
-        reflectionNorm = np.array( data["reflection"]["norm"] )[0:-1:step]
-        angle = np.array( data["angle"] )[0:-1:step]
+        reflectionNorm = np.array( data["reflected"]["norm"] )[0:-1:step]
+        transmissionNorm = np.array( data["transmitted"]["norm"] )[0:-1:step]
+        angleR = np.array( data["reflected"]["angle"] )[0:-1:step]
+        angleT = np.array( data["transmitted"]["angle"] )[0:-1:step]
 
-        refPNorm = np.array( data_p["reflection"]["norm"] )[0:-1:step]
-        angle_p = np.array( data_p["angle"] )[0:-1:step]
+        refPNorm = np.array( data_p["reflected"]["norm"] )[0:-1:step]
+        transPNorm = np.array( data_p["transmitted"]["norm"] )[0:-1:step]
+        angle_pR = np.array( data_p["reflected"]["angle"] )[0:-1:step]
+        angle_pT = np.array( data_p["transmitted"]["angle"])[0:-1:step]
         
         if ( i==0 ):
-            ax.plot( angle, reflectionNorm**2, 'o', color='black', ms=msize, label="$|r_\mathrm{s}|^2$")
-            ax.plot( angle_p, refPNorm**2, '^', color='black', ms=msize, label="$|r_\mathrm{p}|^2$")
+            ax.plot( angleR, reflectionNorm**2, 'o', color='black', ms=msize, fillstyle="none", label="$|r_\mathrm{s}|^2$")
+            ax.plot( angle_pR, refPNorm**2, '^', color='black', ms=msize, label="$|r_\mathrm{p}|^2$")
+            ax.plot( angleT, transmissionNorm**2, 'x', color='black', ms=msize, label="$|t_\matrhrm{s}|^2$")
+            ax.plot( angle_pT, transPNorm**2, '.', color='black', ms=msize, label="$|t_\mathrm{p}|^2$")
         else:
-            ax.plot( angle, reflectionNorm**2, 'o', color='black', ms=msize)
-            ax.plot( angle_p, refPNorm**2, '^', color='black', ms=msize)
+            ax.plot( angleR, reflectionNorm**2, 'o', color='black', ms=msize, fillstyle="none")
+            ax.plot( angle_pR, refPNorm**2, '^', color='black', ms=msize)
+            ax.plot( angleT, transmissionNorm**2, 'x', color='black', ms=msize)
+            ax.plot( angle_pT, transPNorm**2, '.', color='black', ms=msize)
 
     ax.set_ylim(0.0, 1.0)
     ax.set_xlabel("Incident angle (deg)")
-    ax.set_ylabel("$|r_\mathrm{s}|^2$, $|r_\mathrm{p}|^2$")
-    ax.legend(loc="center left", frameon=False)
+    ax.set_ylabel("$|r_\mathrm{s}|^2$, $|r_\mathrm{p}|^2$, $|t_\mathrm{s}|^2$, $|t_\mathrm{p}|^2$")
+    ax.legend(loc="upper left", ncol=2, frameon=False)
 
     # Set proper labels on the phase plot
     fig.savefig( "Figures/fieldCoefficients.pdf", bbox_inches="tight" )
