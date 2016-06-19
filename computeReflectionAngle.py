@@ -36,9 +36,9 @@ def main():
             print ("Could not find file %s"%(fname))
             continue
         distanceFromPlane = data["geometry"]["sourcePosition"] - data["geometry"]["slabPosition"]
-        phase = np.array( data["reflection"]["phase"] )
-        angle = np.array( data["angle"] )*np.pi/180.0
-        k = 2.0*np.pi*np.array( data["frequency"] )
+        phase = np.array( data["reflected"]["phase"] )
+        angle = np.array( data["reflected"]["angle"] )*np.pi/180.0
+        k = 2.0*np.pi*np.array( data["reflected"]["frequency"] )
 
         angle = angle[::step]
         k = k[::step]
