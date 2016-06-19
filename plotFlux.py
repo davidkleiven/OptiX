@@ -62,8 +62,8 @@ def main():
             ax.plot(angles, R, '^', color='black', ms=markersize)
             ax.plot(angles, T,  'o', color='black', ms=markersize)
         else:
-            ax.plot(angles, R, '^', color='black', label="$R_s$", ms=markersize)
-            ax.plot(angles, T,  'o', color='black', label="$T_s$", ms=markersize)
+            ax.plot(angles, R, '^', color='black', label="$R_\mathrm{s}$", ms=markersize)
+            ax.plot(angles, T,  'o', color='black', label="$T_\mathrm{s}$", ms=markersize)
             hasLabel = True
         
     hasLabel = False
@@ -83,8 +83,8 @@ def main():
             ax.plot(angles, R, 's', color='black', ms=markersize)
             ax.plot(angles, T,  'x', color='black', ms=markersize)
         else:
-            ax.plot(angles, R, 's', color='black', label="$R_p$", ms=markersize)
-            ax.plot(angles, T, 'x', color='black', label="$T_p$", ms=markersize)
+            ax.plot(angles, R, 's', color='black', label="$R_\mathrm{p}$", ms=markersize)
+            ax.plot(angles, T, 'x', color='black', label="$T_\mathrm{p}$", ms=markersize)
             hasLabel=True
     ax.legend(loc='center left', frameon=False)
     fig.savefig("Figures/powerCoefficients.pdf", bbox_inches="tight")

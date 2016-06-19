@@ -25,6 +25,7 @@ def main():
     tanReflTimesTanAngle = None
     tanAngle = None
     step = 10
+    hasLabel = False
     for folder in FOLDERS:
         fname = folder+"/realFieldFourier.json"
         try:
@@ -46,11 +47,16 @@ def main():
         for i in range(0, len(angle)):
             reflAngle[i] = optimize.fsolve( findReflectionAngle, angle[i], args=(angle[i], k[i], distanceFromPlane, phase[i] ))
 
-        ax.plot(angle, reflAngle, '.', color="black", markersize=5, fillstyle="none")
+        if ( hasLabel ):
+            ax.plot(angle, reflAngle, '.', color="black", markersize=5, fillstyle="none")
+        else: 
+            ax.plot(angle, reflAngle, '.', color="black", markersize=5, fillstyle="none", label="Numerical")
+            hasLabel = True
     anglePlot = np.linspace(0.0, np.pi/2.0, 11)
-    ax.plot(anglePlot, anglePlot, color="black")
+    ax.plot(anglePlot, anglePlot, color="black", label="$\\theta_\mathrm{r} = \\theta_\mathrm{i}$")
     ax.set_xlabel("$\\theta_\mathrm{i}$")
     ax.set_ylabel("$\\theta_\mathrm{r}$")
+    ax.legend(loc="upper left", frameon=False)
     ticks = [0.0, np.pi/8.0, np.pi/4.0, 3.0*np.pi/8.0, np.pi/2.0]
     labels = ["$0$", "$\\frac{\pi}{8}$", "$\\frac{\pi}{4}$", "$\\frac{3\pi}{8}$", "$\\frac{\pi}{2}$"]
     ax.set_xticks(ticks)

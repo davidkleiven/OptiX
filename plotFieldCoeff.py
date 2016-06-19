@@ -32,8 +32,8 @@ def main():
     theta = np.linspace(0.0, 90.0, 101)
     n1 = 1.0
     n2 = 1.5
-    ax.plot( theta, np.abs(rs(theta, n1, n2)), color='black' ) 
-    ax.plot( theta, np.abs(rp(theta, n1, n2)), color='black' ) 
+    ax.plot( theta, np.abs(rs(theta, n1, n2))**2, color='black' ) 
+    ax.plot( theta, np.abs(rp(theta, n1, n2))**2, color='black' ) 
 
     msize = 2
     step = 5
@@ -57,27 +57,25 @@ def main():
             continue
 
         reflectionNorm = np.array( data["reflection"]["norm"] )[0:-1:step]
-        reflectionPhase = np.array( data["reflection"]["phase"] )[0:-1:step]
         angle = np.array( data["angle"] )[0:-1:step]
 
         refPNorm = np.array( data_p["reflection"]["norm"] )[0:-1:step]
-        refPPhase = np.array( data_p["reflection"]["phase"])[0:-1:step]
         angle_p = np.array( data_p["angle"] )[0:-1:step]
         
-        ax.plot( angle, reflectionNorm, 'o', color='black', ms=msize)
-        ax.plot( angle_p, refPNorm, '^', color='black', ms=msize)
-        axPhase.plot( angle, reflectionPhase, '.', color='black', ms=msize)
+        if ( i==0 ):
+            ax.plot( angle, reflectionNorm**2, 'o', color='black', ms=msize, label="$|r_\mathrm{s}|^2$")
+            ax.plot( angle_p, refPNorm**2, '^', color='black', ms=msize, label="$|r_\mathrm{p}|^2$")
+        else:
+            ax.plot( angle, reflectionNorm**2, 'o', color='black', ms=msize)
+            ax.plot( angle_p, refPNorm**2, '^', color='black', ms=msize)
 
     ax.set_ylim(0.0, 1.0)
-    axPhase.set_ylim(-np.pi,np.pi)
+    ax.set_xlabel("Incident angle (deg)")
+    ax.set_ylabel("$|r_\mathrm{s}|^2$, $|r_\mathrm{p}|^2$")
+    ax.legend(loc="center left", frameon=False)
 
     # Set proper labels on the phase plot
-    ymarks = np.array([-np.pi, -np.pi/2.0, 0.0, np.pi/2.0, np.pi])
-    axPhase.set_yticks(ymarks)
-    ytics = ["$-\pi$", "$\\frac{\pi}{2}$", "0", "$\\frac{\pi}{2}$", "$\pi$"]
-    axPhase.set_yticklabels(ytics)
     fig.savefig( "Figures/fieldCoefficients.pdf", bbox_inches="tight" )
-    figPhase.savefig( "Figures/fieldCoefficientPhase.pdf", bbox_inches="tight" )
 
 if __name__ == '__main__':
     main()
