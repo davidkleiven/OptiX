@@ -4,6 +4,7 @@ import matplotlib
 matplotlib.rcParams.update(mplLaTeX.params)
 from matplotlib import pyplot as plt
 from scipy import stats
+from scipy import optimize
 import json
 
 FOLDERS = ["dataPlane/MultInc5/WithEps", "dataPlane/MultInc20/WithEps", "dataPlane/MultInc45/WithEps", \
@@ -11,12 +12,20 @@ FOLDERS = ["dataPlane/MultInc5/WithEps", "dataPlane/MultInc20/WithEps", "dataPla
 "dataPlane/MultInc20p/WithEps", "dataPlane/MultInc45p/WithEps", \
 "dataPlane/MultInc75p/WithEps", "dataPlane/MultInc85p/WithEps"]
 
-FOLDERS=["dataPlane/MultInc5/WithEps", "dataPlane/MultInc20/WithEps"]
+#FOLDERS=["dataPlane/MultInc5/WithEps", "dataPlane/MultInc20/WithEps"]
+def findReflectionAngle(theta_r, theta_in, waveNumber, distanceFromSlab, phase):
+    # Force the solver to stay within +- pi
+    if ( np.abs(theta_r) > np.pi ):
+        return np.inf
+    return waveNumber*distanceFromSlab*(np.sin(theta_in)*(np.tan(theta_in)+np.tan(theta_r)) \
+    - 1.0/np.cos(theta_in) - 1.0/np.cos(theta_r)) - phase
+
 def main():
     fig = plt.figure()
     ax = fig.add_subplot(111)
     tanReflTimesTanAngle = None
     tanAngle = None
+    step = 10
     for folder in FOLDERS:
         fname = folder+"/realFieldFourier.json"
         try:
@@ -28,26 +37,27 @@ def main():
             continue
         distanceFromPlane = data["geometry"]["sourcePosition"] - data["geometry"]["slabPosition"]
         phase = np.array( data["reflection"]["phase"] )
-        tanAngleNew =  np.tan( np.array( data["angle"] )*np.pi/180.0) 
+        angle = np.array( data["angle"] )*np.pi/180.0
         k = 2.0*np.pi*np.array( data["frequency"] )
-        tanReflTimesTanAngleNew = phase*np.sqrt(1.0+tanAngleNew**2)/(k*distanceFromPlane) - tanAngleNew*tanAngleNew 
 
-        if ( tanReflTimesTanAngle is None ):
-            tanReflTimesTanAngle = np.zeros(len(tanReflTimesTanAngleNew))
-            tanAngle = np.zeros(len(tanAngleNew))
-            tanReflTimesTanAngle = tanReflTimesTanAngleNew
-            tanAngle = tanAngleNew
-        else:
-            tanReflTimesTanAngle = np.append(tanReflTimesTanAngle, tanReflTimesTanAngleNew)
-            tanAngle = np.append(tanAngle, tanAngleNew)
-    #slope, interscept, pvalue, rvalye, stderr = stats.linregress(np.log(tanAngle), np.log(tanReflTimesTanAngle))
-    ax.plot( tanAngle, tanReflTimesTanAngle, '.', color="black", markersize=1, fillstyle="none")
-    #ax.plot( tanAngle, np.exp(interscept)*tanAngle**slope, color='black')
-    #ax.set_xscale('log')
-    #ax.set_yscale('log')
-    ax.set_xlabel("$\\tan \\theta_i$")
-    ax.set_ylabel("$\\tan \\theta_i \\tan \\theta_r$")
-    #print ("Exponent: %.2f"%(slope))
+        angle = angle[::step]
+        k = k[::step]
+        phase = phase[::step]
+        reflAngle = np.zeros( len(angle) )
+        for i in range(0, len(angle)):
+            reflAngle[i] = optimize.fsolve( findReflectionAngle, angle[i], args=(angle[i], k[i], distanceFromPlane, phase[i] ))
+
+        ax.plot(angle, reflAngle, '.', color="black", markersize=5, fillstyle="none")
+    anglePlot = np.linspace(0.0, np.pi/2.0, 11)
+    ax.plot(anglePlot, anglePlot, color="black")
+    ax.set_xlabel("$\\theta_\mathrm{i}$")
+    ax.set_ylabel("$\\theta_\mathrm{r}$")
+    ticks = [0.0, np.pi/8.0, np.pi/4.0, 3.0*np.pi/8.0, np.pi/2.0]
+    labels = ["$0$", "$\\frac{\pi}{8}$", "$\\frac{\pi}{4}$", "$\\frac{3\pi}{8}$", "$\\frac{\pi}{2}$"]
+    ax.set_xticks(ticks)
+    ax.set_yticks(ticks)
+    ax.set_xticklabels(labels)
+    ax.set_yticklabels(labels)
     fig.savefig("Figures/tanReflection.pdf", bbox_inches="tight")
 
 if __name__ == "__main__":
