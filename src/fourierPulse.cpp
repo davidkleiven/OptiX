@@ -267,7 +267,8 @@ int main(int argc, char** argv)
         imagBkg = 0.0;
       }
       complex<double> trans(realRun, imagRun);
-      bkgVal = (realBkg, imagBkg);
+      bkgVal.real(realBkg);
+      bkgVal.imag(imagBkg);
     #endif
       
     complex<double> transCoeff = trans/bkgVal;
