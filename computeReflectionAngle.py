@@ -12,7 +12,6 @@ FOLDERS = ["dataPlane/MultInc5/WithEps", "dataPlane/MultInc20/WithEps", "dataPla
 "dataPlane/MultInc20p/WithEps", "dataPlane/MultInc45p/WithEps", \
 "dataPlane/MultInc75p/WithEps", "dataPlane/MultInc85p/WithEps"]
 
-#FOLDERS=["dataPlane/MultInc5/WithEps", "dataPlane/MultInc20/WithEps"]
 def findReflectionAngle(theta_r, theta_in, waveNumber, distanceFromSlab, phase):
     # Force the solver to stay within +- pi
     if ( np.abs(theta_r) > np.pi ):
