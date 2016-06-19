@@ -23,6 +23,14 @@ def rp(theta, n1, n2):
     theta = theta*np.pi/180.0
     thetaT = transmittedTheta(theta, n1, n2)
     return ( n1*np.cos(thetaT) - n2*np.cos(theta) )/( n1*np.cos(thetaT) + n2*np.cos(theta) )
+
+def ts(theta, n1, n2):
+    return 1.0+rs(theta, n1, n2)
+
+def tp(theta, n1, n2):
+    theta = theta*np.pi/180.0
+    thetaT = transmittedTheta(theta, n1, n2)
+    return 2.0*n1*np.cos(theta)/( n1*np.cos(thetaT) + n2*np.cos(theta) )
     
 def main():
     fig = plt.figure()
@@ -34,6 +42,8 @@ def main():
     n2 = 1.5
     ax.plot( theta, np.abs(rs(theta, n1, n2))**2, color='black' ) 
     ax.plot( theta, np.abs(rp(theta, n1, n2))**2, color='black' ) 
+    ax.plot( theta, ts(theta, n1, n2)**2, color='black' )
+    ax.plot( theta, tp(theta, n1, n2)**2, color='black' )
 
     msize = 2
     step = 5
