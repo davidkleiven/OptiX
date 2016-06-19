@@ -5,7 +5,8 @@ mpl.rcParams.update(mplLaTeX.params)
 from matplotlib import pyplot as plt
 import json
 
-FOLDERS_s = ["dataPlane/MultInc20/WithEps", "dataPlane/MultInc45/WithEps", "dataPlane/MultInc75/WithEps", "dataPlane/MultInc85/WithEps"]
+FOLDERS_s = ["dataPlane/MultInc20s/WithEps", "dataPlane/MultInc45s/WithEps", "dataPlane/MultInc75s/WithEps", \
+"dataPlane/MultInc85s/WithEps"]
 FOLDERS_p = ["dataPlane/MultInc20p/WithEps", "dataPlane/MultInc45p/WithEps", "dataPlane/MultInc75p/WithEps", \
 "dataPlane/MultInc85p/WithEps"]
 

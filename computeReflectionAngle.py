@@ -7,8 +7,8 @@ from scipy import stats
 from scipy import optimize
 import json
 
-FOLDERS = ["dataPlane/MultInc5/WithEps", "dataPlane/MultInc20/WithEps", "dataPlane/MultInc45/WithEps", \
-"dataPlane/MultInc75/WithEps", "dataPlane/MultInc85/WithEps", "dataPlane/MultInc5p/WithEps", \
+FOLDERS = ["dataPlane/MultInc5s/WithEps", "dataPlane/MultInc20s/WithEps", "dataPlane/MultInc45s/WithEps", \
+"dataPlane/MultInc75s/WithEps", "dataPlane/MultInc85s/WithEps", "dataPlane/MultInc5p/WithEps", \
 "dataPlane/MultInc20p/WithEps", "dataPlane/MultInc45p/WithEps", \
 "dataPlane/MultInc75p/WithEps", "dataPlane/MultInc85p/WithEps"]
 
