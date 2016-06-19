@@ -130,6 +130,7 @@ int main(int argc, char** argv)
     #ifdef USE_COMPLEX_FIELD
       reflectedBkg.push_back( bkg["reflected"]["imag"][i].asDouble() );
     #endif
+
     transmittedBkg.push_back( bkg["transmitted"]["real"][i].asDouble() );
     #ifdef USE_COMPLEX_FIELD
       transmittedBkg.push_back( bkg["transmitted"]["imag"][i].asDouble() );
@@ -139,6 +140,7 @@ int main(int argc, char** argv)
     #ifdef USE_COMPLEX_FIELD
       reflectedRun.push_back( run["reflected"]["imag"][i].asDouble() );
     #endif
+
     transmittedRun.push_back( run["transmitted"]["real"][i].asDouble() );
     #ifdef USE_COMPLEX_FIELD
       transmittedRun.push_back( run["transmitted"]["imag"][i].asDouble() );
@@ -201,8 +203,10 @@ int main(int argc, char** argv)
   Json::Value transCoeffPhase(Json::arrayValue);
   Json::Value reflCoeffNorm(Json::arrayValue);
   Json::Value reflCoeffPhase(Json::arrayValue);
-  Json::Value angleArray(Json::arrayValue);
-  Json::Value freqArray(Json::arrayValue);
+  Json::Value angleArrayT(Json::arrayValue);
+  Json::Value freqArrayT(Json::arrayValue);
+  Json::Value angleArrayR(Json::arrayValue);
+  Json::Value freqArrayR(Json::arrayValue);
   double df = 1.0/(dt*static_cast<double>(nPointsBkg));
   double frequencyAtMax = static_cast<double>(currentMaxPos)*df;
   double estimateOfMaxTransValue = sqrt(2.0)*currentMax;
@@ -244,10 +248,30 @@ int main(int argc, char** argv)
     }
     
     // TODO: Handling of transmission coefficient is currently wrong
-    complex<double> trans(transmittedRun[2*i], transmittedRun[2*i+1]);
-    bkgVal = (transmittedBkg[2*i], transmittedBkg[2*i+1]);
-    double transCoeff = abs( trans/bkgVal );
-    double transCoeffAngle = atan( imag(trans)/real(trans) );
+    #ifdef USE_COMPLEX_FIELD
+      complex<double> trans(transmittedRun[2*i], transmittedRun[2*i+1]);
+      bkgVal = (transmittedBkg[2*i], transmittedBkg[2*i+1]);
+    #else
+      if ( i > 0) 
+      {
+        realRun = transmittedRun[2*i-1];
+        imagRun = transmittedRun[2*i];
+        realBkg = transmittedBkg[2*i-1];
+        imagBkg = transmittedBkg[2*i];
+      }
+      else
+      {
+        realRun = transmittedRun[0];
+        imagRun = 0.0;  
+        realBkg = transmittedBkg[0];
+        imagBkg = 0.0;
+      }
+      complex<double> trans(realRun, imagRun);
+      bkgVal = (realBkg, imagBkg);
+    #endif
+      
+    complex<double> transCoeff = trans/bkgVal;
+    double transCoeffAngle = atan( imag(transCoeff)/real(transCoeff) );
 
     double freq = static_cast<double>(i)/(dt*static_cast<double>(nPointsBkg));
     double angleArgument = frequencyAtMax*sin( angle*PI/180.0 )/freq;
@@ -261,28 +285,34 @@ int main(int argc, char** argv)
     // Compute norm of reflected and transmitted fields and save only the significant
     double reflNorm = abs( refl );
     double transNorm = abs( trans );
-    if ( (reflNorm > MIN_RELATIVE_SAVE_VAL*estimateOfMaxTransValue) || \
-       ( transNorm > MIN_RELATIVE_SAVE_VAL*estimateOfMaxTransValue) )
+    if (reflNorm > MIN_RELATIVE_SAVE_VAL*estimateOfMaxTransValue) 
     {
       reflCoeffNorm.append( abs(refCoeff) );
       reflCoeffPhase.append( refCoeffAngle );
     
-      transCoeffNorm.append( transCoeff  );
+      angleArrayR.append( currentAngle );
+      freqArrayR.append( freq );
+    }
+    if ( transNorm > MIN_RELATIVE_SAVE_VAL*estimateOfMaxTransValue) 
+    {
+      angleArrayT.append( currentAngle );
+      freqArrayT.append( freq );
+      transCoeffNorm.append( abs(transCoeff)  );
       transCoeffPhase.append( transCoeffAngle );
-      angleArray.append( currentAngle );
-      freqArray.append( freq );
     }
   }
  
   // Write results to file
   Json::Value base;
   base["geometry"] = run["geometry"];
-  base["reflection"]["norm"] = reflCoeffNorm;
-  base["reflection"]["phase"] = reflCoeffPhase;
-  base["transmition"]["norm"] = transCoeffNorm;
-  base["transmition"]["phase"] = transCoeffPhase;
-  base["angle"] = angleArray;
-  base["frequency"] = freqArray;
+  base["reflected"]["norm"] = reflCoeffNorm;
+  base["reflected"]["phase"] = reflCoeffPhase;
+  base["reflected"]["frequency"] = freqArrayR;
+  base["reflected"]["angle"] = angleArrayR;
+  base["transmitted"]["norm"] = transCoeffNorm;
+  base["transmitted"]["phase"] = transCoeffPhase;
+  base["transimitted"]["frequency"] = freqArrayT;
+  base["transmitted"]["angle"] = angleArrayT;
   Json::FastWriter fw;
 
   unsigned int pos = fname.find(".");
