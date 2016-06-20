@@ -17,6 +17,7 @@
   #include <gsl/gsl_fft_real.h>
 #endif
 #define MIN_RELATIVE_SAVE_VAL 1E-2
+#define VERBOSE
 //#define OUTPUT_SUBTRACTED
 /**
 * This file takes three command line arguments
@@ -210,6 +211,11 @@ int main(int argc, char** argv)
   double df = 1.0/(dt*static_cast<double>(nPointsBkg));
   double frequencyAtMax = static_cast<double>(currentMaxPos)*df;
   double estimateOfMaxTransValue = sqrt(2.0)*currentMax;
+
+  #ifdef VERBOSE
+    bool hasPrintedHFieldMsg = false;
+    cout << "Field component: " << run["FieldComponent"].asString() << endl;
+  #endif
   for ( unsigned int i=0;i<endIteration;i++ )
   {
     #ifdef USE_COMPLEX_FIELD
@@ -272,6 +278,17 @@ int main(int argc, char** argv)
     #endif
       
     complex<double> transCoeff = trans/bkgVal;
+    if ( run["FieldComponent"].asString() == "Hz" )
+    {
+      #ifdef VERBOSE
+        if (!hasPrintedHFieldMsg)
+        {
+          cout << "Using H-field... Epsilon="<<run["geometry"]["EpsilonHigh"].asDouble() << endl;
+          hasPrintedHFieldMsg = true;
+        }
+      #endif
+      transCoeff /= run["geometry"]["EpsilonHigh"].asDouble();
+    }
     double transCoeffAngle = atan( imag(transCoeff)/real(transCoeff) );
 
     double freq = static_cast<double>(i)/(dt*static_cast<double>(nPointsBkg));
