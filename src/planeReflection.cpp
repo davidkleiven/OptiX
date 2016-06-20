@@ -226,6 +226,7 @@ int main(int argc, char **argv)
     // Get field amplitude
     complex<double> fieldAmpTrans = field.get_field(fieldComp, meep::vec(XSIZE/2.0, fluxPlanePosY));
     complex<double> fieldAmpRefl = field.get_field(fieldComp, meep::vec(XSIZE/2.0, fluxRefPlanePosY));
+
     fieldTransmittedReal.append( real(fieldAmpTrans) );
     fieldTransmittedImag.append( imag(fieldAmpTrans) );
     fieldReflectionReal.append( real(fieldAmpRefl) );
@@ -293,7 +294,6 @@ int main(int argc, char **argv)
   flux["geometry"]["ysize"] = YSIZE;
   flux["geometry"]["EpsilonHigh"] = EPS_HIGH;
   flux["geometry"]["EpsilonLow"] = EPS_LOW;
-
   flux["frequency"] = freqArray;
   flux["incidentAngle"] = angleArray;
   flux["reflected"] = reflected;
@@ -325,12 +325,27 @@ int main(int argc, char **argv)
   monitors["geometry"]["slabPosition"] = YC_PLANE;
   monitors["geometry"]["xsize"] = XSIZE;
   monitors["geometry"]["ysize"] = YSIZE;
+  monitors["geometry"]["EpsilonHigh"] = EPS_HIGH;
+  monitors["geometry"]["EpsilonLow"] = EPS_LOW;
   monitors["reflected"]["position"] = fluxRefPlanePosY;
   monitors["reflected"]["real"] = fieldReflectionReal;
   monitors["reflected"]["imag"] = fieldReflectionImag;
   monitors["transmitted"]["position"] = fluxPlanePosY;
   monitors["transmitted"]["real"] = fieldTransmittedReal;
   monitors["transimitted"]["imag"] = fieldTransmittedImag;
+  if ( fieldComp == meep::Ez )
+  {
+    monitors["FieldComponent"] = "Ez";
+  }
+  else if ( fieldComp == meep::Hz )
+  {
+    monitors["FieldComponent"] = "Hz";
+  }
+  else
+  {
+    monitors["FieldComponent"] = "Unknown";
+  }
+
 
   // Write monitor to file
   string monitorOut("realField.json");
