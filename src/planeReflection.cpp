@@ -173,14 +173,8 @@ int main(int argc, char **argv)
   meep::dft_flux transFluxY = field.add_dft_flux_plane(dftVol, freq-fwidth/2.0, freq+fwidth/2.0, nfreq);
   meep::dft_flux fluxYReflected = field.add_dft_flux_plane(dftVolR, freq-fwidth/2.0, freq+fwidth/2.0, nfreq); 
 
-  //vector<double> fieldTransmittedReal; // Container for the real field component
-  //vector<double> fieldTransmittedImag;
-  //vector<double> timepoints; // Container for the timepoints
-  //vector<double> fieldReflectionReal; // Container for the real field component at the center of the flux plane
   Json::Value fieldTransmittedReal(Json::arrayValue);
-  Json::Value fieldTransmittedImag(Json::arrayValue);
   Json::Value fieldReflectionReal(Json::arrayValue);
-  Json::Value fieldReflectionImag(Json::arrayValue);
   Json::Value timepoints(Json::arrayValue);
 
   // Time required to propagate over the domain with the slowest speed
@@ -228,13 +222,8 @@ int main(int argc, char **argv)
     complex<double> fieldAmpRefl = field.get_field(fieldComp, meep::vec(XSIZE/2.0, fluxRefPlanePosY));
 
     fieldTransmittedReal.append( real(fieldAmpTrans) );
-    fieldTransmittedImag.append( imag(fieldAmpTrans) );
     fieldReflectionReal.append( real(fieldAmpRefl) );
-    fieldReflectionImag.append( imag(fieldAmpRefl) );
     timepoints.append( field.time() );
-    //fieldTransmitted.push_back(real(fieldAmpTrans));
-    //fieldReflection.push_back(real( fieldAmpRefl ));
-    //timepoints.push_back(field.time());
 
     #ifdef OUTPUT_HDF5
       if ( field.time() > nextOutputTime )
@@ -280,8 +269,6 @@ int main(int argc, char **argv)
       angleArray.append(currentAngle);
       transmitted.append( transmittedFlux[i]/transYWidth );
       reflected.append( reflectedFlux[i]/transYWidth );
-      //os << currentFreq << "," << currentAngle << "," << transmittedFlux[i]/transYWidth;
-      //os << "," << reflectedFlux[i]/transYWidth << "\n";
     }
     currentFreq += dfreq;
   }
@@ -329,10 +316,8 @@ int main(int argc, char **argv)
   monitors["geometry"]["EpsilonLow"] = EPS_LOW;
   monitors["reflected"]["position"] = fluxRefPlanePosY;
   monitors["reflected"]["real"] = fieldReflectionReal;
-  monitors["reflected"]["imag"] = fieldReflectionImag;
   monitors["transmitted"]["position"] = fluxPlanePosY;
   monitors["transmitted"]["real"] = fieldTransmittedReal;
-  monitors["transimitted"]["imag"] = fieldTransmittedImag;
   if ( fieldComp == meep::Ez )
   {
     monitors["FieldComponent"] = "Ez";
