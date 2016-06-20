@@ -10,12 +10,8 @@
 #include <stdexcept>
 #include <jsoncpp/json/reader.h>
 #include <jsoncpp/json/writer.h>
-//#define USE_COMPLEX_FIELD
-#ifdef USE_COMPLEX_FIELD
-  #include <gsl/gsl_fft_complex.h>
-#else
-  #include <gsl/gsl_fft_real.h>
-#endif
+#include <gsl/gsl_fft_real.h>
+
 #define MIN_RELATIVE_SAVE_VAL 1E-1
 #define VERBOSE
 //#define OUTPUT_SUBTRACTED
@@ -41,11 +37,6 @@ double normRealOddFFT(const vector<double> &fftOut, unsigned int indx)
     return fftOut[0]*fftOut[0];
   }
   return sqrt( pow(fftOut[2*indx-1],2) + pow(fftOut[2*indx],2));
-}
-
-double normComplexFFT(const vector<double> &fftOut, unsigned int indx)
-{
-  return sqrt(pow(fftOut[2*indx],2) + pow(fftOut[2*indx+1],2));
 }
 
 int main(int argc, char** argv)
@@ -112,9 +103,6 @@ int main(int argc, char** argv)
   for ( unsigned int i=0;i<nPointsBkg;i++ )
   {
     run["reflected"]["real"][i] = run["reflected"]["real"][i].asDouble() - bkg["reflected"]["real"][i].asDouble();
-    #ifdef USE_COMPLEX_FIELD
-      run["reflected"]["imag"][i] = run["reflected"]["imag"][i].asDouble() - bkg["reflected"]["imag"][i].asDouble();
-    #endif
   }
 
   // Compute fourier transform of the signal
@@ -128,71 +116,36 @@ int main(int argc, char** argv)
   for ( unsigned int i=0;i<nPointsBkg;i++ )
   {
     reflectedBkg.push_back( bkg["reflected"]["real"][i].asDouble() );
-    #ifdef USE_COMPLEX_FIELD
-      reflectedBkg.push_back( bkg["reflected"]["imag"][i].asDouble() );
-    #endif
 
     transmittedBkg.push_back( bkg["transmitted"]["real"][i].asDouble() );
-    #ifdef USE_COMPLEX_FIELD
-      transmittedBkg.push_back( bkg["transmitted"]["imag"][i].asDouble() );
-    #endif
 
     reflectedRun.push_back( run["reflected"]["real"][i].asDouble() );
-    #ifdef USE_COMPLEX_FIELD
-      reflectedRun.push_back( run["reflected"]["imag"][i].asDouble() );
-    #endif
 
     transmittedRun.push_back( run["transmitted"]["real"][i].asDouble() );
-    #ifdef USE_COMPLEX_FIELD
-      transmittedRun.push_back( run["transmitted"]["imag"][i].asDouble() );
-    #endif
   }
   
-  // Coompute Fourier transforms
-  #ifdef USE_COMPLEX_FIELD
-    gsl_fft_complex_wavetable *cTab;
-    gsl_fft_complex_workspace *work;
-    
-    work = gsl_fft_complex_workspace_alloc(nPointsBkg);
-    cTab = gsl_fft_complex_wavetable_alloc(nPointsBkg);
-    gsl_fft_complex_forward(&reflectedBkg[0], 1, nPointsBkg, cTab, work);
-    gsl_fft_complex_forward(&transmittedBkg[0], 1, nPointsBkg, cTab, work); 
-    gsl_fft_complex_forward(&reflectedRun[0], 1, nPointsBkg, cTab, work);
-    gsl_fft_complex_forward(&transmittedRun[0], 1, nPointsBkg, cTab, work);
+  // Compute Fourier transforms
+  gsl_fft_real_wavetable *rTab;
+  gsl_fft_real_workspace *work;
+  
+  work = gsl_fft_real_workspace_alloc(nPointsBkg);
+  rTab = gsl_fft_real_wavetable_alloc(nPointsBkg);
+  
+  gsl_fft_real_transform(&reflectedBkg[0], 1, nPointsBkg, rTab, work);
+  gsl_fft_real_transform(&transmittedBkg[0], 1, nPointsBkg, rTab, work); 
+  gsl_fft_real_transform(&reflectedRun[0], 1, nPointsBkg, rTab, work);
+  gsl_fft_real_transform(&transmittedRun[0], 1, nPointsBkg, rTab, work);
 
-    gsl_fft_complex_wavetable_free(cTab);
-    gsl_fft_complex_workspace_free(work);
-  #else
-    gsl_fft_real_wavetable *rTab;
-    gsl_fft_real_workspace *work;
-    
-    work = gsl_fft_real_workspace_alloc(nPointsBkg);
-    rTab = gsl_fft_real_wavetable_alloc(nPointsBkg);
-    
-    gsl_fft_real_transform(&reflectedBkg[0], 1, nPointsBkg, rTab, work);
-    gsl_fft_real_transform(&transmittedBkg[0], 1, nPointsBkg, rTab, work); 
-    gsl_fft_real_transform(&reflectedRun[0], 1, nPointsBkg, rTab, work);
-    gsl_fft_real_transform(&transmittedRun[0], 1, nPointsBkg, rTab, work);
-
-    gsl_fft_real_wavetable_free(rTab);
-    gsl_fft_real_workspace_free(work);
-  #endif
+  gsl_fft_real_wavetable_free(rTab);
+  gsl_fft_real_workspace_free(work);
 
   // Find position of maximum use the one from the transmitted signal
   unsigned int currentMaxPos = 1;
   double currentMax = -1.0;
-  #ifdef USE_COMPLEX_FIELD
-    unsigned int endIteration = nPointsBkg;
-  #else
-    unsigned int endIteration = nPointsBkg/2;
-  #endif
+  unsigned int endIteration = nPointsBkg/2;
   for (unsigned int i=0;i<endIteration;i++)
   {
-    #ifdef USE_COMPLEX_FIELD
-      double normTrans = normComplexFFT(transmittedRun, i);
-    #else
-      double normTrans = normRealOddFFT(transmittedRun, i);
-    #endif
+    double normTrans = normRealOddFFT(transmittedRun, i);
     if ( normTrans > currentMax )
     {
       currentMaxPos = i;
@@ -219,28 +172,23 @@ int main(int argc, char** argv)
   #endif
   for ( unsigned int i=0;i<endIteration;i++ )
   {
-    #ifdef USE_COMPLEX_FIELD
-      complex<double> refl(reflectedRun[2*i], reflectedRun[2*i+1]);
-      complex<double> bkgVal(reflectedBkg[2*i], reflectedBkg[2*i+1]);
-    #else 
-      double realRun, imagRun, realBkg, imagBkg;
-      if ( i > 0) 
-      {
-        realRun = reflectedRun[2*i-1];
-        imagRun = reflectedRun[2*i];
-        realBkg = reflectedBkg[2*i-1];
-        imagBkg = reflectedBkg[2*i];
-      }
-      else
-      {
-        realRun = reflectedRun[0];
-        imagRun = 0.0;  
-        realBkg = reflectedBkg[0];
-        imagBkg = 0.0;
-      }
-      complex<double> refl(realRun, imagRun);
-      complex<double> bkgVal(realBkg, imagBkg);
-    #endif
+    double realRun, imagRun, realBkg, imagBkg;
+    if ( i > 0) 
+    {
+      realRun = reflectedRun[2*i-1];
+      imagRun = reflectedRun[2*i];
+      realBkg = reflectedBkg[2*i-1];
+      imagBkg = reflectedBkg[2*i];
+    }
+    else
+    {
+      realRun = reflectedRun[0];
+      imagRun = 0.0;  
+      realBkg = reflectedBkg[0];
+      imagBkg = 0.0;
+    }
+    complex<double> refl(realRun, imagRun);
+    complex<double> bkgVal(realBkg, imagBkg);
     complex<double> refCoeff = refl/bkgVal;
     double refCoeffAngle = atan( imag(refCoeff)/real(refCoeff) );
     if (( imag(refCoeff) < 0.0 ) && ( real(refCoeff) < 0.0 ) )
@@ -255,28 +203,23 @@ int main(int argc, char** argv)
     }
     
     // TODO: Handling of transmission coefficient is currently wrong
-    #ifdef USE_COMPLEX_FIELD
-      complex<double> trans(transmittedRun[2*i], transmittedRun[2*i+1]);
-      bkgVal = (transmittedBkg[2*i], transmittedBkg[2*i+1]);
-    #else
-      if ( i > 0) 
-      {
-        realRun = transmittedRun[2*i-1];
-        imagRun = transmittedRun[2*i];
-        realBkg = transmittedBkg[2*i-1];
-        imagBkg = transmittedBkg[2*i];
-      }
-      else
-      {
-        realRun = transmittedRun[0];
-        imagRun = 0.0;  
-        realBkg = transmittedBkg[0];
-        imagBkg = 0.0;
-      }
-      complex<double> trans(realRun, imagRun);
-      bkgVal.real(realBkg);
-      bkgVal.imag(imagBkg);
-    #endif
+    if ( i > 0) 
+    {
+      realRun = transmittedRun[2*i-1];
+      imagRun = transmittedRun[2*i];
+      realBkg = transmittedBkg[2*i-1];
+      imagBkg = transmittedBkg[2*i];
+    }
+    else
+    {
+      realRun = transmittedRun[0];
+      imagRun = 0.0;  
+      realBkg = transmittedBkg[0];
+      imagBkg = 0.0;
+    }
+    complex<double> trans(realRun, imagRun);
+    bkgVal.real(realBkg);
+    bkgVal.imag(imagBkg);
       
     complex<double> transCoeff = trans/bkgVal;
     if ( run["FieldComponent"].asString() == "Hz" )
