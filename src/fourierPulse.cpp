@@ -287,7 +287,7 @@ int main(int argc, char** argv)
           hasPrintedHFieldMsg = true;
         }
       #endif
-      transCoeff /= run["geometry"]["EpsilonHigh"].asDouble();
+      transCoeff /= sqrt( run["geometry"]["EpsilonHigh"].asDouble() );
     }
     double transCoeffAngle = atan( imag(transCoeff)/real(transCoeff) );
 
