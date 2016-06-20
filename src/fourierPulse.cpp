@@ -16,7 +16,7 @@
 #else
   #include <gsl/gsl_fft_real.h>
 #endif
-#define MIN_RELATIVE_SAVE_VAL 1E-2
+#define MIN_RELATIVE_SAVE_VAL 1E-1
 #define VERBOSE
 //#define OUTPUT_SUBTRACTED
 /**
@@ -211,6 +211,7 @@ int main(int argc, char** argv)
   double df = 1.0/(dt*static_cast<double>(nPointsBkg));
   double frequencyAtMax = static_cast<double>(currentMaxPos)*df;
   double estimateOfMaxTransValue = sqrt(2.0)*currentMax;
+  double estimateOfMaxReflValue = sqrt(2.0)*normRealOddFFT(reflectedRun, currentMaxPos);
 
   #ifdef VERBOSE
     bool hasPrintedHFieldMsg = false;
@@ -303,7 +304,7 @@ int main(int argc, char** argv)
     // Compute norm of reflected and transmitted fields and save only the significant
     double reflNorm = abs( refl );
     double transNorm = abs( trans );
-    if (reflNorm > MIN_RELATIVE_SAVE_VAL*estimateOfMaxTransValue) 
+    if (reflNorm > MIN_RELATIVE_SAVE_VAL*estimateOfMaxReflValue) 
     {
       reflCoeffNorm.append( abs(refCoeff) );
       reflCoeffPhase.append( refCoeffAngle );
