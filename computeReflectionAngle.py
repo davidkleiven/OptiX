@@ -8,9 +8,9 @@ from scipy import optimize
 import json
 
 FOLDERS = ["dataPlane/MultInc5s/WithEps", "dataPlane/MultInc20s/WithEps", "dataPlane/MultInc45s/WithEps", \
-"dataPlane/MultInc75s/WithEps", "dataPlane/MultInc85s/WithEps", "dataPlane/MultInc5p/WithEps", \
-"dataPlane/MultInc20p/WithEps", "dataPlane/MultInc45p/WithEps", \
-"dataPlane/MultInc75p/WithEps", "dataPlane/MultInc85p/WithEps"]
+"dataPlane/MultInc75s/WithEps", "dataPlane/MultInc85s/WithEps"]#, "dataPlane/MultInc5p/WithEps", \
+#"dataPlane/MultInc20p/WithEps", "dataPlane/MultInc45p/WithEps", \
+#"dataPlane/MultInc75p/WithEps", "dataPlane/MultInc85p/WithEps"]
 
 def findReflectionAngle(theta_r, theta_in, waveNumber, distanceFromSlab, phase):
     # Force the solver to stay within +- pi
@@ -43,26 +43,19 @@ def main():
         angle = angle[::step]
         k = k[::step]
         phase = phase[::step]
-        reflAngle = np.zeros( len(angle) )
-        for i in range(0, len(angle)):
-            reflAngle[i] = optimize.fsolve( findReflectionAngle, angle[i], args=(angle[i], k[i], distanceFromPlane, phase[i] ))
-
+        phase[phase<0.0] += 2.0*np.pi
+        phase = 2.0*np.pi - phase
+        phase /= (2.0*k*distanceFromPlane) 
         if ( hasLabel ):
-            ax.plot(angle, reflAngle, '.', color="black", markersize=5, fillstyle="none")
+            ax.plot(np.cos(angle), phase, '.', color="black", markersize=5, fillstyle="none")
         else: 
-            ax.plot(angle, reflAngle, '.', color="black", markersize=5, fillstyle="none", label="Numerical")
+            ax.plot(np.cos(angle), phase, '.', color="black", markersize=5, fillstyle="none", label="Numerical")
             hasLabel = True
-    anglePlot = np.linspace(0.0, np.pi/2.0, 11)
-    ax.plot(anglePlot, anglePlot, color="black", label="$\\theta_\mathrm{r} = \\theta_\mathrm{i}$")
-    ax.set_xlabel("$\\theta_\mathrm{i}$")
-    ax.set_ylabel("$\\theta_\mathrm{r}$")
+    cosAngle = np.linspace(0.0, 1.0, 11)
+    ax.plot(cosAngle, cosAngle, color="black", label="Analytical")
+    ax.set_xlabel("$\cos \\theta_\mathrm{i}$")
+    ax.set_ylabel("$\\frac{\\delta}{2ky}$", rotation=0)
     ax.legend(loc="upper left", frameon=False)
-    ticks = [0.0, np.pi/8.0, np.pi/4.0, 3.0*np.pi/8.0, np.pi/2.0]
-    labels = ["$0$", "$\\frac{\pi}{8}$", "$\\frac{\pi}{4}$", "$\\frac{3\pi}{8}$", "$\\frac{\pi}{2}$"]
-    ax.set_xticks(ticks)
-    ax.set_yticks(ticks)
-    ax.set_xticklabels(labels)
-    ax.set_yticklabels(labels)
     fig.savefig("Figures/tanReflection.pdf", bbox_inches="tight")
 
 if __name__ == "__main__":
