@@ -2,8 +2,8 @@ import numpy as np
 from matplotlib import pyplot as plt
 import json
 
-FNAME_RUN = "dataPlane/MultInc20p/WithEps/realField.json"
-FNAME_BKG = "dataPlane/MultInc20p/bkg/realField.json"
+FNAME_RUN = "dataPlane/MultInc5p/WithEps/realField.json"
+FNAME_BKG = "dataPlane/MultInc5p/bkg/realField.json"
 
 def main():
     infile = open(FNAME_RUN, 'r')
@@ -15,7 +15,7 @@ def main():
     infile.close()
 
     # Compute FFT of the run signal
-    ftRun = np.fft.rfft(np.array(dataRun["transmitted"]["real"]))
+    ftRun = np.fft.rfft(np.array(dataRun["transmitted"]["real"]))/1.5
     
     # Compute FFT of the bkg signal
     ftBkg = np.fft.rfft(np.array(dataBkg["transmitted"]["real"]))
