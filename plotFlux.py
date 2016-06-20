@@ -32,6 +32,8 @@ def Tp(theta, n1, n2):
 def main():
     fig = plt.figure()
     ax = fig.add_subplot(111) 
+    figError = plt.figure()
+    axError = figError.add_subplot(111)
 
     theta = np.linspace(0.0, 90.0, 101)
     n1 = 1.0
@@ -56,15 +58,21 @@ def main():
         data = json.load(infile)
         infile.close()
 
-        angles = data["incidentAngle"][0:-1:step]
-        T = data["transmitted"][0:-1:step]
-        R = data["reflected"][0:-1:step]
+        angles = np.array( data["incidentAngle"] )[0:-1:step]
+        T = np.array( data["transmitted"] )[0:-1:step]
+        R = np.array( data["reflected"] )[0:-1:step]
+        errorR = np.abs(R - Rs(angles, n1, n2))/Rs(angles, n1, n2)
+        errorT = np.abs(T - Ts(angles, n1, n2))/Ts(angles, n1, n2)
         if ( hasLabel ):
             ax.plot(angles, R, '^', color='black', ms=markersize)
             ax.plot(angles, T,  'o', color='black', ms=markersize)
+            axError.plot(angles, errorR, '^', color='black', ms=markersize)
+            axError.plot(angles, errorT, 'o', color='black', ms=markersize)
         else:
             ax.plot(angles, R, '^', color='black', label="$R_\mathrm{s}$", ms=markersize)
             ax.plot(angles, T,  'o', color='black', label="$T_\mathrm{s}$", ms=markersize)
+            axError.plot(angles, errorR, '^', color='black', label="$R_\mathrm{s}$", ms=markersize)
+            axError.plot(angles, errorT,  'o', color='black', label="$T_\mathrm{s}$", ms=markersize)
             hasLabel = True
         
     hasLabel = False
@@ -77,18 +85,29 @@ def main():
         data = json.load(infile)
         infile.close()
 
-        angles = data["incidentAngle"][0:-1:step]
-        T = data["transmitted"][0:-1:step]
-        R = data["reflected"][0:-1:step]
+        angles = np.array(data["incidentAngle"])[0:-1:step]
+        T = np.array( data["transmitted"] )[0:-1:step]
+        R = np.array( data["reflected"] )[0:-1:step]
+        errorR = np.abs(R - Rp(angles, n1, n2))/Rp(angles, n1, n2)
+        errorT = np.abs(T - Tp(angles, n1, n2))/Tp(angles, n1, n2)
         if ( hasLabel ):
             ax.plot(angles, R, 's', color='black', ms=markersize)
             ax.plot(angles, T,  'x', color='black', ms=markersize)
+            axError.plot(angles, errorR, 's', color='black', ms=markersize)
+            axError.plot(angles, errorT, 'x', color='black', ms=markersize)
         else:
             ax.plot(angles, R, 's', color='black', label="$R_\mathrm{p}$", ms=markersize)
             ax.plot(angles, T, 'x', color='black', label="$T_\mathrm{p}$", ms=markersize)
+            axError.plot(angles, errorR, 's', color='black', label="$R_\mathrm{p}$", ms=markersize)
+            axError.plot(angles, errorT,  'x', color='black', label="$T_\mathrm{p}$", ms=markersize)
             hasLabel=True
     ax.legend(loc='center left', frameon=False)
+    axError.legend( loc='upper left', frameon=False)
+    axError.set_xlabel("Incident angle (deg)")
+    axError.set_ylabel("Relative error")
+    axError.set_yscale('log')
     fig.savefig("Figures/powerCoefficients.pdf", bbox_inches="tight")
+    figError.savefig("Figures/powerCoefficientsError.pdf", bbox_inches="tight")
 
 if __name__ == '__main__':
     main() 
