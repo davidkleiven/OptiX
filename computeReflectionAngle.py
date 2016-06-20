@@ -14,7 +14,7 @@ FOLDERS = ["dataPlane/MultInc5s/WithEps", "dataPlane/MultInc20s/WithEps", "dataP
 
 def findReflectionAngle(theta_r, theta_in, waveNumber, distanceFromSlab, phase):
     # Force the solver to stay within +- pi
-    if ( np.abs(theta_r) > np.pi ):
+    if (( theta_r > np.pi/2.0 ) or ( theta_r < 0.0 )):
         return np.inf
     return waveNumber*distanceFromSlab*(np.sin(theta_in)*(np.tan(theta_in)+np.tan(theta_r)) \
     - 1.0/np.cos(theta_in) - 1.0/np.cos(theta_r)) - phase
