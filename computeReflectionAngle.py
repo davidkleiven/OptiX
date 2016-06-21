@@ -6,11 +6,11 @@ from matplotlib import pyplot as plt
 from scipy import stats
 from scipy import optimize
 import json
-
-FOLDERS = ["dataPlane/MultInc5s/WithEps", "dataPlane/MultInc20s/WithEps", "dataPlane/MultInc45s/WithEps", \
-"dataPlane/MultInc75s/WithEps", "dataPlane/MultInc85s/WithEps"]#, "dataPlane/MultInc5p/WithEps", \
-#"dataPlane/MultInc20p/WithEps", "dataPlane/MultInc45p/WithEps", \
-#"dataPlane/MultInc75p/WithEps", "dataPlane/MultInc85p/WithEps"]
+ANGLES = [5, 20, 45, 75, 85]
+POLARISATIONS=["s","p"]
+BASE = "dataPlane/MultInc"
+SUBDIR = "WithEps"
+FNAME = "realFieldFourier.json"
 
 def findReflectionAngle(theta_r, theta_in, waveNumber, distanceFromSlab, phase):
     # Force the solver to stay within +- pi
@@ -19,43 +19,60 @@ def findReflectionAngle(theta_r, theta_in, waveNumber, distanceFromSlab, phase):
     return waveNumber*distanceFromSlab*(np.sin(theta_in)*(np.tan(theta_in)+np.tan(theta_r)) \
     - 1.0/np.cos(theta_in) - 1.0/np.cos(theta_r)) - phase
 
+def expectedPhase(freq, fcenter, thetaCenter, distanceFromPlane):
+    sqrtArg = freq**2 - (fcenter*np.sin(thetaCenter))**2 
+    sqrtArg[sqrtArg < 0.0] = 0.0
+    return 2.0*np.pi*2.0*distanceFromPlane*np.sqrt( sqrtArg )
+
 def main():
     fig = plt.figure()
     ax = fig.add_subplot(111)
     tanReflTimesTanAngle = None
     tanAngle = None
     step = 10
-    hasLabel = False
-    for folder in FOLDERS:
-        fname = folder+"/realFieldFourier.json"
-        try:
-            infile = open(fname,'r')
-            data = json.load(infile)
-            infile.close()
-        except:
-            print ("Could not find file %s"%(fname))
-            continue
-        distanceFromPlane = data["reflected"]["position"] - data["geometry"]["slabPosition"]
-        phase = np.array( data["reflected"]["phase"] )
-        angle = np.array( data["reflected"]["angle"] )*np.pi/180.0
-        k = 2.0*np.pi*np.array( data["reflected"]["frequency"] )
+    for pol in POLARISATIONS:
+        hasLabel = False
+        for theta in ANGLES:
+            fname = BASE+"%d%s/"%(theta, pol)+SUBDIR +"/"+FNAME
+            try:
+                infile = open(fname,'r')
+                data = json.load(infile)
+                infile.close()
+            except:
+                print ("Could not find file %s"%(fname))
+                continue
 
-        angle = angle[::step]
-        k = k[::step]
-        phase = phase[::step]
-        phase[phase<0.0] += 2.0*np.pi
-        phase = 2.0*np.pi - phase
-        phase /= (2.0*k*distanceFromPlane) 
-        if ( hasLabel ):
-            ax.plot(np.cos(angle), phase, '.', color="black", markersize=5, fillstyle="none")
-        else: 
-            ax.plot(np.cos(angle), phase, '.', color="black", markersize=5, fillstyle="none", label="Numerical")
-            hasLabel = True
-    cosAngle = np.linspace(0.0, 1.0, 11)
-    ax.plot(cosAngle, cosAngle, color="black", label="Analytical")
-    ax.set_xlabel("$\cos \\theta_\mathrm{i}$")
-    ax.set_ylabel("$\\frac{\\delta}{2ky}$", rotation=0)
-    ax.legend(loc="upper left", frameon=False)
+            distanceFromPlane = data["reflected"]["position"] - data["geometry"]["slabPosition"]
+            phase = np.array( data["reflected"]["phase"] )
+            angle = np.array( data["reflected"]["angle"] )*np.pi/180.0
+            k = 2.0*np.pi*np.array( data["reflected"]["frequency"] )
+
+            angle = angle[::step]
+            k = k[::step]
+            phase = phase[::step]
+            x = 2.0*distanceFromPlane*k*np.cos(angle)
+            m = np.floor( x/(2.0*np.pi) )
+            phase -= m*2.0*np.pi
+            marker = '.'
+            label="$\\angle r_\mathrm{s}$"
+            msize = 5
+            if ( pol == "p" ):
+                marker = 'x'
+                msize=2
+                label="$\\angle r_\mathrm{p}$"
+            if ( hasLabel ):
+                ax.plot(x, phase, marker, color="black", markersize=msize, fillstyle="none")
+            else: 
+                ax.plot(x, phase, marker, color="black", markersize=msize, fillstyle="none", label=label)
+                hasLabel = True
+
+    x1, x2 = ax.get_xlim()
+    x = np.linspace(0.9*x1, 1.1*x2, 11)
+    ax.plot( x, -x+np.pi, color='black')
+    ax.plot( x, -x, color='black')
+    ax.set_xlabel("$\\frac{2y\omega}{c} \cos \\theta_\mathrm{i}$")
+    ax.set_ylabel("$\\phi_\mathrm{\omega}$")
+    ax.legend(loc="upper right", frameon=False)
     fig.savefig("Figures/tanReflection.pdf", bbox_inches="tight")
 
 if __name__ == "__main__":
