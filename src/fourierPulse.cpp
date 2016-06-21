@@ -190,18 +190,8 @@ int main(int argc, char** argv)
     complex<double> refl(realRun, imagRun);
     complex<double> bkgVal(realBkg, imagBkg);
     complex<double> refCoeff = refl/bkgVal;
-    double refCoeffAngle = atan( imag(refCoeff)/real(refCoeff) );
-    if (( imag(refCoeff) < 0.0 ) && ( real(refCoeff) < 0.0 ) )
-    {
-      // In third quadrant
-      refCoeffAngle -= PI;
-    }
-    else if ( ( imag(refCoeff) > 0.0 ) && ( real(refCoeff) < 0.0 ))
-    {
-      // In second quadrant
-      refCoeffAngle += PI;
-    }
-    
+    double refCoeffAngle = arg( refCoeff );
+
     // TODO: Handling of transmission coefficient is currently wrong
     if ( i > 0) 
     {
@@ -233,7 +223,7 @@ int main(int argc, char** argv)
       #endif
       transCoeff /= sqrt( run["geometry"]["EpsilonHigh"].asDouble() );
     }
-    double transCoeffAngle = atan( imag(transCoeff)/real(transCoeff) );
+    double transCoeffAngle = arg( transCoeff );
 
     double freq = static_cast<double>(i)/(dt*static_cast<double>(nPointsBkg));
     double angleArgument = frequencyAtMax*sin( angle*PI/180.0 )/freq;
