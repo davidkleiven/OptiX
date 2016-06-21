@@ -24,12 +24,16 @@ def expectedPhase(freq, fcenter, thetaCenter, distanceFromPlane):
     sqrtArg[sqrtArg < 0.0] = 0.0
     return 2.0*np.pi*2.0*distanceFromPlane*np.sqrt( sqrtArg )
 
+def brewster(n1, n2):
+    return np.arctan(n2/n1)
+
 def main():
     fig = plt.figure()
     ax = fig.add_subplot(111)
     tanReflTimesTanAngle = None
     tanAngle = None
     step = 10
+    brewsterAngle = -1.0
     for pol in POLARISATIONS:
         hasLabel = False
         for theta in ANGLES:
@@ -42,6 +46,10 @@ def main():
                 print ("Could not find file %s"%(fname))
                 continue
 
+            if ( brewsterAngle < 0.0 ):
+                n1 = np.sqrt( data["geometry"]["EpsilonLow"])
+                n2 = np.sqrt( data["geometry"]["EpsilonHigh"] )
+                brewsterAngle = brewster(n1, n2)
             distanceFromPlane = data["reflected"]["position"] - data["geometry"]["slabPosition"]
             phase = np.array( data["reflected"]["phase"] )
             angle = np.array( data["reflected"]["angle"] )*np.pi/180.0
