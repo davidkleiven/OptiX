@@ -41,7 +41,7 @@ def main():
     figDiff = plt.figure()
     axDiff = figDiff.add_subplot(111)
     fc = 0.3
-    expected = 6.45*5.0*np.sqrt( freq**2 - (fc*np.sin( ANGLE*np.pi/180.0))**2)
+    expected = 2.0*np.pi*2.0*2.5*np.sqrt( freq**2 - (fc*np.sin( ANGLE*np.pi/180.0))**2)
     expected = expected%(2.0*np.pi) - np.pi
     axDiff.plot( freq, expected )
     axDiff.plot( freq, -np.angle(r))
