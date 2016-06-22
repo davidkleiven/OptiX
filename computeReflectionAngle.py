@@ -24,6 +24,14 @@ def expectedPhase(freq, fcenter, thetaCenter, distanceFromPlane):
     sqrtArg[sqrtArg < 0.0] = 0.0
     return 2.0*np.pi*2.0*distanceFromPlane*np.sqrt( sqrtArg )
  
+def transmissionAngle( n1, n2, theta_in ):
+    return np.arcsin( n1*np.sin(theta_in)/n2 )
+
+def expectedTransmissionPathTime(n1, n2, theta_i, distanceYFromSlab):
+    theta_t = transmissionAngle( n1, n2, theta_i )
+    d = distanceYFromSlab*np.sqrt( np.cos(theta_t)**(-2) + np.cos(theta_i)**(-2) - 2.0*np.cos(theta_i-theta_t) )
+    return n1*d*np.sin(theta_i) + distanceYFromSlab*( n2/np.cos(theta_t) - n1/np.cos(theta_i) )
+
 def brewster(n1, n2):
     return np.arctan(n2/n1)
 
@@ -58,17 +66,23 @@ def main():
                 n2 = np.sqrt( data["geometry"]["EpsilonHigh"] )
                 brewsterAngle = brewster(n1, n2)
             distanceFromPlane = data["reflected"]["position"] - data["geometry"]["slabPosition"]
-            transmissionMonitorDistance = data["transmitted"]["position"] - data["geometry"]["slabPosition"]
+            transmissionMonitorDistance = np.abs(data["transmitted"]["position"] - data["geometry"]["slabPosition"])
             phase = np.array( data["reflected"]["phase"] )
             angle = np.array( data["reflected"]["angle"] )*np.pi/180.0
             phaseTransmitted = np.array( data["transmitted"]["phase"] )
             angleTransmitted = np.array( data["transmitted"]["angle"] )*np.pi/180.0
             k = 2.0*np.pi*np.array( data["reflected"]["frequency"] )
-            kTransmitted = 2.0*np.pi*np.array( data["transmitted"]["frequency"] )
+            omegaTransmitted = 2.0*np.pi*np.array( data["transmitted"]["frequency"] )
 
             angle = angle[::step]
             k = k[::step]
             phase = phase[::step]
+            angleTransmitted = angleTransmitted[::step]
+            omegaTransmitted = omegaTransmitted[::step]
+            phaseTransmitted = phaseTransmitted[::step]
+            kTransmitted = omegaTransmitted
+
+            # Compute expected phase for the reflected fields
             x = 2.0*distanceFromPlane*k*np.cos(angle)
             mNoSignChange =  (-x-phase)/(2.0*np.pi)
             mSignChange = (-x+np.pi-phase)/(2.0*np.pi)
@@ -81,20 +95,29 @@ def main():
                 else:
                     m[i] = np.round(mSignChange[i])
             phase += m*2.0*np.pi
+
+            # Compute expected phase for the transmitted fields
+            theta_t = transmissionAngle(n1,n2,angleTransmitted) 
+            xTransmitted = kTransmitted*transmissionMonitorDistance*(1.0 - np.cos( angleTransmitted-theta_t ) )/np.cos(theta_t)
+            xTransmitted = omegaTransmitted*expectedTransmissionPathTime( n1, n2, angleTransmitted, transmissionMonitorDistance )
             marker = '.'
             label="$\\angle r_\mathrm{s}$"
+            tlabel="$\\angle t_\mathr{s}$"
             msize = 5
             signPhase = phase + 2.0*k*distanceFromPlane*np.cos(angle)
             if ( pol == "p" ):
                 marker = 'x'
                 msize=2
                 label="$\\angle r_\mathrm{p}$"
+                tlabel="$\\angle t_\mathrm{p}$"
             if ( hasLabel ):
                 ax.plot(x, phase, marker, color="black", markersize=msize, fillstyle="none")
                 axSign.plot( angle*180.0/np.pi, signPhase, marker, color='black', markersize=msize, fillstyle="none")
+                axT.plot( xTransmitted, phaseTransmitted, marker, color='black', markersize=msize, fillstyle="none")
             else: 
                 ax.plot(x, phase, marker, color="black", markersize=msize, fillstyle="none", label=label)
                 axSign.plot( angle*180.0/np.pi, signPhase, marker, color='black', markersize=msize, fillstyle="none", label=label)
+                axT.plot( xTransmitted, phaseTransmitted, marker, color='black', markersize=msize, fillstyle="none", label=tlabel)
                 hasLabel = True
 
     x1, x2 = ax.get_xlim()
@@ -147,6 +170,12 @@ def main():
     y1, y2 = axSign.get_ylim()
     axSign.text( brewsterAngle*180.0/np.pi, 0.3*(y2-y1)+y1, "Brewster", rotation=90)
     figSign.savefig("Figures/signChange.pdf", bbox_inches="tight")
+
+    # Fix transmission plot
+    axT.set_xlabel("$\\phi_{t,\mathrm{path}} = \\frac{2ky_\mathrm{t}}{\cos \\theta_\mathrm{t}}(1-\cos(\\theta_\mathrm{i}"+\
+                    " - \\theta_\mathrm{t}))$")
+    axT.set_ylabel("$\\phi_{\mathrm{t},\omega}$")
+    figT.savefig("Figures/transmittedPhase.pdf", bbox_inches="tight")
 
 if __name__ == "__main__":
     main()
