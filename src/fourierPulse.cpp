@@ -264,7 +264,7 @@ int main(int argc, char** argv)
   base["reflected"]["position"] = run["reflected"]["position"];
   base["transmitted"]["norm"] = transCoeffNorm;
   base["transmitted"]["phase"] = transCoeffPhase;
-  base["transimitted"]["frequency"] = freqArrayT;
+  base["transmitted"]["frequency"] = freqArrayT;
   base["transmitted"]["angle"] = angleArrayT;
   base["transmitted"]["position"] = run["transmitted"]["position"];
   Json::FastWriter fw;
