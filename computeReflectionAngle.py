@@ -182,6 +182,34 @@ def main():
     x1, x2 = axT.get_xlim()
     x = np.linspace(0.0, 1.1*x2, 11)
     axT.plot(x, -x, color='black')
+    x1, x2 = axT.get_xlim()
+    m = int(np.floor(x2/np.pi))
+    xticks = np.arange(0, m+1)*np.pi
+    axT.set_xticks(xticks)
+    xlabels = []
+    xlabels.append("$0$")
+    xlabels.append("$\pi$")
+    for i in range(2,m+1):
+        xlabels.append("$%d\pi$"%(i))
+    axT.set_xticklabels(xlabels)
+
+    y1, y2 = axT.get_ylim()
+    mMin = int(np.ceil(y1/np.pi))
+    mMax = int(np.floor(y2/np.pi))
+    yticks = np.arange(mMin, mMax)*np.pi
+    ylabels = []
+    for m in range(mMin, mMax+1):
+        if ( m==0 ):
+            ylabels.append("$0$")
+        elif ( m == 1):
+            ylabels.append("$\pi$")
+        elif (m == -1 ):
+            ylabels.append("$-\pi$")
+        else:
+            ylabels.append("$%d\pi$"%(m))
+    axT.set_yticks(yticks)
+    axT.set_yticklabels(ylabels)
+
     figT.savefig("Figures/transmittedPhase.pdf", bbox_inches="tight")
 
 if __name__ == "__main__":
