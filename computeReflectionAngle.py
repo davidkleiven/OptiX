@@ -23,7 +23,7 @@ def expectedPhase(freq, fcenter, thetaCenter, distanceFromPlane):
     sqrtArg = freq**2 - (fcenter*np.sin(thetaCenter))**2 
     sqrtArg[sqrtArg < 0.0] = 0.0
     return 2.0*np.pi*2.0*distanceFromPlane*np.sqrt( sqrtArg )
-
+ 
 def brewster(n1, n2):
     return np.arctan(n2/n1)
 
@@ -59,8 +59,17 @@ def main():
             k = k[::step]
             phase = phase[::step]
             x = 2.0*distanceFromPlane*k*np.cos(angle)
-            m = np.floor( x/(2.0*np.pi) )
-            phase -= m*2.0*np.pi
+            mNoSignChange =  (-x-phase)/(2.0*np.pi)
+            mSignChange = (-x+np.pi-phase)/(2.0*np.pi)
+            m = np.zeros(len(mSignChange))
+            for i in range(0, len(mNoSignChange)):
+                diffSign = np.abs( np.round(mSignChange[i]) - mSignChange[i]) 
+                diffNoSign = np.abs( np.round(mNoSignChange[i]) - mNoSignChange[i] )
+                if ( diffNoSign < diffSign ):
+                    m[i] = np.round(mNoSignChange[i])
+                else:
+                    m[i] = np.round(mSignChange[i])
+            phase += m*2.0*np.pi
             marker = '.'
             label="$\\angle r_\mathrm{s}$"
             msize = 5
@@ -76,8 +85,8 @@ def main():
 
     x1, x2 = ax.get_xlim()
     x = np.linspace(0.9*x1, 1.1*x2, 11)
-    ax.plot( x, -x+np.pi, color='black')
-    ax.plot( x, -x, color='black')
+    ax.plot( x, -x+np.pi, '--', color='black', label="Sign change")
+    ax.plot( x, -x, color='black', label="No sign change")
     ax.set_xlabel("$\\frac{2y\omega}{c} \cos \\theta_\mathrm{i}$")
     ax.set_ylabel("$\\phi_\mathrm{\omega}$")
     ax.legend(loc="upper right", frameon=False)
