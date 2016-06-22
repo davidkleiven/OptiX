@@ -29,7 +29,8 @@ def transmissionAngle( n1, n2, theta_in ):
 
 def expectedTransmissionPathTime(n1, n2, theta_i, distanceYFromSlab):
     theta_t = transmissionAngle( n1, n2, theta_i )
-    d = distanceYFromSlab*np.sqrt( np.cos(theta_t)**(-2) + np.cos(theta_i)**(-2) - 2.0*np.cos(theta_i-theta_t) )
+    d = distanceYFromSlab*np.sqrt( np.cos(theta_t)**(-2) + np.cos(theta_i)**(-2) - \
+                    2.0*np.cos(theta_i-theta_t)/(np.cos(theta_i)*np.cos(theta_t)) )
     return n1*d*np.sin(theta_i) + distanceYFromSlab*( n2/np.cos(theta_t) - n1/np.cos(theta_i) )
 
 def brewster(n1, n2):
@@ -104,6 +105,10 @@ def main():
             label="$\\angle r_\mathrm{s}$"
             tlabel="$\\angle t_\mathr{s}$"
             msize = 5
+        
+            m = np.round( (-xTransmitted - phaseTransmitted)/(2.0*np.pi) )
+            phaseTransmitted += 2.0*np.pi*m
+            # Sign of the reflected
             signPhase = phase + 2.0*k*distanceFromPlane*np.cos(angle)
             if ( pol == "p" ):
                 marker = 'x'
@@ -172,9 +177,11 @@ def main():
     figSign.savefig("Figures/signChange.pdf", bbox_inches="tight")
 
     # Fix transmission plot
-    axT.set_xlabel("$\\phi_{t,\mathrm{path}} = \\frac{2ky_\mathrm{t}}{\cos \\theta_\mathrm{t}}(1-\cos(\\theta_\mathrm{i}"+\
-                    " - \\theta_\mathrm{t}))$")
+    axT.set_xlabel("$\\phi_{t,\mathrm{path}}$")
     axT.set_ylabel("$\\phi_{\mathrm{t},\omega}$")
+    x1, x2 = axT.get_xlim()
+    x = np.linspace(0.0, 1.1*x2, 11)
+    axT.plot(x, -x, color='black')
     figT.savefig("Figures/transmittedPhase.pdf", bbox_inches="tight")
 
 if __name__ == "__main__":
