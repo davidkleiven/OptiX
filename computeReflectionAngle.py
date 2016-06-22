@@ -32,6 +32,10 @@ def main():
     figSign = plt.figure()
     axSign = figSign.add_subplot(111)
     ax = fig.add_subplot(111)
+
+    figT = plt.figure()
+    axT = figT.add_subplot(111)
+
     tanReflTimesTanAngle = None
     tanAngle = None
     step = 2
@@ -54,9 +58,13 @@ def main():
                 n2 = np.sqrt( data["geometry"]["EpsilonHigh"] )
                 brewsterAngle = brewster(n1, n2)
             distanceFromPlane = data["reflected"]["position"] - data["geometry"]["slabPosition"]
+            transmissionMonitorDistance = data["transmitted"]["position"] - data["geometry"]["slabPosition"]
             phase = np.array( data["reflected"]["phase"] )
             angle = np.array( data["reflected"]["angle"] )*np.pi/180.0
+            phaseTransmitted = np.array( data["transmitted"]["phase"] )
+            angleTransmitted = np.array( data["transmitted"]["angle"] )*np.pi/180.0
             k = 2.0*np.pi*np.array( data["reflected"]["frequency"] )
+            kTransmitted = 2.0*np.pi*np.array( data["transmitted"]["frequency"] )
 
             angle = angle[::step]
             k = k[::step]
