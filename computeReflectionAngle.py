@@ -29,11 +29,14 @@ def brewster(n1, n2):
 
 def main():
     fig = plt.figure()
+    figSign = plt.figure()
+    axSign = figSign.add_subplot(111)
     ax = fig.add_subplot(111)
     tanReflTimesTanAngle = None
     tanAngle = None
-    step = 10
+    step = 2
     brewsterAngle = -1.0
+    distanceFromPlane = -1.0
     for pol in POLARISATIONS:
         hasLabel = False
         for theta in ANGLES:
@@ -73,21 +76,24 @@ def main():
             marker = '.'
             label="$\\angle r_\mathrm{s}$"
             msize = 5
+            signPhase = phase + 2.0*k*distanceFromPlane*np.cos(angle)
             if ( pol == "p" ):
                 marker = 'x'
                 msize=2
                 label="$\\angle r_\mathrm{p}$"
             if ( hasLabel ):
                 ax.plot(x, phase, marker, color="black", markersize=msize, fillstyle="none")
+                axSign.plot( angle*180.0/np.pi, signPhase, marker, color='black', markersize=msize, fillstyle="none")
             else: 
                 ax.plot(x, phase, marker, color="black", markersize=msize, fillstyle="none", label=label)
+                axSign.plot( angle*180.0/np.pi, signPhase, marker, color='black', markersize=msize, fillstyle="none", label=label)
                 hasLabel = True
 
     x1, x2 = ax.get_xlim()
     x = np.linspace(0.9*x1, 1.1*x2, 11)
     ax.plot( x, -x+np.pi, '--', color='black', label="Sign change")
     ax.plot( x, -x, color='black', label="No sign change")
-    ax.set_xlabel("$\\frac{2y\omega}{c} \cos \\theta_\mathrm{i}$")
+    ax.set_xlabel("$\phi_\mathrm{path}=\\frac{2y\omega}{c} \cos \\theta_\mathrm{i}$")
     ax.set_ylabel("$\\phi_\mathrm{\omega}$", rotation=0)
 
     # Set labels in multiples of pi
@@ -122,6 +128,17 @@ def main():
     ax.set_xticklabels(xlabels)
     ax.legend(loc="upper right", frameon=False)
     fig.savefig("Figures/tanReflection.pdf", bbox_inches="tight")
+
+    # Fix the sign plot
+    axSign.set_xlabel("Incident angle (deg)")
+    axSign.set_ylabel("$\phi_\omega - \phi_\mathrm{path}$")
+    axSign.legend(loc='lower left', frameon=False)
+    axSign.set_yticks([-np.pi, -np.pi/2.0, 0.0, np.pi/2.0, np.pi])
+    axSign.set_yticklabels(["$-\pi$", "$-\\frac{\pi}{2}$", "$0$", "$\\frac{\pi}{2}$", "$\pi$"])
+    axSign.axvline(brewsterAngle*180.0/np.pi, color='black', ls='--')
+    y1, y2 = axSign.get_ylim()
+    axSign.text( brewsterAngle*180.0/np.pi, 0.3*(y2-y1)+y1, "Brewster", rotation=90)
+    figSign.savefig("Figures/signChange.pdf", bbox_inches="tight")
 
 if __name__ == "__main__":
     main()
