@@ -88,7 +88,38 @@ def main():
     ax.plot( x, -x+np.pi, '--', color='black', label="Sign change")
     ax.plot( x, -x, color='black', label="No sign change")
     ax.set_xlabel("$\\frac{2y\omega}{c} \cos \\theta_\mathrm{i}$")
-    ax.set_ylabel("$\\phi_\mathrm{\omega}$")
+    ax.set_ylabel("$\\phi_\mathrm{\omega}$", rotation=0)
+
+    # Set labels in multiples of pi
+    y1, y2 = ax.get_ylim()
+    mMax = int(np.floor( y2/np.pi))
+    mMin = int(np.floor( y1/np.pi))
+    yticks = np.arange(mMin, mMax+1)*np.pi
+    x1, x2 = ax.get_xlim()
+    mxMax = int(np.ceil(x2/np.pi))
+    xticks = np.arange(0, mxMax)*np.pi
+    ax.set_yticks(yticks)
+    ax.set_xticks(xticks)
+    ylabels = []
+    for i in range(mMin, mMax+1):
+        if ( i==0 ):
+            ylabels.append("$0$")
+        elif ( i==1 ):
+            ylabels.append("$\pi$")
+        elif ( i== -1):
+            ylabels.append("$-\pi$")
+        else:
+            ylabels.append("$%d\pi$"%(i))
+    ax.set_yticklabels(ylabels)
+    xlabels = []
+    for i in range(0, mxMax):
+        if ( i==0):
+            xlabels.append("$0$")
+        elif (i==1):
+            xlabels.append("$\pi$")
+        else:
+            xlabels.append("$%d\pi$"%(i))
+    ax.set_xticklabels(xlabels)
     ax.legend(loc="upper right", frameon=False)
     fig.savefig("Figures/tanReflection.pdf", bbox_inches="tight")
 
