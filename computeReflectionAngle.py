@@ -41,6 +41,8 @@ def main():
     figSign = plt.figure()
     axSign = figSign.add_subplot(111)
     ax = fig.add_subplot(111)
+    figSignT = plt.figure()
+    axSignT = figSignT.add_subplot(111)
 
     figT = plt.figure()
     axT = figT.add_subplot(111)
@@ -99,17 +101,17 @@ def main():
 
             # Compute expected phase for the transmitted fields
             theta_t = transmissionAngle(n1,n2,angleTransmitted) 
-            xTransmitted = kTransmitted*transmissionMonitorDistance*(1.0 - np.cos( angleTransmitted-theta_t ) )/np.cos(theta_t)
             xTransmitted = omegaTransmitted*expectedTransmissionPathTime( n1, n2, angleTransmitted, transmissionMonitorDistance )
             marker = '.'
             label="$\\angle r_\mathrm{s}$"
-            tlabel="$\\angle t_\mathr{s}$"
+            tlabel="$\\angle t_\mathrm{s}$"
             msize = 5
         
             m = np.round( (-xTransmitted - phaseTransmitted)/(2.0*np.pi) )
             phaseTransmitted += 2.0*np.pi*m
             # Sign of the reflected
             signPhase = phase + 2.0*k*distanceFromPlane*np.cos(angle)
+            signPhaseT = phaseTransmitted + xTransmitted
             if ( pol == "p" ):
                 marker = 'x'
                 msize=2
@@ -119,10 +121,13 @@ def main():
                 ax.plot(x, phase, marker, color="black", markersize=msize, fillstyle="none")
                 axSign.plot( angle*180.0/np.pi, signPhase, marker, color='black', markersize=msize, fillstyle="none")
                 axT.plot( xTransmitted, phaseTransmitted, marker, color='black', markersize=msize, fillstyle="none")
+                axSignT.plot( angleTransmitted*180.0/np.pi, signPhaseT, marker, color='black', markersize=msize, fillstyle="none")
             else: 
                 ax.plot(x, phase, marker, color="black", markersize=msize, fillstyle="none", label=label)
                 axSign.plot( angle*180.0/np.pi, signPhase, marker, color='black', markersize=msize, fillstyle="none", label=label)
                 axT.plot( xTransmitted, phaseTransmitted, marker, color='black', markersize=msize, fillstyle="none", label=tlabel)
+                axSignT.plot( angleTransmitted*180.0/np.pi, signPhaseT, marker, color='black', markersize=msize, \
+                                fillstyle="none", label=tlabel)
                 hasLabel = True
 
     x1, x2 = ax.get_xlim()
@@ -209,8 +214,14 @@ def main():
             ylabels.append("$%d\pi$"%(m))
     axT.set_yticks(yticks)
     axT.set_yticklabels(ylabels)
-
+    axT.legend(loc='upper right', frameon=False)
     figT.savefig("Figures/transmittedPhase.pdf", bbox_inches="tight")
 
+    # Transmission sign plot
+    axSignT.set_xlabel("Incident angle (deg)")
+    axSignT.set_ylabel("$\phi_{\mathrm{t},\omega} - \phi_{\mathrm{t},\mathrm{path}}$")
+    axSignT.legend(loc='upper right', frameon=False)    
+    figSignT.savefig("Figures/transmissionSign.pdf", bbox_inches="tight")
+    
 if __name__ == "__main__":
     main()
