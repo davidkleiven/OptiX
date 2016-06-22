@@ -49,7 +49,7 @@ def main():
 
     tanReflTimesTanAngle = None
     tanAngle = None
-    step = 2
+    step = 5
     brewsterAngle = -1.0
     distanceFromPlane = -1.0
     for pol in POLARISATIONS:
@@ -221,6 +221,8 @@ def main():
     axSignT.set_xlabel("Incident angle (deg)")
     axSignT.set_ylabel("$\phi_{\mathrm{t},\omega} - \phi_{\mathrm{t},\mathrm{path}}$")
     axSignT.legend(loc='upper right', frameon=False)    
+    axSignT.set_yticks([-np.pi/4.0, -np.pi/8.0, 0.0, np.pi/8.0, np.pi/4.0])
+    axSignT.set_yticklabels(["$-\\frac{\pi}{4}$", "$-\\frac{\pi}{8}$", "$0$", "$\\frac{\pi}{8}$", "$\\frac{\pi}{4}$"])
     figSignT.savefig("Figures/transmissionSign.pdf", bbox_inches="tight")
     
 if __name__ == "__main__":
