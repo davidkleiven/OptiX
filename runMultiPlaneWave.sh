@@ -1,4 +1,6 @@
-DDIR_BASE=dataPlane/MultInc
+TOP_FOLDER=dataPlane
+SUBFOLDER_BASE="MultInc"
+DDIR_BASE="${TOP_FOLDER}/${SUBFOLDER_BASE}"
 EPS_HIGH=2.25
 ANGLES=(5 20 45 75 85)
 REL_BAND_WIDTHS=(0.5 0.5 0.5 0.05 0.01)
@@ -11,6 +13,20 @@ POLARISATIONS=("s" "p")
 IS_SIMULATED="simulated"
 IS_NORMALIZED="normalized"
 IS_FFT="fourier"
+
+# Check if ddir base exists
+if ( ls ${TOP_FOLDER} | grep ${SUBFOLDER_BASE} )
+then
+  echo "Folders starting with ${DDIR_BASE} already exists."
+  echo "All contents in these will be deleted."
+  echo "Do you want to continue? (yes/no)"
+  ANSWER="no"
+  read ANSWER
+  if [ ![${ANSWER} == "yes"] ]
+  then
+    exit 1
+  fi
+fi
 
 # NOTE: It is important that the background run and the actual run is executed succesively.
 # The actual run relies on a temporary file created by the background run.
