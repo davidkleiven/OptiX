@@ -168,7 +168,7 @@ def main():
             xlabels.append("$%d\pi$"%(i))
     ax.set_xticklabels(xlabels)
     ax.legend(loc="upper right", frameon=False)
-    fig.savefig("Figures/tanReflection.pdf", bbox_inches="tight")
+    fig.savefig("Figures/reflectedPhase.pdf", bbox_inches="tight")
 
     # Fix the sign plot
     axSign.set_xlabel("Incident angle (deg)")
@@ -179,7 +179,7 @@ def main():
     axSign.axvline(brewsterAngle*180.0/np.pi, color='black', ls='--')
     y1, y2 = axSign.get_ylim()
     axSign.text( brewsterAngle*180.0/np.pi, 0.3*(y2-y1)+y1, "Brewster", rotation=90)
-    figSign.savefig("Figures/signChange.pdf", bbox_inches="tight")
+    figSign.savefig("Figures/reflectedSign.pdf", bbox_inches="tight")
 
     # Fix transmission plot
     axT.set_xlabel("$\\phi_{t,\mathrm{path}}$")
