@@ -33,6 +33,11 @@ def Tp(theta, n1, n2):
     return 1.0 - Rp(theta, n1, n2)
 
 def main(argv):
+    if ( len( argv ) < 2 ):
+        print "Usage: python plotFlux.py <datadirbase> <figuredir> <angles>"
+        print "incident angle and polarisation and subdir %s will be appended"%(SUBDIR)
+        print "Examples: datadirbase = dataplane/MultInc ---> "
+        print "s polarisation with 20 deg incidence is located int dataplane/MulcInc20s/%s"%(SUBDIR)
     fig = plt.figure()
     ax = fig.add_subplot(111) 
     figError = plt.figure()
