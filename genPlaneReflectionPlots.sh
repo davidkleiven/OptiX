@@ -9,12 +9,12 @@ python plotFlux.py ${DDIR} ${FDIR} ${INC_ANGLE[@]}
 
 # Plot amplitudes
 echo "Plotting amplitudes..."
-python plotFieldCoeff.py
+python plotFieldCoeff.py ${DDIR} ${FDIR} ${INC_ANGLE[@]}
 
 # Plot reflection angle
 echo "Plotting reflection angle..."
-python computeReflectionAngle.py
+#python computeReflectionAngle.py
 
 # Plot pulse
 echo "Plotting the pulse ..."
-python pulse.py
+#python pulse.py
