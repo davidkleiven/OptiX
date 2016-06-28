@@ -13,3 +13,7 @@ python plotFieldCoeff.py
 # Plot reflection angle
 echo "Plotting reflection angle..."
 python computeReflectionAngle.py
+
+# Plot pulse
+echo "Plotting the pulse ..."
+python pulse.py
