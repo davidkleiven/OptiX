@@ -36,6 +36,12 @@ def tp(theta, n1, n2):
     return 2.0*n1*np.cos(theta)/( n1*np.cos(thetaT) + n2*np.cos(theta) )
     
 def main(argv):
+    if ( len( argv ) < 2 ):
+        print "[plotFieldCoeff] Usage: python plotFieldCoeff.py <ddirbase> <figure dir> <incident angles>"
+        print "[plotFieldCoeff] Angle, polarisation and WithEps will be appended to the ddirbase"
+        print "[plotFieldCoeff] Example: ddirbase = dataplane/MultInc --->"
+        print "[plotFieldCoeff] 20 deg incidence s polarisation is located i dataplane/MultInc20s/WithEps"
+        return
     ddir = argv[0]
     fdir = argv[1]
     try:
