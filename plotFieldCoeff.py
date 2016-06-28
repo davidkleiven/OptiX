@@ -1,3 +1,4 @@
+#coding: utf-8
 import numpy as np
 import mplLaTeX
 import matplotlib as mpl
@@ -6,12 +7,6 @@ from matplotlib import pyplot as plt
 import json
 import sys
 
-FOLDERS_s = ["dataPlane/MultInc5s/WithEps", "dataPlane/MultInc20s/WithEps", "dataPlane/MultInc45s/WithEps", \
-"dataPlane/MultInc75s/WithEps", "dataPlane/MultInc85s/WithEps"]
-#FOLDERS_s = ["dataPlane/MultInc20/WithEps"]
-FOLDERS_p = ["dataPlane/MultInc5p/WithEps", "dataPlane/MultInc20p/WithEps", "dataPlane/MultInc45p/WithEps", \
-"dataPlane/MultInc75p/WithEps", "dataPlane/MultInc85p/WithEps"]
-#FOLDERS_p = ["dataPlane/MultInc20p/WithEps"]
 POLARISATRIONS = ["s", "p"]
 SUBDIR="WithEps"
 def transmittedTheta( theta, n1, n2 ):
@@ -39,8 +34,8 @@ def main(argv):
     if ( len( argv ) < 2 ):
         print "[plotFieldCoeff] Usage: python plotFieldCoeff.py <ddirbase> <figure dir> <incident angles>"
         print "[plotFieldCoeff] Angle, polarisation and WithEps will be appended to the ddirbase"
-        print "[plotFieldCoeff] Example: ddirbase = dataplane/MultInc --->"
-        print "[plotFieldCoeff] 20 deg incidence s polarisation is located i dataplane/MultInc20s/WithEps"
+        print "[plotFieldCoeff] Example: ddirbase = dataplane/MultInc"
+        print "[plotFieldCoeff] 20 deg incidence s polarisation is located in dataplane/MultInc20s/WithEps"
         return
     ddir = argv[0]
     fdir = argv[1]
@@ -67,6 +62,14 @@ def main(argv):
     
     for pol in POLARISATRIONS:
         hasLabel = False
+        if ( pol == "s" ):
+            markerR = "^"
+            markerT = "o"
+            fill="none"
+        else:
+            markerR = "x"
+            markerT = "."
+            fill = "full"
         for angle in incidentAngles:
             folder = ddir+"%d%s/WithEps"%(angle, pol)
             fname = folder+"/realFieldFourier.json"
@@ -84,21 +87,15 @@ def main(argv):
             angleT = np.array( data["transmitted"]["angle"] )[0:-1:step]
             errorRs = np.abs( reflectionNorm**2 - rs(angleR, n1, n2)**2 )/rs(angleR, n1, n2)**2
             errorTs = np.abs( transmissionNorm**2 - ts(angleT, n1, n2)**2)/ts(angleT, n1, n2)**2
-
-            
-            if ( pol == "s" ):
-                markerR = 'o'
-                markerT = 'x'
-            else:
-                markerR = 'x'
-                markerT = '.'
+ 
             if ( not hasLabel ):
-                ax.plot( angleR, reflectionNorm**2, markerR, color='black', ms=msize, fillstyle="none", \
+                ax.plot( angleR, reflectionNorm**2, markerR, color='black', ms=msize, \
                 label="$|r_\mathrm{%s}|^2$"%(pol))
-                ax.plot( angleT, transmissionNorm**2, markerT, color='black', ms=msize, label="$|t_\mathrm{%s}|^2$"%(pol))
+                ax.plot( angleT, transmissionNorm**2, markerT, color='black', ms=msize, label="$|t_\mathrm{%s}|^2$"%(pol), \
+                fillstyle=fill)
                 
-                axError.plot( angleR, errorRs, markerR, color='black', ms=msize, fillstyle="none", label="$|r_\mathrm{%s}|^2$"%(pol) )
-                axError.plot( angleT, errorTs, markerT, color='black', ms=msize, fillstyle="none", label="$|t_\mathrm{%s}|^2$"%(pol) )
+                axError.plot( angleR, errorRs, markerR, color='black', ms=msize, label="$|r_\mathrm{%s}|^2$"%(pol) )
+                axError.plot( angleT, errorTs, markerT, color='black', ms=msize, fillstyle=fill, label="$|t_\mathrm{%s}|^2$"%(pol) )
                 hasLabel = True
             else:
                 ax.plot( angleR, reflectionNorm**2, markerR, color='black', ms=msize, fillstyle="none")

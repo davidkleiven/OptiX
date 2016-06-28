@@ -4,11 +4,44 @@ import mplLaTeX as mltx
 matplotlib.rcParams.update(mltx.params)
 from matplotlib import pyplot as plt
 import json
+import sys
 
-def main():
-    ofname = "Figures/pulse20deg.pdf"
-    fname = "dataPlane/MultInc20s/WithEps/realField.json"
-    fnameBkg = "dataPlane/MultInc20s/bkg/realField.json"
+'''
+Example call:
+python pulse.py dataPlane/MultInc20s Figures
+
+This call looks for background files in:
+dataPlane/MultInc20s/bkg
+
+file with dielectric slab in
+dataPlane/MultInc20s/bkg
+
+The figure will be saved in 
+Figures
+'''
+def main(argv):
+    if ( len(argv) != 2 ):
+        print "[pulse] Usage: python pulse.py <ddir> <figdir>"
+        return
+    ddir = argv[0]
+    fdir = argv[1]
+    positionOfFirstDigit = -1
+    digitIsFound = False
+    positionOfPolarisation = -1
+    for i in range(0, len(ddir)):
+        if ( ddir[i].isdigit() and not digitIsFound ):
+            positionOfFirstDigit = i
+            digitIsFound = True
+        if ( (not ddir[i].isdigit()) and digitIsFound ):
+            positionOfPolarisation = i
+            break
+    if ( positionOfPolarisation == -1 or positionOfFirstDigit == -1 ):
+        ofname = fdir + "/pulseUnknownAngleAndPolarisation.pdf"
+    else:
+        ofname = fdir + "/pulse%s.pdf"%(ddir[positionOfFirstDigit:positionOfPolarisation+1])
+            
+    fname = ddir+"/WithEps/realField.json"
+    fnameBkg = ddir+"/bkg/realField.json"
     infile = open( fname, 'r' )
     data = json.load(infile)
     infile.close()
@@ -50,6 +83,7 @@ def main():
     ax.set_xlabel( "Time (s)" )
     ax.set_ylabel( "Amplitude" )
     fig.savefig( ofname, bbox_inches="tight")
+    print "[pulse] Figure written to %s"%(ofname)
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv[1:])

@@ -1,3 +1,4 @@
+#coding: utf-8
 import numpy as np
 import mplLaTeX
 import matplotlib
@@ -6,6 +7,7 @@ from matplotlib import pyplot as plt
 from scipy import stats
 from scipy import optimize
 import json
+import sys
 ANGLES = [5, 20, 45, 75, 85]
 POLARISATIONS=["s","p"]
 BASE = "dataPlane/MultInc"
@@ -36,7 +38,20 @@ def expectedTransmissionPathTime(n1, n2, theta_i, distanceYFromSlab):
 def brewster(n1, n2):
     return np.arctan(n2/n1)
 
-def main():
+def main(argv):
+    if ( len( argv ) < 2 ):  
+        print "[phase] Usage: python computeReflectionAngle.py <ddirbase> <figure dir> <incident angles>"
+        print "[phase] Angle, polarisation and WithEps will be appended to the ddirbase"
+        print "[phase] Example: ddirbase = dataplane/MultInc --->"
+        print "[phase] 20 deg incidence s polarisation is located i dataplane/MultInc20s/WithEps"
+        return
+    ddir = argv[0]
+    fdir = argv[1]
+    try:
+        incidentAngles = np.array(argv[2:]).astype(np.int32)
+    except:
+        print "[phase] Error when converting incident angles to int..."
+        return
     fig = plt.figure()
     figSign = plt.figure()
     axSign = figSign.add_subplot(111)
@@ -54,14 +69,18 @@ def main():
     distanceFromPlane = -1.0
     for pol in POLARISATIONS:
         hasLabel = False
+        if ( pol == "s" ):
+            marker = "o"
+        else:
+            marker = "x"
         for theta in ANGLES:
-            fname = BASE+"%d%s/"%(theta, pol)+SUBDIR +"/"+FNAME
+            fname = ddir+"%d%s/"%(theta, pol)+SUBDIR +"/"+FNAME
             try:
                 infile = open(fname,'r')
                 data = json.load(infile)
                 infile.close()
             except:
-                print ("Could not find file %s"%(fname))
+                print ("[phase] Could not find file %s"%(fname))
                 continue
 
             if ( brewsterAngle < 0.0 ):
@@ -102,7 +121,6 @@ def main():
             # Compute expected phase for the transmitted fields
             theta_t = transmissionAngle(n1,n2,angleTransmitted) 
             xTransmitted = omegaTransmitted*expectedTransmissionPathTime( n1, n2, angleTransmitted, transmissionMonitorDistance )
-            marker = '.'
             label="$\\angle r_\mathrm{s}$"
             tlabel="$\\angle t_\mathrm{s}$"
             msize = 5
@@ -113,7 +131,6 @@ def main():
             signPhase = phase + 2.0*k*distanceFromPlane*np.cos(angle)
             signPhaseT = phaseTransmitted + xTransmitted
             if ( pol == "p" ):
-                marker = 'x'
                 msize=2
                 label="$\\angle r_\mathrm{p}$"
                 tlabel="$\\angle t_\mathrm{p}$"
@@ -168,7 +185,9 @@ def main():
             xlabels.append("$%d\pi$"%(i))
     ax.set_xticklabels(xlabels)
     ax.legend(loc="upper right", frameon=False)
-    fig.savefig("Figures/reflectedPhase.pdf", bbox_inches="tight")
+    fnameRefPhase = fdir + "/reflectedPhase.pdf"
+    fig.savefig(fnameRefPhase, bbox_inches="tight")
+    print "[phase] Figure written to %s"%(fnameRefPhase)
 
     # Fix the sign plot
     axSign.set_xlabel("Incident angle (deg)")
@@ -179,7 +198,9 @@ def main():
     axSign.axvline(brewsterAngle*180.0/np.pi, color='black', ls='--')
     y1, y2 = axSign.get_ylim()
     axSign.text( brewsterAngle*180.0/np.pi, 0.3*(y2-y1)+y1, "Brewster", rotation=90)
-    figSign.savefig("Figures/reflectedSign.pdf", bbox_inches="tight")
+    fname = fdir + "/reflectedSign.pdf"
+    figSign.savefig(fname, bbox_inches="tight")
+    print "[phase] Figure written to %s"%(fname)
 
     # Fix transmission plot
     axT.set_xlabel("$\\phi_{t,\mathrm{path}}$")
@@ -215,7 +236,9 @@ def main():
     axT.set_yticks(yticks)
     axT.set_yticklabels(ylabels)
     axT.legend(loc='upper right', frameon=False)
-    figT.savefig("Figures/transmittedPhase.pdf", bbox_inches="tight")
+    fname = fdir + "/transmittedPhase.pdf"
+    figT.savefig(fname, bbox_inches="tight")
+    print "[phase] Figure written to %s"%(fname)
 
     # Transmission sign plot
     axSignT.set_xlabel("Incident angle (deg)")
@@ -223,7 +246,9 @@ def main():
     axSignT.legend(loc='upper right', frameon=False)    
     axSignT.set_yticks([-np.pi/4.0, -np.pi/8.0, 0.0, np.pi/8.0, np.pi/4.0])
     axSignT.set_yticklabels(["$-\\frac{\pi}{4}$", "$-\\frac{\pi}{8}$", "$0$", "$\\frac{\pi}{8}$", "$\\frac{\pi}{4}$"])
-    figSignT.savefig("Figures/transmissionSign.pdf", bbox_inches="tight")
+    fname = fdir + "/transmissionSign.pdf"
+    figSignT.savefig(fname, bbox_inches="tight")
+    print "[phase] Figure written to %s"%(fname)
     
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1:])

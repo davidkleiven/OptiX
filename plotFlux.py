@@ -6,10 +6,6 @@ from matplotlib import pyplot as plt
 import json
 import sys
 
-FOLDERS_s = ["dataPlane/MultInc20s/WithEps", "dataPlane/MultInc45s/WithEps", "dataPlane/MultInc75s/WithEps", \
-"dataPlane/MultInc85s/WithEps"]
-FOLDERS_p = ["dataPlane/MultInc20p/WithEps", "dataPlane/MultInc45p/WithEps", "dataPlane/MultInc75p/WithEps", \
-"dataPlane/MultInc85p/WithEps"]
 SUBDIR="WithEps"
 POLARISATIONS=["s", "p"]
 
@@ -65,6 +61,14 @@ def main(argv):
     hasLabel = False
     markersize=2
     for pol in POLARISATIONS:
+        if ( pol == "s" ):
+            markerR = "^"
+            markerT = "o"
+            fill = "none"
+        else:
+            markerR = "x"
+            markerT = "."
+            fill = "full"
         for angle in incidentAngles:
             folder = folderBase+"%d%s/%s"%(angle, pol, SUBDIR)
             try:
@@ -81,15 +85,15 @@ def main(argv):
             errorR = np.abs(R - Rs(angles, n1, n2))/Rs(angles, n1, n2)
             errorT = np.abs(T - Ts(angles, n1, n2))/Ts(angles, n1, n2)
             if ( hasLabel ):
-                ax.plot(angles, R, '^', color='black', ms=markersize)
-                ax.plot(angles, T,  'o', color='black', ms=markersize)
-                axError.plot(angles, errorR, '^', color='black', ms=markersize)
-                axError.plot(angles, errorT, 'o', color='black', ms=markersize)
+                ax.plot(angles, R, markerR, color='black', ms=markersize)
+                ax.plot(angles, T,  markerT, color='black', ms=markersize, fillstyle=fill)
+                axError.plot(angles, errorR, markerR, color='black', ms=markersize)
+                axError.plot(angles, errorT, markerT, color='black', ms=markersize, fillstyle=fill)
             else:
-                ax.plot(angles, R, '^', color='black', label="$R_\mathrm{%s}$"%(pol), ms=markersize)
-                ax.plot(angles, T,  'o', color='black', label="$T_\mathrm{%s}$"%(pol), ms=markersize)
-                axError.plot(angles, errorR, '^', color='black', label="$R_\mathrm{%s}$"%(pol), ms=markersize)
-                axError.plot(angles, errorT,  'o', color='black', label="$T_\mathrm{%s}$"%(pol), ms=markersize)
+                ax.plot(angles, R, markerR, color='black', label="$R_\mathrm{%s}$"%(pol), ms=markersize)
+                ax.plot(angles, T,  markerT, color='black', label="$T_\mathrm{%s}$"%(pol), ms=markersize, fillstyle=fill)
+                axError.plot(angles, errorR, markerR, color='black', label="$R_\mathrm{%s}$"%(pol), ms=markersize)
+                axError.plot(angles, errorT,  markerT, color='black', label="$T_\mathrm{%s}$"%(pol), ms=markersize, fillstyle=fill)
                 hasLabel = True    
         hasLabel = False
     ax.legend(loc='center left', frameon=False)
