@@ -41,8 +41,8 @@ int main(int argc, char **argv)
   Polarisation_t pol[2] = {Polarisation_t::S, Polarisation_t::P};
   double kBloch[3] = {0.0,0.0,0.0};
 
+  // Assembling BEM matrix
   std::cout << "Assembling BEM matrix..." << std::endl;
-  geo.AssembleBEMMatrix(omega, kBloch, matrix);
   while ( theta < thetamax )
   {
     std::cout << "Theta="<<theta<<std::endl;
@@ -53,7 +53,7 @@ int main(int argc, char **argv)
     kBloch[1] = ky*omega;
     pw.SetnHat(kHat);
 
-    // Assemble matrix
+    geo.AssembleBEMMatrix(omega, kBloch, matrix);
     matrix->LUFactorize();
 
     geo.AssembleRHSVector(omega, kBloch, &pw, rhsVec);
