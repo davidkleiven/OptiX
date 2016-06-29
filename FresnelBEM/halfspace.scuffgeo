@@ -8,8 +8,9 @@ LATTICE
 ENDLATTICE
 
 REGION LowerHalfSpace MATERIAL CONST_EPS_2.25
+REGION UpperHalfSpace MATERIAL CONST_EPS_1.0
 
 SURFACE Interface
   MESHFILE square.msh
-  REGIONS Exterior LowerHalfSpace
+  REGIONS UpperHalfSpace LowerHalfSpace
 ENDSURFACE
