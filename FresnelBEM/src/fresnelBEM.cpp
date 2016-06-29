@@ -6,11 +6,13 @@
 #include <jsoncpp/json/writer.h>
 #include <fstream>
 #include <string>
+#define DEBUG
 
 const double PI = acos(-1.0);
 enum class Polarisation_t{S, P};
+typedef std::complex<double> cdouble;
 
-void getE0_p( const double kHat[3], std::complex<double> E0[3] )
+void getE0_p( const double kHat[3], cdouble E0[3] )
 {
   // Assuming the H field is H=(Hx, Hy, Hz) = (1.0, 0.0, 0.0)
   E0[0] = 0.0;
@@ -18,7 +20,7 @@ void getE0_p( const double kHat[3], std::complex<double> E0[3] )
   E0[2] = kHat[1];
 }
 
-void poyntingVector(const std::complex<double> EH[6], double poynting[3])
+void poyntingVector(const cdouble EH[6], double poynting[3])
 {
   poynting[0] = 0.5*real(EH[1]*std::conj(EH[5]) - EH[2]*std::conj(EH[4]));
   poynting[1] = 0.5*real(EH[2]*std::conj(EH[3]) - EH[0]*std::conj(EH[5]));
@@ -30,7 +32,7 @@ double flux(double poynting[3], double nHat[3])
   return poynting[0]*nHat[0] + poynting[1]*nHat[1] + poynting[2]*nHat[2];
 }
   
-double getAmplitude(const std::complex<double> vec[3])
+double getAmplitude(const cdouble vec[3])
 {
   return pow(std::abs(vec[0]),2) + pow(std::abs(vec[1]),2) + pow(std::abs(vec[2]),2);
 }
@@ -48,19 +50,19 @@ int main(int argc, char **argv)
   // Source definition
   double sourcePosition[3] = {0.0,0.0,0.3};
   double kHat[3] = {0.0,0.0,-1.0};
-  std::complex<double> E0_s[3] = {1.0,0.0,0.0}; 
+  cdouble E0_s[3] = {1.0,0.0,0.0}; 
   PlaneWave pw(E0_s, kHat);
   double omega = 1.0;
   
   // Array for storing the fields EH={Ex,Ey,Ez,Hx,Hy,Hz}
-  std::complex<double> EHSource[6];
-  std::complex<double> EHMonitor[6];
+  cdouble EHSource[6];
+  cdouble EHMonitor[6];
 
   double theta = 0.0;
   const double dtheta = 5.0;
   const double thetamax = 4.0;
   Polarisation_t pol[2] = {Polarisation_t::S, Polarisation_t::P};
-  double kBloch[3] = {0.0,0.0,0.0};
+  double kBloch[2] = {0.0,0.0};
  
   Json::Value reflectionAmplitude_s(Json::arrayValue); 
   Json::Value reflectionPhase_s(Json::arrayValue);
@@ -82,6 +84,7 @@ int main(int argc, char **argv)
   while ( theta < thetamax )
   {
     angle.append(theta);
+    std::cout << "*************************************************************\n";
     std::cout << "Theta="<<theta<<std::endl;
     double kz = -cos(theta*PI/180.0);
     double ky = sin(theta*PI/180.0);
@@ -108,17 +111,23 @@ int main(int argc, char **argv)
     std::cout << " done\n";
 
     // Store fields and flux
-    geo.GetFields(0, rhsVec, omega, kBloch, sourcePosition, EHSource);
-    geo.GetFields(0, rhsVec, omega, kBloch, monitorPosition, EHMonitor);
+    cdouble EHSourceTot[6];
+    cdouble EHInc[6];
+    geo.GetFields(NULL, rhsVec, omega, kBloch, sourcePosition, EHSource);
+    geo.GetFields(NULL, rhsVec, omega, kBloch, monitorPosition, EHMonitor);
+    geo.GetFields(&pw, rhsVec, omega, kBloch, sourcePosition, EHSourceTot);
+    
+    #ifdef DEBUG
+      std::cout << "Scattered Ex: " << EHSource[0] << std::endl;
+      std::cout << "Transmitted Ex: " << EHMonitor[0] << std::endl;
+      std::cout << "Total field at source: " << EHSourceTot[0] << std::endl;
+    #endif
 
-    // Incident field
-    std::complex<double> EHInc[6] = {1.0,0.0,0.0,0.0,kz,-ky};
-    std::complex<double> EHRef[6];
    
     // Reflected field is the difference between incident
     for ( unsigned int i=0;i<6;i++ )
     {
-      EHRef[i] = EHSource[i]-EHInc[i]; 
+      EHInc[i] = EHSourceTot[i] - EHSource[i];
     }
 
     double fluxPlaneHat[3] = {0.0,0.0,1.0};
@@ -128,18 +137,28 @@ int main(int argc, char **argv)
     double poyntingRef[3];
     double poyntingTrans[3];
     poyntingVector(EHInc, poyntingInc);
-    poyntingVector(EHRef, poyntingRef);
+    poyntingVector(EHSource, poyntingRef);
     poyntingVector(EHMonitor, poyntingTrans);
+
+    #ifdef DEBUG
+      std::cout << "Incident Poynting: " << poyntingInc[0] << "," << poyntingInc[1] << "," << poyntingInc[2] << std::endl;
+      std::cout << "Reflected Poynting: " << poyntingRef[0] << "," << poyntingRef[1] << "," << poyntingRef[2] << std::endl;
+      std::cout << "Transmitted Poynting: " << poyntingTrans[0] << "," << poyntingTrans[1] << "," << poyntingTrans[2] << std::endl;
+
+      std::cout << "Reflected z-flux: " << flux(poyntingRef, fluxPlaneHat) << std::endl;
+      std::cout << "Incident z-flux: " << flux(poyntingInc, fluxPlaneHat) << std::endl;
+      std::cout << "Transmitted z-flux: " << flux(poyntingTrans, fluxPlaneHat) << std::endl;
+    #endif
 
     // Store values
     fluxReflected_s.append( -flux(poyntingRef, fluxPlaneHat)/flux(poyntingInc, fluxPlaneHat) ); 
     fluxTransmitted_s.append( flux(poyntingTrans, fluxPlaneHat)/flux(poyntingInc, fluxPlaneHat) );
-    reflectionAmplitude_s.append( getAmplitude(EHRef)/getAmplitude(EHInc) );
+    reflectionAmplitude_s.append( getAmplitude(EHSource)/getAmplitude(EHInc) );
     transmissionAmplitude_s.append( getAmplitude(EHMonitor)/getAmplitude(EHInc) );
     
     // Solve for p polarisation
     std::cout << "***p-polarisation\n";
-    std::complex<double> E0_p[3];
+    cdouble E0_p[3];
     getE0_p( kHat, E0_p );
     
     pw.SetE0(E0_p);  
@@ -152,32 +171,25 @@ int main(int argc, char **argv)
     std::cout << " done\n";
     
     // Store fields and flux
-    geo.GetFields(0, rhsVec, omega, kBloch, sourcePosition, EHSource);
-    geo.GetFields(0, rhsVec, omega, kBloch, monitorPosition, EHMonitor);
+    geo.GetFields(NULL, rhsVec, omega, kBloch, sourcePosition, EHSource);
+    geo.GetFields(NULL, rhsVec, omega, kBloch, monitorPosition, EHMonitor);
+    geo.GetFields(&pw, rhsVec, omega, kBloch, sourcePosition, EHSourceTot);
 
-    // Incident field
-    EHInc[0] = E0_p[0];
-    EHInc[1] = E0_p[1];
-    EHInc[2] = E0_p[2];
-    EHInc[3] = 1.0;
-    EHInc[4] = 0.0;
-    EHInc[5] = 0.0;
-   
     // Reflected field is the difference between incident
     for ( unsigned int i=0;i<6;i++ )
     {
-      EHRef[i] = EHSource[i]-EHInc[i]; 
+      EHInc[i] = EHSourceTot[i] - EHSource[i];
     }
 
     // Compute poynting vectors
     poyntingVector(EHInc, poyntingInc);
-    poyntingVector(EHRef, poyntingRef);
+    poyntingVector(EHSource, poyntingRef);
     poyntingVector(EHMonitor, poyntingTrans);
 
     // Store values
     fluxReflected_p.append( -flux(poyntingRef, fluxPlaneHat)/flux(poyntingInc, fluxPlaneHat) ); 
     fluxTransmitted_p.append( flux(poyntingTrans, fluxPlaneHat)/flux(poyntingInc, fluxPlaneHat) );
-    reflectionAmplitude_p.append( getAmplitude(EHRef)/getAmplitude(EHInc) );
+    reflectionAmplitude_p.append( getAmplitude(EHSource)/getAmplitude(EHInc) );
     transmissionAmplitude_p.append( getAmplitude(EHMonitor)/getAmplitude(EHInc) );
     theta += dtheta;
   }
