@@ -14,3 +14,6 @@ Plane Surface(1)={1};
 
 Periodic Line {1}={3};
 Periodic Line {2}={4};
+
+Physical Surface("interface") = {1};
+Physical Line("BZboundary") = {1,2,3,4};
