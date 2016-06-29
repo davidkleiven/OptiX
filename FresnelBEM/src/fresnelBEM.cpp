@@ -4,6 +4,8 @@
 #include <complex>
 #include <cmath>
 #include <jsoncpp/json/writer.h>
+#include <fstream>
+#include <string>
 
 const double PI = acos(-1.0);
 enum class Polarisation_t{S, P};
@@ -72,12 +74,14 @@ int main(int argc, char **argv)
   Json::Value fluxReflected_p(Json::arrayValue);
   Json::Value fluxTransmitted_s(Json::arrayValue);
   Json::Value fluxTransmitted_p(Json::arrayValue);
+  Json::Value angle(Json::arrayValue);
 
   double monitorPosition[3]={0.0,0.0,-sourcePosition[2]};
 
   // Assembling BEM matrix
   while ( theta < thetamax )
   {
+    angle.append(theta);
     std::cout << "Theta="<<theta<<std::endl;
     double kz = -cos(theta*PI/180.0);
     double ky = sin(theta*PI/180.0);
@@ -180,5 +184,29 @@ int main(int argc, char **argv)
 
   delete matrix;
   delete rhsVec;
+
+  // Store values
+  Json::Value spectra;
+  spectra["IncidentAngle"] = angle;
+  spectra["FluxReflected"]["s"] = fluxReflected_s;
+  spectra["FluxReflected"]["p"] = fluxReflected_p;
+  spectra["FluxTransmitted"]["s"] = fluxTransmitted_s;
+  spectra["FluxTransmitted"]["p"] = fluxTransmitted_p;
+  spectra["AmplitudeReflected"]["s"] = reflectionAmplitude_s;
+  spectra["AmplitudeReflected"]["p"] = reflectionAmplitude_p;
+  spectra["AmplitudeTransmitted"]["s"] = transmissionAmplitude_s;
+  spectra["AmplitudeReflected"]["p"] = transmissionAmplitude_p;
+
+  std::string resultFile("data/coefficients.json");
+  Json::FastWriter fw;
+  std::ofstream os(resultFile.c_str());
+  if ( !os.good() )
+  {
+    std::cerr << "Error when opening file " << resultFile << std::endl;
+    return 1;
+  }
+  os << fw.write( spectra ) << std::endl;
+  os.close(); 
+  
   return 0;
 }
