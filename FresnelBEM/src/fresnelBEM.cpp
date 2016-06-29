@@ -114,7 +114,7 @@ int main(int argc, char **argv)
     cdouble EHSourceTot[6];
     cdouble EHInc[6];
     geo.GetFields(NULL, rhsVec, omega, kBloch, sourcePosition, EHSource);
-    geo.GetFields(NULL, rhsVec, omega, kBloch, monitorPosition, EHMonitor);
+    geo.GetFields(&pw, rhsVec, omega, kBloch, monitorPosition, EHMonitor);
     geo.GetFields(&pw, rhsVec, omega, kBloch, sourcePosition, EHSourceTot);
     
     #ifdef DEBUG
