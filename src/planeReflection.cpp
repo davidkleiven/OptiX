@@ -62,10 +62,10 @@ int main(int argc, char **argv)
   meep::initialize mpi(argc, argv);
 
   // Read command line arguments
-  if ( argc != 7 )
+  if ( argc != 8 )
   {
     cout << id << "Usage: ./planeReflection.out <out directory> <epsInScattered> <incidend angle> <polarization> <relBandwidth>";
-    cout << id << "<number of frequencies>\n";
+    cout << id << "<number of frequencies> <resolution>\n";
     cout << id << "The following arguments were given:\n";
     for ( unsigned int i=0;i<argc;i++ )
     {
@@ -117,6 +117,12 @@ int main(int argc, char **argv)
     return 1;
   }
 
+  double resolution = 10.0;
+  ss.clear();
+  ss << argv[7];
+  ss >> resolution;
+  ss.clear();
+
   double freq = 0.3;
   double fwidth = freq*relFwidth;
 
@@ -129,7 +135,6 @@ int main(int argc, char **argv)
   // Verify that the size of the domain is big enough (for debugging only)
   assert ( YSIZE > minHeight );
   
-  double resolution = 10.0;
 
   // Initialize computational cell
   meep::grid_volume vol = meep::vol2d(XSIZE, YSIZE, resolution);
