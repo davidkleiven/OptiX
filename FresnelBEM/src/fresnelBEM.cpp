@@ -115,21 +115,15 @@ int main(int argc, char **argv)
     cdouble EHInc[6];
     geo.GetFields(NULL, rhsVec, omega, kBloch, sourcePosition, EHSource);
     geo.GetFields(&pw, rhsVec, omega, kBloch, monitorPosition, EHMonitor);
-    geo.GetFields(&pw, rhsVec, omega, kBloch, sourcePosition, EHSourceTot);
+    geo.GetFields(&pw, NULL, omega, kBloch, sourcePosition, EHInc);
     
     #ifdef DEBUG
       std::cout << "Scattered Ex: " << EHSource[0] << std::endl;
       std::cout << "Transmitted Ex: " << EHMonitor[0] << std::endl;
-      std::cout << "Total field at source: " << EHSourceTot[0] << std::endl;
+      std::cout << "Incident field: " << EHInc[0] << std::endl;
     #endif
 
-   
-    // Reflected field is the difference between incident
-    for ( unsigned int i=0;i<6;i++ )
-    {
-      EHInc[i] = EHSourceTot[i] - EHSource[i];
-    }
-
+  
     double fluxPlaneHat[3] = {0.0,0.0,1.0};
 
     // Compute poynting vectors
