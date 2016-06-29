@@ -97,6 +97,7 @@ def main(argv):
                 hasLabel = True    
         hasLabel = False
     ax.legend(loc='center left', frameon=False)
+    ax.set_ylim(0.0, 1.0)
     axError.legend( loc='upper left', frameon=False)
     axError.set_xlabel("Incident angle (deg)")
     axError.set_ylabel("Relative error")
