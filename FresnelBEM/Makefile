@@ -7,4 +7,7 @@ fresnelBEM.out: ${ODIR}/fresnelBEM.o
 	g++ $^ -o $@ ${LIBS}
 
 ${ODIR}/fresnelBEM.o: ${SDIR}/fresnelBEM.cpp
-	g++ -c $< -o $@ -I ${SCUFF_HEADER}
+	g++ -c -std=c++11 $< -o $@ -I ${SCUFF_HEADER}
+
+clean:
+	rm ${ODIR}/*.o
