@@ -1,11 +1,12 @@
 TOP_FOLDER=dataPlane
-SUBFOLDER_BASE="MultInc"
+SUBFOLDER_BASE="VarResMultInc"
 DDIR_BASE="${TOP_FOLDER}/${SUBFOLDER_BASE}"
 EPS_HIGH=2.25
 ANGLES=(5 20 45 75 85)
 REL_BAND_WIDTHS=(0.5 0.5 0.5 0.05 0.01)
 NFREQ=(200 200 200 20 20)
-CONTROL_FILENAME="dataPlane/control.txt"
+RESOLUTION=(10 10 10 30 30)
+CONTROL_FILENAME="${DDIR_BASE}.txt"
 VERBOSE=false
 POLARISATIONS=("s" "p")
 
@@ -13,6 +14,8 @@ POLARISATIONS=("s" "p")
 IS_SIMULATED="simulated"
 IS_NORMALIZED="normalized"
 IS_FFT="fourier"
+
+echo "Using control file ${CONTROL_FILENAME}..."
 
 # Check if ddir base exists
 if ( ls ${TOP_FOLDER} | grep ${SUBFOLDER_BASE} )
@@ -51,12 +54,12 @@ do
       rm -f ${BKGDIR}/*
       mkdir -p ${BKGDIR}
 
-      ./planeReflection.out ${BKGDIR} 1.0 ${ANGLES[$i]} ${pol} ${REL_BAND_WIDTHS[$i]} ${NFREQ[$i]}
+      ./planeReflection.out ${BKGDIR} 1.0 ${ANGLES[$i]} ${pol} ${REL_BAND_WIDTHS[$i]} ${NFREQ[$i]} ${RESOLUTION[$i]}
 
       # Compute with reflection
       mkdir -p ${ODIR}
 
-      ./planeReflection.out ${ODIR} ${EPS_HIGH} ${ANGLES[$i]} ${pol} ${REL_BAND_WIDTHS[$i]} ${NFREQ[$i]}
+      ./planeReflection.out ${ODIR} ${EPS_HIGH} ${ANGLES[$i]} ${pol} ${REL_BAND_WIDTHS[$i]} ${NFREQ[$i]} ${RESOLUTION[$i]}
       echo "${CTR_MSG}${IS_SIMULATED}" >> "${CONTROL_FILENAME}"
     fi
 
