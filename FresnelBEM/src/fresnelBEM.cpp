@@ -147,6 +147,34 @@ int main(int argc, char **argv)
     matrix->LUSolve(rhsVec);
     std::cout << " done\n";
     
+    // Store fields and flux
+    geo.GetFields(0, rhsVec, omega, kBloch, sourcePosition, EHSource);
+    geo.GetFields(0, rhsVec, omega, kBloch, monitorPosition, EHMonitor);
+
+    // Incident field
+    EHInc[0] = E0_p[0];
+    EHInc[1] = E0_p[1];
+    EHInc[2] = E0_p[2];
+    EHInc[3] = 1.0;
+    EHInc[4] = 0.0;
+    EHInc[5] = 0.0;
+   
+    // Reflected field is the difference between incident
+    for ( unsigned int i=0;i<6;i++ )
+    {
+      EHRef[i] = EHSource[i]-EHInc[i]; 
+    }
+
+    // Compute poynting vectors
+    poyntingVector(EHInc, poyntingInc);
+    poyntingVector(EHRef, poyntingRef);
+    poyntingVector(EHMonitor, poyntingTrans);
+
+    // Store values
+    fluxReflected_p.append( -flux(poyntingRef, fluxPlaneHat)/flux(poyntingInc, fluxPlaneHat) ); 
+    fluxTransmitted_p.append( flux(poyntingTrans, fluxPlaneHat)/flux(poyntingInc, fluxPlaneHat) );
+    reflectionAmplitude_p.append( getAmplitude(EHRef)/getAmplitude(EHInc) );
+    transmissionAmplitude_p.append( getAmplitude(EHMonitor)/getAmplitude(EHInc) );
     theta += dtheta;
   }
 
