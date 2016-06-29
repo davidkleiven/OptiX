@@ -1,6 +1,6 @@
 SDIR=src
 ODIR=obj
-LIBS=-lscuff -lcblas -llapack
+LIBS=-lscuff -lcblas -llapack -ljsoncpp
 SCUFF_HEADER=/usr/local/include/scuff-em
 
 fresnelBEM.out: ${ODIR}/fresnelBEM.o 
