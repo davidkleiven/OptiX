@@ -6,3 +6,5 @@ dataPlane/*
 Figures/*
 *.pyc
 dataPlane
+FresnelFDTD/Figures/*
+FresnelFDTD/obj/*
