@@ -41,6 +41,7 @@ double getAmplitude(const cdouble vec[3])
 
 int main(int argc, char **argv)
 {
+  scuff::RWGGeometry::AssignBasisFunctionsToExteriorEdges=false;
   scuff::RWGGeometry geo = scuff::RWGGeometry("halfspace.scuffgeo");
   SetLogFileName("fresnel.log");
   geo.SetLogLevel(SCUFF_VERBOSELOGGING);
@@ -52,7 +53,7 @@ int main(int argc, char **argv)
   HVector *rhsVec = geo.AllocateRHSVector();
 
   // Source definition
-  double sourcePosition[3] = {0.0,0.0,-10.0};
+  double sourcePosition[3] = {0.5,0.5,-10.0};
   double kHat[3] = {0.0,0.0,1.0};
   cdouble E0_s[3];
   E0_s[0].real(1.0);
@@ -88,16 +89,10 @@ int main(int argc, char **argv)
   Json::Value fluxTransmitted_p(Json::arrayValue);
   Json::Value angle(Json::arrayValue);
 
-  double monitorPosition[3]={0.0,0.0,-sourcePosition[2]};
+  double monitorPosition[3]={sourcePosition[0],sourcePosition[1],-sourcePosition[2]};
   std::cout << "Source point is in region " << geo.GetRegionIndex(sourcePosition) << std::endl;
   std::cout << "Monitor point is in region " << geo.GetRegionIndex(monitorPosition) << std::endl;
 
-  // Print out the permittivities
-  HMatrix X(1,3);
-  X.SetEntry(0,0,0.0);
-  X.SetEntry(0,1,0.0);
-  X.SetEntry(0,2,1.0);
- 
   for ( unsigned int i=0;i<geo.NumRegions; i++ )
   {
     std::cout << "Relative epsilon in region " << i << ": " << geo.RegionMPs[i]->GetEps(omega) << std::endl;
@@ -279,6 +274,16 @@ int main(int argc, char **argv)
   spectra["geometry"]["Source"]["x"] = sourcePosition[0];
   spectra["geometry"]["Source"]["y"] = sourcePosition[1];
   spectra["geometry"]["Source"]["z"] = sourcePosition[2];
+
+  if ( geo.NumRegions >= 2 )
+  {
+    double epsilon1 = geo.RegionMPs[0]->GetEps(omega);
+    double epsilon2 = geo:RegionMPS[1]->GetEps(omega);
+    double epsilonHigh = epsilon1 > epsilon2 ? epsilon1:epsilon2;
+    double epsilonLow = epsilon1 > epsilon2 ? epsilon2:epsilon1;
+    spectra["geometry"]["EpsilonHigh"] = epsilonHigh;
+    spectra["geometry"]["EpsilonLow"] = epsilonLow;
+  }
   
   std::string resultFile("data/coefficients.json");
   Json::FastWriter fw;
