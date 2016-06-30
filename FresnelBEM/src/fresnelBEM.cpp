@@ -24,9 +24,11 @@ void getE0_p( const double kHat[3], cdouble E0[3] )
 
 void poyntingVector(const cdouble EH[6], double poynting[3])
 {
-  poynting[0] = 0.5*real(EH[1]*std::conj(EH[5]) - EH[2]*std::conj(EH[4]));
-  poynting[1] = 0.5*real(EH[2]*std::conj(EH[3]) - EH[0]*std::conj(EH[5]));
-  poynting[2] = 0.5*real(EH[0]*std::conj(EH[4]) - EH[1]*std::conj(EH[3]));
+  const cdouble *E = EH;
+  const cdouble *H = EH+3;
+  poynting[0] = 0.5*real(E[1]*std::conj(H[2]) - E[2]*std::conj(H[1]));
+  poynting[1] = 0.5*real(E[2]*std::conj(H[0]) - E[0]*std::conj(H[2]));
+  poynting[2] = 0.5*real(E[0]*std::conj(H[1]) - E[1]*std::conj(H[0]));
 }
 
 double flux(const double poynting[3], const double nHat[3])
