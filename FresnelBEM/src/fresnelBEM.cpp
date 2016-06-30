@@ -277,8 +277,8 @@ int main(int argc, char **argv)
 
   if ( geo.NumRegions >= 2 )
   {
-    double epsilon1 = geo.RegionMPs[0]->GetEps(omega);
-    double epsilon2 = geo:RegionMPS[1]->GetEps(omega);
+    double epsilon1 = real(geo.RegionMPs[0]->GetEps(omega));
+    double epsilon2 = real(geo.RegionMPs[1]->GetEps(omega));
     double epsilonHigh = epsilon1 > epsilon2 ? epsilon1:epsilon2;
     double epsilonLow = epsilon1 > epsilon2 ? epsilon2:epsilon1;
     spectra["geometry"]["EpsilonHigh"] = epsilonHigh;
