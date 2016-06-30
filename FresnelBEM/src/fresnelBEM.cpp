@@ -69,8 +69,8 @@ int main(int argc, char **argv)
   cdouble EHMonitor[6];
 
   double theta = 0.0;
-  const double dtheta = 5.0;
-  const double thetamax = 4.0;
+  const double dtheta = 2.0;
+  const double thetamax = 89.0;
   Polarisation_t pol[2] = {Polarisation_t::S, Polarisation_t::P};
   double kBloch[2] = {0.0,0.0};
  
@@ -218,6 +218,9 @@ int main(int argc, char **argv)
     fluxTransmitted_s.append( flux(poyntingTrans, fluxPlaneHat)/flux(poyntingInc, fluxPlaneHat) );
     reflectionAmplitude_s.append( getAmplitude(EHSource)/getAmplitude(EHInc) );
     transmissionAmplitude_s.append( getAmplitude(EHMonitor)/getAmplitude(EHInc) );
+
+    reflectionPhase_s.append( std::arg( EHSource[0]/EHInc[0] ) );
+    transmissionPhase_s.append( std::arg( EHMonitor[0]/EHInc[0] ) );
     
     // Solve for p polarisation
     std::cout << "***p-polarisation\n";
@@ -254,6 +257,8 @@ int main(int argc, char **argv)
     fluxTransmitted_p.append( flux(poyntingTrans, fluxPlaneHat)/flux(poyntingInc, fluxPlaneHat) );
     reflectionAmplitude_p.append( getAmplitude(EHSource)/getAmplitude(EHInc) );
     transmissionAmplitude_p.append( getAmplitude(EHMonitor)/getAmplitude(EHInc) );
+    reflectionPhase_p.append( std::arg( EHSource[3]/EHInc[3] ) );
+    transmissionPhase_p.append( std::arg( EHMonitor[3]/EHInc[3] ) );
     theta += dtheta;
   }
 
@@ -271,7 +276,17 @@ int main(int argc, char **argv)
   spectra["AmplitudeReflected"]["p"] = reflectionAmplitude_p;
   spectra["AmplitudeTransmitted"]["s"] = transmissionAmplitude_s;
   spectra["AmplitudeReflected"]["p"] = transmissionAmplitude_p;
-
+  spectra["PhaseReflected"]["s"] = reflectionPhase_s;
+  spectra["PhaseReflected"]["p"] = reflectionPhase_p;
+  spectra["PhaseTransmitted"]["s"] = transmissionPhase_s;
+  spectra["PhaseTransmitted"]["p"] = transmissionPhase_p;
+  spectra["geometry"]["Monitor"]["x"] = monitorPosition[0];
+  spectra["geometry"]["Monitor"]["y"] = monitorPosition[1];
+  spectra["geometry"]["Monitor"]["z"] = monitorPosition[2];
+  spectra["geometry"]["Source"]["x"] = sourcePosition[0];
+  spectra["geometry"]["Source"]["y"] = sourcePosition[1];
+  spectra["geometry"]["Source"]["z"] = sourcePosition[2];
+  
   std::string resultFile("data/coefficients.json");
   Json::FastWriter fw;
   std::ofstream os(resultFile.c_str());
