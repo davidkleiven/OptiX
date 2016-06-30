@@ -7,6 +7,8 @@
 #include <fstream>
 #include <string>
 #define DEBUG
+//#define PRINT_BEM_MATRIX
+//#define PRINT_RHS_VECTOR
 
 const double PI = acos(-1.0);
 enum class Polarisation_t{S, P};
@@ -42,15 +44,23 @@ int main(int argc, char **argv)
   scuff::RWGGeometry geo = scuff::RWGGeometry("halfspace.scuffgeo");
   SetLogFileName("fresnel.log");
   geo.SetLogLevel(SCUFF_VERBOSELOGGING);
+
+  std::cout << "The geometry consists of " << geo.NumRegions << " regions\n";
   
   // Allocate BEM matrix and rhs vector
   HMatrix *matrix = geo.AllocateBEMMatrix();
   HVector *rhsVec = geo.AllocateRHSVector();
 
   // Source definition
-  double sourcePosition[3] = {0.0,0.0,0.3};
-  double kHat[3] = {0.0,0.0,-1.0};
-  cdouble E0_s[3] = {1.0,0.0,0.0}; 
+  double sourcePosition[3] = {0.0,0.0,-10.0};
+  double kHat[3] = {0.0,0.0,1.0};
+  cdouble E0_s[3];
+  E0_s[0].real(1.0);
+  E0_s[0].imag(0.0);
+  E0_s[1].real(0.0);
+  E0_s[1].imag(0.0);
+  E0_s[2].real(0.0);
+  E0_s[2].imag(0.0);
   PlaneWave pw(E0_s, kHat);
   double omega = 1.0;
   
@@ -79,6 +89,31 @@ int main(int argc, char **argv)
   Json::Value angle(Json::arrayValue);
 
   double monitorPosition[3]={0.0,0.0,-sourcePosition[2]};
+  std::cout << "Source point is in region " << geo.GetRegionIndex(sourcePosition) << std::endl;
+  std::cout << "Monitor point is in region " << geo.GetRegionIndex(monitorPosition) << std::endl;
+
+  // Print out the permittivities
+  HMatrix X(1,3);
+  X.SetEntry(0,0,0.0);
+  X.SetEntry(0,1,0.0);
+  X.SetEntry(0,2,1.0);
+ 
+  for ( unsigned int i=0;i<geo.NumRegions; i++ )
+  {
+    std::cout << "Relative epsilon in region " << i << ": " << geo.RegionMPs[i]->GetEps(omega) << std::endl;
+  }
+  for ( unsigned int i=0;i<geo.NumRegions; i++ )
+  {
+    std::cout << "Description of region " << i << " " << geo.RegionLabels[i] << std::endl;
+  }
+  
+  #ifdef DEBUG
+    unsigned int sourceNum = 0;
+    for (IncField* IF=&pw; IF != NULL; IF=IF->Next)
+    {
+      std::cout << "Region index of source " << sourceNum++ << ": " << IF->RegionIndex << std::endl;
+    }
+  #endif
 
   // Assembling BEM matrix
   while ( theta < thetamax )
@@ -86,7 +121,7 @@ int main(int argc, char **argv)
     angle.append(theta);
     std::cout << "*************************************************************\n";
     std::cout << "Theta="<<theta<<std::endl;
-    double kz = -cos(theta*PI/180.0);
+    double kz = cos(theta*PI/180.0);
     double ky = sin(theta*PI/180.0);
     kHat[1] = ky;
     kHat[2] = kz;
@@ -94,8 +129,22 @@ int main(int argc, char **argv)
     pw.SetnHat(kHat);
 
     std::cout << "Assembling BEM matrix..." << std::flush;
-    geo.AssembleBEMMatrix(omega, kBloch, matrix);
+    geo.AssembleBEMMatrix(static_cast<cdouble>(omega), kBloch, matrix);
     std::cout << " done\n";
+
+    #ifdef PRINT_BEM_MATRIX
+      std::cout << "**************************************************\n";
+      std::cout << "Assembled BEM matrix...\n";
+      for ( unsigned int i=0;i<matrix->NC;i++ )
+      {
+        for ( unsigned int j=0;j<matrix->NR;j++ )
+        {
+          std::cout << matrix->GetEntry(i,j) << " ";
+        }
+        std::cout << std::endl;
+      }
+      std::cout << "*************************************************\n";
+    #endif
 
     matrix->LUFactorize();
  
@@ -103,24 +152,44 @@ int main(int argc, char **argv)
     pw.SetE0(E0_s);
     std::cout << "***s-polarisation\n";
     std::cout << "Assembling rhs vector..." << std::flush;
-    geo.AssembleRHSVector(omega, kBloch, &pw, rhsVec);
+    geo.AssembleRHSVector(static_cast<cdouble>(omega), kBloch, &pw, rhsVec);
     std::cout << " done\n";
+
+
+    #ifdef PRINT_RHS_VECTOR
+      std::cout << "RHS Vector before solving...\n";
+      for ( unsigned int i=0;i<rhsVec->N; i++ )
+      {
+        std::cout << rhsVec->GetEntry(i) << " ";
+      }
+      std::cout << std::endl;
+    #endif
 
     std::cout << "Solving system of equations... " << std::flush;
-    matrix->LUSolve(rhsVec);
+    int info = matrix->LUSolve(rhsVec);
     std::cout << " done\n";
 
+    #ifdef PRINT_RHS_VECTOR
+      std::cout << "RHS Vector after solving...\n";
+      for ( unsigned int i=0;i<rhsVec->N;i++ )
+      {
+        std::cout << rhsVec->GetEntry(i) << " ";
+      }
+      std::cout << std::endl;
+    #endif
+    
     // Store fields and flux
     cdouble EHSourceTot[6];
     cdouble EHInc[6];
     geo.GetFields(NULL, rhsVec, omega, kBloch, sourcePosition, EHSource);
-    geo.GetFields(&pw, rhsVec, omega, kBloch, monitorPosition, EHMonitor);
+    geo.GetFields(NULL, rhsVec, omega, kBloch, monitorPosition, EHMonitor);
     geo.GetFields(&pw, NULL, omega, kBloch, sourcePosition, EHInc);
     
     #ifdef DEBUG
+      std::cout << "LAPACK solution info flag: " << info << std::endl;
       std::cout << "Scattered Ex: " << EHSource[0] << std::endl;
       std::cout << "Transmitted Ex: " << EHMonitor[0] << std::endl;
-      std::cout << "Incident field: " << EHInc[0] << std::endl;
+      std::cout << "Incident field: " << EHInc[0] << " " << EHInc[1] << " " << EHInc[2] << std::endl;
     #endif
 
   
