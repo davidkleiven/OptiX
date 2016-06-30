@@ -8,12 +8,12 @@ Line(2)={2,3};
 Line(3)={3,4};
 Line(4)={4,1};
 
-Line loop(1)={1,2,3,4};
+Line loop(5)={1,2,3,4};
 
-Plane Surface(1)={1};
+Plane Surface(6)={5};
 
 Periodic Line {1}={3};
 Periodic Line {2}={4};
 
-Physical Surface("interface") = {1};
+Physical Surface("interface") = {6};
 Physical Line("BZboundary") = {1,2,3,4};
