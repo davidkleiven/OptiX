@@ -37,7 +37,7 @@ def main(argv):
 
     ax.plot( data["IncidentAngle"], data["AmplitudeReflected"]["p"], 'x', ms=2, color='black', label="$|r_\mathrm{p}|^2$" )
     ax.plot( data["IncidentAngle"], data["AmplitudeTransmitted"]["s"], '^', ms=2, color='black', label="$|t_\mathrm{s}|^2$" )
-    #ax.plot( data["IncidentAngle"], data["AmplitudeTransmitted"]["p"], '.', ms=2, color='black', label="$|t_\mathrm{p}|^2$" )
+    ax.plot( data["IncidentAngle"], data["AmplitudeTransmitted"]["p"], '.', ms=2, color='black', label="$|t_\mathrm{p}|^2$" )
 
     # Plot exact values
     angle = np.linspace(0.0, 90.0, 101)
