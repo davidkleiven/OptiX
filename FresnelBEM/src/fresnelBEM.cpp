@@ -29,7 +29,7 @@ void poyntingVector(const cdouble EH[6], double poynting[3])
   poynting[2] = 0.5*real(EH[0]*std::conj(EH[4]) - EH[1]*std::conj(EH[3]));
 }
 
-double flux(double poynting[3], double nHat[3])
+double flux(const double poynting[3], const double nHat[3])
 {
   return poynting[0]*nHat[0] + poynting[1]*nHat[1] + poynting[2]*nHat[2];
 }
@@ -179,7 +179,6 @@ int main(int argc, char **argv)
     #endif
     
     // Store fields and flux
-    cdouble EHSourceTot[6];
     cdouble EHInc[6];
     geo.GetFields(NULL, rhsVec, omega, kBloch, sourcePosition, EHSource);
     geo.GetFields(NULL, rhsVec, omega, kBloch, monitorPosition, EHMonitor);
@@ -239,13 +238,7 @@ int main(int argc, char **argv)
     // Store fields and flux
     geo.GetFields(NULL, rhsVec, omega, kBloch, sourcePosition, EHSource);
     geo.GetFields(NULL, rhsVec, omega, kBloch, monitorPosition, EHMonitor);
-    geo.GetFields(&pw, rhsVec, omega, kBloch, sourcePosition, EHSourceTot);
-
-    // Reflected field is the difference between incident
-    for ( unsigned int i=0;i<6;i++ )
-    {
-      EHInc[i] = EHSourceTot[i] - EHSource[i];
-    }
+    geo.GetFields(&pw, NULL, omega, kBloch, sourcePosition, EHInc);
 
     // Compute poynting vectors
     poyntingVector(EHInc, poyntingInc);
@@ -275,7 +268,7 @@ int main(int argc, char **argv)
   spectra["AmplitudeReflected"]["s"] = reflectionAmplitude_s;
   spectra["AmplitudeReflected"]["p"] = reflectionAmplitude_p;
   spectra["AmplitudeTransmitted"]["s"] = transmissionAmplitude_s;
-  spectra["AmplitudeReflected"]["p"] = transmissionAmplitude_p;
+  spectra["AmplitudeTransmitted"]["p"] = transmissionAmplitude_p;
   spectra["PhaseReflected"]["s"] = reflectionPhase_s;
   spectra["PhaseReflected"]["p"] = reflectionPhase_p;
   spectra["PhaseTransmitted"]["s"] = transmissionPhase_s;
