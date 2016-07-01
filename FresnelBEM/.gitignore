@@ -1,5 +1,9 @@
 square.msh
 obj/*
-fresnel.log
+*.log
 data
 Figures/*
+.libs
+halfspace.byKN
+*.transmission
+scuff-transmission
