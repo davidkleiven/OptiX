@@ -25,12 +25,15 @@ def main(argv):
     infile.close()
 
     try:
-        n1 = np.sqrt( float(data["geometry"]["EpsilonHigh"]) )
-        n2 = np.sqrt( float(data["geometry"]["EpsilonLow"]) )
+        n1 = np.sqrt( float(data["geometry"]["EpsilonLow"]) )
+        n2 = np.sqrt( float(data["geometry"]["EpsilonHigh"]) )
     except:
         print ("Could not find EpsilonHigh and EpsilonLow in data file. Using defaults...")
         n1 = 1.0
         n2 = 1.5
+
+    print ("Refractive index in incident material: %.2f"%(n1))
+    print ("Refractive index in slab: %.2f"%(n2))
 
     ax.plot( data["IncidentAngle"], data["AmplitudeReflected"]["s"], 'o', ms=2, color='black', fillstyle='none', \
     label="$|r_\mathrm{s}|^2$" )
