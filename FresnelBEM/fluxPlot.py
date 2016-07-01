@@ -21,7 +21,7 @@ def main(argv):
     try:
         infile = open( argv[0], 'r' )
     except:
-        print ("Error when opening file %s"(argv[0]))
+        print ("Error when opening file %s"%(argv[0]))
         return
 
     data = json.load(infile)
