@@ -12,9 +12,11 @@
 //#define PRINT_BEM_MATRIX
 //#define PRINT_RHS_VECTOR
 #define DOUBLE_COMPARISON_ZERO 1E-5
+#define PWVAC (0.5/ZVAC)
 
 const double PI = acos(-1.0);
 enum class Polarisation_t{S, P};
+
 typedef std::complex<double> cdouble;
 
 void getE0_p( const double kHat[3], cdouble E0[3] )
@@ -34,15 +36,35 @@ void poyntingVector(const cdouble EH[6], double poynting[3])
   poynting[2] = 0.5*real(E[0]*std::conj(H[1]) - E[1]*std::conj(H[0]));
 }
 
+double getAmplitude(const cdouble vec[3])
+{
+  return pow(std::abs(vec[0]),2) + pow(std::abs(vec[1]),2) + pow(std::abs(vec[2]),2);
+}
+
+void cross(const double vec1[3], const double vec2[3], double out[3])
+{
+  out[0] = vec1[1]*vec2[2] - vec1[2]*vec2[1];
+  out[1] = vec1[2]*vec2[0] - vec1[0]*vec2[2];
+  out[2] = vec1[0]*vec2[1] - vec1[1]*vec2[0];
+}
+
+double angleWithZaxis(const double vec[3])
+{
+  double amp = sqrt( vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2] );
+  return std::acos(vec[2]/amp)*180.0/PI;
+}
+
+double transmissionAngle( const double angle, double n1, double n2 )
+{
+  double sinT = n1*std::sin(angle)/n2;
+  return std::asin(sinT);
+}
+
 double flux(const double poynting[3], const double nHat[3])
 {
   return poynting[0]*nHat[0] + poynting[1]*nHat[1] + poynting[2]*nHat[2];
 }
   
-double getAmplitude(const cdouble vec[3])
-{
-  return pow(std::abs(vec[0]),2) + pow(std::abs(vec[1]),2) + pow(std::abs(vec[2]),2);
-}
 
 double cosAlpha( const double vec1[3], const double vec2[3] )
 {
@@ -84,7 +106,7 @@ int main(int argc, char **argv)
   HVector *rhsVec = geo.AllocateRHSVector();
 
   // Source definition
-  double sourcePosition[3] = {0.5,0.5,-10.0};
+  double sourcePosition[3] = {0.5,0.5,-2.0};
   double kHat[3] = {0.0,0.0,1.0};
   cdouble E0_s[3];
   E0_s[0].real(1.0);
@@ -101,7 +123,7 @@ int main(int argc, char **argv)
   cdouble EHMonitor[6];
 
   double theta = 0.0;
-  const double dtheta = 2.0;
+  const double dtheta = 40.0;
   const double thetamax = 89.0;
   Polarisation_t pol[2] = {Polarisation_t::S, Polarisation_t::P};
   double kBloch[2] = {0.0,0.0};
@@ -126,7 +148,7 @@ int main(int argc, char **argv)
 
   for ( unsigned int i=0;i<geo.NumRegions; i++ )
   {
-    std::cout << "Relative epsilon in region " << i << ": " << geo.RegionMPs[i]->GetEps(omega) << std::endl;
+    std::cout << "Refractive index in region " << i << ": " << geo.RegionMPs[i]->GetRefractiveIndex(omega) << std::endl;
   }
   for ( unsigned int i=0;i<geo.NumRegions; i++ )
   {
@@ -141,6 +163,14 @@ int main(int argc, char **argv)
     }
   #endif
 
+  FluxIntegrator fluxInt;
+  fluxInt.setnEvalPoints( 1 );
+  fluxInt.setXmin( 0.0 );
+  fluxInt.setXmax( 1.0 );
+  fluxInt.setYmin( 0.0 );
+  fluxInt.setYmax( 1.0 );
+  fluxInt.fillEvaluationXY();
+
   // Assembling BEM matrix
   while ( theta < thetamax )
   {
@@ -149,9 +179,10 @@ int main(int argc, char **argv)
     std::cout << "Theta="<<theta<<std::endl;
     double kz = cos(theta*PI/180.0);
     double ky = sin(theta*PI/180.0);
+    double ksource = real(geo.RegionMPs[pw.RegionIndex]->GetRefractiveIndex(omega))*omega;
     kHat[1] = ky;
     kHat[2] = kz;
-    kBloch[1] = ky*omega;
+    kBloch[1] = ksource*sin(theta*PI/180.0);
     pw.SetnHat(kHat);
 
     std::cout << "Assembling BEM matrix..." << std::flush;
@@ -180,7 +211,6 @@ int main(int argc, char **argv)
     std::cout << "Assembling rhs vector..." << std::flush;
     geo.AssembleRHSVector(static_cast<cdouble>(omega), kBloch, &pw, rhsVec);
     std::cout << " done\n";
-
 
     #ifdef PRINT_RHS_VECTOR
       std::cout << "RHS Vector before solving...\n";
@@ -212,8 +242,8 @@ int main(int argc, char **argv)
     
     #ifdef DEBUG
       std::cout << "LAPACK solution info flag: " << info << std::endl;
-      std::cout << "Scattered Ex: " << EHSource[0] << std::endl;
-      std::cout << "Transmitted Ex: " << EHMonitor[0] << std::endl;
+      std::cout << "Scattered Ex: " << EHSource[0] << " " << EHSource[1] << " " << EHSource[2] << std::endl;
+      std::cout << "Transmitted field: " << EHMonitor[0] << " " << EHMonitor[1] << " " << EHMonitor[2] << std::endl;
       std::cout << "Incident field: " << EHInc[0] << " " << EHInc[1] << " " << EHInc[2] << std::endl;
     #endif
 
@@ -239,11 +269,30 @@ int main(int argc, char **argv)
       std::cout << "Reflected z-flux: " << flux(poyntingRef, fluxPlaneHat) << std::endl;
       std::cout << "Incident z-flux: " << flux(poyntingInc, fluxPlaneHat) << std::endl;
       std::cout << "Transmitted z-flux: " << flux(poyntingTrans, fluxPlaneHat) << std::endl;
+      std::cout << "Sum: " << ( flux(poyntingTrans, fluxPlaneHat) - flux(poyntingRef, fluxPlaneHat) )/flux(poyntingInc, fluxPlaneHat);
+      std::cout << std::endl;
+    #endif
+
+    // Compute flux
+    double incFlux, refFlux, transFlux;
+    fluxInt.setZpos( sourcePosition[2] );
+    refFlux = fluxInt.scatteredFlux( geo, *rhsVec, omega, kBloch );
+    incFlux = fluxInt.incidentFlux( geo, pw, omega, kBloch );
+    fluxInt.setZpos( monitorPosition[2] );
+    transFlux = fluxInt.scatteredFlux( geo, *rhsVec, omega, kBloch );
+    std::cout << "Test flux: " << fluxInt.incidentFlux( geo, pw, omega, kBloch );
+
+    #ifdef DEBUG
+      std::cout << "Reflected z-flux integrated: " << refFlux << std::endl;
+      std::cout << "Incident z-flux integrated: " << incFlux << std::endl;
+      std::cout << "Transmitted z-flux integrated: " << transFlux << std::endl;
     #endif
 
     // Store values
-    fluxReflected_s.append( -flux(poyntingRef, fluxPlaneHat)/flux(poyntingInc, fluxPlaneHat) ); 
-    fluxTransmitted_s.append( flux(poyntingTrans, fluxPlaneHat)/flux(poyntingInc, fluxPlaneHat) );
+    //fluxReflected_s.append( -flux(poyntingRef, fluxPlaneHat)/flux(poyntingInc, fluxPlaneHat) ); 
+    //fluxTransmitted_s.append( flux(poyntingTrans, fluxPlaneHat)/flux(poyntingInc, fluxPlaneHat) );
+    fluxReflected_s.append( -refFlux/incFlux ); 
+    fluxTransmitted_s.append( transFlux/incFlux );
     reflectionAmplitude_s.append( getAmplitude(EHSource)/getAmplitude(EHInc) );
     transmissionAmplitude_s.append( getAmplitude(EHMonitor)/getAmplitude(EHInc) );
 
@@ -281,9 +330,18 @@ int main(int argc, char **argv)
     // Poynting checks
     assert ( isParalell( poyntingInc, kHat ) );
 
+    // Compute flux
+    fluxInt.setZpos( sourcePosition[2] );
+    incFlux = fluxInt.incidentFlux( geo, pw, omega, kBloch );
+    refFlux = fluxInt.scatteredFlux( geo, *rhsVec, omega, kBloch );
+    fluxInt.setZpos( monitorPosition[2] );
+    transFlux = fluxInt.scatteredFlux( geo, *rhsVec, omega, kBloch );
+
     // Store values
-    fluxReflected_p.append( -flux(poyntingRef, fluxPlaneHat)/flux(poyntingInc, fluxPlaneHat) ); 
-    fluxTransmitted_p.append( flux(poyntingTrans, fluxPlaneHat)/flux(poyntingInc, fluxPlaneHat) );
+    //fluxReflected_p.append( -flux(poyntingRef, fluxPlaneHat)/flux(poyntingInc, fluxPlaneHat) ); 
+    //fluxTransmitted_p.append( flux(poyntingTrans, fluxPlaneHat)/flux(poyntingInc, fluxPlaneHat) );
+    fluxReflected_p.append( -refFlux/incFlux ); 
+    fluxTransmitted_p.append( transFlux/incFlux );
     reflectionAmplitude_p.append( getAmplitude(EHSource)/getAmplitude(EHInc) );
     transmissionAmplitude_p.append( getAmplitude(EHMonitor)/getAmplitude(EHInc) );
     reflectionPhase_p.append( std::arg( EHSource[3]/EHInc[3] ) );
