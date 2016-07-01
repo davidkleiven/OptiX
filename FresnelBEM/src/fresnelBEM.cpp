@@ -57,6 +57,10 @@ double angleWithZaxis(const double vec[3])
 double transmissionAngle( const double angle, double n1, double n2 )
 {
   double sinT = n1*std::sin(angle)/n2;
+  if ( std::abs( sinT ) > 1.0 )
+  {
+    return 0.0;
+  }
   return std::asin(sinT);
 }
 
@@ -276,9 +280,9 @@ int main(int argc, char **argv)
       poyntingVector( EHMonitor, kHatT );
       double n1 = real(geo.RegionMPs[0]->GetRefractiveIndex(omega));
       double n2 = real(geo.RegionMPs[1]->GetRefractiveIndex(omega));
-      double thetaT = angleWithZaxis( kHatT, n1, n2 );
-      double expThetaT = transmissionAngle( theta*PI/180.0, n1, n2 );
-      std::cout << "Transmitted angle: " << thetaT << ". Expected: " << expThetaT std::endl;
+      double thetaT = angleWithZaxis( kHatT );
+      double expThetaT = transmissionAngle( theta*PI/180.0, n1, n2 )*180.0/PI;
+      std::cout << "Transmitted angle: " << thetaT << ". Expected: " << expThetaT << std::endl;
     #endif
 
     // Compute flux
