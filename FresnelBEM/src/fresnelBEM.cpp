@@ -271,6 +271,14 @@ int main(int argc, char **argv)
       std::cout << "Transmitted z-flux: " << flux(poyntingTrans, fluxPlaneHat) << std::endl;
       std::cout << "Sum: " << ( flux(poyntingTrans, fluxPlaneHat) - flux(poyntingRef, fluxPlaneHat) )/flux(poyntingInc, fluxPlaneHat);
       std::cout << std::endl;
+
+      double kHatT[3];
+      poyntingVector( EHMonitor, kHatT );
+      double n1 = real(geo.RegionMPs[0]->GetRefractiveIndex(omega));
+      double n2 = real(geo.RegionMPs[1]->GetRefractiveIndex(omega));
+      double thetaT = angleWithZaxis( kHatT, n1, n2 );
+      double expThetaT = transmissionAngle( theta*PI/180.0, n1, n2 );
+      std::cout << "Transmitted angle: " << thetaT << ". Expected: " << expThetaT std::endl;
     #endif
 
     // Compute flux
