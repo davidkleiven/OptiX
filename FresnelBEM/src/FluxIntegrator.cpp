@@ -102,7 +102,7 @@ double FluxIntegrator::compute( scuff::RWGGeometry &geo, IncField *IF, HVector *
     Ey = _flux->GetEntry(i,1);
     Hx = _flux->GetEntry(i,3);
     Hy = _flux->GetEntry(i,4);
-    zFlux += 0.5*real( Ex*conj(Hy) - conj(Ey)*Hx );
+    zFlux += 0.5*real( Ex*conj(Hy) - Ey*conj(Hx) );
   }
 
   #ifdef DEBUG
