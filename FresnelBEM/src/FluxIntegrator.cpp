@@ -1,5 +1,9 @@
 #include "FluxIntegrator.h"
 #include <complex>
+//#define DEBUG
+#ifdef DEBUG
+  #include <iostream>
+#endif
 using namespace std;
 
 FluxIntegrator::FluxIntegrator(): _zpos(0.0), _nEvalPointsInEachDirection(0), _evaluationCrd(NULL), _flux(NULL),\
@@ -32,24 +36,34 @@ void FluxIntegrator::setnEvalPoints(unsigned int nPoints)
 
   _nEvalPointsInEachDirection = nPoints;
   
+  #ifdef DEBUG
+    cout << "Allocating coordinate and flux matrix...";
+  #endif
   _evaluationCrd = new HMatrix( nPoints*nPoints, 3 );
-  _flux = new HMatrix ( nPoints*nPoints, 3 );
+  _flux = new HMatrix( nPoints*nPoints, 6, LHM_COMPLEX );
+  
+  #ifdef DEBUG
+    cout << " done\n";
+  #endif
 }
 
 void FluxIntegrator::fillEvaluationXY()
 {
   if ( _nEvalPointsInEachDirection == 0 )
   {
-    this->setnEvalPoints(20);
+    this->setnEvalPoints(5);
   } 
 
   // Fill evaluation points
-  double dx = (_xmax-_xmin)/static_cast<double>(_nEvalPointsInEachDirection);
-  double dy = (_ymax-_ymin)/static_cast<double>(_nEvalPointsInEachDirection);
-  double x = _xmin;
+  double dx = (_xmax-_xmin)/static_cast<double>(_nEvalPointsInEachDirection+1);
+  double dy = (_ymax-_ymin)/static_cast<double>(_nEvalPointsInEachDirection+1);
+  double x = _xmin+dx;
+  #ifdef DEBUG
+    cout << "Filling coordinate matrix...";
+  #endif
   for ( unsigned int ix=0;ix<_nEvalPointsInEachDirection;ix++ )
   {
-    double y = _ymin;
+    double y = _ymin+dy;
     for ( unsigned int iy=0;iy<_nEvalPointsInEachDirection;iy++)
     {
       _evaluationCrd->SetEntry( ix*_nEvalPointsInEachDirection+iy, 0, x);
@@ -59,20 +73,30 @@ void FluxIntegrator::fillEvaluationXY()
     }
     x += dx;
   }
+  #ifdef DEBUG
+    cout << " done\n";
+  #endif
 }    
 
 double FluxIntegrator::compute( scuff::RWGGeometry &geo, IncField *IF, HVector *vec, double omega, double kBloch[2] )
 {
-  if ( _nEvalPointsInEachDirection == 0 )
-  {
-    this->fillEvaluationXY();
-  }
+  this->fillEvaluationXY();
 
   // Get field at all evaluation points      
+  #ifdef DEBUG
+    cout << "Evaluating fields at " << _nEvalPointsInEachDirection*_nEvalPointsInEachDirection << " positions..." << flush;
+  #endif
   geo.GetFields(IF, vec, omega, kBloch, _evaluationCrd, _flux);
+  #ifdef DEBUG
+    cout << " done\n" << flush;
+  #endif
   complex<double> Ex, Ey, Hx, Hy; 
   double zFlux = 0.0;
-  for ( unsigned int i=0;i<_nEvalPointsInEachDirection;i++ )
+
+  #ifdef DEBUG
+    cout << "Computing flux..." << flush;
+  #endif
+  for ( unsigned int i=0;i<_nEvalPointsInEachDirection*_nEvalPointsInEachDirection;i++ )
   {
     Ex = _flux->GetEntry(i,0);
     Ey = _flux->GetEntry(i,1);
@@ -80,6 +104,10 @@ double FluxIntegrator::compute( scuff::RWGGeometry &geo, IncField *IF, HVector *
     Hy = _flux->GetEntry(i,4);
     zFlux += 0.5*real( Ex*conj(Hy) - conj(Ey)*Hx );
   }
+
+  #ifdef DEBUG
+    cout << " done\n" << flush;
+  #endif
   return zFlux/static_cast<double>( _nEvalPointsInEachDirection*_nEvalPointsInEachDirection );
 }
     
