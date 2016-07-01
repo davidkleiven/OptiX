@@ -6,9 +6,12 @@
 #include <jsoncpp/json/writer.h>
 #include <fstream>
 #include <string>
+#include <cassert>
+#include "FluxIntegrator.h"
 #define DEBUG
 //#define PRINT_BEM_MATRIX
 //#define PRINT_RHS_VECTOR
+#define DOUBLE_COMPARISON_ZERO 1E-5
 
 const double PI = acos(-1.0);
 enum class Polarisation_t{S, P};
@@ -39,6 +42,32 @@ double flux(const double poynting[3], const double nHat[3])
 double getAmplitude(const cdouble vec[3])
 {
   return pow(std::abs(vec[0]),2) + pow(std::abs(vec[1]),2) + pow(std::abs(vec[2]),2);
+}
+
+double cosAlpha( const double vec1[3], const double vec2[3] )
+{
+  double dotProd = 0.0;
+  double absv1 = 0.0;
+  double absv2 = 0.0;
+  for ( unsigned int i=0;i<3;i++ )
+  {
+    dotProd += vec1[i]*vec2[i];
+    absv1 += vec1[i]*vec1[i];
+    absv2 += vec2[i]*vec2[i];
+  }
+  absv1 = sqrt(absv1);
+  absv2 = sqrt(absv2);
+  return dotProd/( absv1*absv2 );
+}  
+
+bool isParalell( const double vec1[3], const double vec2[3] )
+{
+  return abs( cosAlpha(vec1,vec2) - 1.0 ) < DOUBLE_COMPARISON_ZERO;
+}
+
+bool isPerpendicular( const double vec1[3], const double vec2[3] )
+{
+  return abs( cosAlpha(vec1,vec2) ) < DOUBLE_COMPARISON_ZERO;
 }
 
 int main(int argc, char **argv)
@@ -199,6 +228,9 @@ int main(int argc, char **argv)
     poyntingVector(EHSource, poyntingRef);
     poyntingVector(EHMonitor, poyntingTrans);
 
+    // Poynting checks
+    assert ( isParalell( poyntingInc, kHat ) );
+
     #ifdef DEBUG
       std::cout << "Incident Poynting: " << poyntingInc[0] << "," << poyntingInc[1] << "," << poyntingInc[2] << std::endl;
       std::cout << "Reflected Poynting: " << poyntingRef[0] << "," << poyntingRef[1] << "," << poyntingRef[2] << std::endl;
@@ -222,6 +254,10 @@ int main(int argc, char **argv)
     std::cout << "***p-polarisation\n";
     cdouble E0_p[3];
     getE0_p( kHat, E0_p );
+    #ifdef DEBUG
+      double E0_preal[3] = {real(E0_p[0]), real(E0_p[1]), real(E0_p[2])};
+      assert ( isPerpendicular( kHat, E0_preal ) );
+    #endif
     
     pw.SetE0(E0_p);  
     std::cout << "Assembling rhs vector..." << std::flush;
@@ -241,6 +277,9 @@ int main(int argc, char **argv)
     poyntingVector(EHInc, poyntingInc);
     poyntingVector(EHSource, poyntingRef);
     poyntingVector(EHMonitor, poyntingTrans);
+
+    // Poynting checks
+    assert ( isParalell( poyntingInc, kHat ) );
 
     // Store values
     fluxReflected_p.append( -flux(poyntingRef, fluxPlaneHat)/flux(poyntingInc, fluxPlaneHat) ); 
