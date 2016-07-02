@@ -154,8 +154,8 @@ bool isPerpendicular( const double vec1[3], const double vec2[3] )
   return abs( cosAlpha(vec1,vec2) ) < DOUBLE_COMPARISON_ZERO;
 }
 
-void visualize( double ymin, double ymax, double zmin, double zmax, unsigned int nPoints, scuff::RWGGeometry &geo, \
-                double omega, double kBloch[2], IncField &IF, HVector &rhs )
+void visualize( double ymin, double ymax, double zmin, double zmax, unsigned int Ny, unsigned int Nz, scuff::RWGGeometry &geo, \
+                double omega, double kBloch[2], IncField &IF, HVector &rhs, const char* fname )
 {
 
   // Fill LBV array
@@ -169,26 +169,26 @@ void visualize( double ymin, double ymax, double zmin, double zmax, unsigned int
   }
     
   // Fill evaluation points
-  HMatrix Xpoints(nPoints*nPoints, 3);
+  HMatrix Xpoints(Ny*Nz, 3);
   double z = zmin;
-  double dz = (zmax-zmin)/static_cast<double>( nPoints );
-  double dy = (ymax-ymin)/static_cast<double>( nPoints );
-  for ( unsigned int iz=0;iz<nPoints;iz++)
+  double dz = (zmax-zmin)/static_cast<double>( Nz );
+  double dy = (ymax-ymin)/static_cast<double>( Ny );
+  for ( unsigned int iz=0;iz<Nz;iz++)
   {
     double y = ymin;
-    for ( unsigned int iy=0;iy<nPoints;iy++)
+    for ( unsigned int iy=0;iy<Ny;iy++)
     {
-      Xpoints.SetEntry( iz*nPoints+iy, 0, 0.5);
-      Xpoints.SetEntry( iz*nPoints+iy, 1, y );
-      Xpoints.SetEntry( iz*nPoints+iy, 2, z );
+      Xpoints.SetEntry( iz*Ny+iy, 0, 0.5);
+      Xpoints.SetEntry( iz*Ny+iy, 1, y );
+      Xpoints.SetEntry( iz*Ny+iy, 2, z );
       y += dy;
     }
     z += dz;
   }
-  HMatrix field( nPoints*nPoints, 6, LHM_COMPLEX );
+  HMatrix field( Ny*Nz, 6, LHM_COMPLEX );
   
   // Get fields
-  geo.GetFields( &IF, NULL, omega, kBloch, &Xpoints, &field );
+  geo.GetFields( &IF, &rhs, omega, kBloch, &Xpoints, &field );
 
   // Copy evaluation points to Json array for easier output
   Json::Value yPoints(Json::arrayValue);
@@ -196,7 +196,7 @@ void visualize( double ymin, double ymax, double zmin, double zmax, unsigned int
   Json::Value Ex(Json::arrayValue);
   Json::Value Ey(Json::arrayValue);
   Json::Value Ez(Json::arrayValue);
-  for ( unsigned int i=0;i<nPoints*nPoints;i++ )
+  for ( unsigned int i=0;i<Ny*Nz;i++ )
   {
     yPoints.append( real(Xpoints.GetEntry(i,1)) );
     zPoints.append( real(Xpoints.GetEntry(i,2)) );
@@ -212,14 +212,15 @@ void visualize( double ymin, double ymax, double zmin, double zmax, unsigned int
   base["field"]["z"] = Ez;
   
   Json::FastWriter fw;
-  std::ofstream os("data/field.json");
+  std::ofstream os( fname );
   if ( !os.good() )
   {
-    std::cerr << "Error when opening file data/field.json\n";
+    std::cerr << "Error when opening file " << fname << std::endl;;
     return;
   }
   os << fw.write( base );
   os.close();
+  std::cout << "Data written to file " << fname << std::endl;
 }
       
       
@@ -238,7 +239,7 @@ int main(int argc, char **argv)
   HVector *rhsVec = geo.AllocateRHSVector();
 
   // Source definition
-  double sourcePosition[3] = {0.5,0.5,-2.0};
+  double sourcePosition[3] = {0.5,0.5,-5.0};
   double kHat[3] = {0.0,0.0,1.0};
   cdouble E0_s[3];
   E0_s[0].real(1.0);
@@ -442,8 +443,10 @@ int main(int argc, char **argv)
     // Output files currentry for the case 40 deg only
     if ( abs( theta - 40.0 ) < DOUBLE_COMPARISON_ZERO )
     {
+      double twoLambda = 2.0/ksource;
       std::cout << "Outputting field for visualisation..." << std::flush;
-      visualize( 0.0, 1.0, -1.0, 1.0, 4, geo, omega, kBloch, pw, *rhsVec );
+      visualize( 0.0, 1.0, 0.0-twoLambda, 0.0, 5, 8, geo, omega, kBloch, pw, *rhsVec, "data/fieldInc.json");
+      visualize( 0.0, 1.0, 0.0, twoLambda, 5, 8, geo, omega, kBloch, pw, *rhsVec, "data/fieldTrans.json");
       std::cout << " done\n" << std::flush;
     }
     // Solve for p polarisation
