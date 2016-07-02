@@ -19,6 +19,11 @@ enum class Polarisation_t{S, P};
 
 typedef std::complex<double> cdouble;
 
+/**
+* @brief Compute the p-polarised E field based on H=(Hx,Hy,Hz)=(1.0,0.0,0.0)
+* @param[in] kHat - unit vector in which the wave propagates
+* @param[out] E0 - p-polarised field amplitude
+*/
 void getE0_p( const double kHat[3], cdouble E0[3] )
 {
   // Assuming the H field is H=(Hx, Hy, Hz) = (1.0, 0.0, 0.0)
@@ -27,6 +32,11 @@ void getE0_p( const double kHat[3], cdouble E0[3] )
   E0[2] = kHat[1];
 }
 
+/**
+* @brief Computes the poytning vector
+* @param[in] EH  field components EH={Ex,Ey,Ez,Hx,Hy,Hz}
+* @param[out} poynting - the resulting time averaged Poynting vector
+*/
 void poyntingVector(const cdouble EH[6], double poynting[3])
 {
   const cdouble *E = EH;
@@ -36,11 +46,22 @@ void poyntingVector(const cdouble EH[6], double poynting[3])
   poynting[2] = 0.5*real(E[0]*std::conj(H[1]) - E[1]*std::conj(H[0]));
 }
 
+/**
+* @brief Computes the amplitude of a complex vector
+* @param[in] vec - complex vector 
+* @return Amplitude squared of vec
+*/
 double getAmplitude(const cdouble vec[3])
 {
   return pow(std::abs(vec[0]),2) + pow(std::abs(vec[1]),2) + pow(std::abs(vec[2]),2);
 }
 
+/**
+* @brief Computes the cross product between two vectors
+* @param[in] vec1 - first vector
+* @param[in] vec2 - second vector
+* @param[out] out = vec1 x vec2
+*/
 void cross(const double vec1[3], const double vec2[3], double out[3])
 {
   out[0] = vec1[1]*vec2[2] - vec1[2]*vec2[1];
@@ -48,12 +69,24 @@ void cross(const double vec1[3], const double vec2[3], double out[3])
   out[2] = vec1[0]*vec2[1] - vec1[1]*vec2[0];
 }
 
+/**
+* @brief Computes the angle of a vector with the z-axis
+* @param[in] vec
+* @return Angle with the z axis in degrees
+*/
 double angleWithZaxis(const double vec[3])
 {
   double amp = sqrt( vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2] );
   return std::acos(vec[2]/amp)*180.0/PI;
 }
 
+/**
+* @brief Computes the teoretical transmission angle
+* @param[in] angle - incident angle in radians
+* @param[in] n1 - refractive index in incident medium
+* @param[in] n2 - refractive index in transmission medium
+* @return Transmitted angle in radians
+*/
 double transmissionAngle( const double angle, double n1, double n2 )
 {
   double sinT = n1*std::sin(angle)/n2;
@@ -64,12 +97,24 @@ double transmissionAngle( const double angle, double n1, double n2 )
   return std::asin(sinT);
 }
 
+/**
+* @brief Computes the flux through plane surface
+* @param[in] poynting - poytning vector of wave
+* @param[in] nHat - unit normal vector of the surface
+* @return FLux through surface
+*/
 double flux(const double poynting[3], const double nHat[3])
 {
   return poynting[0]*nHat[0] + poynting[1]*nHat[1] + poynting[2]*nHat[2];
 }
   
 
+/**
+* @brief Computes cosine of angle between two vectors
+* @param[in] vec1 - first vector
+* @param[in] vec2 - second vector
+* @return Cosine of angle between vec1 and vec2
+*/
 double cosAlpha( const double vec1[3], const double vec2[3] )
 {
   double dotProd = 0.0;
@@ -86,11 +131,23 @@ double cosAlpha( const double vec1[3], const double vec2[3] )
   return dotProd/( absv1*absv2 );
 }  
 
+/**
+* @brief Check if two vectors are parallel
+* @param[in] vec1 - first vector
+* @param[in] vec2 - second vector
+* @return true if parallell, false if not
+*/
 bool isParalell( const double vec1[3], const double vec2[3] )
 {
   return abs( cosAlpha(vec1,vec2) - 1.0 ) < DOUBLE_COMPARISON_ZERO;
 }
 
+/**
+* @brief Check if two vectors are perpendicular
+* @param[in] vec1 - first vector
+* @param[in] vec2 - second vector
+* @return true if perpendicular, false if not
+*/
 bool isPerpendicular( const double vec1[3], const double vec2[3] )
 {
   return abs( cosAlpha(vec1,vec2) ) < DOUBLE_COMPARISON_ZERO;
