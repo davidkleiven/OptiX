@@ -249,14 +249,14 @@ int main(int argc, char **argv)
   E0_s[2].real(0.0);
   E0_s[2].imag(0.0);
   PlaneWave pw(E0_s, kHat);
-  double omega = 1.0;
+  double omega = 0.01;
   
   // Array for storing the fields EH={Ex,Ey,Ez,Hx,Hy,Hz}
   cdouble EHSource[6];
   cdouble EHMonitor[6];
 
   double theta = 0.0;
-  const double dtheta = 40.0;
+  const double dtheta = 5.0;
   const double thetamax = 89.0;
   Polarisation_t pol[2] = {Polarisation_t::S, Polarisation_t::P};
   double kBloch[2] = {0.0,0.0};
@@ -421,7 +421,7 @@ int main(int argc, char **argv)
     incFlux = fluxInt.incidentFlux( geo, pw, omega, kBloch );
     fluxInt.setZpos( monitorPosition[2] );
     transFlux = fluxInt.scatteredFlux( geo, *rhsVec, omega, kBloch );
-    std::cout << "Test flux: " << fluxInt.incidentFlux( geo, pw, omega, kBloch );
+    std::cout << "Test flux: " << fluxInt.incidentFlux( geo, pw, omega, kBloch ) << std::endl;
 
     #ifdef DEBUG
       std::cout << "Reflected z-flux integrated: " << refFlux << std::endl;
