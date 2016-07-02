@@ -157,17 +157,28 @@ bool isPerpendicular( const double vec1[3], const double vec2[3] )
 void visualize( double ymin, double ymax, double zmin, double zmax, unsigned int nPoints, scuff::RWGGeometry &geo, \
                 double omega, double kBloch[2], IncField &IF, HVector &rhs )
 {
+
+  // Fill LBV array
+  double LBV[2][3];
+  for ( unsigned int nd=0;nd<2;nd++ )
+  {
+    for ( unsigned int nc=0;nc<3;nc++ )
+    {
+      LBV[nd][nc] = geo.LBasis->GetEntryD(nc, nd);
+    }
+  }
+    
   // Fill evaluation points
   HMatrix Xpoints(nPoints*nPoints, 3);
   double z = zmin;
   double dz = (zmax-zmin)/static_cast<double>( nPoints );
   double dy = (ymax-ymin)/static_cast<double>( nPoints );
-  for ( unsigned int iz;iz<nPoints;iz++)
+  for ( unsigned int iz=0;iz<nPoints;iz++)
   {
     double y = ymin;
-    for ( unsigned int iy;iy<nPoints;iy++)
+    for ( unsigned int iy=0;iy<nPoints;iy++)
     {
-      Xpoints.SetEntry( iz*nPoints+iy, 0, 0.0);
+      Xpoints.SetEntry( iz*nPoints+iy, 0, 0.5);
       Xpoints.SetEntry( iz*nPoints+iy, 1, y );
       Xpoints.SetEntry( iz*nPoints+iy, 2, z );
       y += dy;
@@ -177,7 +188,7 @@ void visualize( double ymin, double ymax, double zmin, double zmax, unsigned int
   HMatrix field( nPoints*nPoints, 6, LHM_COMPLEX );
   
   // Get fields
-  geo.GetFields( &IF, &rhs, omega, kBloch, &Xpoints, &field );
+  geo.GetFields( &IF, NULL, omega, kBloch, &Xpoints, &field );
 
   // Copy evaluation points to Json array for easier output
   Json::Value yPoints(Json::arrayValue);
@@ -432,7 +443,7 @@ int main(int argc, char **argv)
     if ( abs( theta - 40.0 ) < DOUBLE_COMPARISON_ZERO )
     {
       std::cout << "Outputting field for visualisation..." << std::flush;
-      visualize( 0.0, 1.0, -1.0, 1.0, 10, geo, omega, kBloch, pw, *rhsVec );
+      visualize( 0.0, 1.0, -1.0, 1.0, 4, geo, omega, kBloch, pw, *rhsVec );
       std::cout << " done\n" << std::flush;
     }
     // Solve for p polarisation
