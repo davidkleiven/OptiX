@@ -29,17 +29,19 @@ int main(int argc, char **argv)
   PlaneWave pw(E0_s, kHat);
   double omega = 1.0;
   
-  double kBloch[2] = {0.0,0.0};
- 
-  // Assembling BEM matrix
+  // Setup the Bloch vector
+  double kBloch[2] = {0.0,0.0}; 
   double ksource = real(geo.RegionMPs[pw.RegionIndex]->GetRefractiveIndex(omega))*omega;
   kBloch[1] = ksource*sin(angle);
 
+  // Assembling BEM matrix
   geo.AssembleBEMMatrix(static_cast<cdouble>(omega), kBloch, matrix);
   matrix->LUFactorize();
 
-  // Solve for s polarisation
+  // Assemble the RHS vector
   geo.AssembleRHSVector(static_cast<cdouble>(omega), kBloch, &pw, rhsVec);
+
+  // Solve the system
   int info = matrix->LUSolve(rhsVec);
 
   // Fill evaluation points
