@@ -13,3 +13,14 @@ FDTD simulations of optical phenomena
 * Jsoncpp *-ljsoncpp* <https://github.com/open-source-parsers/jsoncpp>
 * MEEP *-lmeep* <http://ab-initio.mit.edu/wiki/index.php/Meep>  
 * C math library *-lm*
+
+# Python visualisation
+The plots are generated using [matplotlib](http://matplotlib.org/) and [Mayavi](http://docs.enthought.com/mayavi/mayavi/).
+When using Mayavi on Unix system errors concerning the use of wx occure (at least it did do me).
+This was fixed by changing the backend to qt4 by typing
+
+```bash
+export ETS_TOOLKIT=qt4
+```
+
+in the command line. This may be added to the *.profile* for permanent change.
