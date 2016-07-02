@@ -7,6 +7,7 @@
 #include <fstream>
 #include <string>
 #include <cassert>
+#include <set>
 #include "FluxIntegrator.h"
 #define DEBUG
 //#define PRINT_BEM_MATRIX
@@ -153,6 +154,65 @@ bool isPerpendicular( const double vec1[3], const double vec2[3] )
   return abs( cosAlpha(vec1,vec2) ) < DOUBLE_COMPARISON_ZERO;
 }
 
+void visualize( double ymin, double ymax, double zmin, double zmax, unsigned int nPoints, scuff::RWGGeometry &geo, \
+                double omega, double kBloch[2], IncField &IF, HVector &rhs )
+{
+  // Fill evaluation points
+  HMatrix Xpoints(nPoints*nPoints, 3);
+  double z = zmin;
+  double dz = (zmax-zmin)/static_cast<double>( nPoints );
+  double dy = (ymax-ymin)/static_cast<double>( nPoints );
+  for ( unsigned int iz;iz<nPoints;iz++)
+  {
+    double y = ymin;
+    for ( unsigned int iy;iy<nPoints;iy++)
+    {
+      Xpoints.SetEntry( iz*nPoints+iy, 0, 0.0);
+      Xpoints.SetEntry( iz*nPoints+iy, 1, y );
+      Xpoints.SetEntry( iz*nPoints+iy, 2, z );
+      y += dy;
+    }
+    z += dz;
+  }
+  HMatrix field( nPoints*nPoints, 6, LHM_COMPLEX );
+  
+  // Get fields
+  geo.GetFields( &IF, &rhs, omega, kBloch, &Xpoints, &field );
+
+  // Copy evaluation points to Json array for easier output
+  Json::Value yPoints(Json::arrayValue);
+  Json::Value zPoints(Json::arrayValue);
+  Json::Value Ex(Json::arrayValue);
+  Json::Value Ey(Json::arrayValue);
+  Json::Value Ez(Json::arrayValue);
+  for ( unsigned int i=0;i<nPoints*nPoints;i++ )
+  {
+    yPoints.append( real(Xpoints.GetEntry(i,1)) );
+    zPoints.append( real(Xpoints.GetEntry(i,2)) );
+    Ex.append( real(field.GetEntry(i,0)) );
+    Ey.append( real(field.GetEntry(i,1)) );
+    Ez.append( real(field.GetEntry(i,2)) );
+  }
+  Json::Value base;
+  base["points"]["y"] = yPoints;
+  base["points"]["z"] = zPoints;
+  base["field"]["x"] = Ex;
+  base["field"]["y"] = Ey;
+  base["field"]["z"] = Ez;
+  
+  Json::FastWriter fw;
+  std::ofstream os("data/field.json");
+  if ( !os.good() )
+  {
+    std::cerr << "Error when opening file data/field.json\n";
+    return;
+  }
+  os << fw.write( base );
+  os.close();
+}
+      
+      
+  
 int main(int argc, char **argv)
 {
   scuff::RWGGeometry::AssignBasisFunctionsToExteriorEdges=false;
@@ -368,6 +428,13 @@ int main(int argc, char **argv)
     reflectionPhase_s.append( std::arg( EHSource[0]/EHInc[0] ) );
     transmissionPhase_s.append( std::arg( EHMonitor[0]/EHInc[0] ) );
     
+    // Output files currentry for the case 40 deg only
+    if ( abs( theta - 40.0 ) < DOUBLE_COMPARISON_ZERO )
+    {
+      std::cout << "Outputting field for visualisation..." << std::flush;
+      visualize( 0.0, 1.0, -1.0, 1.0, 10, geo, omega, kBloch, pw, *rhsVec );
+      std::cout << " done\n" << std::flush;
+    }
     // Solve for p polarisation
     std::cout << "***p-polarisation\n";
     cdouble E0_p[3];
