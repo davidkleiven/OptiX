@@ -10,9 +10,9 @@ SUBDIR="WithEps"
 POLARISATIONS=["s", "p"]
 
 def transmissionAngle(theta, n1, n2):
-    cosAngle = np.sqrt( 1.0 - (n1*np.sin(theta)/n2)**2)
-    if ( np.abs(cosAngle) > 1.0 ):
-        return np.pi/2.0
+    sqrtArg = 1.0 - (n1*np.sin(theta)/n2)**2
+    sqrtArg[sqrtArg < 0.0] = 0.0
+    cosAngle = np.sqrt( sqrtArg )
     return np.arccos( cosAngle ) 
 
 def Rs(theta, n1, n2):
