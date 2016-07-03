@@ -7,6 +7,7 @@ mpl.rcParams.update(mplLaTeX.params)
 import numpy as np
 from matplotlib import pyplot as plt
 import json
+import computeReflectionAngle as cra
 
 def main(argv):
     if ( len(argv) != 1 ):
@@ -37,7 +38,7 @@ def main(argv):
     ax.plot( data["IncidentAngle"], data["FluxReflected"]["s"], 'o', ms=2, color='black', fillstyle='none', label="$R_\mathrm{s}$")
     ax.plot( data["IncidentAngle"], data["FluxReflected"]["p"], 'x', ms=2, color='black', label="$R_\mathrm{p}$" )
     ax.plot( data["IncidentAngle"], data["FluxTransmitted"]["s"], '^', ms=2, color='black', label="$T_\mathrm{s}$")
-    ax.plot( data["IncidentAngle"], data["FluxTransmitted"]["p"], '.', ms=2, color='black', label="$T_\mathrm{p}$")
+    ax.plot( data["IncidentAngle"], data["FluxTransmitted"]["p"], '.', ms=4, color='black', label="$T_\mathrm{p}$")
     ax.plot(angle, pf.Rs(angle, n1, n2), color='black')
     ax.plot(angle, pf.Rp(angle, n1, n2), color='black')
     ax.plot(angle, pf.Tp(angle, n1, n2), color='black')
@@ -49,6 +50,31 @@ def main(argv):
     fig.savefig( fname, bbox_inches="tight" )
     print ("Figure written to %s"%(fname))
 
+    # Plot relative error
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    simulatedAngles = np.array( data["IncidentAngle"] )
+    brewster = cra.brewster(n1,n2)*180.0/np.pi
+    Rs = pf.Rs(simulatedAngles, n1, n2)
+    Rp = pf.Rp(simulatedAngles, n1, n2)
+    Ts = pf.Ts(simulatedAngles, n1, n2)
+    Tp = pf.Tp(simulatedAngles, n1, n2)
+    errorRs = np.abs( np.array(data["FluxReflected"]["s"]) - Rs)/Rs
+    errorRp = np.abs(np.array(data["FluxReflected"]["p"]) - Rp)/Rp
+    errorTs = np.abs( np.array(data["FluxTransmitted"]["s"]) - Ts )/Ts
+    errorTp = np.abs( np.array(data["FluxTransmitted"]["p"]) - Tp )/Tp
+    ax.plot( simulatedAngles, errorRs, 'o', ms=2, color='black', fillstyle='none', label="$R_\mathrm{s}$" )
+    ax.plot( simulatedAngles, errorRp, 'x', ms=2, color='black', label="$R_\mathrm{p}$")
+    ax.plot( simulatedAngles, errorTs, '^', ms=2, color="black", label="$T_\mathrm{s}$")
+    ax.plot( simulatedAngles, errorTp, '.', ms=4, color="black", label="$T_\mathrm{p}$")
+    ax.axvline( brewster, color='black' )
+    ax.set_xlabel( "Incident angle (deg)" )
+    ax.set_ylabel( "Relative error" )
+    ax.set_yscale('log')
+    ax.legend( loc='lower right', frameon=False )
+    fname = "Figures/powerCoefficientsError.pdf"
+    fig.savefig( fname, bbox_inches="tight" )
+    print ( "Figure written to %s"%( fname ))
 if __name__ == '__main__':
     main(sys.argv[1:] )
     
