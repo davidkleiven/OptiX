@@ -1,0 +1,9 @@
+square.msh
+obj/*
+*.log
+data
+Figures/*
+.libs
+halfspace.byKN
+*.transmission
+scuff-transmission
