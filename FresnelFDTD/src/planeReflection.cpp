@@ -54,6 +54,36 @@ complex<double> amplitude(const meep::vec &pos)
   return exp(IMAG_UNIT*KX*pos.x());
 }
 
+void convertHDF5toPng( const string& h5file, const string& pngfile )
+{
+  string cmd("h5topng -S3 -Zc dkbluered -a yarg -A eps-000000.00.h5");
+  cmd += h5file;
+  FILE* pipe = popen( cmd.c_str(), "r" );
+  char buffer[128];
+  string result("");
+  if ( !pipe )
+  {
+    cerr << "Could not open pipe\n";
+    return;
+  }
+  try
+  {
+    while( !feof(pipe) )
+    {
+      if( fgets( buffer, 128, pipe ) != NULL )
+      {
+        result += buffer;
+      }
+    }
+  }
+  catch(...)
+  {
+    pclose( pipe );
+    return;
+  }
+  pclose(pipe);
+}
+
 //----------------- MAIN FUNCTION ----------------------------//
 int main(int argc, char **argv)
 {
@@ -62,10 +92,12 @@ int main(int argc, char **argv)
   meep::initialize mpi(argc, argv);
 
   // Read command line arguments
-  if ( argc != 8 )
+  if (( argc != 8 ) && ( argc != 9 ))
   {
-    cout << id << "Usage: ./planeReflection.out <out directory> <epsInScattered> <incidend angle> <polarization> <relBandwidth>";
-    cout << id << "<number of frequencies> <resolution>\n";
+    cout << id << "Two usages of this file:\n";
+    cout << id << "Option 1: For running simulations\n";
+    cout << id << "Usage: ./planeReflection.out <out directory> <epsInScattered> <incident angle> <polarization> <relBandwidth>";
+    cout << id << "<number of frequencies> <resolution> <visualize>\n";
     cout << id << "The following arguments were given:\n";
     for ( unsigned int i=0;i<argc;i++ )
     {
@@ -74,7 +106,7 @@ int main(int argc, char **argv)
     }
     return 1;
   }
-
+    
   const char* OUTDIR = argv[1];
   stringstream ss;
   ss << argv[2];
@@ -94,6 +126,11 @@ int main(int argc, char **argv)
   ss << argv[6];
   ss >> nfreq;
 
+  bool outputimages = false;
+  if ( argc == 9 )
+  {
+    outputimages = true;
+  }
 
   // Check that angle is within range
   const double maxAngle = 90.0;
@@ -218,6 +255,7 @@ int main(int argc, char **argv)
   }
   field.set_output_directory(OUTDIR); 
 
+  unsigned int currentPngFile = 0;
   while ( field.time() < tEnd )
   {
     field.step();
@@ -230,6 +268,21 @@ int main(int argc, char **argv)
     fieldReflectionReal.append( real(fieldAmpRefl) );
     timepoints.append( field.time() );
 
+    // Output images if present
+    if ( outputimages )
+    { 
+      if ( field.time() > nextOutputTime )
+      {
+        string h5filename("visualize.h5");
+        stringstream pngfile;
+        meep::h5file* file = field.open_h5file(h5filename.c_str());
+        pngfile << OUTDIR << "visualize" << currentPngFile++ << ".png";
+        field.output_hdf5( fieldComp, vol.surroundings(), file );
+        delete file;
+        convertHDF5toPng( h5filename, pngfile.str() );
+      }
+    } 
+    
     #ifdef OUTPUT_HDF5
       if ( field.time() > nextOutputTime )
       {
