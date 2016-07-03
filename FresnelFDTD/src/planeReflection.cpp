@@ -54,9 +54,13 @@ complex<double> amplitude(const meep::vec &pos)
   return exp(IMAG_UNIT*KX*pos.x());
 }
 
-void convertHDF5toPng( const string& h5file, const string& pngfile )
+void convertHDF5toPng( const string& h5file, const string& pngfile, const string& epsfile )
 {
-  string cmd("h5topng -S3 -Zc dkbluered -a yarg -A eps-000000.00.h5");
+  string cmd("h5topng -S3 -Zc dkbluered -m -1.0 -M 1.0 -a yarg -A ");
+  cmd += epsfile;
+  cmd += " -o ";
+  cmd += pngfile;
+  cmd += " ";
   cmd += h5file;
   FILE* pipe = popen( cmd.c_str(), "r" );
   char buffer[128];
@@ -92,12 +96,14 @@ int main(int argc, char **argv)
   meep::initialize mpi(argc, argv);
 
   // Read command line arguments
-  if (( argc != 8 ) && ( argc != 9 ))
+  if (( argc != 8 ) && ( argc != 7 ))
   {
     cout << id << "Two usages of this file:\n";
     cout << id << "Option 1: For running simulations\n";
-    cout << id << "Usage: ./planeReflection.out <out directory> <epsInScattered> <incident angle> <polarization> <relBandwidth>";
-    cout << id << "<number of frequencies> <resolution> <visualize>\n";
+    cout << id << "Usage: ./planeReflection.out <out directory> <epsInScattered> <incident angle> <polarization> <relBandwidth>\n";
+    cout << id << "<number of frequencies> <resolution>\n";
+    cout << id << "Option 2: ./planeReflection <out directory> <epsInScattered> <incident angle> <polarization> <relBandWidth>\n";
+    cout << id << "<resolution>\n";
     cout << id << "The following arguments were given:\n";
     for ( unsigned int i=0;i<argc;i++ )
     {
@@ -127,7 +133,7 @@ int main(int argc, char **argv)
   ss >> nfreq;
 
   bool outputimages = false;
-  if ( argc == 9 )
+  if ( argc == 7 )
   {
     outputimages = true;
   }
@@ -229,15 +235,16 @@ int main(int argc, char **argv)
 
   double tEnd = timeToRegisterFourier > tPropagate ? timeToRegisterFourier:tPropagate;
 
-  unsigned int nOut = 80; // Number of output files
+  unsigned int nOut = 10; // Number of output files
   double dt = tEnd/nOut;
   double nextOutputTime = 0.0;
   string fluxXFname("fluxYReflected");
 
   string outdir(OUTDIR);
-  if ( outdir.find("bkg") == string::npos )
+  if (( outdir.find("bkg") == string::npos ) && !outputimages)
   {
-    // Did not find bkg in the directory name. Reading background flux from file
+    // Did not find bkg in the directory name. And the run is not for just producing images for visualization
+    //Reading background flux from file
     // Load and subtract off the background fields
     string loadFname = "dataPlane/"+fluxXFname+".h5";
     // Check if the file can be accessed by trying to open it
@@ -273,13 +280,19 @@ int main(int argc, char **argv)
     { 
       if ( field.time() > nextOutputTime )
       {
-        string h5filename("visualize.h5");
+        string h5filename("visualize");
         stringstream pngfile;
         meep::h5file* file = field.open_h5file(h5filename.c_str());
-        pngfile << OUTDIR << "visualize" << currentPngFile++ << ".png";
+        string odir(OUTDIR);
+        h5filename=odir+"/"+h5filename+".h5";
+        pngfile << OUTDIR << "/visualize" << currentPngFile++ << ".png";
         field.output_hdf5( fieldComp, vol.surroundings(), file );
         delete file;
-        convertHDF5toPng( h5filename, pngfile.str() );
+
+        string epsfile(OUTDIR);
+        epsfile += "/eps-000000.00.h5";
+        convertHDF5toPng( h5filename, pngfile.str(), epsfile );
+        nextOutputTime += dt;
       }
     } 
     
