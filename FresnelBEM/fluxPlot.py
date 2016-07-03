@@ -9,6 +9,24 @@ from matplotlib import pyplot as plt
 import json
 import computeReflectionAngle as cra
 
+def plotError( angle, error_rs, error_rp, error_ts, error_tp, brewster, fname ):
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+
+    ax.plot( angle, error_rs, 'o', ms=2, color='black', fillstyle='none', label="$R_\mathrm{s}$" )
+    ax.plot( angle, error_rp, 'x', ms=2, color='black', label="$R_\mathrm{p}$")
+    ax.plot( angle, error_ts, '^', ms=2, color="black", label="$T_\mathrm{s}$")
+    ax.plot( angle, error_tp, '.', ms=4, color="black", label="$T_\mathrm{p}$")
+    ax.set_ylim( 1E-11, 1E-1 )
+    ax.axvline( brewster, color='black', ls="dotted" )
+    ax.text( brewster+1, 1E-8, "Brewster", rotation=-90 )
+    ax.set_xlabel( "Incident angle (deg)" )
+    ax.set_ylabel( "Relative error" )
+    ax.set_yscale('log')
+    ax.legend( loc='lower right', frameon=False )
+    fig.savefig( fname, bbox_inches="tight" )
+    print ( "Figure written to %s"%( fname ))
+
 def main(argv):
     if ( len(argv) != 1 ):
         print ("Usage: python fluxPlot.py <datafile.json>")
@@ -51,8 +69,6 @@ def main(argv):
     print ("Figure written to %s"%(fname))
 
     # Plot relative error
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
     simulatedAngles = np.array( data["IncidentAngle"] )
     brewster = cra.brewster(n1,n2)*180.0/np.pi
     Rs = pf.Rs(simulatedAngles, n1, n2)
@@ -63,20 +79,8 @@ def main(argv):
     errorRp = np.abs(np.array(data["FluxReflected"]["p"]) - Rp)/Rp
     errorTs = np.abs( np.array(data["FluxTransmitted"]["s"]) - Ts )/Ts
     errorTp = np.abs( np.array(data["FluxTransmitted"]["p"]) - Tp )/Tp
-    ax.plot( simulatedAngles, errorRs, 'o', ms=2, color='black', fillstyle='none', label="$R_\mathrm{s}$" )
-    ax.plot( simulatedAngles, errorRp, 'x', ms=2, color='black', label="$R_\mathrm{p}$")
-    ax.plot( simulatedAngles, errorTs, '^', ms=2, color="black", label="$T_\mathrm{s}$")
-    ax.plot( simulatedAngles, errorTp, '.', ms=4, color="black", label="$T_\mathrm{p}$")
-    ax.set_ylim( 1E-11, 1E-1 )
-    ax.axvline( brewster, color='black', ls="dotted" )
-    ax.text( brewster+1, 1E-8, "Brewster", rotation=-90 )
-    ax.set_xlabel( "Incident angle (deg)" )
-    ax.set_ylabel( "Relative error" )
-    ax.set_yscale('log')
-    ax.legend( loc='lower right', frameon=False )
-    fname = "Figures/powerCoefficientsError.pdf"
-    fig.savefig( fname, bbox_inches="tight" )
-    print ( "Figure written to %s"%( fname ))
+    plotError( simulatedAngles, errorRs, errorRp, errorTs, errorTp, brewster, "Figures/powerCoefficientsError.pdf" )
+    
 if __name__ == '__main__':
     main(sys.argv[1:] )
     

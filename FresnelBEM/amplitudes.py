@@ -7,6 +7,8 @@ import numpy as np
 from matplotlib import pyplot as plt
 import json
 import plotFieldCoeff as pfc
+import fluxPlot as fp
+import computeReflectionAngle as cra
 
 def main(argv):
     if ( len(argv) != 1 ):
@@ -40,7 +42,7 @@ def main(argv):
 
     ax.plot( data["IncidentAngle"], data["AmplitudeReflected"]["p"], 'x', ms=2, color='black', label="$|r_\mathrm{p}|^2$" )
     ax.plot( data["IncidentAngle"], data["AmplitudeTransmitted"]["s"], '^', ms=2, color='black', label="$|t_\mathrm{s}|^2$" )
-    ax.plot( data["IncidentAngle"], data["AmplitudeTransmitted"]["p"], '.', ms=2, color='black', label="$|t_\mathrm{p}|^2$" )
+    ax.plot( data["IncidentAngle"], data["AmplitudeTransmitted"]["p"], '.', ms=4, color='black', label="$|t_\mathrm{p}|^2$" )
 
     # Plot exact values
     angle = np.linspace(0.0, 90.0, 101)
@@ -55,6 +57,21 @@ def main(argv):
     fname = "Figures/amplitudes.pdf"
     fig.savefig( fname, bbox_inches="tight" )
     print ("Figure written to %s"%(fname ))
+
+    # Plot error
+    simAngle = np.array( data["IncidentAngle"] )
+    rssq = pfc.rs(simAngle, n1, n2)**2
+    rpsq = pfc.rp(simAngle, n1, n2)**2
+    tssq = pfc.ts(simAngle, n1, n2)**2
+    tpsq = pfc.tp(simAngle, n1, n2)**2
+
+    brewster = cra.brewster(n1,n2)*180.0/np.pi
+    error_rs = np.abs( np.array(data["AmplitudeReflected"]["s"])-rssq )/rssq
+    error_rp = np.abs( np.array(data["AmplitudeReflected"]["p"])-rpsq )/rpsq
+    error_ts = np.abs( np.array(data["AmplitudeTransmitted"]["s"])-tssq )/tssq
+    error_tp = np.abs( np.array(data["AmplitudeTransmitted"]["p"])-tpsq )/tpsq
+    
+    fp.plotError( simAngle, error_rs, error_rp, error_ts, error_tp, brewster, "Figures/amplitudesError.pdf" )
     
 if __name__ == '__main__':
     main(sys.argv[1:])
