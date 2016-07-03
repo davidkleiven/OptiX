@@ -41,7 +41,7 @@ def main(argv):
 
     theta = np.linspace(0.0, 90.0, 101)
     n1 = 1.0
-    n2 = 1.5
+    n2 = 0.99999
     ax.plot(theta, Rs(theta, n1, n2), color='black')
     ax.plot(theta, Rp(theta, n1, n2), color='black')
     ax.plot(theta, Ts(theta, n1, n2), color='black')
