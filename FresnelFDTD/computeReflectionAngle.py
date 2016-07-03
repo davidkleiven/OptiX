@@ -27,7 +27,9 @@ def expectedPhase(freq, fcenter, thetaCenter, distanceFromPlane):
     return 2.0*np.pi*2.0*distanceFromPlane*np.sqrt( sqrtArg )
  
 def transmissionAngle( n1, n2, theta_in ):
-    return np.arcsin( n1*np.sin(theta_in)/n2 )
+    sinTheta = n1*np.sin(theta_in)/n2 
+    sinTheta[ np.abs(sinTheta) > 1.0 ] = 1.0
+    return np.arcsin( sinTheta)
 
 def expectedTransmissionPathTime(n1, n2, theta_i, distanceYFromSlab):
     theta_t = transmissionAngle( n1, n2, theta_i )
