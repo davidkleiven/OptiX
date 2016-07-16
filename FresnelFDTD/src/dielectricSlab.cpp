@@ -98,3 +98,9 @@ void DielectricSlab::output_hdf5( meep::component comp )
   
   field->output_hdf5( comp, vol.surroundings() );
 }
+
+void DielectricSlab::output_hdf5( meep::component comp, meep::h5file *file )
+{
+  if ( field == NULL ) return;
+  field->output_hdf5( comp, vol.surroundings(), file );
+} 

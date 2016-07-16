@@ -28,6 +28,7 @@ public:
   inline double getEpsLow() const {return epslow;};
   inline double getEpsHigh() const {return epshigh;};
   void output_hdf5( meep::component comp );
+  void output_hdf5( meep::component comt, meep::h5file* file ); 
 private:
   meep::grid_volume vol;
   meep::volume *sourcevol;
