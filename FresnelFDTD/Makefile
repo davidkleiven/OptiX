@@ -30,9 +30,11 @@ fourierPulse.out: ${ODIR}/fourierPulse.o ${ODIR}/readCSVdata.o
 transmittanceAngle.out: ${ODIR}/transmittanceAngle.o ${ODIR}/readCSVdata.o
 	$(CXX) -o $@ $^
 
+visualizePlane.out: obj/visualizePlane.o obj/dielectricSlab.o
+	$(CXX) -o $@ $^ -L $(MEEP_LDIR) -L $(HDF5_LDIR) $(STATIC_LIBS) $(SHARED_LIBS)
+
 $(ODIR)/%.o: $(SDIR)/%.cpp
 	$(CXX) -MMD -c -fPIC $< -o $@ -I $(IDIR) -I $(MEEP_IDIR)
-
 
 clean:
 	rm ${ODIR}/*.o
