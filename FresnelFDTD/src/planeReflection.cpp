@@ -144,30 +144,10 @@ int main(int argc, char **argv)
     return 1;
   }
     
-  /*
-  // Initialize computational cell
-  meep::grid_volume vol = meep::vol2d(PlaneWave::XSIZE, PlaneWave::YSIZE, resolution);
-
-  // Add line source to get plane wave
-  meep::vec srcCorner1(0.0, PlaneWave::SOURCE_Y);
-  meep::vec srcCorner2(PlaneWave::XSIZE, PlaneWave::SOURCE_Y);
-  meep::volume srcvol(srcCorner1, srcCorner2);
-
-  // Initalize structure. Add PML in y-direction
-  meep::structure srct(vol, PlaneWave::dielectric, meep::pml( PlaneWave::PML_THICK, meep::Y ) );
-
-  //srct.Courant = 0.1;
-  meep::fields field(&srct);
-  field.use_bloch( meep::X, PlaneWave::KX/(2.0*PlaneWave::PI) ); // MEEP leaves out the factor 2pi (k = 1/lambda)
-  */
   geometry.getField().set_output_directory(OUTDIR);
   
   // Write dielectric function to file
   geometry.output_hdf5( meep::Dielectric ); 
-
-  // Set source type. Use Gaussian, had some problems with the continous
-
-  //geometry.addSourceVol( src, fieldComp );
 
   // Add DFT fluxplane
   const double fluxPlanePosY = 0.5*(geometry.getYcPlane() + geometry.getPMLThickness());
