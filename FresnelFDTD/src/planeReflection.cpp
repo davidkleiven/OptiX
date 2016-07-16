@@ -11,6 +11,7 @@
 #include <stdexcept>
 #include "sincSrc.h"
 #include <jsoncpp/json/writer.h>
+#include "dielectricSlab.h"
 #define ODIRLEN 60
 //#define OUTPUT_HDF5
 
@@ -26,68 +27,7 @@
 */
 using namespace std;
 
-const double EPS_LOW = 1.0;
-double EPS_HIGH = 1.0;
-
-const double XSIZE = 5.0;
-const double YSIZE = 18.0;
-const double PML_THICK = 3.0;
-const double SOURCE_Y = YSIZE-PML_THICK - 1.0;
-const double YC_PLANE = YSIZE/2.0;
-//const double YC_PLANE = PML_THICK+1.0;
 const double PI = acos(-1.0);
-const complex<double> IMAG_UNIT(0,1.0);
-const unsigned int NSTEPS = 20;
-double KX = 1.0;
-
-double dielectric(const meep::vec &pos)
-{
-  if ( pos.y() < YC_PLANE )
-  {
-    return EPS_HIGH;
-  }
-  return EPS_LOW;
-}
-
-complex<double> amplitude(const meep::vec &pos)
-{
-  return exp(IMAG_UNIT*KX*pos.x());
-}
-
-void convertHDF5toPng( const string& h5file, const string& pngfile, const string& epsfile )
-{
-  string cmd("h5topng -S3 -Zc dkbluered -m -1.0 -M 1.0 -a yarg -A ");
-  cmd += epsfile;
-  cmd += " -o ";
-  cmd += pngfile;
-  cmd += " ";
-  cmd += h5file;
-  FILE* pipe = popen( cmd.c_str(), "r" );
-  char buffer[128];
-  string result("");
-  if ( !pipe )
-  {
-    cerr << "Could not open pipe\n";
-    return;
-  }
-  try
-  {
-    while( !feof(pipe) )
-    {
-      if( fgets( buffer, 128, pipe ) != NULL )
-      {
-        result += buffer;
-      }
-    }
-  }
-  catch(...)
-  {
-    pclose( pipe );
-    return;
-  }
-  pclose(pipe);
-}
-
 //----------------- MAIN FUNCTION ----------------------------//
 int main(int argc, char **argv)
 {
@@ -96,14 +36,11 @@ int main(int argc, char **argv)
   meep::initialize mpi(argc, argv);
 
   // Read command line arguments
-  if (( argc != 8 ) && ( argc != 7 ))
+  if ( argc != 8 )
   {
     cout << id << "Two usages of this file:\n";
-    cout << id << "Option 1: For running simulations\n";
     cout << id << "Usage: ./planeReflection.out <out directory> <epsInScattered> <incident angle> <polarization> <relBandwidth>\n";
     cout << id << "<number of frequencies> <resolution>\n";
-    cout << id << "Option 2: ./planeReflection <out directory> <epsInScattered> <incident angle> <polarization> <relBandWidth>\n";
-    cout << id << "<resolution>\n";
     cout << id << "The following arguments were given:\n";
     for ( unsigned int i=0;i<argc;i++ )
     {
@@ -114,9 +51,10 @@ int main(int argc, char **argv)
   }
     
   const char* OUTDIR = argv[1];
+  double epshigh;
   stringstream ss;
   ss << argv[2];
-  ss >> EPS_HIGH;
+  ss >> epshigh;
   ss.clear();
   ss << argv[3];
   double angle;
@@ -131,12 +69,6 @@ int main(int argc, char **argv)
   ss.clear();
   ss << argv[6];
   ss >> nfreq;
-
-  bool outputimages = false;
-  if ( argc == 7 )
-  {
-    outputimages = true;
-  }
 
   // Check that angle is within range
   const double maxAngle = 90.0;
@@ -169,65 +101,69 @@ int main(int argc, char **argv)
   double freq = 0.3;
   double fwidth = freq*relFwidth;
 
+  // Initialize geometry
+  DielectricSlab geometry(resolution);
+  geometry.setEpsHigh(epshigh);
+
   // Compute kx
   double k = 2.0*PI*freq;
-  KX = k*sin( angle*PI/180.0 );
+  geometry.setKx( k*sin( angle*PI/180.0 ) );
 
-  const double minHeight = 2.0*PML_THICK + 4.0;
+  const double minHeight = 2.0*geometry.getPMLThickness() + 4.0;
 
   // Verify that the size of the domain is big enough (for debugging only)
-  assert ( YSIZE > minHeight );
+  assert ( geometry.getYsize() > minHeight );
   
-
-  // Initialize computational cell
-  meep::grid_volume vol = meep::vol2d(XSIZE, YSIZE, resolution);
-
-  // Add line source to get plane wave
-  meep::vec srcCorner1(0.0, SOURCE_Y);
-  meep::vec srcCorner2(XSIZE, SOURCE_Y);
-  meep::volume srcvol(srcCorner1, srcCorner2);
-
-  // Initalize structure. Add PML in y-direction
-  meep::structure srct(vol, dielectric, meep::pml( PML_THICK, meep::Y ) );
-
-  //srct.Courant = 0.1;
-  meep::fields field(&srct);
-  field.use_bloch( meep::X, KX/(2.0*PI) ); // MEEP leaves out the factor 2pi (k = 1/lambda)
-  field.set_output_directory(OUTDIR); 
+  // Initialize
+  meep::gaussian_src_time src(freq, fwidth);
+  meep::component fieldComp;
+  try
+  {
+    geometry.addSourceVol();
+    geometry.addStructure();
+    geometry.addField();
+    
+    if ( polarization == 's' )
+    {
+      fieldComp = meep::Ez;
+    }
+    else
+    {
+      fieldComp = meep::Hz;
+    }
+    geometry.addSource( src, fieldComp );
+  }
+  catch ( std::logic_error &exc )
+  {
+    cout << exc.what() << endl;
+    return 1;
+  }
+  catch (...)
+  {
+    cout << "An unexpected exception occured...";
+    return 1;
+  }
+    
+  geometry.getField().set_output_directory(OUTDIR);
   
   // Write dielectric function to file
-  field.output_hdf5(meep::Dielectric, vol.surroundings()); 
-
-  // Set source type. Use Gaussian, had some problems with the continous
-  meep::gaussian_src_time src(freq, fwidth);
-  
-  meep::component fieldComp;
-  if ( polarization == 's' )
-  {
-    fieldComp = meep::Ez;
-  }
-  else
-  {
-    fieldComp = meep::Hz;
-  }
-
-  field.add_volume_source(fieldComp, src, srcvol, amplitude);
+  geometry.output_hdf5( meep::Dielectric ); 
 
   // Add DFT fluxplane
-  const double fluxPlanePosY = 0.5*(YC_PLANE + PML_THICK);
-  const double fluxRefPlanePosY = 0.5*(YC_PLANE + SOURCE_Y);
-  meep::volume dftVol = meep::volume(meep::vec(0.0,fluxPlanePosY), meep::vec(XSIZE-1.0,fluxPlanePosY));
-  meep::volume dftVolR = meep::volume(meep::vec(0.0,fluxRefPlanePosY), meep::vec(XSIZE-1.0,fluxRefPlanePosY)); 
-  meep::dft_flux transFluxY = field.add_dft_flux_plane(dftVol, freq-fwidth/2.0, freq+fwidth/2.0, nfreq);
-  meep::dft_flux fluxYReflected = field.add_dft_flux_plane(dftVolR, freq-fwidth/2.0, freq+fwidth/2.0, nfreq); 
+  const double fluxPlanePosY = 0.5*(geometry.getYcPlane() + geometry.getPMLThickness());
+  const double fluxRefPlanePosY = 0.5*(geometry.getYcPlane() + geometry.getSourceY());
+  meep::volume dftVol = meep::volume(meep::vec(0.0,fluxPlanePosY), meep::vec(geometry.getXsize()-1.0,fluxPlanePosY));
+  meep::volume dftVolR = meep::volume(meep::vec(0.0,fluxRefPlanePosY), meep::vec(geometry.getXsize()-1.0,fluxRefPlanePosY)); 
+  meep::dft_flux transFluxY = geometry.getField().add_dft_flux_plane(dftVol, freq-fwidth/2.0, freq+fwidth/2.0, nfreq);
+  meep::dft_flux fluxYReflected = geometry.getField().add_dft_flux_plane(dftVolR, freq-fwidth/2.0, freq+fwidth/2.0, nfreq); 
 
   Json::Value fieldTransmittedReal(Json::arrayValue);
   Json::Value fieldReflectionReal(Json::arrayValue);
   Json::Value timepoints(Json::arrayValue);
 
   // Time required to propagate over the domain with the slowest speed
-  double speed = 1.0/sqrt(EPS_HIGH);
-  double tPropagate = field.last_source_time() + 1.2*SOURCE_Y/speed;
+  double speed = 1.0/sqrt(geometry.getEpsHigh());
+  double tPropagate = geometry.getField().last_source_time() + 1.2*geometry.getYsize()/speed;
 
   // Main loop.
   double transYWidth = abs( dftVol.get_max_corner().x() - dftVol.get_min_corner().x() );
@@ -235,13 +171,13 @@ int main(int argc, char **argv)
 
   double tEnd = timeToRegisterFourier > tPropagate ? timeToRegisterFourier:tPropagate;
 
-  unsigned int nOut = 700; // Number of output files
+  unsigned int nOut = 10; // Number of output files
   double dt = tEnd/nOut;
   double nextOutputTime = 0.0;
   string fluxXFname("fluxYReflected");
 
   string outdir(OUTDIR);
-  if (( outdir.find("bkg") == string::npos ) && !outputimages)
+  if ( outdir.find("bkg") == string::npos ) 
   {
     // Did not find bkg in the directory name. And the run is not for just producing images for visualization
     //Reading background flux from file
@@ -256,63 +192,41 @@ int main(int argc, char **argv)
     }
     in.close();
 
-    field.set_output_directory("dataPlane");
-    fluxYReflected.load_hdf5(field, fluxXFname.c_str());  
+    geometry.getField().set_output_directory("dataPlane");
+    fluxYReflected.load_hdf5(geometry.getField(), fluxXFname.c_str());  
     fluxYReflected.scale_dfts(-1.0);
   }
-  field.set_output_directory(OUTDIR); 
+  geometry.getField().set_output_directory(OUTDIR); 
 
-  unsigned int currentPngFile = 0;
-  while ( field.time() < tEnd )
+  while ( geometry.getField().time() < tEnd )
   {
-    field.step();
+    geometry.getField().step();
 
     // Get field amplitude
-    complex<double> fieldAmpTrans = field.get_field(fieldComp, meep::vec(XSIZE/2.0, fluxPlanePosY));
-    complex<double> fieldAmpRefl = field.get_field(fieldComp, meep::vec(XSIZE/2.0, fluxRefPlanePosY));
+    complex<double> fieldAmpTrans = geometry.getField().get_field(fieldComp, meep::vec(geometry.getXsize()/2.0, fluxPlanePosY));
+    complex<double> fieldAmpRefl = geometry.getField().get_field(fieldComp, meep::vec(geometry.getXsize()/2.0, fluxRefPlanePosY));
 
     fieldTransmittedReal.append( real(fieldAmpTrans) );
     fieldReflectionReal.append( real(fieldAmpRefl) );
-    timepoints.append( field.time() );
-
-    // Output images if present
-    if ( outputimages )
-    { 
-      if ( field.time() > nextOutputTime )
-      {
-        string h5filename("visualize");
-        stringstream pngfile;
-        meep::h5file* file = field.open_h5file(h5filename.c_str());
-        string odir(OUTDIR);
-        h5filename=odir+"/"+h5filename+".h5";
-        pngfile << OUTDIR << "/visualize" << currentPngFile++ << ".png";
-        field.output_hdf5( fieldComp, vol.surroundings(), file );
-        delete file;
-
-        string epsfile(OUTDIR);
-        epsfile += "/eps-000000.00.h5";
-        convertHDF5toPng( h5filename, pngfile.str(), epsfile );
-        nextOutputTime += dt;
-      }
-    } 
-    
+    timepoints.append( geometry.getField().time() );
+ 
     #ifdef OUTPUT_HDF5
       if ( field.time() > nextOutputTime )
       {
-        field.output_hdf5(fieldComp, vol.surroundings());
+        geometry.output_hdf5(fieldComp);
         nextOutputTime += dt;
       }
     #endif
   } 
   #ifdef OUTPUT_HDF5
-    field.output_hdf5(fieldComp, vol.surroundings());
+    geometry.output_hdf5(fieldComp);
   #endif
 
   if ( outdir.find("bkg") != string::npos )
   {
     // This is the background run --> save the fields 
-    field.set_output_directory("dataPlane");
-    fluxYReflected.save_hdf5(field, fluxXFname.c_str());
+    geometry.getField().set_output_directory("dataPlane");
+    fluxYReflected.save_hdf5(geometry.getField(), fluxXFname.c_str());
   }
 
   double dfreq = fwidth/static_cast<double>(nfreq-1);
@@ -346,12 +260,12 @@ int main(int argc, char **argv)
   delete [] transmittedFlux;
   delete [] reflectedFlux;
 
-  flux["geometry"]["sourcePosition"] = SOURCE_Y;
-  flux["geometry"]["slabPosition"] = YC_PLANE;
-  flux["geometry"]["xsize"] = XSIZE;
-  flux["geometry"]["ysize"] = YSIZE;
-  flux["geometry"]["EpsilonHigh"] = EPS_HIGH;
-  flux["geometry"]["EpsilonLow"] = EPS_LOW;
+  flux["geometry"]["sourcePosition"] = geometry.getSourceY();
+  flux["geometry"]["slabPosition"] = geometry.getYcPlane();
+  flux["geometry"]["xsize"] = geometry.getXsize();
+  flux["geometry"]["ysize"] = geometry.getYsize();
+  flux["geometry"]["EpsilonHigh"] = geometry.getEpsHigh();
+  flux["geometry"]["EpsilonLow"] = geometry.getEpsLow();
   flux["frequency"] = freqArray;
   flux["incidentAngle"] = angleArray;
   flux["reflected"] = reflected;
@@ -379,12 +293,12 @@ int main(int argc, char **argv)
   // Write the monitors to file
   Json::Value monitors;
   monitors["time"] = timepoints;
-  monitors["geometry"]["sourcePosition"] = SOURCE_Y;
-  monitors["geometry"]["slabPosition"] = YC_PLANE;
-  monitors["geometry"]["xsize"] = XSIZE;
-  monitors["geometry"]["ysize"] = YSIZE;
-  monitors["geometry"]["EpsilonHigh"] = EPS_HIGH;
-  monitors["geometry"]["EpsilonLow"] = EPS_LOW;
+  monitors["geometry"]["sourcePosition"] = geometry.getSourceY();
+  monitors["geometry"]["slabPosition"] = geometry.getYcPlane();
+  monitors["geometry"]["xsize"] = geometry.getXsize();
+  monitors["geometry"]["ysize"] = geometry.getYsize();
+  monitors["geometry"]["EpsilonHigh"] = geometry.getEpsHigh();
+  monitors["geometry"]["EpsilonLow"] = geometry.getEpsLow();
   monitors["reflected"]["position"] = fluxRefPlanePosY;
   monitors["reflected"]["real"] = fieldReflectionReal;
   monitors["transmitted"]["position"] = fluxPlanePosY;

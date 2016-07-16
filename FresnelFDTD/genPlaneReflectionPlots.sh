@@ -1,7 +1,7 @@
 # This script processes the output from the plane reflection simulation
-DDIR="dataPlane/TotInternalRefMultInc" # Assumes that continues with <angle><polarisation>. Example: MultInc20s
+DDIR="dataPlane/GeometryClass" # Assumes that continues with <angle><polarisation>. Example: MultInc20s
 INC_ANGLE=(5 20 45 75 85)
-FDIR="Figures/TotInternal"
+FDIR="Figures/GeometryClass"
 
 # Plot flux spectrum
 echo "Plotting flux spectrum..."
