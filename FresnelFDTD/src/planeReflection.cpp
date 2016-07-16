@@ -103,7 +103,7 @@ int main(int argc, char **argv)
 
   // Initialize geometry
   DielectricSlab geometry(resolution);
-  geometry.setEpshigh(epshigh);
+  geometry.setEpsHigh(epshigh);
 
   // Compute kx
   double k = 2.0*PI*freq;
@@ -198,7 +198,6 @@ int main(int argc, char **argv)
   }
   geometry.getField().set_output_directory(OUTDIR); 
 
-  unsigned int currentPngFile = 0;
   while ( geometry.getField().time() < tEnd )
   {
     geometry.getField().step();

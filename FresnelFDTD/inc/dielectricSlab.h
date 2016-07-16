@@ -17,8 +17,8 @@ public:
   void addStructure();
   void addField();
   void setKx(double kx);
-  void setEpshigh(double epshigh);
-  void setEpslow(double epslow);
+  void setEpsHigh(double epshigh);
+  void setEpsLow(double epslow);
   void addSource( meep::src_time &source, meep::component fieldComp );
   inline double getXsize() const {return xsize;};
   inline double getYsize() const {return ysize;};

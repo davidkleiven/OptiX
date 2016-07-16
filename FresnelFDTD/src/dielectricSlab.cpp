@@ -64,12 +64,12 @@ void DielectricSlab::addField()
   field->use_bloch( meep::X, kx/(2.0*PI) ); // MEEP leaves out the factor 2pi (k = 1/lambda)
 }
 
-void DielectricSlab::setEpshigh( double epshigh )
+void DielectricSlab::setEpsHigh( double epshigh )
 {
   this->epshigh = epshigh;
 }
 
-void DielectricSlab::setEpslow( double epslow )
+void DielectricSlab::setEpsLow( double epslow )
 {
   this->epslow = epslow;
 }
