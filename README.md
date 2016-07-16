@@ -24,3 +24,12 @@ export ETS_TOOLKIT=qt4
 ```
 
 in the command line. This may be added to the *.profile* for permanent change.
+
+# Create Movie From Image Files
+To create a movie from image files using *ffmpeg* type
+
+```bash
+ffmpeg -i visualize%d.png outfile.mp4
+```
+
+This assumes that the image files are named *visualize0.png*, *visualize1.png*, ..., *visualizeN.png*.
