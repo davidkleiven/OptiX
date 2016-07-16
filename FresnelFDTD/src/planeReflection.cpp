@@ -202,7 +202,7 @@ int main(int argc, char **argv)
 
   double tEnd = timeToRegisterFourier > tPropagate ? timeToRegisterFourier:tPropagate;
 
-  unsigned int nOut = 700; // Number of output files
+  unsigned int nOut = 10; // Number of output files
   double dt = tEnd/nOut;
   double nextOutputTime = 0.0;
   string fluxXFname("fluxYReflected");
