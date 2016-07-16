@@ -72,9 +72,15 @@ int main( int argc, char** argv )
   geometry.setKx( k*sin( angle*PI/180.0 ) );
 
   // Initialize source
-  meep::continuous_src_time src( freq );
+  double width = 0.0;                   // MEEP default: 0.0
+  double start_time = 0.0;              // MEEP default: 0.0
+  double end_time = meep::infinity;     // MEEP default: meep::infinity
+  double slowness = 10.0;               // MEEP default: 3.0
   
-  double tEnd = 2.0*geometry.getYsize();
+  meep::continuous_src_time src( freq, width, start_time, end_time, slowness  );
+  
+  double tRelax = 4.0*geometry.getYsize(); // Time for transients to relax
+  double tEnd = 2.0*geometry.getYsize();   // Time to output fields
 
   try
   {
@@ -100,8 +106,8 @@ int main( int argc, char** argv )
   unsigned int currentPngFile = 0;
   unsigned int nOut = 700;
   double dt = tEnd/static_cast<double>(nOut);
-  double nextOutputTime = 0.0;
-  while ( geometry.getField().time() < tEnd )
+  double nextOutputTime = tRelax;
+  while ( geometry.getField().time() < tEnd+tRelax )
   {
 
     geometry.getField().step();
