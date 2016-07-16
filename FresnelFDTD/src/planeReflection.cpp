@@ -11,7 +11,7 @@
 #include <stdexcept>
 #include "sincSrc.h"
 #include <jsoncpp/json/writer.h>
-#include "planeWave.h"
+#include "dielectricSlab.h"
 #define ODIRLEN 60
 //#define OUTPUT_HDF5
 
@@ -27,6 +27,7 @@
 */
 using namespace std;
 
+const double PI = acos(-1.0);
 //----------------- MAIN FUNCTION ----------------------------//
 int main(int argc, char **argv)
 {
@@ -50,9 +51,10 @@ int main(int argc, char **argv)
   }
     
   const char* OUTDIR = argv[1];
+  double epshigh;
   stringstream ss;
   ss << argv[2];
-  ss >> PlaneWave::EPS_HIGH;
+  ss >> epshigh;
   ss.clear();
   ss << argv[3];
   double angle;
@@ -99,16 +101,50 @@ int main(int argc, char **argv)
   double freq = 0.3;
   double fwidth = freq*relFwidth;
 
-  // Compute kx
-  double k = 2.0*PlaneWave::PI*freq;
-  PlaneWave::KX = k*sin( angle*PlaneWave::PI/180.0 );
+  // Initialize geometry
+  DielectricSlab geometry(resolution);
+  geometry.setEpshigh(epshigh);
 
-  const double minHeight = 2.0*PlaneWave::PML_THICK + 4.0;
+  // Compute kx
+  double k = 2.0*PI*freq;
+  geometry.setKx( k*sin( angle*PI/180.0 ) );
+
+  const double minHeight = 2.0*geometry.getPMLThickness() + 4.0;
 
   // Verify that the size of the domain is big enough (for debugging only)
-  assert ( PlaneWave::YSIZE > minHeight );
+  assert ( geometry.getYsize() > minHeight );
   
-
+  // Initialize
+  meep::gaussian_src_time src(freq, fwidth);
+  meep::component fieldComp;
+  try
+  {
+    geometry.addSourceVol();
+    geometry.addStructure();
+    geometry.addField();
+    
+    if ( polarization == 's' )
+    {
+      fieldComp = meep::Ez;
+    }
+    else
+    {
+      fieldComp = meep::Hz;
+    }
+    geometry.addSource( src, fieldComp );
+  }
+  catch ( std::logic_error &exc )
+  {
+    cout << exc.what() << endl;
+    return 1;
+  }
+  catch (...)
+  {
+    cout << "An unexpected exception occured...";
+    return 1;
+  }
+    
+  /*
   // Initialize computational cell
   meep::grid_volume vol = meep::vol2d(PlaneWave::XSIZE, PlaneWave::YSIZE, resolution);
 
@@ -123,41 +159,31 @@ int main(int argc, char **argv)
   //srct.Courant = 0.1;
   meep::fields field(&srct);
   field.use_bloch( meep::X, PlaneWave::KX/(2.0*PlaneWave::PI) ); // MEEP leaves out the factor 2pi (k = 1/lambda)
-  field.set_output_directory(OUTDIR); 
+  */
+  geometry.getField().set_output_directory(OUTDIR);
   
   // Write dielectric function to file
-  field.output_hdf5(meep::Dielectric, vol.surroundings()); 
+  geometry.output_hdf5( meep::Dielectric ); 
 
   // Set source type. Use Gaussian, had some problems with the continous
-  meep::gaussian_src_time src(freq, fwidth);
-  
-  meep::component fieldComp;
-  if ( polarization == 's' )
-  {
-    fieldComp = meep::Ez;
-  }
-  else
-  {
-    fieldComp = meep::Hz;
-  }
 
-  field.add_volume_source(fieldComp, src, srcvol, PlaneWave::amplitude);
+  //geometry.addSourceVol( src, fieldComp );
 
   // Add DFT fluxplane
-  const double fluxPlanePosY = 0.5*(PlaneWave::YC_PLANE + PlaneWave::PML_THICK);
-  const double fluxRefPlanePosY = 0.5*(PlaneWave::YC_PLANE + PlaneWave::SOURCE_Y);
-  meep::volume dftVol = meep::volume(meep::vec(0.0,fluxPlanePosY), meep::vec(PlaneWave::XSIZE-1.0,fluxPlanePosY));
-  meep::volume dftVolR = meep::volume(meep::vec(0.0,fluxRefPlanePosY), meep::vec(PlaneWave::XSIZE-1.0,fluxRefPlanePosY)); 
-  meep::dft_flux transFluxY = field.add_dft_flux_plane(dftVol, freq-fwidth/2.0, freq+fwidth/2.0, nfreq);
-  meep::dft_flux fluxYReflected = field.add_dft_flux_plane(dftVolR, freq-fwidth/2.0, freq+fwidth/2.0, nfreq); 
+  const double fluxPlanePosY = 0.5*(geometry.getYcPlane() + geometry.getPMLThickness());
+  const double fluxRefPlanePosY = 0.5*(geometry.getYcPlane() + geometry.getSourceY());
+  meep::volume dftVol = meep::volume(meep::vec(0.0,fluxPlanePosY), meep::vec(geometry.getXsize()-1.0,fluxPlanePosY));
+  meep::volume dftVolR = meep::volume(meep::vec(0.0,fluxRefPlanePosY), meep::vec(geometry.getXsize()-1.0,fluxRefPlanePosY)); 
+  meep::dft_flux transFluxY = geometry.getField().add_dft_flux_plane(dftVol, freq-fwidth/2.0, freq+fwidth/2.0, nfreq);
+  meep::dft_flux fluxYReflected = geometry.getField().add_dft_flux_plane(dftVolR, freq-fwidth/2.0, freq+fwidth/2.0, nfreq); 
 
   Json::Value fieldTransmittedReal(Json::arrayValue);
   Json::Value fieldReflectionReal(Json::arrayValue);
   Json::Value timepoints(Json::arrayValue);
 
   // Time required to propagate over the domain with the slowest speed
-  double speed = 1.0/sqrt(PlaneWave::EPS_HIGH);
-  double tPropagate = field.last_source_time() + 1.2*PlaneWave::SOURCE_Y/speed;
+  double speed = 1.0/sqrt(geometry.getEpsHigh());
+  double tPropagate = geometry.getField().last_source_time() + 1.2*geometry.getYsize()/speed;
 
   // Main loop.
   double transYWidth = abs( dftVol.get_max_corner().x() - dftVol.get_min_corner().x() );
@@ -186,42 +212,42 @@ int main(int argc, char **argv)
     }
     in.close();
 
-    field.set_output_directory("dataPlane");
-    fluxYReflected.load_hdf5(field, fluxXFname.c_str());  
+    geometry.getField().set_output_directory("dataPlane");
+    fluxYReflected.load_hdf5(geometry.getField(), fluxXFname.c_str());  
     fluxYReflected.scale_dfts(-1.0);
   }
-  field.set_output_directory(OUTDIR); 
+  geometry.getField().set_output_directory(OUTDIR); 
 
   unsigned int currentPngFile = 0;
-  while ( field.time() < tEnd )
+  while ( geometry.getField().time() < tEnd )
   {
-    field.step();
+    geometry.getField().step();
 
     // Get field amplitude
-    complex<double> fieldAmpTrans = field.get_field(fieldComp, meep::vec(PlaneWave::XSIZE/2.0, fluxPlanePosY));
-    complex<double> fieldAmpRefl = field.get_field(fieldComp, meep::vec(PlaneWave::XSIZE/2.0, fluxRefPlanePosY));
+    complex<double> fieldAmpTrans = geometry.getField().get_field(fieldComp, meep::vec(geometry.getXsize()/2.0, fluxPlanePosY));
+    complex<double> fieldAmpRefl = geometry.getField().get_field(fieldComp, meep::vec(geometry.getXsize()/2.0, fluxRefPlanePosY));
 
     fieldTransmittedReal.append( real(fieldAmpTrans) );
     fieldReflectionReal.append( real(fieldAmpRefl) );
-    timepoints.append( field.time() );
+    timepoints.append( geometry.getField().time() );
  
     #ifdef OUTPUT_HDF5
       if ( field.time() > nextOutputTime )
       {
-        field.output_hdf5(fieldComp, vol.surroundings());
+        geometry.output_hdf5(fieldComp);
         nextOutputTime += dt;
       }
     #endif
   } 
   #ifdef OUTPUT_HDF5
-    field.output_hdf5(fieldComp, vol.surroundings());
+    geometry.output_hdf5(fieldComp);
   #endif
 
   if ( outdir.find("bkg") != string::npos )
   {
     // This is the background run --> save the fields 
-    field.set_output_directory("dataPlane");
-    fluxYReflected.save_hdf5(field, fluxXFname.c_str());
+    geometry.getField().set_output_directory("dataPlane");
+    fluxYReflected.save_hdf5(geometry.getField(), fluxXFname.c_str());
   }
 
   double dfreq = fwidth/static_cast<double>(nfreq-1);
@@ -236,7 +262,7 @@ int main(int argc, char **argv)
   Json::Value angleArray(Json::arrayValue);
   for ( unsigned int i=0;i<nfreq;i++ )
   {
-    double sinCurrentAngle = freq*sin(angle*PlaneWave::PI/180.0)/currentFreq;
+    double sinCurrentAngle = freq*sin(angle*PI/180.0)/currentFreq;
     double currentAngle = 0.0;
     if ( abs(sinCurrentAngle) > 1.0 )
     {
@@ -244,7 +270,7 @@ int main(int argc, char **argv)
     }
     else
     {
-      currentAngle = asin(sinCurrentAngle)*180.0/PlaneWave::PI;
+      currentAngle = asin(sinCurrentAngle)*180.0/PI;
       freqArray.append(currentFreq);
       angleArray.append(currentAngle);
       transmitted.append( transmittedFlux[i]/transYWidth );
@@ -255,12 +281,12 @@ int main(int argc, char **argv)
   delete [] transmittedFlux;
   delete [] reflectedFlux;
 
-  flux["geometry"]["sourcePosition"] = PlaneWave::SOURCE_Y;
-  flux["geometry"]["slabPosition"] = PlaneWave::YC_PLANE;
-  flux["geometry"]["xsize"] = PlaneWave::XSIZE;
-  flux["geometry"]["ysize"] = PlaneWave::YSIZE;
-  flux["geometry"]["EpsilonHigh"] = PlaneWave::EPS_HIGH;
-  flux["geometry"]["EpsilonLow"] = PlaneWave::EPS_LOW;
+  flux["geometry"]["sourcePosition"] = geometry.getSourceY();
+  flux["geometry"]["slabPosition"] = geometry.getYcPlane();
+  flux["geometry"]["xsize"] = geometry.getXsize();
+  flux["geometry"]["ysize"] = geometry.getYsize();
+  flux["geometry"]["EpsilonHigh"] = geometry.getEpsHigh();
+  flux["geometry"]["EpsilonLow"] = geometry.getEpsLow();
   flux["frequency"] = freqArray;
   flux["incidentAngle"] = angleArray;
   flux["reflected"] = reflected;
@@ -288,12 +314,12 @@ int main(int argc, char **argv)
   // Write the monitors to file
   Json::Value monitors;
   monitors["time"] = timepoints;
-  monitors["geometry"]["sourcePosition"] = PlaneWave::SOURCE_Y;
-  monitors["geometry"]["slabPosition"] = PlaneWave::YC_PLANE;
-  monitors["geometry"]["xsize"] = PlaneWave::XSIZE;
-  monitors["geometry"]["ysize"] = PlaneWave::YSIZE;
-  monitors["geometry"]["EpsilonHigh"] = PlaneWave::EPS_HIGH;
-  monitors["geometry"]["EpsilonLow"] = PlaneWave::EPS_LOW;
+  monitors["geometry"]["sourcePosition"] = geometry.getSourceY();
+  monitors["geometry"]["slabPosition"] = geometry.getYcPlane();
+  monitors["geometry"]["xsize"] = geometry.getXsize();
+  monitors["geometry"]["ysize"] = geometry.getYsize();
+  monitors["geometry"]["EpsilonHigh"] = geometry.getEpsHigh();
+  monitors["geometry"]["EpsilonLow"] = geometry.getEpsLow();
   monitors["reflected"]["position"] = fluxRefPlanePosY;
   monitors["reflected"]["real"] = fieldReflectionReal;
   monitors["transmitted"]["position"] = fluxPlanePosY;

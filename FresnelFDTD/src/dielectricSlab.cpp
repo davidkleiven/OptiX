@@ -24,7 +24,7 @@ DielectricSlab::~DielectricSlab()
 }
   
 
-std::complex<double> DielectricSlab::amplitude( meep::vec &pos )
+std::complex<double> DielectricSlab::amplitude( const meep::vec &pos )
 {
   const std::complex<double> IMAG_UNIT(0,1.0);
   return exp(IMAG_UNIT*DielectricSlab::kx*pos.x());
@@ -83,5 +83,18 @@ void DielectricSlab::setKx( double newKx )
   }
 }
 
-  const unsigned int NSTEPS = 20;
+void DielectricSlab::addSource( meep::src_time &source, meep::component fieldComp )
+{
+  if ( sourcevol == NULL )
+  {
+    throw ( std::invalid_argument("You have to add a souce volume before adding a source!" ) ); 
+  }
+  field->add_volume_source(fieldComp, source, *sourcevol, amplitude);
+}
 
+void DielectricSlab::output_hdf5( meep::component comp )
+{
+  if ( field == NULL ) return;
+  
+  field->output_hdf5( comp, vol.surroundings() );
+}

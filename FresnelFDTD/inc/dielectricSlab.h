@@ -12,13 +12,22 @@ public:
   ~DielectricSlab();
   inline meep::volume& getSourceVol()    {return *sourcevol;};
   inline meep::structure& getStructure() {return *struc;};
-  inline meep::fields& getFields()       {return *field;};
+  inline meep::fields& getField()       {return *field;};
   void addSourceVol();
   void addStructure();
   void addField();
   void setKx(double kx);
   void setEpshigh(double epshigh);
   void setEpslow(double epslow);
+  void addSource( meep::src_time &source, meep::component fieldComp );
+  inline double getXsize() const {return xsize;};
+  inline double getYsize() const {return ysize;};
+  inline double getPMLThickness() const {return pml_thick;};
+  inline double getSourceY() const {return source_y;};
+  inline double getYcPlane() const {return yc_plane;};
+  inline double getEpsLow() const {return epslow;};
+  inline double getEpsHigh() const {return epshigh;};
+  void output_hdf5( meep::component comp );
 private:
   meep::grid_volume vol;
   meep::volume *sourcevol;
@@ -32,7 +41,7 @@ private:
   static double kx;
   static double epslow;
   static double epshigh;
-  static std::complex<double> amplitude( meep::vec &pos );
+  static std::complex<double> amplitude( const meep::vec &pos );
   static double dielectric( const meep::vec &pos ); 
 };  
 #endif
