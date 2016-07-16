@@ -54,7 +54,6 @@ complex<double> amplitude(const meep::vec &pos)
   return exp(IMAG_UNIT*KX*pos.x());
 }
 
-
 //----------------- MAIN FUNCTION ----------------------------//
 int main(int argc, char **argv)
 {
@@ -63,14 +62,11 @@ int main(int argc, char **argv)
   meep::initialize mpi(argc, argv);
 
   // Read command line arguments
-  if (( argc != 8 ) && ( argc != 7 ))
+  if ( argc != 8 )
   {
     cout << id << "Two usages of this file:\n";
-    cout << id << "Option 1: For running simulations\n";
     cout << id << "Usage: ./planeReflection.out <out directory> <epsInScattered> <incident angle> <polarization> <relBandwidth>\n";
     cout << id << "<number of frequencies> <resolution>\n";
-    cout << id << "Option 2: ./planeReflection <out directory> <epsInScattered> <incident angle> <polarization> <relBandWidth>\n";
-    cout << id << "<resolution>\n";
     cout << id << "The following arguments were given:\n";
     for ( unsigned int i=0;i<argc;i++ )
     {
@@ -98,12 +94,6 @@ int main(int argc, char **argv)
   ss.clear();
   ss << argv[6];
   ss >> nfreq;
-
-  bool outputimages = false;
-  if ( argc == 7 )
-  {
-    outputimages = true;
-  }
 
   // Check that angle is within range
   const double maxAngle = 90.0;
@@ -208,7 +198,7 @@ int main(int argc, char **argv)
   string fluxXFname("fluxYReflected");
 
   string outdir(OUTDIR);
-  if (( outdir.find("bkg") == string::npos ) && !outputimages)
+  if ( outdir.find("bkg") == string::npos ) 
   {
     // Did not find bkg in the directory name. And the run is not for just producing images for visualization
     //Reading background flux from file
@@ -241,28 +231,7 @@ int main(int argc, char **argv)
     fieldTransmittedReal.append( real(fieldAmpTrans) );
     fieldReflectionReal.append( real(fieldAmpRefl) );
     timepoints.append( field.time() );
-
-    // Output images if present
-    if ( outputimages )
-    { 
-      if ( field.time() > nextOutputTime )
-      {
-        string h5filename("visualize");
-        stringstream pngfile;
-        meep::h5file* file = field.open_h5file(h5filename.c_str());
-        string odir(OUTDIR);
-        h5filename=odir+"/"+h5filename+".h5";
-        pngfile << OUTDIR << "/visualize" << currentPngFile++ << ".png";
-        field.output_hdf5( fieldComp, vol.surroundings(), file );
-        delete file;
-
-        string epsfile(OUTDIR);
-        epsfile += "/eps-000000.00.h5";
-        convertHDF5toPng( h5filename, pngfile.str(), epsfile );
-        nextOutputTime += dt;
-      }
-    } 
-    
+ 
     #ifdef OUTPUT_HDF5
       if ( field.time() > nextOutputTime )
       {
