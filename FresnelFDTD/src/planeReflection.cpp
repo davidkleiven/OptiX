@@ -11,6 +11,7 @@
 #include <stdexcept>
 #include "sincSrc.h"
 #include <jsoncpp/json/writer.h>
+#include "planeWave.h"
 #define ODIRLEN 60
 //#define OUTPUT_HDF5
 
@@ -25,34 +26,6 @@
 *   ./planeReflection data/planewave 2.25 30 s
 */
 using namespace std;
-
-const double EPS_LOW = 1.0;
-double EPS_HIGH = 1.0;
-
-const double XSIZE = 5.0;
-const double YSIZE = 18.0;
-const double PML_THICK = 3.0;
-const double SOURCE_Y = YSIZE-PML_THICK - 1.0;
-const double YC_PLANE = YSIZE/2.0;
-//const double YC_PLANE = PML_THICK+1.0;
-const double PI = acos(-1.0);
-const complex<double> IMAG_UNIT(0,1.0);
-const unsigned int NSTEPS = 20;
-double KX = 1.0;
-
-double dielectric(const meep::vec &pos)
-{
-  if ( pos.y() < YC_PLANE )
-  {
-    return EPS_HIGH;
-  }
-  return EPS_LOW;
-}
-
-complex<double> amplitude(const meep::vec &pos)
-{
-  return exp(IMAG_UNIT*KX*pos.x());
-}
 
 //----------------- MAIN FUNCTION ----------------------------//
 int main(int argc, char **argv)
@@ -79,7 +52,7 @@ int main(int argc, char **argv)
   const char* OUTDIR = argv[1];
   stringstream ss;
   ss << argv[2];
-  ss >> EPS_HIGH;
+  ss >> PlaneWave::EPS_HIGH;
   ss.clear();
   ss << argv[3];
   double angle;
@@ -127,29 +100,29 @@ int main(int argc, char **argv)
   double fwidth = freq*relFwidth;
 
   // Compute kx
-  double k = 2.0*PI*freq;
-  KX = k*sin( angle*PI/180.0 );
+  double k = 2.0*PlaneWave::PI*freq;
+  PlaneWave::KX = k*sin( angle*PlaneWave::PI/180.0 );
 
-  const double minHeight = 2.0*PML_THICK + 4.0;
+  const double minHeight = 2.0*PlaneWave::PML_THICK + 4.0;
 
   // Verify that the size of the domain is big enough (for debugging only)
-  assert ( YSIZE > minHeight );
+  assert ( PlaneWave::YSIZE > minHeight );
   
 
   // Initialize computational cell
-  meep::grid_volume vol = meep::vol2d(XSIZE, YSIZE, resolution);
+  meep::grid_volume vol = meep::vol2d(PlaneWave::XSIZE, PlaneWave::YSIZE, resolution);
 
   // Add line source to get plane wave
-  meep::vec srcCorner1(0.0, SOURCE_Y);
-  meep::vec srcCorner2(XSIZE, SOURCE_Y);
+  meep::vec srcCorner1(0.0, PlaneWave::SOURCE_Y);
+  meep::vec srcCorner2(PlaneWave::XSIZE, PlaneWave::SOURCE_Y);
   meep::volume srcvol(srcCorner1, srcCorner2);
 
   // Initalize structure. Add PML in y-direction
-  meep::structure srct(vol, dielectric, meep::pml( PML_THICK, meep::Y ) );
+  meep::structure srct(vol, PlaneWave::dielectric, meep::pml( PlaneWave::PML_THICK, meep::Y ) );
 
   //srct.Courant = 0.1;
   meep::fields field(&srct);
-  field.use_bloch( meep::X, KX/(2.0*PI) ); // MEEP leaves out the factor 2pi (k = 1/lambda)
+  field.use_bloch( meep::X, PlaneWave::KX/(2.0*PlaneWave::PI) ); // MEEP leaves out the factor 2pi (k = 1/lambda)
   field.set_output_directory(OUTDIR); 
   
   // Write dielectric function to file
@@ -168,13 +141,13 @@ int main(int argc, char **argv)
     fieldComp = meep::Hz;
   }
 
-  field.add_volume_source(fieldComp, src, srcvol, amplitude);
+  field.add_volume_source(fieldComp, src, srcvol, PlaneWave::amplitude);
 
   // Add DFT fluxplane
-  const double fluxPlanePosY = 0.5*(YC_PLANE + PML_THICK);
-  const double fluxRefPlanePosY = 0.5*(YC_PLANE + SOURCE_Y);
-  meep::volume dftVol = meep::volume(meep::vec(0.0,fluxPlanePosY), meep::vec(XSIZE-1.0,fluxPlanePosY));
-  meep::volume dftVolR = meep::volume(meep::vec(0.0,fluxRefPlanePosY), meep::vec(XSIZE-1.0,fluxRefPlanePosY)); 
+  const double fluxPlanePosY = 0.5*(PlaneWave::YC_PLANE + PlaneWave::PML_THICK);
+  const double fluxRefPlanePosY = 0.5*(PlaneWave::YC_PLANE + PlaneWave::SOURCE_Y);
+  meep::volume dftVol = meep::volume(meep::vec(0.0,fluxPlanePosY), meep::vec(PlaneWave::XSIZE-1.0,fluxPlanePosY));
+  meep::volume dftVolR = meep::volume(meep::vec(0.0,fluxRefPlanePosY), meep::vec(PlaneWave::XSIZE-1.0,fluxRefPlanePosY)); 
   meep::dft_flux transFluxY = field.add_dft_flux_plane(dftVol, freq-fwidth/2.0, freq+fwidth/2.0, nfreq);
   meep::dft_flux fluxYReflected = field.add_dft_flux_plane(dftVolR, freq-fwidth/2.0, freq+fwidth/2.0, nfreq); 
 
@@ -183,8 +156,8 @@ int main(int argc, char **argv)
   Json::Value timepoints(Json::arrayValue);
 
   // Time required to propagate over the domain with the slowest speed
-  double speed = 1.0/sqrt(EPS_HIGH);
-  double tPropagate = field.last_source_time() + 1.2*SOURCE_Y/speed;
+  double speed = 1.0/sqrt(PlaneWave::EPS_HIGH);
+  double tPropagate = field.last_source_time() + 1.2*PlaneWave::SOURCE_Y/speed;
 
   // Main loop.
   double transYWidth = abs( dftVol.get_max_corner().x() - dftVol.get_min_corner().x() );
@@ -225,8 +198,8 @@ int main(int argc, char **argv)
     field.step();
 
     // Get field amplitude
-    complex<double> fieldAmpTrans = field.get_field(fieldComp, meep::vec(XSIZE/2.0, fluxPlanePosY));
-    complex<double> fieldAmpRefl = field.get_field(fieldComp, meep::vec(XSIZE/2.0, fluxRefPlanePosY));
+    complex<double> fieldAmpTrans = field.get_field(fieldComp, meep::vec(PlaneWave::XSIZE/2.0, fluxPlanePosY));
+    complex<double> fieldAmpRefl = field.get_field(fieldComp, meep::vec(PlaneWave::XSIZE/2.0, fluxRefPlanePosY));
 
     fieldTransmittedReal.append( real(fieldAmpTrans) );
     fieldReflectionReal.append( real(fieldAmpRefl) );
@@ -263,7 +236,7 @@ int main(int argc, char **argv)
   Json::Value angleArray(Json::arrayValue);
   for ( unsigned int i=0;i<nfreq;i++ )
   {
-    double sinCurrentAngle = freq*sin(angle*PI/180.0)/currentFreq;
+    double sinCurrentAngle = freq*sin(angle*PlaneWave::PI/180.0)/currentFreq;
     double currentAngle = 0.0;
     if ( abs(sinCurrentAngle) > 1.0 )
     {
@@ -271,7 +244,7 @@ int main(int argc, char **argv)
     }
     else
     {
-      currentAngle = asin(sinCurrentAngle)*180.0/PI;
+      currentAngle = asin(sinCurrentAngle)*180.0/PlaneWave::PI;
       freqArray.append(currentFreq);
       angleArray.append(currentAngle);
       transmitted.append( transmittedFlux[i]/transYWidth );
@@ -282,12 +255,12 @@ int main(int argc, char **argv)
   delete [] transmittedFlux;
   delete [] reflectedFlux;
 
-  flux["geometry"]["sourcePosition"] = SOURCE_Y;
-  flux["geometry"]["slabPosition"] = YC_PLANE;
-  flux["geometry"]["xsize"] = XSIZE;
-  flux["geometry"]["ysize"] = YSIZE;
-  flux["geometry"]["EpsilonHigh"] = EPS_HIGH;
-  flux["geometry"]["EpsilonLow"] = EPS_LOW;
+  flux["geometry"]["sourcePosition"] = PlaneWave::SOURCE_Y;
+  flux["geometry"]["slabPosition"] = PlaneWave::YC_PLANE;
+  flux["geometry"]["xsize"] = PlaneWave::XSIZE;
+  flux["geometry"]["ysize"] = PlaneWave::YSIZE;
+  flux["geometry"]["EpsilonHigh"] = PlaneWave::EPS_HIGH;
+  flux["geometry"]["EpsilonLow"] = PlaneWave::EPS_LOW;
   flux["frequency"] = freqArray;
   flux["incidentAngle"] = angleArray;
   flux["reflected"] = reflected;
@@ -315,12 +288,12 @@ int main(int argc, char **argv)
   // Write the monitors to file
   Json::Value monitors;
   monitors["time"] = timepoints;
-  monitors["geometry"]["sourcePosition"] = SOURCE_Y;
-  monitors["geometry"]["slabPosition"] = YC_PLANE;
-  monitors["geometry"]["xsize"] = XSIZE;
-  monitors["geometry"]["ysize"] = YSIZE;
-  monitors["geometry"]["EpsilonHigh"] = EPS_HIGH;
-  monitors["geometry"]["EpsilonLow"] = EPS_LOW;
+  monitors["geometry"]["sourcePosition"] = PlaneWave::SOURCE_Y;
+  monitors["geometry"]["slabPosition"] = PlaneWave::YC_PLANE;
+  monitors["geometry"]["xsize"] = PlaneWave::XSIZE;
+  monitors["geometry"]["ysize"] = PlaneWave::YSIZE;
+  monitors["geometry"]["EpsilonHigh"] = PlaneWave::EPS_HIGH;
+  monitors["geometry"]["EpsilonLow"] = PlaneWave::EPS_LOW;
   monitors["reflected"]["position"] = fluxRefPlanePosY;
   monitors["reflected"]["real"] = fieldReflectionReal;
   monitors["transmitted"]["position"] = fluxPlanePosY;
