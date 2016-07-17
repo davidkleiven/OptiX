@@ -65,7 +65,6 @@ int main( int argc, char** argv )
   string outdir("./");
   double angle = 0.0;
   string mode("transient");
-  unsigned char allFound = 0x00;
   bool odirParsed = false;
   bool angleParsed = false;
   bool modeParsed = false;
@@ -167,15 +166,15 @@ int main( int argc, char** argv )
   // Initialize geometry
   DielectricSlab geometry(resolution);
   geometry.setEpsHigh(1.0);
-  geometry.setEpsLow(1.5);
-  double ratio = geometry.getEpsHigh()/geometry.getEpsLow();
+  geometry.setEpsLow(2.25);
+  double ratio = sqrt( geometry.getEpsHigh()/geometry.getEpsLow() );
   if ( ratio < 1.0 ) 
   {
     cout << "Critical angle: " << asin( ratio )*180.0/PI << endl;
   }
  
   // Compute kx
-  double k = 2.0*PI*freq;
+  double k = 2.0*PI*freq*sqrt( geometry.getEpsLow() );
   geometry.setKx( k*sin( angle*PI/180.0 ) );
 
   // Initialize source
