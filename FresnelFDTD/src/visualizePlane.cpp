@@ -55,7 +55,7 @@ int main( int argc, char** argv )
 {
   if ( argc != 4 )
   {
-    cout << "Usage: ./main.out --odir=<directory of outfile> --angle=<incident angle> --mode=<steady or transient>\n";
+    cout << "Usage: ./main.out --odir=<directory of outfile> --angle=<incident angle> --mode=<steady, transient or pulse>\n";
     return 1;
   } 
   meep::initialize mpi(argc, argv);
@@ -119,7 +119,7 @@ int main( int argc, char** argv )
   }
   if ( quit ) return 1;
 
-  if ( ( mode != "transient" ) && ( mode != "steady" ) )
+  if ( ( mode != "transient" ) && ( mode != "steady" ) && ( mode != "pulse" ) )
   {
     cout << "Unknown mode " << mode << endl;
     return 1;
@@ -184,6 +184,7 @@ int main( int argc, char** argv )
   double slowness = 10.0;               // MEEP default: 3.0
   
   meep::continuous_src_time src( freq, width, start_time, end_time, slowness  );
+  meep::gaussian_src_time gaussSrc( freq, 0.4*freq );
   
   double tRelax = 4.0*geometry.getYsize(); // Time for transients to relax
 
@@ -198,7 +199,14 @@ int main( int argc, char** argv )
     geometry.addSourceVol();
     geometry.addStructure();
     geometry.addField();
-    geometry.addSource( src, meep::Ez );  
+    if ( mode == "pulse" )
+    {
+      geometry.addSource( gaussSrc, meep::Ez );
+    }
+    else
+    {
+      geometry.addSource( src, meep::Ez );  
+    }
   }
   catch ( std::logic_error &exc )
   {
