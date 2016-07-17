@@ -184,15 +184,20 @@ int main( int argc, char** argv )
   double slowness = 10.0;               // MEEP default: 3.0
   
   meep::continuous_src_time src( freq, width, start_time, end_time, slowness  );
-  meep::gaussian_src_time gaussSrc( freq, 0.4*freq );
+  meep::gaussian_src_time gaussSrc( freq, 2.0*freq );
   
   double tRelax = 4.0*geometry.getYsize(); // Time for transients to relax
 
-  if ( mode == "transient" )
+  if ( ( mode == "transient" ) || ( mode == "pulse" ) )
   {
     tRelax = 0.0;
   }
   double tEnd = 2.0*geometry.getYsize();   // Time to output fields
+
+  if ( mode == "pulse" )
+  {
+    tEnd = 2.0*gaussSrc.last_time();
+  }
 
   try
   {
