@@ -1,3 +1,8 @@
+ONE_COLUMN = False
+if ( ONE_COLUMN ):
+    figsize = [6.0, 4.5]
+else:
+    figsize = [3.5, 2.25]
 params = {'backend': 'ps',
        'text.latex.preamble': ['\usepackage{gensymb}\usepackage{siunitx}'],
        'axes.labelsize': 8, # fontsize for x and y labels (was 10)
@@ -9,5 +14,5 @@ params = {'backend': 'ps',
        'text.usetex': True,
        'font.family': 'serif',
        'axes.linewidth':0.1,
-       'figure.figsize': [3.5,2.25]
+       'figure.figsize': figsize
 }
