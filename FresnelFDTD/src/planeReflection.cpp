@@ -294,8 +294,6 @@ int main(int argc, char **argv)
   flux["incidentAngle"] = angleArray;
   flux["reflected"] = reflected;
   flux["transmitted"] = transmitted;
-  flux["PMLMonitors"]["position"] = pmlMonitorPos;
-  flux["PMLMonitors"]["MaxAmplitude"] = pmlMonitorMaxAmplitude;
   
   Json::FastWriter fwFlux;
 
@@ -329,6 +327,8 @@ int main(int argc, char **argv)
   monitors["reflected"]["real"] = fieldReflectionReal;
   monitors["transmitted"]["position"] = fluxPlanePosY;
   monitors["transmitted"]["real"] = fieldTransmittedReal;
+  monitors["PMLMonitors"]["position"] = pmlMonitorPos;
+  monitors["PMLMonitors"]["MaxAmplitude"] = pmlMonitorMaxAmplitude;
   if ( fieldComp == meep::Ez )
   {
     monitors["FieldComponent"] = "Ez";
