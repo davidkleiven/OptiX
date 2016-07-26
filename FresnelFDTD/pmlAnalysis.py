@@ -1,4 +1,4 @@
-USE_LATEX = False
+USE_LATEX = True
 import numpy as np
 import matplotlib
 if ( USE_LATEX ):
@@ -9,71 +9,53 @@ from scipy import signal
 import json
 import sys
 
-HIGH_ANGLE = "dataPlane/GeometryClass85s/bkg/realField.json"
-LOW_ANGLE = "dataPlane/GeometryClass5s/bkg/realField.json"
+DDIR = "dataPlane/PMLAnalysis/bkg"
+FILES = ["realField5s.json", "realField60s.json", "realField85s.json"]
+if ( USE_LATEX ):
+    LABELS = ["$\SI{5}{\degree}$", "$\SI{60}{\degree}$", "$\SI{85}{\degree}$", "$\SI{88}{\degree}$"]
+else:
+    LABELS = ["5 deg", "60 deg", "85 deg", "88 deg"]
 
-def envelope( sig ):
-    hTransform = signal.hilbert( sig )
-    return np.abs( hTransform )
+MARKER = ["o", "^", "s", "p"]
+FDIR = "Figures"
+
+# Add directory
+for i in range(0,len(FILES)):
+    FILES[i] = DDIR+"/"+FILES[i]
 
 def main():
-    try:
-        infile = open( HIGH_ANGLE, 'r' )
-    except:
-        print ("Could not open file %s"%(LOW_ANGLE) )
-        return 
-    
-    highData = json.load(infile)
-    infile.close()
+    assert ( len(FILES) <= len(LABELS) )
+    assert ( len(FILES) <= len(MARKER) )
 
-    try:
-        infile = open( LOW_ANGLE, 'r' )
-    except:
-        print ("Could not open file %s"%(HIGH_ANGLE))
-        return
-    lowData = json.load(infile)
-    infile.close()
-
-    # Plot pulses
-    highAngleSignal = np.array( highData["transmitted"]["real"] )
-    highEnv = envelope( highAngleSignal )
-    lowAngleSignal = np.array( lowData["transmitted"]["real"] )
-    lowEnv = envelope( lowAngleSignal )
-    highSkewness = np.mean( np.abs(highAngleSignal)**3 )/np.std( highAngleSignal )**3
-    lowSkewness = np.mean( np.abs( lowAngleSignal )**3 )/np.std( lowAngleSignal )**3
-
-    # Low angle signal envelope
-    fig = plt.figure()
+    fig = plt.figure()  
     ax = fig.add_subplot(111)
-    ax.plot( lowData["time"], np.array( lowData["transmitted"]["real"] ), 'k' )
-    ax.plot( lowData["time"], lowEnv, 'b' )
+    for i in range(0, len(FILES)):
+        try:
+            infile = open(FILES[i], 'r')
+        except:
+            print ("Could not open file %s"%(FILES[i]))
+            continue
+        
+        data = json.load( infile )
+        infile.close()
+        amplitude = np.array( data["PMLMonitors"]["MaxAmplitude"] )
+        position = np.array( data["PMLMonitors"]["position"] )
+        position = position[::-1]
+        amplitude /= np.max( amplitude )
+        ax.plot( position, amplitude, color="black", label=LABELS[i], marker=MARKER[i], fillstyle="none" )
+
+    ax.set_xlabel("Distance inside PML layer")
+    ax.set_ylabel("Amplitude")
+    ax.legend( loc="lower left", frameon=False )
     
-    # High angle signal and envelope
-    fig2 = plt.figure() 
-    ax2 = fig2.add_subplot(111)
-    ax2.plot( highData["time"], highAngleSignal, 'k' )
-    ax2.plot( highData["time"], highEnv, 'b')
-    
-    # Plot envelopes and mirrors
-    lowEnv /= np.max(lowEnv)
-    mirrorLow = lowEnv[::-1]
-    posMaxForward = np.argmax( lowEnv )
-    posMaxMirror = np.argmax( mirrorLow )  
-    mirrorLow = np.roll( mirrorLow, posMaxForward-posMaxMirror-1 )
-    fig3 = plt.figure()
-    ax3 = fig3.add_subplot(111)
-    ax3.plot( mirrorLow - lowEnv)
-    
-    highEnv /= np.max(highEnv)
-    mirrorHigh = highEnv[::-1]
-    posMaxForward = np.argmax( highEnv )
-    posMaxMirror = np.argmax( mirrorHigh )
-    mirrorHigh = np.roll( mirrorHigh, posMaxForward-posMaxMirror-1 )
-    fig4 = plt.figure() 
-    ax4 = fig4.add_subplot(111)
-    ax4.plot( highEnv-mirrorHigh )
-    if ( not USE_LATEX ):
+    if ( USE_LATEX ):
+        fname = FDIR +"/pmlDamping.pdf"
+        fig.savefig( fname, bbox_inches="tight" )
+        print ("Figure saved to %s"%(fname))
+    else:
         plt.show()
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
+
+        
