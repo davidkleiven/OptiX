@@ -198,6 +198,19 @@ int main(int argc, char **argv)
   }
   geometry.getField().set_output_directory(OUTDIR); 
 
+  // Setup PML monitors
+  const unsigned int nPMLMonitors = 10;
+  const double dx = geometry.getPMLThickness()/static_cast<double>(nPMLMonitors);
+  Json::Value pmlMonitorPos( Json::arrayValue );
+  Json::Value pmlMonitorMaxAmplitude( Json::arrayValue );
+
+  // Fill the PML monitor positions
+  for ( unsigned int i=0;i<nPMLMonitors;i++ )
+  {
+    pmlMonitorPos.append( geometry.getPMLThickness() - static_cast<double>(i)*dx );
+    pmlMonitorMaxAmplitude.append( 0.0 );
+  }
+
   while ( geometry.getField().time() < tEnd )
   {
     geometry.getField().step();
@@ -217,6 +230,17 @@ int main(int argc, char **argv)
         nextOutputTime += dt;
       }
     #endif
+
+    // Get field amplitude at PML positions
+    for ( unsigned int i=0;i<nPMLMonitors;i++ )
+    {
+      meep::vec pmlMonitorTemporaryPosition( 0.0, pmlMonitorPos[i].asDouble() );
+      complex<double> pmlAmplitude = geometry.getField().get_field( fieldComp, pmlMonitorTemporaryPosition);
+      if ( real( pmlAmplitude ) > pmlMonitorMaxAmplitude[i].asDouble() )
+      {
+        pmlMonitorMaxAmplitude[i] = real( pmlAmplitude );
+      }
+    } 
   } 
   #ifdef OUTPUT_HDF5
     geometry.output_hdf5(fieldComp);
@@ -270,6 +294,8 @@ int main(int argc, char **argv)
   flux["incidentAngle"] = angleArray;
   flux["reflected"] = reflected;
   flux["transmitted"] = transmitted;
+  flux["PMLMonitors"]["position"] = pmlMonitorPos;
+  flux["PMLMonitors"]["MaxAmplitude"] = pmlMonitorMaxAmplitude;
   
   Json::FastWriter fwFlux;
 
