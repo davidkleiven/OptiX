@@ -33,3 +33,6 @@ ffmpeg -i visualize%d.png outfile.mp4
 ```
 
 This assumes that the image files are named *visualize0.png*, *visualize1.png*, ..., *visualizeN.png*.
+
+# SCUFF-EM and BEM
+Notes on the running the boundary element code using the *SCUFF-EM* library can be found [here](FresnelBEM/Notes.md).
