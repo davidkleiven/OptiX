@@ -50,8 +50,25 @@ def main(argv):
     figError = plt.figure()
     axError = figError.add_subplot(111)
     theta = np.linspace(0.0, 90.0, 101)
-    n1 = 1.0
-    n2 = 1.5
+
+    # Read the refractive index from file
+    folder = ddir+"%d%s/WithEps"%(incidentAngles[0], 's')
+    fname = folder+"/realFieldFourier.json"
+
+    try:
+        infile = open( fname, 'r' )
+        data = json.load( infile )
+    except:
+        print ("Coult not open file %s"%(fname))
+        data = None
+
+    if ( not data is None ):
+        n1 = np.sqrt ( data["geometry"]["EpsilonLow"] )
+        n2 = np.sqrt( data["geometry"]["EpsilonHigh"] )
+    else:
+        print ("Could not find refractive index in json file. Using default...")
+        n1 = 1.0
+        n2 = 1.5
     ax.plot( theta, np.abs(rs(theta, n1, n2))**2, color='black' ) 
     ax.plot( theta, np.abs(rp(theta, n1, n2))**2, color='black' ) 
     ax.plot( theta, ts(theta, n1, n2)**2, color='black' )
