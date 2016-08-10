@@ -74,14 +74,22 @@ def main(argv):
             fill = "full"
         for angle in incidentAngles:
             folder = folderBase+"%d%s/%s"%(angle, pol, SUBDIR)
+            fname = folder + "/transmittedFluxNorm.json"
             try:
-                infile = open(folder+"/transmittedFluxNorm.json", 'r')
+                infile = open(fname, 'r')
             except:
-                print ("Could not open %s"%(folder+"/transmittedFluxNorm.json"))
+                print ("Could not open %s"%(fname))
                 continue
             data = json.load(infile)
             infile.close()
 
+            try:
+                n1 = np.sqrt( data["geometry"]["EpsilonLow"] )
+                n2 = np.sqrt( data["geometry"]["EpsilonHigh"] )
+            except:
+                print ("Could not find epsilon in file %s using default..."%(fname))
+                n1 = 1.0
+                n2 = 1.5
             angles = np.array( data["incidentAngle"] )[0:-1:step]
             T = np.array( data["transmitted"] )[0:-1:step]
             R = np.array( data["reflected"] )[0:-1:step]
