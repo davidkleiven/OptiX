@@ -3,6 +3,7 @@ DDIR="dataPlane/GeometryClass" # Assumes that continues with <angle><polarisatio
 INC_ANGLE=(5 20 45 75 85)
 FDIR="Figures/GeometryClass"
 
+mkdir -p ${FDIR}
 # Plot flux spectrum
 echo "Plotting flux spectrum..."
 python plotFlux.py "${DDIR}" "${FDIR}" "${INC_ANGLE[@]}"
