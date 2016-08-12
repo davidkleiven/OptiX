@@ -37,20 +37,13 @@ def main(argv):
         print "[plotFlux] incident angle and polarisation and subdir %s will be appended"%(SUBDIR)
         print "[plotFlux] Examples: datadirbase = dataplane/MultInc ---> "
         print "[plotFlux] s polarisation with 20 deg incidence is located int dataplane/MulcInc20s/%s"%(SUBDIR)
+        return 1
     fig = plt.figure()
     ax = fig.add_subplot(111) 
     figError = plt.figure()
     axError = figError.add_subplot(111)
+    havePlottedExact = False
 
-    theta = np.linspace(0.0, 90.0, 101)
-    n1 = 1.0
-    n2 = np.sqrt(0.5)
-    ax.plot(theta, Rs(theta, n1, n2), color='black')
-    ax.plot(theta, Rp(theta, n1, n2), color='black')
-    ax.plot(theta, Ts(theta, n1, n2), color='black')
-    ax.plot(theta, Tp(theta, n1, n2), color='black')
-    ax.set_xlabel("Incident angle (deg)")
-    ax.set_ylabel("Transmitance/Reflectance")
     folderBase = argv[0]
     fdir = argv[1]
     try:
@@ -112,6 +105,15 @@ def main(argv):
                 axError.plot(angles, errorR, markerR, color='black', label="$R_\mathrm{%s}$"%(pol), ms=markersize)
                 axError.plot(angles, errorT,  markerT, color='black', label="$T_\mathrm{%s}$"%(pol), ms=markersize, fillstyle=fill)
                 hasLabel = True    
+            if ( not havePlottedExact ): 
+                theta = np.linspace(0.0, 90.0, 101)
+                ax.plot(theta, Rs(theta, n1, n2), color='black')
+                ax.plot(theta, Rp(theta, n1, n2), color='black')
+                ax.plot(theta, Ts(theta, n1, n2), color='black')
+                ax.plot(theta, Tp(theta, n1, n2), color='black')
+                ax.set_xlabel("Incident angle (deg)")
+                ax.set_ylabel("Transmitance/Reflectance")
+                havePlottedExact = True
         hasLabel = False
     ax.legend(loc='center left', frameon=False)
     ax.set_ylim(0.0, 1.0)

@@ -1,5 +1,5 @@
 TOP_FOLDER=dataPlane
-SUBFOLDER_BASE="XrayRegime"
+SUBFOLDER_BASE=XrayRegime
 DDIR_BASE="${TOP_FOLDER}/${SUBFOLDER_BASE}"
 EPS_HIGH=0.9998
 ANGLES=(5 20 45 75 85)
@@ -27,6 +27,7 @@ then
   read ANSWER
   if [ ![${ANSWER} == "yes"] ]
   then
+    echo "Aborting run..."
     exit 1
   fi
 fi
