@@ -3,8 +3,9 @@ ODIR=obj
 SDIR=src
 CXX=g++
 
-MEEP_IDIR = /home/david/Documents/MEEP/meep-1.3/src
-MEEP_LDIR = /home/david/Documents/MEEP/meep-1.3/install/lib
+#MEEP_IDIR = /home/david/Documents/MEEP/meep-1.3/src
+#MEEP_LDIR = /home/david/Documents/MEEP/meep-1.3/install/lib
+include paths.sh
 HDF5_LDIR = /usr/lib/x86_64-linux-gnu/hdf5/serial
 
 PLANE_WAVE := planeReflection.cpp dielectricSlab.cpp
