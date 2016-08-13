@@ -44,7 +44,7 @@ def main(argv):
 
     theta = np.linspace(0.0, 90.0, 101)
     n1 = 1.0
-    n2 = np.sqrt(0.5)
+    n2 = 1.5
     ax.plot(theta, Rs(theta, n1, n2), color='black')
     ax.plot(theta, Rp(theta, n1, n2), color='black')
     ax.plot(theta, Ts(theta, n1, n2), color='black')
@@ -85,8 +85,15 @@ def main(argv):
             angles = np.array( data["incidentAngle"] )[0:-1:step]
             T = np.array( data["transmitted"] )[0:-1:step]
             R = np.array( data["reflected"] )[0:-1:step]
-            errorR = np.abs(R - Rs(angles, n1, n2))/Rs(angles, n1, n2)
-            errorT = np.abs(T - Ts(angles, n1, n2))/Ts(angles, n1, n2)
+            if ( pol == 's' ):
+                errorR = np.abs(R - Rs(angles, n1, n2))/Rs(angles, n1, n2)
+                errorT = np.abs(T - Ts(angles, n1, n2))/Ts(angles, n1, n2)
+            elif ( pol == 'p' ):
+                errorR = np.abs(R - Rp(angles, n1, n2))/Rp(angles, n1, n2)
+                errorT = np.abs(T - Tp(angles, n1, n2))/Tp(angles, n1, n2)
+
+            else:
+                print ("Unknown polarisation")
             if ( hasLabel ):
                 ax.plot(angles, R, markerR, color='black', ms=markersize)
                 ax.plot(angles, T,  markerT, color='black', ms=markersize, fillstyle=fill)
