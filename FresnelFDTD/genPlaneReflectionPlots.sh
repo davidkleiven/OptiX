@@ -1,8 +1,9 @@
 # This script processes the output from the plane reflection simulation
-DDIR="dataPlane/GeometryClass" # Assumes that continues with <angle><polarisation>. Example: MultInc20s
+DDIR="dataPlane/XrayRegime" # Assumes that continues with <angle><polarisation>. Example: MultInc20s
 INC_ANGLE=(5 20 45 75 85)
-FDIR="Figures/GeometryClass"
+FDIR="Figures/XrayRegime"
 
+mkdir -p ${FDIR}
 # Plot flux spectrum
 echo "Plotting flux spectrum..."
 python plotFlux.py "${DDIR}" "${FDIR}" "${INC_ANGLE[@]}"
