@@ -230,10 +230,10 @@ int main(int argc, char **argv)
 {
 
   // Parse input arguments
-  if ( argc != 5 )
+  if ( argc != 6 )
   {
     std::cout << "Usage: ./fresnelBEM.out --odir=<ddir> --theta0=<minimum angle> --theta1=<maximum angle>\n";
-    std::cout << "--ntheta=<number of angles>\n";
+    std::cout << "--ntheta=<number of angles> --geofile=<geo.scuffgeo>\n";
     return 1;
   }
 
@@ -242,6 +242,7 @@ int main(int argc, char **argv)
   double thetamax = 0.0;
   double dtheta = 5.0;
   string odir("");
+  string geofile("");
   
   for ( unsigned int i=1;i<argc; i++ )
   {
@@ -271,6 +272,10 @@ int main(int argc, char **argv)
       ss >> ntheta;
       dtheta = (thetamax - theta)/ntheta;
     }
+    else if ( arg.find("--geofile=") != string::npos )
+    {
+      geofile = arg.substr(10);
+    }
     else
     {
       cout << "Unknown argument " << arg << endl;
@@ -283,9 +288,13 @@ int main(int argc, char **argv)
     cout << "Did not find any out directory...\n";
     return 1;
   }
+  if ( geofile == "" )
+  {
+    cout << "Did not fint any geometry file...\n";
+  }
       
   scuff::RWGGeometry::AssignBasisFunctionsToExteriorEdges=false;
-  scuff::RWGGeometry geo = scuff::RWGGeometry("halfspace.scuffgeo");
+  scuff::RWGGeometry geo = scuff::RWGGeometry(geofile.c_str());
   SetLogFileName("fresnel.log");
   geo.SetLogLevel(SCUFF_VERBOSELOGGING);
 
