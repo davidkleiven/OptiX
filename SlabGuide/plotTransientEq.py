@@ -12,7 +12,8 @@ def rhs( ky, epsscat ):
     return np.sqrt( OMEGA**2 *(1.0-epsscat)/ky**2 - 1.0 )
 
 def solverFunc( ky, epsscat ):
-    return np.tan(ky) - rhs(ky, epsscat)
+    return np.tan(ky) - rhs(ky,epsscat)
+
 def main(argv):
     if ( len(argv) != 2 ):
         print ("Usage: python plotTransientEq.py --fig=<figname> --epscladding=<eps in cladding>")
@@ -34,7 +35,10 @@ def main(argv):
     elif ( epsclad < 0.0 ):
         print ("No epsilon in cladding specified...") 
         return 1
-    ky = np.linspace(0.0, 2.0*np.pi/2.0, 200 )
+    kymax = OMEGA*np.sqrt(1.0-epsclad)
+    if ( kymax > np.pi/2.0):
+        kymax = np.pi/2.0
+    ky = np.linspace(1E-10, kymax, 2000 )
     fig = plt.figure()
     ax = fig.add_subplot(111)
     ax.plot( ky, np.tan(ky), 'k', label="$\\tan{k_y}$")
@@ -46,7 +50,12 @@ def main(argv):
     print ("Figure written to %s"%(figname))
 
     # Solve the equation
-    kyAnswer = opt.newton( solverFunc, np.pi/4.0, args=(epsclad,) )
+    guess = OMEGA**2 *(1.0-epsclad)
+    try:
+        kyAnswer = opt.newton( solverFunc, guess, args=(epsclad,), maxiter=1000)
+    except:
+        print ("Failed to converge, using small ky expansion")
+        kyAnswer = OMEGA*np.sqrt(1.0-epsclad)
     print ("Intersection point %.4E"%(kyAnswer))
     
 
