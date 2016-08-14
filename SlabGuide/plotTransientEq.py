@@ -5,10 +5,14 @@ import matplotlib as mpl
 mpl.rcParams.update( mplLaTeX.params )
 from matplotlib import pyplot as plt
 import numpy as np
+from scipy import optimize as opt
 
 OMEGA = 2.0*np.pi*0.5
 def rhs( ky, epsscat ):
     return np.sqrt( OMEGA**2 *(1.0-epsscat)/ky**2 - 1.0 )
+
+def solverFunc( ky, epsscat ):
+    return np.tan(ky) - rhs(ky, epsscat)
 def main(argv):
     if ( len(argv) != 2 ):
         print ("Usage: python plotTransientEq.py --fig=<figname> --epscladding=<eps in cladding>")
@@ -40,6 +44,11 @@ def main(argv):
     ax.legend(loc="upper right", frameon=False)
     fig.savefig(figname, bbox_inches="tight" )
     print ("Figure written to %s"%(figname))
+
+    # Solve the equation
+    kyAnswer = opt.newton( solverFunc, np.pi/4.0, args=(epsclad,) )
+    print ("Intersection point %.4E"%(kyAnswer))
+    
 
 if __name__ == "__main__":
     main(sys.argv[1:])
