@@ -230,10 +230,10 @@ int main(int argc, char **argv)
 {
 
   // Parse input arguments
-  if ( argc != 6 )
+  if ( argc != 5 )
   {
     std::cout << "Usage: ./fresnelBEM.out --odir=<ddir> --theta0=<minimum angle> --theta1=<maximum angle>\n";
-    std::cout << "--ntheta=<number of angles> --epsscat=<epsilon in scattering medium>\n";
+    std::cout << "--ntheta=<number of angles>\n";
     return 1;
   }
 
@@ -241,7 +241,6 @@ int main(int argc, char **argv)
   double theta = 0.0;
   double thetamax = 0.0;
   double dtheta = 5.0;
-  double epsilonHigh = -1.0;
   string odir("");
   
   for ( unsigned int i=1;i<argc; i++ )
@@ -272,12 +271,6 @@ int main(int argc, char **argv)
       ss >> ntheta;
       dtheta = (thetamax - theta)/ntheta;
     }
-    else if ( arg.find("--epsscat=") != string::npos )
-    {
-      ss.clear();
-      ss << arg.substr(10);
-      ss >> epsilonHigh;
-    }
     else
     {
       cout << "Unknown argument " << arg << endl;
@@ -288,11 +281,6 @@ int main(int argc, char **argv)
   if ( odir == "" )
   {
     cout << "Did not find any out directory...\n";
-    return 1;
-  }
-  if ( epsilonHigh < 0.0 )
-  {
-    cout << "Did not find any epsilon scat...\n";
     return 1;
   }
       
@@ -324,9 +312,6 @@ int main(int argc, char **argv)
   cdouble EHSource[6];
   cdouble EHMonitor[6];
 
-  double theta = 89.0;
-  const double dtheta = 0.1;
-  const double thetamax = 89.9;
   Polarisation_t pol[2] = {Polarisation_t::S, Polarisation_t::P};
   double kBloch[2] = {0.0,0.0};
  
