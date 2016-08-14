@@ -18,6 +18,7 @@
 const double PI = acos(-1.0);
 enum class Polarisation_t{S, P};
 
+using namespace std;
 typedef std::complex<double> cdouble;
 
 /**
@@ -227,6 +228,74 @@ void visualize( double ymin, double ymax, double zmin, double zmax, unsigned int
   
 int main(int argc, char **argv)
 {
+
+  // Parse input arguments
+  if ( argc != 6 )
+  {
+    std::cout << "Usage: ./fresnelBEM.out --odir=<ddir> --theta0=<minimum angle> --theta1=<maximum angle>\n";
+    std::cout << "--ntheta=<number of angles> --epsscat=<epsilon in scattering medium>\n";
+    return 1;
+  }
+
+  // Parse arguments
+  double theta = 0.0;
+  double thetamax = 0.0;
+  double dtheta = 5.0;
+  double epsilonHigh = -1.0;
+  string odir("");
+  
+  for ( unsigned int i=1;i<argc; i++ )
+  {
+    string arg(argv[i]);
+    stringstream ss;
+    if ( arg.find( "--odir=" ) != string::npos )
+    {
+      odir = arg.substr(7);
+    }
+    else if ( arg.find("--theta0=") != string::npos )
+    {
+      ss.clear();
+      ss << arg.substr(9);
+      ss >> theta;
+    }
+    else if ( arg.find("--theta1=") != string::npos )
+    {
+      ss.clear();
+      ss << arg.substr(9);
+      ss >> thetamax;
+    }
+    else if ( arg.find("--ntheta=") != string::npos )
+    {
+      ss.clear();
+      ss << arg.substr(9);
+      double ntheta;
+      ss >> ntheta;
+      dtheta = (thetamax - theta)/ntheta;
+    }
+    else if ( arg.find("--epsscat=") != string::npos )
+    {
+      ss.clear();
+      ss << arg.substr(10);
+      ss >> epsilonHigh;
+    }
+    else
+    {
+      cout << "Unknown argument " << arg << endl;
+    }
+  }
+
+  // Consitency check
+  if ( odir == "" )
+  {
+    cout << "Did not find any out directory...\n";
+    return 1;
+  }
+  if ( epsilonHigh < 0.0 )
+  {
+    cout << "Did not find any epsilon scat...\n";
+    return 1;
+  }
+      
   scuff::RWGGeometry::AssignBasisFunctionsToExteriorEdges=false;
   scuff::RWGGeometry geo = scuff::RWGGeometry("halfspace.scuffgeo");
   SetLogFileName("fresnel.log");
@@ -255,9 +324,9 @@ int main(int argc, char **argv)
   cdouble EHSource[6];
   cdouble EHMonitor[6];
 
-  double theta = 0.0;
-  const double dtheta = 5.0;
-  const double thetamax = 89.0;
+  double theta = 89.0;
+  const double dtheta = 0.1;
+  const double thetamax = 89.9;
   Polarisation_t pol[2] = {Polarisation_t::S, Polarisation_t::P};
   double kBloch[2] = {0.0,0.0};
  
@@ -445,8 +514,10 @@ int main(int argc, char **argv)
     {
       double twoLambda = 2.0/ksource;
       std::cout << "Outputting field for visualisation..." << std::flush;
-      visualize( 0.0, 1.0, 0.0-twoLambda, 0.0, 5, 8, geo, omega, kBloch, pw, *rhsVec, "data/fieldInc.json");
-      visualize( 0.0, 1.0, 0.0, twoLambda, 5, 8, geo, omega, kBloch, pw, *rhsVec, "data/fieldTrans.json");
+      string incfield = odir + "/fieldInc.json";
+      string transfield = odir + "fieldTrans.json";
+      visualize( 0.0, 1.0, 0.0-twoLambda, 0.0, 5, 8, geo, omega, kBloch, pw, *rhsVec, incfield.c_str());
+      visualize( 0.0, 1.0, 0.0, twoLambda, 5, 8, geo, omega, kBloch, pw, *rhsVec, incfield.c_str());
       std::cout << " done\n" << std::flush;
     }
     // Solve for p polarisation
@@ -534,7 +605,7 @@ int main(int argc, char **argv)
     spectra["geometry"]["EpsilonLow"] = epsilonLow;
   }
   
-  std::string resultFile("data/coefficients.json");
+  std::string resultFile = odir+"/coefficients.json";
   Json::FastWriter fw;
   std::ofstream os(resultFile.c_str());
   if ( !os.good() )
