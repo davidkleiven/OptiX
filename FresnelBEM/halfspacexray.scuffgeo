@@ -12,6 +12,6 @@ REGION Exterior MATERIAL VACUUM
 REGION LowerHalfSpace MATERIAL CONST_EPS_0.99998
 
 SURFACE Interface
-  MESHFILE square_40.msh
+  MESHFILE squareAcc.msh
   REGIONS Exterior LowerHalfSpace
 ENDSURFACE
