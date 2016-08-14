@@ -18,8 +18,9 @@ def plotError( angle, error_rs, error_rp, error_ts, error_tp, brewster, fname ):
     ax.plot( angle, error_ts, '^', ms=2, color="black", label="$T_\mathrm{s}$")
     ax.plot( angle, error_tp, '.', ms=4, color="black", label="$T_\mathrm{p}$")
     ax.set_ylim( 1E-11, 1E-1 )
-    ax.axvline( brewster, color='black', ls="dotted" )
-    ax.text( brewster+1, 1E-8, "Brewster", rotation=-90 )
+    if ( np.min(angle) < brewster ):
+        ax.axvline( brewster, color='black', ls="dotted" )
+        ax.text( brewster+1, 1E-8, "Brewster", rotation=-90 )
     ax.set_xlabel( "Incident angle (deg)" )
     ax.set_ylabel( "Relative error" )
     ax.set_yscale('log')
@@ -46,13 +47,14 @@ def main(argv):
     data = json.load(infile)
     infile.close()
     try:
-        n1 = np.sqrt( float(data["geometry"]["EpsilonLow"]) )
-        n2 = np.sqrt( float(data["geometry"]["EpsilonHigh"]) )
+        n2 = np.sqrt( float(data["geometry"]["EpsilonLow"]) )
+        n1 = np.sqrt( float(data["geometry"]["EpsilonHigh"]) )
     except:
         n1 = 1.0
         n2 = 1.5
 
-    angle = np.linspace(0.0, 90.0, 101)
+    incangle = np.array( data["IncidentAngle"] )
+    angle = np.linspace(0.99*np.min(incangle), 90.0, 101)
     ax.plot( data["IncidentAngle"], data["FluxReflected"]["s"], 'o', ms=2, color='black', fillstyle='none', label="$R_\mathrm{s}$")
     ax.plot( data["IncidentAngle"], data["FluxReflected"]["p"], 'x', ms=2, color='black', label="$R_\mathrm{p}$" )
     ax.plot( data["IncidentAngle"], data["FluxTransmitted"]["s"], '^', ms=2, color='black', label="$T_\mathrm{s}$")
