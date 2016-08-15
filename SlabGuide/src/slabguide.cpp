@@ -20,9 +20,10 @@ const double YSIZE = 12.0;
 const double PML = 4.0;
 const double FREQ = 1.0;
 const double DFREQ = 0.5*FREQ;
-const double KX = 0.8;
+const double KX = 0.9;
 const double XSIZE = 2.0;
 const double RESOLUTION = 40.0;
+const double TIME = 400.0; // Number of wave propagations
 unsigned int NFREQ = 5;
 
 /* PARAMETERS DERIVED FROM THE GLOBAL */ const double CENTER = YSIZE/2.0;
@@ -113,7 +114,7 @@ int main(int argc, char** argv)
   
   // Setup DFT point to collect the frequency
   vector< complex<double> > fieldMonitor;
-  while ( field.time() < source.last_time()+10.0*tProp )
+  while ( field.time() < source.last_time()+TIME*tProp )
   {
     field.step();
     meep::vec fieldPos(XSIZE/2.2, CENTER);
