@@ -10,6 +10,7 @@
 #include <cassert>
 #include <stdexcept>
 #include <jsoncpp/json/writer.h>
+#include <cfloat>
 
 using namespace std;
 
@@ -125,18 +126,14 @@ int main(int argc, char** argv)
   vector< complex<double> > amps(NFREQ);
   vector<double> freq_re(NFREQ);
   vector<double> freq_im(NFREQ);
-  int status = meep::do_harminv( &fieldMonitor[0], fieldMonitor.size(), field.dt, FREQ-DFREQ, FREQ+DFREQ, NFREQ, &amps[0], &freq_re[0], &freq_im[0] );
+  int nModes = meep::do_harminv( &fieldMonitor[0], fieldMonitor.size(), field.dt, FREQ-DFREQ, FREQ+DFREQ, NFREQ, &amps[0], &freq_re[0], &freq_im[0] );
   // Collect the frequency
   Json::Value freqs(Json::arrayValue);
   Json::Value qFactor(Json::arrayValue);
-  for ( unsigned int i=0;i<freq_re.size();i++ )
+  for ( int i=0;i<nModes;i++ )
   {
-    // Avoid NaN in output
-    if ( abs(freq_im[i]) > 1E-6 )
-    {
-      freqs.append( freq_re[i] );
-      qFactor.append( -freq_re[i]/(2.0*freq_im[i] ));
-    }
+    freqs.append( freq_re[i] );
+    qFactor.append( -freq_re[i]/(2.0*freq_im[i] ));
   }
   
 
