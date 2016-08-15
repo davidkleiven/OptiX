@@ -32,7 +32,7 @@ def main(argv):
             epsclad = float( arg.split("--epscladding=")[1] )
         elif ( arg.find("--freq=") != -1 ):
             OMEGA *= float( arg.split("--freq=")[1] )
-        elif ( arg.find("--guess=") ):
+        elif ( arg.find("--guess=") != -1):
             initguess = arg.split("--guess=")[1]
     
     # Consistency check
@@ -43,7 +43,7 @@ def main(argv):
         print ("No epsilon in cladding specified...") 
         return 1
     elif ( initguess == "" ):
-        print ("Did not find any init gues. Using lowfrew...")
+        print ("Did not find any init gues. Using lowfreq...")
         initguess = "lowfreq"
     kymax = OMEGA*np.sqrt(1.0-epsclad)
     if ( kymax > np.pi/2.0):
