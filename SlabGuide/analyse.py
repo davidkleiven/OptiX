@@ -10,13 +10,7 @@ import numpy as np
 from scipy import stats
 import json
 
-def computeKy( fname, fdir ):
-    try:
-        infile = open( fname, 'r' )
-        data = json.load(infile)
-    except:
-        print ("Could not open file %s"%(fname))
-        return 
+def computeKy( data, fdir ):
       
     y = np.array( data["monitor"]["inside"]["pos"] )
     amp = np.array( data["monitor"]["inside"]["data"] )
@@ -43,6 +37,21 @@ def computeKy( fname, fdir ):
 
     print ("Transverse wave vector: %.3E"%(slope))
 
+
+def plotQFactor( data, fdir ):
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    freq = np.array( data["monitor"]["freq"] )
+    Q = np.array( data["monitor"]["qFactor"] )
+    ax.plot( freq, Q, 'k')
+    ax.set_xlabel("Frequency")
+    ax.set_ylabel("Quality factor Im($\omega$)/Re($\omega$)")
+    if ( USE_LATEX ):
+        fname = fdir +"/Qfactor.pdf"
+        fig.savefig( fname, bbox_inches="tight")
+    else:
+        fig.show()
+     
 def main(argv):
     if ( len(argv) != 2 ):
         print ("Usage: python analyse.py --dfile=<data.json> --fdir=<figdir>")
@@ -64,8 +73,16 @@ def main(argv):
         print ("No figure directory specified...")
         return 1
 
+    # Read data
+    try:
+        infile = open( dfile, 'r' )
+        data = json.load(infile)
+    except:
+        print ("Could not open file %s"%(dfile))
+        return 1
     # Compute the transverse k-vector
-    computeKy( dfile, fdir )
+    computeKy( data, fdir )
+    plotQFactor( data, fdir )
 
     if ( not USE_LATEX ):
         plt.show()
