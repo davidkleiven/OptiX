@@ -19,12 +19,13 @@ const double L = 1.0;
 const double YSIZE = 12.0;
 const double PML = 4.0;
 const double FREQ = 1.0;
+const double DFREQ = 0.5*FREQ;
 const double KX = 0.8;
-const double XSIZE = 4.0;
-const double RESOLUTION = 20.0;
+const double XSIZE = 2.0;
+const double RESOLUTION = 40.0;
+unsigned int NFREQ = 5;
 
-/* PARAMETERS DERIVED FROM THE GLOBAL */
-const double CENTER = YSIZE/2.0;
+/* PARAMETERS DERIVED FROM THE GLOBAL */ const double CENTER = YSIZE/2.0;
 
 /* EPSION FUNCTION */
 double dielectric( const meep::vec &pos )
@@ -110,9 +111,27 @@ int main(int argc, char** argv)
     monitorsOutsidePos.append( CENTER + L + static_cast<double>(i)*dyOutside);
   }
   
-  while ( field.time() < source.last_time()+30.0*tProp )
+  // Setup DFT point to collect the frequency
+  vector< complex<double> > fieldMonitor;
+  while ( field.time() < source.last_time()+10.0*tProp )
   {
     field.step();
+    meep::vec fieldPos(XSIZE/2.2, CENTER);
+    fieldMonitor.push_back( field.get_field( meep::Ez, fieldPos) );
+  }
+  
+  // Use harminv
+  vector< complex<double> > amps(NFREQ);
+  vector<double> freq_re(NFREQ);
+  vector<double> freq_im(NFREQ);
+  int status = meep::do_harminv( &fieldMonitor[0], fieldMonitor.size(), field.dt, FREQ-DFREQ, FREQ+DFREQ, NFREQ, &amps[0], &freq_re[0], &freq_im[0] );
+  // Collect the frequency
+  Json::Value freqs(Json::arrayValue);
+  Json::Value qFactor(Json::arrayValue);
+  for ( unsigned int i=0;i<freq_re.size();i++ )
+  {
+    freqs.append( freq_re[i] );
+    qFactor.append( -freq_re[i]/(2.0*freq_im[i] ));
   }
   
 
@@ -132,6 +151,8 @@ int main(int argc, char** argv)
   base["monitor"]["inside"]["pos"] = monitorsInsidePos;
   base["monitor"]["outside"]["data"] = monitorOutside;
   base["monitor"]["outside"]["pos"] = monitorsOutsidePos;
+  base["monitor"]["freq"] = freqs;
+  base["monitor"]["qFactor"] = qFactor;
   Json::FastWriter fw;
   string ofname = odir+"/monitors.json";
   ofstream os(ofname.c_str());
