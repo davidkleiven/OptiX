@@ -96,8 +96,8 @@ int main(int argc, char** argv)
   Json::Value monitorOutside(Json::arrayValue);
   Json::Value monitorsOutsidePos(Json::arrayValue);
   double monitorX = XSIZE - PML;
-  unsigned int nMonitors = 10;
-  double dyInside = 2.0*static_cast<double>(L)/static_cast<double>(nMonitors); 
+  unsigned int nMonitors = 11;
+  double dyInside = 2.0*static_cast<double>(L)/static_cast<double>(nMonitors-1); 
   double dyOutside = static_cast<double>(L)/static_cast<double>(nMonitors);
   // Initialize arrays
   for ( unsigned int i=0;i<nMonitors;i++)
