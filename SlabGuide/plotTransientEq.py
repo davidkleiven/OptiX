@@ -51,7 +51,7 @@ def main(argv):
 
     # Solve the equation
     guess = OMEGA**2 *(1.0-epsclad)
-    #guess = 1.0
+    guess = 1.0
     try:
         kyAnswer = opt.newton( solverFunc, guess, args=(epsclad,), maxiter=1000)
     except:
