@@ -19,7 +19,8 @@ const double L = 1.0;
 const double YSIZE = 12.0;
 const double PML = 4.0;
 const double FREQ = 1.0;
-const double XSIZE = 160.0;
+const double KX = 0.8;
+const double XSIZE = 4.0;
 const double RESOLUTION = 20.0;
 
 /* PARAMETERS DERIVED FROM THE GLOBAL */
@@ -79,12 +80,13 @@ int main(int argc, char** argv)
   meep::grid_volume vol = meep::vol2d( XSIZE, YSIZE, RESOLUTION );
   //const meep::symmetry sym = meep::mirror(meep::Y, vol);
   //meep::structure struc(vol, dielectric, meep::pml( PML ), sym);
-  meep::structure struc(vol, dielectric, meep::pml( PML ));
+  meep::structure struc(vol, dielectric, meep::pml( PML, meep::Y ));
   meep::fields field(&struc);
   field.set_output_directory( odir.c_str() );
   field.output_hdf5( meep::Dielectric, vol.surroundings() );
-  meep::vec sourceLoc(PML, CENTER);
-  meep::continuous_src_time source(FREQ);
+  meep::vec sourceLoc(2.1342, CENTER); // Random x-coordinate
+  meep::gaussian_src_time source(FREQ, 0.5*FREQ);
+  field.use_bloch( meep::X, KX );
   field.add_point_source( meep::Ez, source, sourceLoc ); 
 
   // Compute time required to propagate over the entire domain
@@ -95,7 +97,7 @@ int main(int argc, char** argv)
   Json::Value monitorsInsidePos(Json::arrayValue);
   Json::Value monitorOutside(Json::arrayValue);
   Json::Value monitorsOutsidePos(Json::arrayValue);
-  double monitorX = XSIZE - PML;
+  double monitorX = XSIZE -1.0;
   unsigned int nMonitors = 11;
   double dyInside = 2.0*static_cast<double>(L)/static_cast<double>(nMonitors-1); 
   double dyOutside = static_cast<double>(L)/static_cast<double>(nMonitors);
@@ -108,7 +110,7 @@ int main(int argc, char** argv)
     monitorsOutsidePos.append( CENTER + L + static_cast<double>(i)*dyOutside);
   }
   
-  while ( field.time() < 1.3*tProp )
+  while ( field.time() < source.last_time()+30.0*tProp )
   {
     field.step();
   }
