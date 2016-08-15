@@ -19,10 +19,15 @@ def computeKy( fname, fdir ):
         return 
       
     y = np.array( data["monitor"]["inside"]["pos"] )
-    # Shift y such that center is zero
-    y -= y[len(y)/2]
     amp = np.array( data["monitor"]["inside"]["data"] )
     amp /= np.max(amp)
+    # Shift y such that center is zero
+    y -= y[len(y)/2]
+    fig2 = plt.figure()
+    ax2 = fig2.add_subplot(111)
+    ax2.plot( y, amp )
+    if ( not USE_LATEX ):
+        fig2.show()
 
     fit = np.arccos(amp)
     fit[y<0.0] = -fit[y<0.0]
@@ -36,7 +41,7 @@ def computeKy( fname, fdir ):
     else:
         fig.show()
 
-    print ("Transverse wave vector: %.3E"%(1.0/slope))
+    print ("Transverse wave vector: %.3E"%(slope))
 
 def main(argv):
     if ( len(argv) != 2 ):
