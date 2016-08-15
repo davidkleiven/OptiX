@@ -15,8 +15,9 @@ def solverFunc( ky, epsscat ):
     return np.tan(ky) - rhs(ky,epsscat)
 
 def main(argv):
-    if ( len(argv) != 2 ):
-        print ("Usage: python plotTransientEq.py --fig=<figname> --epscladding=<eps in cladding>")
+    global OMEGA
+    if ( len(argv) != 3 ):
+        print ("Usage: python plotTransientEq.py --fig=<figname> --epscladding=<eps in cladding> --freq=<frequency>")
         return 1
 
     # Parse arguments
@@ -27,6 +28,8 @@ def main(argv):
            figname = arg.split("--fig=")[1]
         elif ( arg.find("--epscladding=") != -1 ):
             epsclad = float( arg.split("--epscladding=")[1] )
+        elif ( arg.find("--freq=") != -1 ):
+            OMEGA *= float( arg.split("--freq=")[1] )
     
     # Consistency check
     if ( figname == "" ):
