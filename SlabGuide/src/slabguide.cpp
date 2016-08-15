@@ -90,13 +90,58 @@ int main(int argc, char** argv)
   // Compute time required to propagate over the entire domain
   double tProp = XSIZE; // Speed of light c=1
   
+  // Define output quantities
+  Json::Value monitorInside(Json::arrayValue);
+  Json::Value monitorsInsidePos(Json::arrayValue);
+  Json::Value monitorOutside(Json::arrayValue);
+  Json::Value monitorsOutsidePos(Json::arrayValue);
+  double monitorX = XSIZE - PML;
+  unsigned int nMonitors = 10;
+  double dyInside = 2.0*static_cast<double>(L)/static_cast<double>(nMonitors); 
+  double dyOutside = static_cast<double>(L)/static_cast<double>(nMonitors);
+  // Initialize arrays
+  for ( unsigned int i=0;i<nMonitors;i++)
+  {
+    monitorInside.append(0.0);
+    monitorOutside.append(0.0);
+    monitorsInsidePos.append( CENTER-L+static_cast<double>(i)*dyInside);
+    monitorsOutsidePos.append( CENTER + L + static_cast<double>(i)*dyOutside);
+  }
+  
   while ( field.time() < 1.5*tProp )
   {
     field.step();
-  //  complex<double> Ez = field.get_field( meep::Ez, meep::vec( 5.0, 5.0 ) );
-   // cout << real(Ez) << endl;
   }
   
+
+  // Get the field
+  for ( unsigned int i=0;i<nMonitors;i++ )
+  { 
+    complex<double> Ez = field.get_field( meep::Ez, meep::vec(monitorX, monitorsInsidePos[i].asDouble()) );
+    monitorInside[i] = abs(Ez);
+    Ez = field.get_field( meep::Ez, meep::vec(monitorX, monitorsOutsidePos[i].asDouble()) );
+    monitorOutside[i] = abs(Ez);
+  }
+
+  Json::Value base;
+  base["geometry"]["EpsClad"] = EPS_CLAD;
+  base["geometry"]["guideWidth"] = 2.0*L;
+  base["monitor"]["inside"]["data"] = monitorInside;
+  base["monitor"]["inside"]["pos"] = monitorsInsidePos;
+  base["monitor"]["outside"]["data"] = monitorOutside;
+  base["monitor"]["outside"]["pos"] = monitorsOutsidePos;
+  Json::FastWriter fw;
+  string ofname = odir+"/monitors.json";
+  ofstream os(ofname.c_str());
+  if ( !os.good() )
+  {
+    cout << "Problem when opening file " << ofname << endl;
+    return 1;
+  }
+  
+  os << fw.write( base ) << endl;
+  os.close();
+  cout << "File written to " << ofname << endl;
   // Output field in the end
   field.output_hdf5( meep::Ez, vol.surroundings() ); 
   return 0;
