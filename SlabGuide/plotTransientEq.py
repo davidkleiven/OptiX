@@ -7,7 +7,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 from scipy import optimize as opt
 
-OMEGA = 2.0*np.pi*0.5
+OMEGA = 2.0*np.pi*1.0
 def rhs( ky, epsscat ):
     return np.sqrt( OMEGA**2 *(1.0-epsscat)/ky**2 - 1.0 )
 
@@ -51,6 +51,7 @@ def main(argv):
 
     # Solve the equation
     guess = OMEGA**2 *(1.0-epsclad)
+    #guess = 1.0
     try:
         kyAnswer = opt.newton( solverFunc, guess, args=(epsclad,), maxiter=1000)
     except:
