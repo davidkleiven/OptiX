@@ -51,6 +51,8 @@ def plotQFactor( data, fdir ):
         fig.savefig( fname, bbox_inches="tight")
     else:
         fig.show()
+    pos = np.argmax(Q)
+    print ("Highest mode frequency: %.4E"%(freq[pos]))
      
 def main(argv):
     if ( len(argv) != 2 ):
