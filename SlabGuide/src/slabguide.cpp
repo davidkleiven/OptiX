@@ -56,3 +56,5 @@ int main(int argc, char** argv)
   }
 
   // Define geometry
+  return 0;
+}
