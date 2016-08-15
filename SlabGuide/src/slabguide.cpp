@@ -19,7 +19,7 @@ const double L = 1.0;
 const double YSIZE = 12.0;
 const double PML = 4.0;
 const double FREQ = 1.0;
-const double DFREQ = 0.5*FREQ;
+const double DFREQ = 1.5*FREQ;
 const double KX = 0.9;
 const double XSIZE = 2.0;
 const double RESOLUTION = 40.0;
@@ -131,8 +131,12 @@ int main(int argc, char** argv)
   Json::Value qFactor(Json::arrayValue);
   for ( unsigned int i=0;i<freq_re.size();i++ )
   {
-    freqs.append( freq_re[i] );
-    qFactor.append( -freq_re[i]/(2.0*freq_im[i] ));
+    // Avoid NaN in output
+    if ( abs(freq_im[i]) > 1E-6 )
+    {
+      freqs.append( freq_re[i] );
+      qFactor.append( -freq_re[i]/(2.0*freq_im[i] ));
+    }
   }
   
 
