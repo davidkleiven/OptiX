@@ -16,16 +16,19 @@ using namespace std;
 /* GLOBAL PARAMETERS */
 double EPS_CLAD = 1.0;
 const double L = 1.0;
-const double YSIZE = 5.0;
+const double YSIZE = 8.0;
 const double PML = 2.0;
 const double FREQ = 1.0;
-const double XSIZE = 10.0;
+const double XSIZE = 40.0;
 const double RESOLUTION = 10.0;
+
+/* PARAMETERS DERIVED FROM THE GLOBAL */
+const double CENTER = YSIZE/2.0;
 
 /* EPSION FUNCTION */
 double dielectric( const meep::vec &pos )
 {
-  if ( pos.y() > L )
+  if (( pos.y() > L+CENTER ) || ( pos.y() < CENTER-L ))
   {
     return EPS_CLAD;
   }
@@ -55,7 +58,7 @@ int main(int argc, char** argv)
     else if ( arg.find( "--epsclad=" ) != string::npos )
     {
       stringstream ss;
-      ss << argv[i];
+      ss << arg.substr(10);
       ss >> EPS_CLAD;
       epsfound = true;
     }
@@ -74,11 +77,13 @@ int main(int argc, char** argv)
 
   // Define geometry
   meep::grid_volume vol = meep::vol2d( XSIZE, YSIZE, RESOLUTION );
-  const meep::symmetry sym = meep::mirror(meep::Y, vol);
-  meep::structure struc(vol, dielectric, meep::pml( PML ), sym);
+  //const meep::symmetry sym = meep::mirror(meep::Y, vol);
+  //meep::structure struc(vol, dielectric, meep::pml( PML ), sym);
+  meep::structure struc(vol, dielectric, meep::pml( PML ));
   meep::fields field(&struc);
   field.set_output_directory( odir.c_str() );
-  meep::vec sourceLoc(PML, 0.0);
+  field.output_hdf5( meep::Dielectric, vol.surroundings() );
+  meep::vec sourceLoc(PML, CENTER);
   meep::continuous_src_time source(FREQ);
   field.add_point_source( meep::Ez, source, sourceLoc ); 
 
@@ -88,6 +93,8 @@ int main(int argc, char** argv)
   while ( field.time() < 1.5*tProp )
   {
     field.step();
+  //  complex<double> Ez = field.get_field( meep::Ez, meep::vec( 5.0, 5.0 ) );
+   // cout << real(Ez) << endl;
   }
   
   // Output field in the end
