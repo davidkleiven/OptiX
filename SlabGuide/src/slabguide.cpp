@@ -19,8 +19,8 @@ const double L = 1.0;
 const double YSIZE = 12.0;
 const double PML = 4.0;
 const double FREQ = 1.0;
-const double XSIZE = 80.0;
-const double RESOLUTION = 10.0;
+const double XSIZE = 160.0;
+const double RESOLUTION = 20.0;
 
 /* PARAMETERS DERIVED FROM THE GLOBAL */
 const double CENTER = YSIZE/2.0;
@@ -108,7 +108,7 @@ int main(int argc, char** argv)
     monitorsOutsidePos.append( CENTER + L + static_cast<double>(i)*dyOutside);
   }
   
-  while ( field.time() < 1.5*tProp )
+  while ( field.time() < 1.3*tProp )
   {
     field.step();
   }
