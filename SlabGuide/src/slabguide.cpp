@@ -16,10 +16,10 @@ using namespace std;
 /* GLOBAL PARAMETERS */
 double EPS_CLAD = 1.0;
 const double L = 1.0;
-const double YSIZE = 8.0;
-const double PML = 2.0;
+const double YSIZE = 12.0;
+const double PML = 4.0;
 const double FREQ = 1.0;
-const double XSIZE = 40.0;
+const double XSIZE = 80.0;
 const double RESOLUTION = 10.0;
 
 /* PARAMETERS DERIVED FROM THE GLOBAL */
