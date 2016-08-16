@@ -18,19 +18,20 @@ using namespace std;
 /* GLOBAL PARAMETERS */
 double EPS_CLAD = 1.0;
 const double L = 1.0;
-const double YSIZE = 12.0;
-const double PML = 4.0;
+const double YSIZE = 30.0;
+const double PML = 10.0;
 const double FREQ = 1.0;
 const double DFREQ = 1.5*FREQ;
 const double KX = 0.97;
 const double XSIZE = 2.0;
 const double RESOLUTION = 40.0;
-const double TIME = 400.0; // Number of wave propagations
+const double TIME = 100.0; // Number of wave propagations
 unsigned int NFREQ = 5;
-const double EPS_IM = 1E-6;
+const double N_IM = 1E-6; // Imaginary part of the refractive index
 const double PI = acos(-1.0);
 
-/* PARAMETERS DERIVED FROM THE GLOBAL */ const double CENTER = YSIZE/2.0;
+/* PARAMETERS DERIVED FROM THE GLOBAL */ 
+const double CENTER = YSIZE/2.0;
 
 bool isOutsideGuide( const meep::vec &pos )
 {
@@ -52,7 +53,8 @@ double conductivity( const meep::vec &pos )
 {
   if ( isOutsideGuide(pos) )
   {
-    return EPS_IM*2.0*PI*FREQ/EPS_CLAD;
+    const double epsIm = 2.0*EPS_CLAD*N_IM;
+    return epsIm*2.0*PI*FREQ/EPS_CLAD;
   }
   return 0.0;
 }
