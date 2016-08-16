@@ -11,6 +11,7 @@
 #include <stdexcept>
 #include <jsoncpp/json/writer.h>
 #include <cfloat>
+#define USE_APSORPTION
 
 using namespace std;
 
@@ -26,18 +27,37 @@ const double XSIZE = 2.0;
 const double RESOLUTION = 40.0;
 const double TIME = 400.0; // Number of wave propagations
 unsigned int NFREQ = 5;
+const double EPS_IM = 1E-6;
+const double PI = acos(-1.0);
 
 /* PARAMETERS DERIVED FROM THE GLOBAL */ const double CENTER = YSIZE/2.0;
+
+bool isOutsideGuide( const meep::vec &pos )
+{
+  return (( pos.y() > L+CENTER ) || ( pos.y() < CENTER-L ));
+}
 
 /* EPSION FUNCTION */
 double dielectric( const meep::vec &pos )
 {
-  if (( pos.y() > L+CENTER ) || ( pos.y() < CENTER-L ))
+  if ( isOutsideGuide(pos) )
   {
     return EPS_CLAD;
   }
   return 1.0;
 } 
+
+#ifdef USE_APSORPTION
+double conductivity( const meep::vec &pos )
+{
+  if ( isOutsideGuide(pos) )
+  {
+    return EPS_IM*2.0*PI*FREQ/EPS_CLAD;
+  }
+  return 0.0;
+}
+#endif
+
 
 /* MAIN FUNCTION */
 int main(int argc, char** argv)
@@ -84,6 +104,9 @@ int main(int argc, char** argv)
   //const meep::symmetry sym = meep::mirror(meep::Y, vol);
   //meep::structure struc(vol, dielectric, meep::pml( PML ), sym);
   meep::structure struc(vol, dielectric, meep::pml( PML, meep::Y ));
+  #ifdef USE_APSORPTION
+    struc.set_conductivity( meep::Dz, conductivity );
+  #endif
   meep::fields field(&struc);
   field.set_output_directory( odir.c_str() );
   field.output_hdf5( meep::Dielectric, vol.surroundings() );
