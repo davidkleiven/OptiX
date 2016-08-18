@@ -1,6 +1,7 @@
 #ifndef DIELECTRIC_SLAB_H
 #define DIELECTRIC_SLAB_H
 #include "meep.hpp"
+#include "anisMat.h"
 
 /**
 * @class DielectricSlab  abstracts the underlying geometry parameters of the slab geometry.
@@ -17,18 +18,19 @@ public:
   void addStructure();
   void addField();
   void setKx(double kx);
-  void setEpsHigh(double epshigh);
-  void setEpsLow(double epslow);
+  void setEpsLower(double epslower);
+  void setEpsUpper(double epsupper  );
   void addSource( meep::src_time &source, meep::component fieldComp );
   inline double getXsize() const {return xsize;};
   inline double getYsize() const {return ysize;};
   inline double getPMLThickness() const {return pml_thick;};
   inline double getSourceY() const {return source_y;};
   inline double getYcPlane() const {return yc_plane;};
-  inline double getEpsLow() const {return epslow;};
-  inline double getEpsHigh() const {return epshigh;};
+  inline double getEpsUpper() const {return epsupper;};
+  inline double getEpsLower() const {return epslower;};
   void output_hdf5( meep::component comp );
   void output_hdf5( meep::component comt, meep::h5file* file ); 
+  static bool isInUpperHalfSpace( const meep::vec &pos);
 private:
   meep::grid_volume vol;
   meep::volume *sourcevol;
@@ -40,9 +42,12 @@ private:
   static const double yc_plane;
   static const double source_y;
   static double kx;
-  static double epslow;
-  static double epshigh;
+  static double epsupper;
+  static double epslower;
   static std::complex<double> amplitude( const meep::vec &pos );
   static double dielectric( const meep::vec &pos ); 
+  StretchYMaterial matX;
+  StretchYMaterial matY;
+  StretchYMaterial matZ;
 };  
 #endif

@@ -9,12 +9,12 @@ const double DielectricSlab::ysize=18.0;
 const double DielectricSlab::pml_thick=3.0;
 const double DielectricSlab::yc_plane=ysize/2.0;
 const double DielectricSlab::source_y = ysize-pml_thick - 1.0;
-double DielectricSlab::epslow = 1.0;
-double DielectricSlab::epshigh = 1.0;
-
+double DielectricSlab::epsupper = 1.0;
+double DielectricSlab::epslower = 1.0;
 double DielectricSlab::kx=1.0;
 
-DielectricSlab::DielectricSlab( double res ):vol(meep::vol2d(xsize, ysize,res)),sourcevol(NULL),struc(NULL),field(NULL){};
+DielectricSlab::DielectricSlab( double res ):vol(meep::vol2d(xsize, ysize,res)),sourcevol(NULL),struc(NULL),field(NULL), \
+matX( meep::Ex, this ), matY( meep::Ey, this ), matZ( meep::Ez, this ){};
 
 DielectricSlab::~DielectricSlab()
 {
@@ -34,9 +34,14 @@ double DielectricSlab::dielectric( const meep::vec &pos )
 {
   if ( pos.y() < yc_plane )
   {
-    return epshigh;
+    return epslower;
   }
-  return epslow;
+  return epsupper;
+}
+
+bool DielectricSlab::isInUpperHalfSpace( const meep::vec &pos )
+{
+  return pos.y() > yc_plane;
 }
 
 void DielectricSlab::addSourceVol()
@@ -64,14 +69,14 @@ void DielectricSlab::addField()
   field->use_bloch( meep::X, kx/(2.0*PI) ); // MEEP leaves out the factor 2pi (k = 1/lambda)
 }
 
-void DielectricSlab::setEpsHigh( double epshigh )
+void DielectricSlab::setEpsLower( double epslower )
 {
-  this->epshigh = epshigh;
+  this->epslower = epslower;
 }
 
-void DielectricSlab::setEpsLow( double epslow )
+void DielectricSlab::setEpsUpper( double epsupper )
 {
-  this->epslow = epslow;
+  this->epsupper = epsupper;
 }
 
 void DielectricSlab::setKx( double newKx )

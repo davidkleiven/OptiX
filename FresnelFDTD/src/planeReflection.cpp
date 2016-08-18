@@ -103,7 +103,7 @@ int main(int argc, char **argv)
 
   // Initialize geometry
   DielectricSlab geometry(resolution);
-  geometry.setEpsHigh(epshigh);
+  geometry.setEpsLower(epshigh);
 
   // Compute kx
   double k = 2.0*PI*freq;
@@ -162,7 +162,7 @@ int main(int argc, char **argv)
   Json::Value timepoints(Json::arrayValue);
 
   // Time required to propagate over the domain with the slowest speed
-  double speed = 1.0/sqrt(geometry.getEpsHigh());
+  double speed = 1.0/sqrt(geometry.getEpsLower());
   double tPropagate = geometry.getField().last_source_time() + 1.2*geometry.getYsize()/speed;
 
   // Main loop.
@@ -288,8 +288,8 @@ int main(int argc, char **argv)
   flux["geometry"]["slabPosition"] = geometry.getYcPlane();
   flux["geometry"]["xsize"] = geometry.getXsize();
   flux["geometry"]["ysize"] = geometry.getYsize();
-  flux["geometry"]["EpsilonHigh"] = geometry.getEpsHigh();
-  flux["geometry"]["EpsilonLow"] = geometry.getEpsLow();
+  flux["geometry"]["EpsilonHigh"] = geometry.getEpsLower();
+  flux["geometry"]["EpsilonLow"] = geometry.getEpsUpper();
   flux["frequency"] = freqArray;
   flux["incidentAngle"] = angleArray;
   flux["reflected"] = reflected;
@@ -321,8 +321,9 @@ int main(int argc, char **argv)
   monitors["geometry"]["slabPosition"] = geometry.getYcPlane();
   monitors["geometry"]["xsize"] = geometry.getXsize();
   monitors["geometry"]["ysize"] = geometry.getYsize();
-  monitors["geometry"]["EpsilonHigh"] = geometry.getEpsHigh();
-  monitors["geometry"]["EpsilonLow"] = geometry.getEpsLow();
+  // TODO: Bad name change epsilonhigh to epsilonlower and epsilonlow to epsilonupper
+  monitors["geometry"]["EpsilonHigh"] = geometry.getEpsLower();
+  monitors["geometry"]["EpsilonLow"] = geometry.getEpsUpper();
   monitors["reflected"]["position"] = fluxRefPlanePosY;
   monitors["reflected"]["real"] = fieldReflectionReal;
   monitors["transmitted"]["position"] = fluxPlanePosY;

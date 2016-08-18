@@ -8,7 +8,7 @@ CXX=g++
 include paths.sh
 HDF5_LDIR = /usr/lib/x86_64-linux-gnu/hdf5/serial
 
-PLANE_WAVE := planeReflection.cpp dielectricSlab.cpp
+PLANE_WAVE := planeReflection.cpp dielectricSlab.cpp anisMat.cpp
 PLANE_WAVE_OBJ := $(PLANE_WAVE:.cpp=.o)
 PLANE_WAVE := $(addprefix $(SDIR)/, $(PLANE_WAVE))
 PLANE_WAVE_OBJ := $(addprefix $(ODIR)/, $(PLANE_WAVE_OBJ))
