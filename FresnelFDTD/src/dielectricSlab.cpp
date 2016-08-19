@@ -56,6 +56,16 @@ void DielectricSlab::addStructure()
 {
   if ( struc != NULL ) delete struc;
   struc = new meep::structure(vol, dielectric, meep::pml( pml_thick, meep::Y ));
+  bool anisAvg = false;
+  double tol = 1.0; // --> set high since there is no averaging
+  int maxeval = 1; // --> no averaging
+  struc->set_chi1inv( meep::Ex, matX, false, tol, maxeval );
+  struc->set_chi1inv( meep::Ey, matY, false, tol, maxeval );
+  struc->set_chi1inv( meep::Ez, matZ, false, tol, maxeval );
+  struc->set_chi1inv( meep::Hx, matX, false, tol, maxeval );
+  struc->set_chi1inv( meep::Hy, matY, false, tol, maxeval );
+  struc->set_chi1inv( meep::Hz, matZ, false, tol, maxeval );
+  
 }
 
 void DielectricSlab::addField()
