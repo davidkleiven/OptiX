@@ -81,7 +81,7 @@ do
         echo "Has already FFT the fields..."
       fi
     else
-      ./fourierPulse.out ${ODIR}/realField.json ${BKGDIR}/realField.json ${ANGLES[$i]} 
+#      ./fourierPulse.out ${ODIR}/realField.json ${BKGDIR}/realField.json ${ANGLES[$i]} 
       echo "${CTR_MSG}${IS_FFT}" >> "${CONTROL_FILENAME}"
     fi
   done

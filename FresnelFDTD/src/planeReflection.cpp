@@ -103,7 +103,8 @@ int main(int argc, char **argv)
 
   // Initialize geometry
   DielectricSlab geometry(resolution);
-  geometry.setYscale( 2.0 );
+  double yscale = 20.0;
+  double epsmin = epshigh > 1.0 ? 1.0:epshigh;
   geometry.setEpsLower(epshigh);
 
   // Compute kx
@@ -120,8 +121,10 @@ int main(int argc, char **argv)
   meep::component fieldComp;
   try
   {
+    geometry.setYscale( 20.0 );
     geometry.addSourceVol();
     geometry.addStructure();
+    cout << "Running with Courant number = " << geometry.getStructure().Courant << endl;
     geometry.addField();
     
     if ( polarization == 's' )
@@ -133,6 +136,11 @@ int main(int argc, char **argv)
       fieldComp = meep::Hz;
     }
     geometry.addSource( src, fieldComp );
+  }
+  catch( std::invalid_argument &exc )
+  {
+    cout << exc.what() << endl;
+    return 1;
   }
   catch ( std::logic_error &exc )
   {

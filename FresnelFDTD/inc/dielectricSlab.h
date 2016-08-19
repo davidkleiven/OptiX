@@ -48,5 +48,6 @@ private:
   static double epslower;
   static std::complex<double> amplitude( const meep::vec &pos );
   StretchYMaterial mat;
+  bool structureIsCalled{false};
 };  
 #endif

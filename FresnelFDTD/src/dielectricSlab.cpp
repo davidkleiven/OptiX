@@ -61,19 +61,20 @@ void DielectricSlab::addSourceVol()
 
 void DielectricSlab::addStructure()
 {
+  // Compute required Courant number
+  double epsmin = epsupper < epslower ? epsupper:epslower;
+  double reqCourant = sqrt(epsmin/3.0)/mat.getYscale();
   if ( struc != NULL ) delete struc;
-  struc = new meep::structure(vol, mat, meep::pml( pml_thick, meep::Y ));
+  meep::symmetry sym = meep::identity();
+  unsigned int numchunk = 0;
+  bool anisavg = false;
+  struc = new meep::structure(vol, mat, meep::pml( pml_thick, meep::Y ), sym, numchunk, 0.7*reqCourant, anisavg, DEFAULT_SUBPIXEL_TOL, \
+  DEFAULT_SUBPIXEL_MAXEVAL);
+   
   bool anisAvg = false;
   double tol = 1.0; // --> set high since there is no averaging
   int maxeval = 0; // --> no averaging
-  /*
-  struc->set_chi1inv( meep::Ex, mat, false, tol, maxeval );
-  struc->set_chi1inv( meep::Ey, mat, false, tol, maxeval );
-  struc->set_chi1inv( meep::Ez, mat, false, tol, maxeval );
-  struc->set_chi1inv( meep::Hx, mat, false, tol, maxeval );
-  struc->set_chi1inv( meep::Hy, mat, false, tol, maxeval );
-  struc->set_chi1inv( meep::Hz, mat, false, tol, maxeval );
-  */ 
+  structureIsCalled = true;
 }
 
 void DielectricSlab::addField()
@@ -130,5 +131,9 @@ void DielectricSlab::output_hdf5( meep::component comp, meep::h5file *file )
 
 void DielectricSlab::setYscale( double newscale )
 {
+  if ( structureIsCalled )
+  {
+    throw( std::invalid_argument("You have to call setYscale before addStructure for stability reasons..."));
+  }
   mat.setYscale( newscale );
 }
