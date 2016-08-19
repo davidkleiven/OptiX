@@ -1,13 +1,14 @@
 #ifndef ANIS_MAT_H
 #define ANIS_MAT_H
 #include "meep.hpp"
+
 //#include "dielectricSlab.h"
 class DielectricSlab;
 
 class StretchYMaterial: public meep::material_function
 {
   public:
-    StretchYMaterial( meep::component comp, const DielectricSlab *slab ): yscale(1.0), comp(comp), slab(slab){};
+    StretchYMaterial( const DielectricSlab *slab ): yscale(1.0), comp(comp), slab(slab){};
     inline double getYscale() const { return yscale; };
     void setYscale( double newyscale ){ yscale = newyscale; };
     
@@ -15,6 +16,7 @@ class StretchYMaterial: public meep::material_function
     virtual double eps( const meep::vec &r );
     virtual double mu( const meep::vec &r );
     virtual bool has_mu() { return true; };
+    virtual void eff_chi1inv_row( meep::component c, double chi1inv_row[3], const meep::volume &v, double tol, int maxeval);
   private:
     double yscale;
     meep::component comp;
