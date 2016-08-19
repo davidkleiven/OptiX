@@ -98,12 +98,12 @@ int main(int argc, char **argv)
   ss >> resolution;
   ss.clear();
 
-  double freq = 0.3;
+  double freq = 1.0;
   double fwidth = freq*relFwidth;
 
   // Initialize geometry
   DielectricSlab geometry(resolution);
-  double yscale = 20.0;
+  double yscale = 5.0;
   double epsmin = epshigh > 1.0 ? 1.0:epshigh;
   geometry.setEpsLower(epshigh);
 
