@@ -31,6 +31,8 @@ public:
   void output_hdf5( meep::component comp );
   void output_hdf5( meep::component comt, meep::h5file* file ); 
   static bool isInUpperHalfSpace( const meep::vec &pos);
+  void setYscale( double newyscale );
+  static double dielectric( const meep::vec &pos ); 
 private:
   meep::grid_volume vol;
   meep::volume *sourcevol;
@@ -45,9 +47,6 @@ private:
   static double epsupper;
   static double epslower;
   static std::complex<double> amplitude( const meep::vec &pos );
-  static double dielectric( const meep::vec &pos ); 
-  StretchYMaterial matX;
-  StretchYMaterial matY;
-  StretchYMaterial matZ;
+  StretchYMaterial mat;
 };  
 #endif

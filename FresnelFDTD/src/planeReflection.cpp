@@ -103,6 +103,7 @@ int main(int argc, char **argv)
 
   // Initialize geometry
   DielectricSlab geometry(resolution);
+  geometry.setYscale( 2.0 );
   geometry.setEpsLower(epshigh);
 
   // Compute kx

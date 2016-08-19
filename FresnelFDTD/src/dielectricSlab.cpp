@@ -1,6 +1,7 @@
 #include "dielectricSlab.h"
 #include <stdexcept>
 #include <cmath>
+#include <iostream>
 
 const double PI = acos(-1.0);
 
@@ -14,7 +15,7 @@ double DielectricSlab::epslower = 1.0;
 double DielectricSlab::kx=1.0;
 
 DielectricSlab::DielectricSlab( double res ):vol(meep::vol2d(xsize, ysize,res)),sourcevol(NULL),struc(NULL),field(NULL), \
-matX( meep::Ex, this ), matY( meep::Ey, this ), matZ( meep::Ez, this ){};
+mat( this ){};
 
 DielectricSlab::~DielectricSlab()
 {
@@ -32,6 +33,12 @@ std::complex<double> DielectricSlab::amplitude( const meep::vec &pos )
 
 double DielectricSlab::dielectric( const meep::vec &pos )
 {
+  static bool printMsg = true;
+  if ( printMsg )
+  {
+    std::cout << "Was in dielectric func...\n";
+    printMsg = false;
+  }
   if ( pos.y() < yc_plane )
   {
     return epslower;
@@ -55,17 +62,18 @@ void DielectricSlab::addSourceVol()
 void DielectricSlab::addStructure()
 {
   if ( struc != NULL ) delete struc;
-  struc = new meep::structure(vol, dielectric, meep::pml( pml_thick, meep::Y ));
+  struc = new meep::structure(vol, mat, meep::pml( pml_thick, meep::Y ));
   bool anisAvg = false;
   double tol = 1.0; // --> set high since there is no averaging
-  int maxeval = 1; // --> no averaging
-  struc->set_chi1inv( meep::Ex, matX, false, tol, maxeval );
-  struc->set_chi1inv( meep::Ey, matY, false, tol, maxeval );
-  struc->set_chi1inv( meep::Ez, matZ, false, tol, maxeval );
-  struc->set_chi1inv( meep::Hx, matX, false, tol, maxeval );
-  struc->set_chi1inv( meep::Hy, matY, false, tol, maxeval );
-  struc->set_chi1inv( meep::Hz, matZ, false, tol, maxeval );
-  
+  int maxeval = 0; // --> no averaging
+  /*
+  struc->set_chi1inv( meep::Ex, mat, false, tol, maxeval );
+  struc->set_chi1inv( meep::Ey, mat, false, tol, maxeval );
+  struc->set_chi1inv( meep::Ez, mat, false, tol, maxeval );
+  struc->set_chi1inv( meep::Hx, mat, false, tol, maxeval );
+  struc->set_chi1inv( meep::Hy, mat, false, tol, maxeval );
+  struc->set_chi1inv( meep::Hz, mat, false, tol, maxeval );
+  */ 
 }
 
 void DielectricSlab::addField()
@@ -119,3 +127,8 @@ void DielectricSlab::output_hdf5( meep::component comp, meep::h5file *file )
   if ( field == NULL ) return;
   field->output_hdf5( comp, vol.surroundings(), file );
 } 
+
+void DielectricSlab::setYscale( double newscale )
+{
+  mat.setYscale( newscale );
+}
