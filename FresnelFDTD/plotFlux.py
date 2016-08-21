@@ -53,7 +53,7 @@ def main(argv):
         return
 
     # Plot simulation results
-    step = 10
+    step = 3
     hasLabel = False
     markersize=2
     for pol in POLARISATIONS:
