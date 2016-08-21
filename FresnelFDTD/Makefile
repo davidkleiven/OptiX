@@ -24,7 +24,7 @@ subtractBkg.out: ${ODIR}/subtractBkg.o ${ODIR}/readCSVdata.o
 	$(CXX) ${FLAGS} -o $@ $^
 
 normalizeDFTFlux.out: ${ODIR}/normalizeDFTFlux.o ${ODIR}/readCSVdata.o
-	$(CXX) ${FLAGS} -o $@ $^ -ljsoncpp
+	$(CXX) ${FLAGS} -o $@ $^ -ljsoncpp
 
 fourierPulse.out: ${ODIR}/fourierPulse.o ${ODIR}/readCSVdata.o
 	$(CXX) ${FLAGS} -o $@ $^ -llapack -lcblas -lgsl -lm -ljsoncpp
