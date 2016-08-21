@@ -6,8 +6,8 @@
 const double PI = acos(-1.0);
 
 const double DielectricSlab::xsize=5.0;
-const double DielectricSlab::ysize=86.0;
-const double DielectricSlab::pml_thick=40.0;
+const double DielectricSlab::ysize=462.0;
+const double DielectricSlab::pml_thick=228.0;
 const double DielectricSlab::yc_plane=ysize/2.0;
 const double DielectricSlab::source_y = ysize-pml_thick - 1.0;
 double DielectricSlab::epsupper = 1.0;
