@@ -612,51 +612,6 @@ int main(int argc, char **argv)
         std::cout << " done\n" << std::flush;
       }
     }
-    // Solve for p polarisation
-    /*
-    std::cout << "***p-polarisation\n";
-    cdouble E0_p[3];
-    getE0_p( kHat, E0_p );
-    #ifdef DEBUG
-      double E0_preal[3] = {real(E0_p[0]), real(E0_p[1]), real(E0_p[2])};
-      assert ( isPerpendicular( kHat, E0_preal ) );
-    #endif
-    
-    pw.SetE0(E0_p);  
-    std::cout << "Assembling rhs vector..." << std::flush;
-    geo.AssembleRHSVector(omega, kBloch, &pw, rhsVec);
-    std::cout << " done\n";
-
-    std::cout << "Solving system of equations... " << std::flush;
-    matrix->LUSolve(rhsVec);
-    std::cout << " done\n";
-    
-    // Store fields and flux
-    geo.GetFields(NULL, rhsVec, omega, kBloch, sourcePosition, EHSource);
-    geo.GetFields(NULL, rhsVec, omega, kBloch, monitorPosition, EHMonitor);
-    geo.GetFields(&pw, NULL, omega, kBloch, sourcePosition, EHInc);
-
-    // Compute poynting vectors
-    poyntingVector(EHInc, poyntingInc);
-    poyntingVector(EHSource, poyntingRef);
-    poyntingVector(EHMonitor, poyntingTrans);
-
-    // Poynting checks
-    assert ( isParalell( poyntingInc, kHat ) );
-
-    // Compute flux
-    fluxInt.setZpos( sourcePosition[2] );
-    incFlux = fluxInt.incidentFlux( geo, pw, omega, kBloch );
-    refFlux = fluxInt.scatteredFlux( geo, *rhsVec, omega, kBloch );
-    fluxInt.setZpos( monitorPosition[2] );
-    transFlux = fluxInt.scatteredFlux( geo, *rhsVec, omega, kBloch );
-    */
-
-    // Store values
-    //fluxReflected_p.append( -flux(poyntingRef, fluxPlaneHat)/flux(poyntingInc, fluxPlaneHat) ); 
-    //fluxTransmitted_p.append( flux(poyntingTrans, fluxPlaneHat)/flux(poyntingInc, fluxPlaneHat) );
-    //fluxReflected_p.append( -refFlux/incFlux ); 
-    //fluxTransmitted_p.append( transFlux/incFlux );
     theta += dtheta;
   }
 
