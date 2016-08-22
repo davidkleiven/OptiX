@@ -9,7 +9,7 @@
 #include <cassert>
 #include <set>
 #include "FluxIntegrator.h"
-#define DEBUG
+//#define DEBUG
 //#define PRINT_BEM_MATRIX
 //#define PRINT_RHS_VECTOR
 #define DOUBLE_COMPARISON_ZERO 1E-5
@@ -244,6 +244,7 @@ int main(int argc, char **argv)
   string odir("");
   string geofile("");
   
+  unsigned int ntheta = 0;
   for ( unsigned int i=1;i<argc; i++ )
   {
     string arg(argv[i]);
@@ -268,9 +269,8 @@ int main(int argc, char **argv)
     {
       ss.clear();
       ss << arg.substr(9);
-      double ntheta;
       ss >> ntheta;
-      dtheta = (thetamax - theta)/ntheta;
+      dtheta = (thetamax - theta)/static_cast<double>(ntheta-1);
     }
     else if ( arg.find("--geofile=") != string::npos )
     {
@@ -337,6 +337,7 @@ int main(int argc, char **argv)
   Json::Value fluxTransmitted_s(Json::arrayValue);
   Json::Value fluxTransmitted_p(Json::arrayValue);
   Json::Value angle(Json::arrayValue);
+  Json::Value allAbsorption;
   Json::Value absorption(Json::arrayValue);
   Json::Value absorptionPositions(Json::arrayValue);
   Json::Value absorptionValues(Json::arrayValue);
@@ -369,7 +370,7 @@ int main(int argc, char **argv)
   bool fillAbsorptionArray = false;
   if ( imag(n) > 1E-12 )
   {
-    double extinction = 1.0/imag(n)*omega;
+    double extinction = 2.0*PI/imag(n)*omega;
     unsigned int nvalues = 20;
     double xmax = 2.0*extinction;
     double dx = xmax/static_cast<double>(nvalues);
@@ -379,7 +380,7 @@ int main(int argc, char **argv)
       absorptionPositions.append( static_cast<double>(i)*dx );
       absorptionValues.append(0.0);
     }
-    absorption["position"] = absorptionPositions;
+    allAbsorption["position"] = absorptionPositions;
     fillAbsorptionArray = true;
   }
 
@@ -392,7 +393,7 @@ int main(int argc, char **argv)
   fluxInt.fillEvaluationXY();
 
   // Assembling BEM matrix
-  while ( theta < thetamax )
+  for ( unsigned int angleIter=0;angleIter<ntheta;angleIter++)
   {
     angle.append(theta);
     std::cout << "*************************************************************\n";
@@ -664,6 +665,7 @@ int main(int argc, char **argv)
 
   // Store values
   Json::Value spectra;
+  allAbsorption["absMonitor"] = absorption;
   spectra["IncidentAngle"] = angle;
   spectra["FluxReflected"]["s"] = fluxReflected_s;
   spectra["FluxReflected"]["p"] = fluxReflected_p;
@@ -683,7 +685,7 @@ int main(int argc, char **argv)
   spectra["geometry"]["Source"]["x"] = sourcePosition[0];
   spectra["geometry"]["Source"]["y"] = sourcePosition[1];
   spectra["geometry"]["Source"]["z"] = sourcePosition[2];
-  spectra["absorption"] = absorption;
+  spectra["absorption"] = allAbsorption;
 
   if ( geo.NumRegions >= 2 )
   {
@@ -705,6 +707,7 @@ int main(int argc, char **argv)
   }
   os << fw.write( spectra ) << std::endl;
   os.close(); 
+  std::cout << "Data written to: " << resultFile << std::endl;
   
   return 0;
 }

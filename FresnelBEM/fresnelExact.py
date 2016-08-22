@@ -7,7 +7,6 @@ def rs( eps1, eps2, mu1, mu2, angle, k ):
     kzt = np.sqrt( k**2 - (n1*kxi/n2)**2 +0j )
     a1 = np.sqrt( eps1/mu1 )
     a2 = np.sqrt( eps2/mu2 )
-    print kzt, k
     return ( a1*kzi - a2*kzt )/( a1*kzi + a2*kzt )
 
 def rp( eps1, eps2, mu1, mu2, angle, k ):

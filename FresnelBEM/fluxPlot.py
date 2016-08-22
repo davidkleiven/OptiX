@@ -61,7 +61,7 @@ def main(argv):
         n2 = 1.5
 
     incangle = np.array( data["IncidentAngle"] )
-    angle = np.linspace(0.99*np.min(incangle), 90.0, 101)
+    angle = np.linspace(np.min(incangle)-0.05, np.max(incangle)+0.05, 1001)
     ax.plot( data["IncidentAngle"], data["FluxReflected"]["s"], 'o', ms=2, color='black', fillstyle='none', label="$R_\mathrm{s}$")
     ax.plot( data["IncidentAngle"], data["FluxReflected"]["p"], 'x', ms=2, color='black', label="$R_\mathrm{p}$" )
     if ( useAbsorption ):
