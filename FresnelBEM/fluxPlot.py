@@ -8,6 +8,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 import json
 import computeReflectionAngle as cra
+import fresnelExact as fe 
 
 def plotError( angle, error_rs, error_rp, error_ts, error_tp, brewster, fname ):
     fig = plt.figure()
@@ -29,14 +30,20 @@ def plotError( angle, error_rs, error_rp, error_ts, error_tp, brewster, fname ):
     print ( "Figure written to %s"%( fname ))
 
 def main(argv):
-    if ( len(argv) != 1 ):
-        print ("Usage: python fluxPlot.py <datafile.json>")
+    if ( len(argv) != 2 ):
+        print ("Usage: python fluxPlot.py <datafile.json> --absorption=<true ro false>")
         return
 
     fig = plt.figure()
     figError = plt.figure()
     ax = fig.add_subplot(111)
     axError = figError.add_subplot(111)
+    useAbsorption = False
+    if ( argv[1] == "--absorption=true" ):
+        useAbsorption = True
+        print ("Using complex refractive indices...")
+    else:
+        print ("Using real refractive indices...")
     
     try:
         infile = open( argv[0], 'r' )
@@ -57,12 +64,21 @@ def main(argv):
     angle = np.linspace(0.99*np.min(incangle), 90.0, 101)
     ax.plot( data["IncidentAngle"], data["FluxReflected"]["s"], 'o', ms=2, color='black', fillstyle='none', label="$R_\mathrm{s}$")
     ax.plot( data["IncidentAngle"], data["FluxReflected"]["p"], 'x', ms=2, color='black', label="$R_\mathrm{p}$" )
-    ax.plot( data["IncidentAngle"], data["FluxTransmitted"]["s"], '^', ms=2, color='black', label="$T_\mathrm{s}$")
-    ax.plot( data["IncidentAngle"], data["FluxTransmitted"]["p"], '.', ms=4, color='black', label="$T_\mathrm{p}$")
-    ax.plot(angle, pf.Rs(angle, n1, n2), color='black')
-    ax.plot(angle, pf.Rp(angle, n1, n2), color='black')
-    ax.plot(angle, pf.Tp(angle, n1, n2), color='black')
-    ax.plot(angle, pf.Ts(angle, n1, n2), color='black')
+    if ( useAbsorption ):
+        eps1 = 1.0
+        eps2 = 0.99998#*(1.0+2E-6*1j )
+        mu1 = 1.0
+        mu2 = 1.0
+        k = 0.01
+        ax.plot(angle, fe.Rs(eps1, eps2, mu1, mu2, angle, k), color='black')
+        ax.plot(angle, fe.Rp(eps1, eps2, mu1, mu2, angle, k), color='black')
+    else:
+        ax.plot( data["IncidentAngle"], data["FluxTransmitted"]["s"], '^', ms=2, color='black', label="$T_\mathrm{s}$")
+        ax.plot( data["IncidentAngle"], data["FluxTransmitted"]["p"], '.', ms=4, color='black', label="$T_\mathrm{p}$")
+        ax.plot(angle, pf.Rs(angle, n1, n2), color='black')
+        ax.plot(angle, pf.Rp(angle, n1, n2), color='black')
+        ax.plot(angle, pf.Tp(angle, n1, n2), color='black')
+        ax.plot(angle, pf.Ts(angle, n1, n2), color='black')
     ax.set_xlabel("Incident angle")
     ax.set_ylabel("Transmittance/Reflectance")
     ax.legend( loc='center left', frameon=False)
