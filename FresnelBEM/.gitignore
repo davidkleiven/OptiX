@@ -7,3 +7,4 @@ Figures/*
 halfspace.byKN
 *.transmission
 scuff-transmission
+withAbsTest/*
