@@ -365,11 +365,11 @@ int main(int argc, char **argv)
 
   // Fill absorption position
   unsigned int scatReg = geo.GetRegionIndex(monitorPosition);
-  cdouble epsilon = geo.RegionMPs[scatReg]->GetEps(omega);
+  cdouble n = geo.RegionMPs[scatReg]->GetRefractiveIndex(omega);
   bool fillAbsorptionArray = false;
-  if ( imag(epsilon) > 1E-12 )
+  if ( imag(n) > 1E-12 )
   {
-    double extinction = 1.0/0.5*imag(epsilon)*omega;
+    double extinction = 1.0/imag(n)*omega;
     unsigned int nvalues = 20;
     double xmax = 2.0*extinction;
     double dx = xmax/static_cast<double>(nvalues);
@@ -379,6 +379,7 @@ int main(int argc, char **argv)
       absorptionPositions.append( static_cast<double>(i)*dx );
       absorptionValues.append(0.0);
     }
+    absorption["position"] = absorptionPositions;
     fillAbsorptionArray = true;
   }
 
@@ -495,9 +496,11 @@ int main(int argc, char **argv)
         for ( unsigned int i=0;i<absorptionPositions.size();i++ )
         {
           cdouble EHfield[6];
-          double evaluationPosition[3] = {0.0,0.0,-absorptionPositions[i].asDouble()};
+          cdouble Einc[6];
+          double evaluationPosition[3] = {0.0,0.0,absorptionPositions[i].asDouble()};
           geo.GetFields(NULL, rhsVec, omega, kBloch, evaluationPosition, EHfield);
-          double amp = getAmplitude(EHfield);
+          geo.GetFields(&pw, NULL, omega, kBloch, sourcePosition, Einc);
+          double amp = getAmplitude(EHfield)/getAmplitude(Einc);
           absorptionValues[i] = amp;
         }
         absorptionEntry["angle"] = angle;
