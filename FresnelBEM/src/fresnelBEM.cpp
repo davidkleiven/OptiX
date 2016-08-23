@@ -504,7 +504,7 @@ int main(int argc, char **argv)
           double amp = getAmplitude(EHfield)/getAmplitude(Einc);
           absorptionValues[i] = amp;
         }
-        absorptionEntry["angle"] = angle;
+        absorptionEntry["angle"] = theta;
         switch (pol)
         {
           case Polarisation_t::S:

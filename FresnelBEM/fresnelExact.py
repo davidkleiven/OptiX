@@ -26,7 +26,7 @@ def ts( eps1, eps2, mu1, mu2, angle, k ):
     kzi = k*np.cos(angle*np.pi/180.0)
     n1 = np.sqrt(eps1*mu1)
     n2 = np.sqrt(eps2*mu2)
-    kzt = np.sqrt( k**2 - (n1*kxi/n2)**2 )
+    kzt = np.sqrt( k**2 - (n1*kxi/n2)**2 +0j)
     return 2.0*kzi*a1/( a1*kzi + a2*kzt )
 
  
@@ -37,7 +37,7 @@ def tp( eps1, eps2, mu1, mu2, angle, k ):
     kzi = k*np.cos(angle*np.pi/180.0)
     n1 = np.sqrt(eps1*mu1)
     n2 = np.sqrt(eps2*mu2)
-    kzt = np.sqrt( k**2 - (a1*kxi/a2)**2 )
+    kzt = np.sqrt( k**2 - (a1*kxi/a2)**2 +0j)
     return 2.0*kzi*a1/( a1*kzt + a2*kzi )
     
 
