@@ -372,7 +372,7 @@ int main(int argc, char **argv)
   {
     double extinction = 2.0*PI/imag(n)*omega;
     unsigned int nvalues = 20;
-    double xmax = 2.0*extinction;
+    double xmax = 5.0*extinction;
     double dx = xmax/static_cast<double>(nvalues);
     double x = 0.0;
     for ( unsigned int i=0;i<nvalues;i++ )
