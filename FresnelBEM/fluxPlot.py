@@ -75,6 +75,11 @@ def main(argv):
         ax.plot(90.0-angle, fe.Rs(eps1, eps2, mu1, mu2, angle, k), color='black')
         ax.plot(90.0-angle, fe.Rp(eps1, eps2, mu1, mu2, angle, k), color='black')
         ax.set_ylabel("Reflectance")
+        n1 = np.sqrt(eps1)
+        n2 = np.sqrt(eps2)
+        alpha_c = np.arccos( n2.real/n1.real )*180.0/np.pi
+        ax.axvline( alpha_c, color="black", ls="--" )
+        ax.text( alpha_c-0.03, 0.1, "$\\alpha_c$")
     else:
         ax.plot( 90.0-np.array(data["IncidentAngle"]), data["FluxTransmitted"]["s"], '^', ms=2, color='black', label="$T_\mathrm{s}$")
         ax.plot( 90.0-np.array(data["IncidentAngle"]), data["FluxTransmitted"]["p"], '.', ms=4, color='black', label="$T_\mathrm{p}$")
