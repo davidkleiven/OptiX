@@ -74,7 +74,8 @@ int main(int argc, char **argv)
   E0_s[0].real(1.0/sqrt(2.0));
   E0_s[0].imag(0.0);
   E0_s[1].real(0.0);
-  E0_s[1].imag(1.0/sqrt(2.0));
+  //E0_s[1].imag(1.0/sqrt(2.0));
+  E0_s[1].imag(0.0);
   E0_s[2].real(0.0);
   E0_s[2].imag(0.0);
   PlaneWave pw(E0_s, kHat);
@@ -100,7 +101,7 @@ int main(int argc, char **argv)
   const unsigned int N_runs = 1;
   const double kR[N_runs] = {5.0};
   // Assembling BEM matrix
-  const double detectorPosition = 20.0;
+  const double detectorPosition = 100.0;
   const double deviationMax = 1.0*detectorPosition;
   const unsigned int nDetectorPixelsInEachDirection = 200;
   double intensity[nDetectorPixelsInEachDirection][nDetectorPixelsInEachDirection];

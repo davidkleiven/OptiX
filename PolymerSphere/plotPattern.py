@@ -15,7 +15,8 @@ def main():
     overview = json.load(infile)
     infile.close()
 
-    data = np.fromfile(overview["FarFieldFile"], dtype=np.float64)
+    data = np.fromfile(overview["ScatteredField"], dtype=np.float64)
+    dataTot = np.fromfile(overview["TotalField"], dtype=np.float64)
     
     xmin = overview["Detector"]["min"]
     xmax = overview["Detector"]["max"]
@@ -24,20 +25,25 @@ def main():
 
     X,Y = np.meshgrid(x,y)
     data = data.reshape((overview["Detector"]["pixels"],-1))
+    dataTot = dataTot.reshape((overview["Detector"]["pixels"],-1))
     
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
     ax.contourf(X, Y, data, 200, cmap="gist_heat")
 
+    figT = plt.figure()
+    axT = figT.add_subplot(1,1,1)
+    axT.contourf(X, Y, dataTot, 200, cmap="gist_heat")
+
     # Extract data through the center
     centerLine = data[int(overview["Detector"]["pixels"]/2),:]
     fig2 = plt.figure()
     ax2 = fig2.add_subplot(1,1,1)
-    ax2.plot(x, centerLine, 'k')
+    ax2.plot(x, centerLine/np.max(centerLine), 'k')
 
     qR = overview["kR"]*np.sin(2.0*np.arcsin(x/np.sqrt(overview["Detector"]["z"]**2 + x**2)))
-    pattern = scatteringPattern( 1-1E-5+1j*1E-6, qR )
-    #ax2.plot( x, pattern ) 
+    pattern = np.abs(formFactor( 1-1E-5+1j*1E-6, qR ))**2
+    ax2.plot( x, pattern/np.max(pattern) ) 
     plt.show()
 
 if __name__ == "__main__":
