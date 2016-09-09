@@ -8,6 +8,7 @@
 #include <string>
 #include <cassert>
 #include <set>
+#include <stdexcept>
 //#define DEBUG
 //#define PRINT_BEM_MATRIX
 //#define PRINT_RHS_VECTOR
@@ -20,124 +21,35 @@ enum class Polarisation_t{S, P};
 using namespace std;
 typedef std::complex<double> cdouble;
 
-/**
-* @brief Compute the p-polarised E field based on H=(Hx,Hy,Hz)=(1.0,0.0,0.0)
-* @param[in] kHat - unit vector in which the wave propagates
-* @param[out] E0 - p-polarised field amplitude
-*/
-void getE0_p( const double kHat[3], cdouble E0[3] )
-{
-  // Assuming the H field is H=(Hx, Hy, Hz) = (1.0, 0.0, 0.0)
-  E0[0] = 0.0;
-  E0[1] = -kHat[2];
-  E0[2] = kHat[1];
-}
-
-/**
-* @brief Computes the poytning vector
-* @param[in] EH  field components EH={Ex,Ey,Ez,Hx,Hy,Hz}
-* @param[out} poynting - the resulting time averaged Poynting vector
-*/
-void poyntingVector(const cdouble EH[6], double poynting[3])
-{
-  const cdouble *E = EH;
-  const cdouble *H = EH+3;
-  poynting[0] = 0.5*real(E[1]*std::conj(H[2]) - E[2]*std::conj(H[1]));
-  poynting[1] = 0.5*real(E[2]*std::conj(H[0]) - E[0]*std::conj(H[2]));
-  poynting[2] = 0.5*real(E[0]*std::conj(H[1]) - E[1]*std::conj(H[0]));
-}
-
-/**
-* @brief Computes the amplitude of a complex vector
-* @param[in] vec - complex vector 
-* @return Amplitude squared of vec
-*/
-double getAmplitude(const cdouble vec[3])
-{
-  return pow(std::abs(vec[0]),2) + pow(std::abs(vec[1]),2) + pow(std::abs(vec[2]),2);
-}
-
-/**
-* @brief Computes the cross product between two vectors
-* @param[in] vec1 - first vector
-* @param[in] vec2 - second vector
-* @param[out] out = vec1 x vec2
-*/
-void cross(const double vec1[3], const double vec2[3], double out[3])
-{
-  out[0] = vec1[1]*vec2[2] - vec1[2]*vec2[1];
-  out[1] = vec1[2]*vec2[0] - vec1[0]*vec2[2];
-  out[2] = vec1[0]*vec2[1] - vec1[1]*vec2[0];
-}
-
-/**
-* @brief Computes the angle of a vector with the z-axis
-* @param[in] vec
-* @return Angle with the z axis in degrees
-*/
-double angleWithZaxis(const double vec[3])
-{
-  double amp = sqrt( vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2] );
-  return std::acos(vec[2]/amp)*180.0/PI;
-}
-
-
-/**
-* @brief Computes the flux through plane surface
-* @param[in] poynting - poytning vector of wave
-* @param[in] nHat - unit normal vector of the surface
-* @return FLux through surface
-*/
-double flux(const double poynting[3], const double nHat[3])
-{
-  return poynting[0]*nHat[0] + poynting[1]*nHat[1] + poynting[2]*nHat[2];
-}
   
+void saveField( HMatrix &data, unsigned int pixels, const string &fname )
+{ 
+    double intensity[pixels][pixels];
+    for ( unsigned int i=0;i<pixels;i++)
+    {
+      for (unsigned int j=0;j<pixels;j++)
+      {
+        unsigned int indx = i*pixels+j;
+        intensity[i][j] = pow(abs(data.GetEntry(indx,0)),2) + pow(abs(data.GetEntry(indx,1)),2) + \
+                          pow(abs(data.GetEntry(indx,2)),2);
+      }
+    }
 
-/**
-* @brief Computes cosine of angle between two vectors
-* @param[in] vec1 - first vector
-* @param[in] vec2 - second vector
-* @return Cosine of angle between vec1 and vec2
-*/
-double cosAlpha( const double vec1[3], const double vec2[3] )
-{
-  double dotProd = 0.0;
-  double absv1 = 0.0;
-  double absv2 = 0.0;
-  for ( unsigned int i=0;i<3;i++ )
-  {
-    dotProd += vec1[i]*vec2[i];
-    absv1 += vec1[i]*vec1[i];
-    absv2 += vec2[i]*vec2[i];
-  }
-  absv1 = sqrt(absv1);
-  absv2 = sqrt(absv2);
-  return dotProd/( absv1*absv2 );
-}  
+    // Save intensity
+    ofstream datafile(fname.c_str(), ios::binary);
+    if ( !datafile.good() )
+    {
+      string msg("Could not open file ");
+      msg += fname;
+      throw( runtime_error(msg) );
+    }
 
-/**
-* @brief Check if two vectors are parallel
-* @param[in] vec1 - first vector
-* @param[in] vec2 - second vector
-* @return true if parallell, false if not
-*/
-bool isParalell( const double vec1[3], const double vec2[3] )
-{
-  return abs( cosAlpha(vec1,vec2) - 1.0 ) < DOUBLE_COMPARISON_ZERO;
+    datafile.write(reinterpret_cast<char*>(&intensity[0]), pow(pixels,2)*sizeof(double));
+    datafile.close();
+    std::cout << "done...\n";
+    std::cout << "Data written to " << fname << endl;
 }
 
-/**
-* @brief Check if two vectors are perpendicular
-* @param[in] vec1 - first vector
-* @param[in] vec2 - second vector
-* @return true if perpendicular, false if not
-*/
-bool isPerpendicular( const double vec1[3], const double vec2[3] )
-{
-  return abs( cosAlpha(vec1,vec2) ) < DOUBLE_COMPARISON_ZERO;
-}
-   
 int main(int argc, char **argv)
 {
  
@@ -159,10 +71,10 @@ int main(int argc, char **argv)
 
   // Circular polarised wave
   cdouble E0_s[3];
-  E0_s[0].real(1.0);
+  E0_s[0].real(1.0/sqrt(2.0));
   E0_s[0].imag(0.0);
   E0_s[1].real(0.0);
-  E0_s[1].imag(1.0);
+  E0_s[1].imag(1.0/sqrt(2.0));
   E0_s[2].real(0.0);
   E0_s[2].imag(0.0);
   PlaneWave pw(E0_s, kHat);
@@ -247,35 +159,57 @@ int main(int argc, char **argv)
       std::cout << std::endl;
     #endif
     
-    // Store fields and flux
-    std::cout << "Evaluating fields... ";
-    geo.GetFields( &pw, rhsVec, kR[run], &Xpoints, &evaluatedFields );
-    for ( unsigned int i=0;i<nDetectorPixelsInEachDirection;i++)
-    {
-      for (unsigned int j=0;j<nDetectorPixelsInEachDirection;j++)
-      {
-        unsigned int indx = i*nDetectorPixelsInEachDirection+j;
-        intensity[i][j] = pow(abs(evaluatedFields.GetEntry(indx,0)),2) + pow(abs(evaluatedFields.GetEntry(indx,1)),2) + \
-                          pow(abs(evaluatedFields.GetEntry(indx,2)),2);
-      }
-    }
+    // Overview file
+    Json::Value base;
 
-    // Save intensity
+    // Store fields and flux
+    std::cerr << "Evaluating fields... ";
+    geo.GetFields( NULL, rhsVec, kR[run], &Xpoints, &evaluatedFields );
     stringstream ss;
-    ss << "data/intesity" << run << ".bin";
-    ofstream datafile(ss.str().c_str(), ios::binary);
-    if ( !datafile.good() )
+    ss << "data/scattered" << run << ".bin";
+
+    try
     {
-      std::cout << "Could not open data file...\n";
+      saveField( evaluatedFields, nDetectorPixelsInEachDirection, ss.str() );
+      base["ScatteredField"] = ss.str();
+      ss.clear();
+      ss.str("");
+      geo.GetFields( &pw, rhsVec, kR[run], &Xpoints, &evaluatedFields );
+
+      ss << "data/totalfield" << run << ".bin";
+      saveField( evaluatedFields, nDetectorPixelsInEachDirection, ss.str() );
+      base["TotalField"] = ss.str();
+    }
+    catch ( exception &exc )
+    {
+      cout << exc.what() << endl;
       return 1;
     }
-    datafile.write(reinterpret_cast<char*>(&intensity[0]), pow(nDetectorPixelsInEachDirection,2)*sizeof(double));
-    datafile.close();
-    std::cout << "done...\n";
+    
+
+    base["Detector"]["z"] = detectorPosition;
+    base["Detector"]["min"] = -deviationMax;
+    base["Detector"]["max"] = deviationMax;
+    base["Detector"]["pixels"] = nDetectorPixelsInEachDirection;
+    base["kR"] = kR[run];
+    Json::StyledWriter sw;
+    ss.clear();
+    ss.str("");
+    ss << "data/overview" << run << ".json";
+    ofstream overview(ss.str().c_str());
+    if ( !overview.good() )
+    {
+      cout << "Could not open file " << ss.str() << endl;
+      return 1;
+    }
+    overview << sw.write(base) << endl;
+    overview.close();
+    cout << "Overview file written to " << ss.str() << endl;
   }
   
   delete matrix;
   delete rhsVec;
+
 
   return 0;
 }

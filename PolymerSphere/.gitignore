@@ -1,0 +1,6 @@
+# The following will be ignored
+*.o
+*.out
+data/*
+*.log
+sphere.msh
