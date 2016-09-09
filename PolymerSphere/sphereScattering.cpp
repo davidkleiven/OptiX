@@ -192,6 +192,22 @@ int main(int argc, char **argv)
   const double deviationMax = 1.0*detectorPosition;
   const unsigned int nDetectorPixelsInEachDirection = 200;
   double intensity[nDetectorPixelsInEachDirection][nDetectorPixelsInEachDirection];
+  HMatrix Xpoints(nDetectorPixelsInEachDirection*nDetectorPixelsInEachDirection, 3);
+
+  // Fill evaluation points
+  for ( unsigned int i=0;i<nDetectorPixelsInEachDirection;i++ )
+  {
+    double x = -deviationMax + 2.0*deviationMax*static_cast<double>(i)/static_cast<double>(nDetectorPixelsInEachDirection-1);
+    for ( unsigned int j=0;j<nDetectorPixelsInEachDirection;j++ )
+    {
+      double y = -deviationMax + 2.0*deviationMax*static_cast<double>(j)/static_cast<double>(nDetectorPixelsInEachDirection-1);
+      Xpoints.SetEntry(i*nDetectorPixelsInEachDirection+j, 0, x);
+      Xpoints.SetEntry(i*nDetectorPixelsInEachDirection+j, 1, y); 
+      Xpoints.SetEntry(i*nDetectorPixelsInEachDirection+j, 2, detectorPosition); 
+    }
+  }
+  
+  HMatrix evaluatedFields( nDetectorPixelsInEachDirection*nDetectorPixelsInEachDirection, 6, LHM_COMPLEX );
   
   for ( unsigned int run=0;run<N_runs;run++)
   {
@@ -232,20 +248,18 @@ int main(int argc, char **argv)
     #endif
     
     // Store fields and flux
-    std::cout << "Evaluating fields...\n";
-    double monitorPosition[3];
-    monitorPosition[2] = detectorPosition;
+    std::cout << "Evaluating fields... ";
+    geo.GetFields( &pw, rhsVec, kR[run], &Xpoints, &evaluatedFields );
     for ( unsigned int i=0;i<nDetectorPixelsInEachDirection;i++)
     {
-      monitorPosition[0] = -deviationMax + 2.0*deviationMax*static_cast<double>(i)/static_cast<double>(nDetectorPixelsInEachDirection-1);
       for (unsigned int j=0;j<nDetectorPixelsInEachDirection;j++)
       {
-        monitorPosition[1] = -deviationMax + 2.0*deviationMax*static_cast<double>(j)/static_cast<double>(nDetectorPixelsInEachDirection-1);
-        cdouble EH[6];
-        geo.GetFields(&pw, rhsVec, kR[run], monitorPosition, EH);
-        intensity[i][j] = pow(abs(EH[0]),2) + pow(abs(EH[1]),2) + pow(abs(EH[2]),2);
+        unsigned int indx = i*nDetectorPixelsInEachDirection+j;
+        intensity[i][j] = pow(abs(evaluatedFields.GetEntry(indx,0)),2) + pow(abs(evaluatedFields.GetEntry(indx,1)),2) + \
+                          pow(abs(evaluatedFields.GetEntry(indx,2)),2);
       }
     }
+
     // Save intensity
     stringstream ss;
     ss << "data/intesity" << run << ".bin";
