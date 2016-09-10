@@ -1,4 +1,3 @@
-IP=129.241.184.56
-SERVER_PATH=/media/davidkl/stud/Master/OptiX/PolymerSphere
+include servers.sh
 
 scp sphereScat.out davidkl@${IP}:${SERVER_PATH}
