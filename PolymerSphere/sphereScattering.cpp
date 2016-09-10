@@ -99,7 +99,7 @@ int main(int argc, char **argv)
   #endif
 
   const unsigned int N_runs = 1;
-  const double kR[N_runs] = {10.0};
+  const double kR[N_runs] = {0.1};
 
   // Assembling BEM matrix
   const double detectorPosition = 1000000.0;

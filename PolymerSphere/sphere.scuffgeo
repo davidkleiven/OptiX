@@ -7,6 +7,6 @@ REGION Exterior MATERIAL VACUUM
 REGION Sphere MATERIAL CONST_EPS_0.99998+1.99998E-6i
 
 SURFACE Interface
-  MESHFILE sphereGithub.msh
+  MESHFILE sphere.msh
   REGIONS Exterior Sphere
 ENDSURFACE
