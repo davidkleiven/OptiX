@@ -100,9 +100,10 @@ int main(int argc, char **argv)
 
   const unsigned int N_runs = 1;
   const double kR[N_runs] = {5.0};
+
   // Assembling BEM matrix
-  const double detectorPosition = 100.0;
-  const double deviationMax = 1.0*detectorPosition;
+  const double detectorPosition = 1000000.0;
+  const double deviationMax = 0.5*detectorPosition;
   const unsigned int nDetectorPixelsInEachDirection = 200;
   double intensity[nDetectorPixelsInEachDirection][nDetectorPixelsInEachDirection];
   HMatrix Xpoints(nDetectorPixelsInEachDirection*nDetectorPixelsInEachDirection, 3);
