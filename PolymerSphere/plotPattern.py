@@ -1,3 +1,6 @@
+import sys
+sys.path.append("/home/david/Documents/pymiecoated")
+from pymiecoated import Mie
 import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib import colors as colors
@@ -10,6 +13,8 @@ def scatteringPattern( n, qR ):
     return np.abs(1.0+formFactor(n,qR))**2
 
 def main():
+    n = 1.0-1E-5+1j*1E-6
+    eps = n**2
     filename = "data/overview0.json"
     infile = open(filename, 'r' )
     overview = json.load(infile)
@@ -25,6 +30,12 @@ def main():
     y = np.linspace(xmin,xmax, overview["Detector"]["pixels"])
     theta = np.arctan(x/overview["Detector"]["z"])
     qR = 2.0*overview["kR"]*np.sin(theta/2.0)
+
+    # Exact solution
+    mie = Mie(x=overview["kR"], eps=eps, mu=1.0)
+    S12 = np.zeros(len(theta))
+    for i in range(0, len(theta)):
+        S12[i] = np.sum(np.abs(mie.S12(np.cos(theta[i])))**2)
 
     X,Y = np.meshgrid(x,y)
     data = data.reshape((overview["Detector"]["pixels"],-1))
@@ -42,14 +53,26 @@ def main():
 
     # Extract data through the center
     centerLine = data[int(overview["Detector"]["pixels"]/2)-1,:]
+    indxmax = data.argmax()
+    row = indxmax%overview["Detector"]["pixels"]
+    centerline = data[row,:]
     fig2 = plt.figure()
     ax2 = fig2.add_subplot(1,1,1)
     ax2.plot(x, centerLine/np.max(centerLine), 'k')
 
     pattern = np.abs(formFactor( 1-1E-5+1j*1E-6, qR ))**2
     ax2.plot( x, pattern/np.max(pattern) ) 
+    ax2.plot( x, S12/np.max(S12))
     #ax2.set_yscale('log')
+    plotAllLines(data)
     plt.show()
 
+def plotAllLines(data):
+    fig = plt.figure()
+    ax = fig.add_subplot(1,1,1)
+    for i in range(0, len(data[0,:])):
+        ax.plot(data[i,:], label="%d"%(i))
+    ax.legend()
+    fig.show()
 if __name__ == "__main__":
     main()

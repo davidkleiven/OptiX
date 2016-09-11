@@ -22,6 +22,13 @@ using namespace std;
 typedef std::complex<double> cdouble;
 
   
+void avgPoynting( const cdouble E[3], const cdouble H[3], double poynting[3] )
+{
+  poynting[0] = real(E[1]*conj(H[2]) - E[2]*conj(H[1]));
+  poynting[1] = real(E[2]*conj(H[0]) - E[0]*conj(H[2]));
+  poynting[2] = real(E[0]*conj(H[1]) - E[1]*conj(H[0]));
+}
+  
 void saveField( HMatrix &data, unsigned int pixels, const string &fname )
 { 
     double intensity[pixels][pixels];
@@ -30,8 +37,16 @@ void saveField( HMatrix &data, unsigned int pixels, const string &fname )
       for (unsigned int j=0;j<pixels;j++)
       {
         unsigned int indx = i*pixels+j;
-        intensity[i][j] = pow(abs(data.GetEntry(indx,0)),2) + pow(abs(data.GetEntry(indx,1)),2) + \
-                          pow(abs(data.GetEntry(indx,2)),2);
+        cdouble E[3];
+        cdouble H[3];
+        for ( unsigned int k=0;k<3;k++)
+        {
+          E[i] = data.GetEntry(indx,k);
+          H[i] = data.GetEntry(indx,k+3);
+        }
+        double S[3];
+        avgPoynting(E,H,S);
+        intensity[i][j] = pow(S[0],2) + pow(S[1],2) + pow(S[2],2);
       }
     }
 
@@ -98,12 +113,12 @@ int main(int argc, char **argv)
   #endif
 
   const unsigned int N_runs = 1;
-  const double kR[N_runs] = {5.0};
+  const double kR[N_runs] = {10.0};
 
   // Assembling BEM matrix
-  const double detectorPosition = 10000.0;
-  const double deviationMax = 0.3*detectorPosition;
-  const unsigned int nDetectorPixelsInEachDirection = 20;
+  const double detectorPosition = 1E4;
+  const double deviationMax = 0.5*detectorPosition;
+  const unsigned int nDetectorPixelsInEachDirection = 60;
   HMatrix Xpoints(nDetectorPixelsInEachDirection*nDetectorPixelsInEachDirection, 3);
 
   // Fill evaluation points
