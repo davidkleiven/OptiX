@@ -104,7 +104,6 @@ int main(int argc, char **argv)
   const double detectorPosition = 10000.0;
   const double deviationMax = 0.3*detectorPosition;
   const unsigned int nDetectorPixelsInEachDirection = 20;
-  double intensity[nDetectorPixelsInEachDirection][nDetectorPixelsInEachDirection];
   HMatrix Xpoints(nDetectorPixelsInEachDirection*nDetectorPixelsInEachDirection, 3);
 
   // Fill evaluation points

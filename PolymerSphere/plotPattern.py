@@ -17,15 +17,14 @@ def main():
 
     data = np.fromfile(overview["ScatteredField"], dtype=np.float64)
     dataTot = np.fromfile(overview["TotalField"], dtype=np.float64)
+    print ("Detector position (unit R): %.1f"%(overview["Detector"]["z"]))
     
     xmin = overview["Detector"]["min"]
     xmax = overview["Detector"]["max"]
     x = np.linspace(xmin,xmax, overview["Detector"]["pixels"])
     y = np.linspace(xmin,xmax, overview["Detector"]["pixels"])
-    #qR = overview["kR"]*2.0*x/overview["Detector"]["z"] # Far field
-    qR = overview["kR"]*np.sin(2.0*np.arcsin(x/np.sqrt(overview["Detector"]["z"]**2 + x**2)))
-    #print qR
-    #qR = overview["kR"]*x/np.sqrt(overview["Detector"]["z"]**2 + x**2)
+    theta = np.arctan(x/overview["Detector"]["z"])
+    qR = 2.0*overview["kR"]*np.sin(theta/2.0)
 
     X,Y = np.meshgrid(x,y)
     data = data.reshape((overview["Detector"]["pixels"],-1))
@@ -42,14 +41,14 @@ def main():
     '''
 
     # Extract data through the center
-    centerLine = data[int(overview["Detector"]["pixels"]/2),:]
+    centerLine = data[int(overview["Detector"]["pixels"]/2)-1,:]
     fig2 = plt.figure()
     ax2 = fig2.add_subplot(1,1,1)
     ax2.plot(x, centerLine/np.max(centerLine), 'k')
 
     pattern = np.abs(formFactor( 1-1E-5+1j*1E-6, qR ))**2
     ax2.plot( x, pattern/np.max(pattern) ) 
-    ax2.set_yscale('log')
+    #ax2.set_yscale('log')
     plt.show()
 
 if __name__ == "__main__":
