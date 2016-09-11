@@ -74,8 +74,7 @@ int main(int argc, char **argv)
   E0_s[0].real(1.0/sqrt(2.0));
   E0_s[0].imag(0.0);
   E0_s[1].real(0.0);
-  //E0_s[1].imag(1.0/sqrt(2.0));
-  E0_s[1].imag(0.0);
+  E0_s[1].imag(1.0/sqrt(2.0));
   E0_s[2].real(0.0);
   E0_s[2].imag(0.0);
   PlaneWave pw(E0_s, kHat);
@@ -99,12 +98,12 @@ int main(int argc, char **argv)
   #endif
 
   const unsigned int N_runs = 1;
-  const double kR[N_runs] = {0.1};
+  const double kR[N_runs] = {10.0};
 
   // Assembling BEM matrix
-  const double detectorPosition = 1000000.0;
-  const double deviationMax = 0.5*detectorPosition;
-  const unsigned int nDetectorPixelsInEachDirection = 200;
+  const double detectorPosition = 10000.0;
+  const double deviationMax = 0.3*detectorPosition;
+  const unsigned int nDetectorPixelsInEachDirection = 20;
   double intensity[nDetectorPixelsInEachDirection][nDetectorPixelsInEachDirection];
   HMatrix Xpoints(nDetectorPixelsInEachDirection*nDetectorPixelsInEachDirection, 3);
 
@@ -125,18 +124,19 @@ int main(int argc, char **argv)
   
   for ( unsigned int run=0;run<N_runs;run++)
   {
+    double omega = kR[run];
     std::cout << "*************************************************************\n";
     std::cout << "Run="<<run<<std::endl;
     pw.SetnHat(kHat);
 
     std::cout << "Assembling BEM matrix..." << std::flush;
-    geo.AssembleBEMMatrix(static_cast<cdouble>(kR[run]), matrix);
+    geo.AssembleBEMMatrix(static_cast<cdouble>(omega), matrix);
     std::cout << " done\n";
 
     matrix->LUFactorize();
  
     std::cout << "Assembling rhs vector..." << std::flush;
-    geo.AssembleRHSVector(static_cast<cdouble>(kR[run]), &pw, rhsVec);
+    geo.AssembleRHSVector(static_cast<cdouble>(omega), &pw, rhsVec);
     std::cout << " done\n";
 
     #ifdef PRINT_RHS_VECTOR
@@ -163,10 +163,15 @@ int main(int argc, char **argv)
     
     // Overview file
     Json::Value base;
+    string surfaceFname("data/surfaceCurrent.pp");
+    cout << "Exporting surface currents... ";
+    geo.PlotSurfaceCurrents(rhsVec, static_cast<cdouble>(omega), surfaceFname.c_str() );
+    cout << " done\n";
+    base["SurfaceCurrents"] = surfaceFname;
 
     // Store fields and flux
     std::cerr << "Evaluating fields... ";
-    geo.GetFields( NULL, rhsVec, kR[run], &Xpoints, &evaluatedFields );
+    geo.GetFields( NULL, rhsVec, omega, &Xpoints, &evaluatedFields );
     stringstream ss;
     ss << "data/scattered" << run << ".bin";
 
@@ -176,7 +181,7 @@ int main(int argc, char **argv)
       base["ScatteredField"] = ss.str();
       ss.clear();
       ss.str("");
-      geo.GetFields( &pw, rhsVec, kR[run], &Xpoints, &evaluatedFields );
+      geo.GetFields( &pw, rhsVec, omega, &Xpoints, &evaluatedFields );
 
       ss << "data/totalfield" << run << ".bin";
       saveField( evaluatedFields, nDetectorPixelsInEachDirection, ss.str() );

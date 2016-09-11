@@ -1,3 +1,4 @@
 source servers.sh
+FILES="sphereScat.out sphere.msh"
 
-scp sphereScat.out davidkl@${IP}:${SERVER_PATH}
+scp ${FILES} davidkl@${IP}:${SERVER_PATH}
