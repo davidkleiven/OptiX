@@ -3,8 +3,9 @@ sys.path.append("/home/david/Documents/pymiecoated")
 from pymiecoated import Mie
 import numpy as np
 from matplotlib import pyplot as plt
-from matplotlib import colors as colors
+from matplotlib import colors as colors 
 import json
+import h5py
 
 def formFactor( n, qR ):
     return (n**2 - 1.0)*(np.sin(qR) - qR*np.cos(qR))/(qR**3)
@@ -13,12 +14,12 @@ def scatteringPattern( n, qR ):
     return np.abs(1.0+formFactor(n,qR))**2
 
 def main():
-    n = 1.0-1E-5+1j*1E-6
-    eps = n**2
     filename = "data/overview0.json"
     infile = open(filename, 'r' )
     overview = json.load(infile)
     infile.close()
+    eps = overview["eps"]["real"] + 1j*overview["eps"]["imag"]
+    n = np.sqrt(eps)
 
     data = np.fromfile(overview["ScatteredField"], dtype=np.float64)
     dataTot = np.fromfile(overview["TotalField"], dtype=np.float64)
@@ -33,9 +34,11 @@ def main():
 
     # Exact solution
     mie = Mie(x=overview["kR"], eps=eps, mu=1.0)
-    S12 = np.zeros(len(theta))
+    S1 = np.zeros(len(theta))
+    S2 = np.zeros(len(theta))
     for i in range(0, len(theta)):
-        S12[i] = np.sum(np.abs(mie.S12(np.cos(theta[i])))**2)
+        S1[i] = np.abs(mie.S12(np.cos(theta[i]))[0])**2
+        S2[i] = np.abs(mie.S12(np.cos(theta[i]))[1])**2
 
     X,Y = np.meshgrid(x,y)
     data = data.reshape((overview["Detector"]["pixels"],-1))
@@ -45,24 +48,40 @@ def main():
     ax = fig.add_subplot(1,1,1)
     ax.contourf(X, Y, data, 200, cmap="gist_heat")
 
-    '''
     figT = plt.figure()
     axT = figT.add_subplot(1,1,1)
     axT.contourf(X, Y, dataTot, 200, cmap="gist_heat")
-    '''
 
     # Extract data through the center
+    with h5py.File(overview["XpointsCenter"], 'r') as hf:
+        print(hf.keys())
+        posVec = hf["rVec"].value
+    xCenter = posVec[:,0]
+    with h5py.File(overview["FieldCenter"], 'r') as hf:
+        print (hf.keys()) 
+        fields = hf["Fields"].value
+    
+    E = fields[:3,:]
+    H = fields[3:,:]
+    Ec = E[:,::2] + 1j*E[:,1::2]
+    Hc =  H[:,::2] + 1j*H[:,1::2]
+    S = np.cross(Ec, Hc.conj(), axisa=0, axisb=0)
+    intensity = np.sum(np.abs(S)**2, axis=1)
+    
+    thetaDeg = theta*180.0/np.pi
     centerLine = data[int(overview["Detector"]["pixels"]/2)-1,:]
     indxmax = data.argmax()
     row = indxmax%overview["Detector"]["pixels"]
     centerline = data[row,:]
     fig2 = plt.figure()
     ax2 = fig2.add_subplot(1,1,1)
-    ax2.plot(x, centerLine/np.max(centerLine), 'k')
+    ax2.plot(thetaDeg, centerLine/np.max(centerLine), 'k')
+  #  ax2.plot( thetaDeg, intensity/np.max(intensity), 'k')
 
-    pattern = np.abs(formFactor( 1-1E-5+1j*1E-6, qR ))**2
-    ax2.plot( x, pattern/np.max(pattern) ) 
-    ax2.plot( x, S12/np.max(S12))
+    pattern = np.abs(formFactor( n, qR ))**2
+    ax2.plot( thetaDeg, pattern*np.cos(theta)**2/np.max(pattern) ) 
+    ax2.plot( thetaDeg, S1*np.cos(theta)**2/np.max(S1))
+    ax2.plot( thetaDeg, S2*np.cos(theta)**2/np.max(S2))
     #ax2.set_yscale('log')
     plotAllLines(data)
     plt.show()

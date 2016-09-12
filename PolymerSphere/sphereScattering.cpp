@@ -17,6 +17,7 @@
 #define PWVAC (0.5/ZVAC)
 
 const double PI = acos(-1.0);
+enum class Polarisation_t {CIRCULAR, LINEAR};
 
 using namespace std;
 typedef std::complex<double> cdouble;
@@ -91,6 +92,9 @@ int main(int argc, char **argv)
   #ifdef PRINT_VALUES_INSIDE_LOOPS
     clog << "Compiled with PRINT_VALUES_INSIDE_LOOPS flag...\n";
   #endif
+
+  Polarisation_t pol=Polarisation_t::LINEAR;
+
   string geofile("sphere.scuffgeo");
   //scuff::RWGGeometry::AssignBasisFunctionsToExteriorEdges=false;
   scuff::RWGGeometry geo = scuff::RWGGeometry(geofile.c_str());
@@ -104,15 +108,28 @@ int main(int argc, char **argv)
   HVector *rhsVec = geo.AllocateRHSVector();
 
   // Source definition
-  double sourcePosition[3] = {0.0,0.0,-10.0};
+  double sourcePosition[3] = {0.0,0.0,-100.0};
   double kHat[3] = {0.0,0.0,1.0};
 
-  // Circular polarised wave
+  // Wave polarised wave
   cdouble E0_s[3];
-  E0_s[0].real(1.0/sqrt(2.0));
-  E0_s[0].imag(0.0);
-  E0_s[1].real(0.0);
-  E0_s[1].imag(1.0/sqrt(2.0));
+  switch ( pol )
+  {
+    case Polarisation_t::CIRCULAR:
+      E0_s[0].real(1.0/sqrt(2.0));
+      E0_s[0].imag(0.0);
+      E0_s[1].real(0.0);
+      E0_s[1].imag(1.0/sqrt(2.0));
+      clog << "Using circular polarised incident wave...\n";
+      break;
+    case Polarisation_t::LINEAR:
+      E0_s[0].real(1.0);
+      E0_s[0].imag(0.0);
+      E0_s[1].real(0.0);
+      E0_s[1].imag(0.0);
+      clog << "Using linear polarised incident wave...\n";
+      break;
+  }  
   E0_s[2].real(0.0);
   E0_s[2].imag(0.0);
   PlaneWave pw(E0_s, kHat);
@@ -136,10 +153,10 @@ int main(int argc, char **argv)
   #endif
 
   const unsigned int N_runs = 1;
-  const double kR[N_runs] = {0.5};
+  const double kR[N_runs] = {2.0};
 
   // Assembling BEM matrix
-  const double detectorPosition = 1E4;
+  const double detectorPosition = 1E1;
   const double deviationMax = 0.5*detectorPosition;
   const unsigned int nDetectorPixelsInEachDirection = 30;
   HMatrix *Xpoints = new HMatrix(nDetectorPixelsInEachDirection*nDetectorPixelsInEachDirection, 3);
@@ -223,8 +240,33 @@ int main(int argc, char **argv)
       evaluatedFields = geo.GetFields( &pw, rhsVec, omega, Xpoints, evaluatedFields );
 
       ss << "data/totalfield" << run << ".bin";
-      //saveField( *evaluatedFields, nDetectorPixelsInEachDirection, ss.str() );
+      saveField( *evaluatedFields, nDetectorPixelsInEachDirection, ss.str() );
       base["TotalField"] = ss.str();
+
+      // Evaluate fields at a line through the center in addition
+      delete Xpoints;
+      delete evaluatedFields;
+      Xpoints = new HMatrix(nDetectorPixelsInEachDirection, 3);
+      evaluatedFields = new HMatrix(nDetectorPixelsInEachDirection, 6, LHM_COMPLEX );
+      
+      for ( unsigned int i=0;i<nDetectorPixelsInEachDirection;i++)
+      {
+        double x = -deviationMax + 2.0*deviationMax*static_cast<double>(i)/static_cast<double>(nDetectorPixelsInEachDirection-1);
+        Xpoints->SetEntry(i, 0, x);
+        Xpoints->SetEntry(i, 1, 0.0);
+        Xpoints->SetEntry(i, 2, detectorPosition);
+      }
+      evaluatedFields = geo.GetFields( NULL, rhsVec, omega, Xpoints, evaluatedFields ); 
+      ss.clear();
+      ss.str("");
+      ss << "data/xPointCenter" << run << ".h5";
+      base["XpointsCenter"] = ss.str();
+      Xpoints->ExportToHDF5( ss.str().c_str(), "rVec" );
+      ss.clear();
+      ss.str("");
+      ss << "data/fieldsCenter" << run << ".h5";
+      base["FieldCenter"] = ss.str();
+      evaluatedFields->ExportToHDF5( ss.str().c_str(), "Fields" );
     }
     catch ( exception &exc )
     {
@@ -233,12 +275,14 @@ int main(int argc, char **argv)
     }
     clog << "Field evaluation finished\n";
     
-
+    cdouble eps = geo.RegionMPs[1]->GetEps(omega);
     base["Detector"]["z"] = detectorPosition;
     base["Detector"]["min"] = -deviationMax;
     base["Detector"]["max"] = deviationMax;
     base["Detector"]["pixels"] = nDetectorPixelsInEachDirection;
     base["kR"] = kR[run];
+    base["eps"]["real"] = real(eps);
+    base["eps"]["imag"] = imag(eps);
     Json::StyledWriter sw;
     ss.clear();
     ss.str("");
