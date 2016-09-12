@@ -75,15 +75,19 @@ def main():
     centerline = data[row,:]
     fig2 = plt.figure()
     ax2 = fig2.add_subplot(1,1,1)
-    ax2.plot(thetaDeg, centerLine/np.max(centerLine), 'k')
-  #  ax2.plot( thetaDeg, intensity/np.max(intensity), 'k')
+#    ax2.plot(thetaDeg, centerLine/np.max(centerLine), 'k')
+    ax2.plot( thetaDeg, intensity/np.max(intensity), 'k', label="BEM")
 
     pattern = np.abs(formFactor( n, qR ))**2
-    ax2.plot( thetaDeg, pattern*np.cos(theta)**2/np.max(pattern) ) 
-    ax2.plot( thetaDeg, S1*np.cos(theta)**2/np.max(S1))
-    ax2.plot( thetaDeg, S2*np.cos(theta)**2/np.max(S2))
+    #ax2.plot( thetaDeg, pattern*np.cos(theta)**2/np.max(pattern) ) 
+    ax2.plot( thetaDeg, S1*np.cos(theta)**2/np.max(S1), label="$S_1$")
+    #ax2.plot( thetaDeg, S2*np.cos(theta)**2/np.max(S2))
+    #ax2.plot( thetaDeg, np.cos(theta)**2 )
     #ax2.set_yscale('log')
-    plotAllLines(data)
+    ax2.legend(frameon=False)
+    ax2.set_xlabel("Scattering angle (deg)")
+    ax2.set_ylabel("Normalised scattering amplitude")
+    #plotAllLines(data)
     plt.show()
 
 def plotAllLines(data):

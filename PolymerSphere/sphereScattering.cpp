@@ -153,12 +153,12 @@ int main(int argc, char **argv)
   #endif
 
   const unsigned int N_runs = 1;
-  const double kR[N_runs] = {2.0};
+  const double kR[N_runs] = {1.0};
 
   // Assembling BEM matrix
-  const double detectorPosition = 1E1;
-  const double deviationMax = 0.5*detectorPosition;
-  const unsigned int nDetectorPixelsInEachDirection = 30;
+  const double detectorPosition = 1E4;
+  const double deviationMax = 1.5*detectorPosition;
+  const unsigned int nDetectorPixelsInEachDirection = 60;
   HMatrix *Xpoints = new HMatrix(nDetectorPixelsInEachDirection*nDetectorPixelsInEachDirection, 3);
 
   // Fill evaluation points
