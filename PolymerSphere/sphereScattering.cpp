@@ -10,13 +10,13 @@
 #include <set>
 #include <stdexcept>
 //#define DEBUG
+//#define PRINT_VALUES_INSIDE_LOOPS
 //#define PRINT_BEM_MATRIX
 //#define PRINT_RHS_VECTOR
 #define DOUBLE_COMPARISON_ZERO 1E-5
 #define PWVAC (0.5/ZVAC)
 
 const double PI = acos(-1.0);
-enum class Polarisation_t{S, P};
 
 using namespace std;
 typedef std::complex<double> cdouble;
@@ -24,14 +24,19 @@ typedef std::complex<double> cdouble;
   
 void avgPoynting( const cdouble E[3], const cdouble H[3], double poynting[3] )
 {
-  poynting[0] = real(E[1]*conj(H[2]) - E[2]*conj(H[1]));
-  poynting[1] = real(E[2]*conj(H[0]) - E[0]*conj(H[2]));
-  poynting[2] = real(E[0]*conj(H[1]) - E[1]*conj(H[0]));
+  poynting[0] = 0.5*real(E[1]*conj(H[2]) - E[2]*conj(H[1]));
+  poynting[1] = 0.5*real(E[2]*conj(H[0]) - E[0]*conj(H[2]));
+  poynting[2] = 0.5*real(E[0]*conj(H[1]) - E[1]*conj(H[0]));
 }
   
 void saveField( HMatrix &data, unsigned int pixels, const string &fname )
 { 
     double intensity[pixels][pixels];
+    #ifdef DEBUG
+      clog << "Copying files to temporary array... ";
+      clog << "Number of rows in data: " << data.NR << endl;
+      clog << "Number of columns in data: " << data.NC << endl;
+    #endif
     for ( unsigned int i=0;i<pixels;i++)
     {
       for (unsigned int j=0;j<pixels;j++)
@@ -39,16 +44,29 @@ void saveField( HMatrix &data, unsigned int pixels, const string &fname )
         unsigned int indx = i*pixels+j;
         cdouble E[3];
         cdouble H[3];
+        #ifdef PRINT_VALUES_INSIDE_LOOPS
+          clog << "Row: " << indx << endl;
+        #endif
         for ( unsigned int k=0;k<3;k++)
         {
-          E[i] = data.GetEntry(indx,k);
-          H[i] = data.GetEntry(indx,k+3);
+          E[k] = data.GetEntry(indx,k);
+          H[k] = data.GetEntry(indx,k+3);
+          #ifdef PRINT_VALUES_INSIDE_LOOPS
+            clog << "Column E: " << k << " Column H: " << k+3 << " E["<<k<<"]="<<E[k] << " H[" << k << "]=" << H[k] << endl;
+          #endif
         }
         double S[3];
         avgPoynting(E,H,S);
         intensity[i][j] = pow(S[0],2) + pow(S[1],2) + pow(S[2],2);
+        #ifdef PRINT_VALUES_INSIDE_LOOPS
+          clog << "Sx=" << S[0] << "Sy=" << S[1] << "Sz=" << S[2] << endl;
+          clog << "Intensity: " << intensity[i][j] << endl;
+        #endif
       }
     }
+    #ifdef DEBUG
+      clog << "done\n";
+    #endif
 
     // Save intensity
     ofstream datafile(fname.c_str(), ios::binary);
@@ -61,20 +79,25 @@ void saveField( HMatrix &data, unsigned int pixels, const string &fname )
 
     datafile.write(reinterpret_cast<char*>(&intensity[0]), pow(pixels,2)*sizeof(double));
     datafile.close();
-    std::cout << "done...\n";
-    std::cout << "Data written to " << fname << endl;
+    std::clog << "Data written to " << fname << endl;
 }
 
 int main(int argc, char **argv)
 {
  
+  #ifdef DEBUG
+    clog << "Compiled with DEBUG flag...\n";
+  #endif
+  #ifdef PRINT_VALUES_INSIDE_LOOPS
+    clog << "Compiled with PRINT_VALUES_INSIDE_LOOPS flag...\n";
+  #endif
   string geofile("sphere.scuffgeo");
   //scuff::RWGGeometry::AssignBasisFunctionsToExteriorEdges=false;
   scuff::RWGGeometry geo = scuff::RWGGeometry(geofile.c_str());
   SetLogFileName("sphere.log");
   geo.SetLogLevel(SCUFF_VERBOSELOGGING);
 
-  std::cout << "The geometry consists of " << geo.NumRegions << " regions\n";
+  std::clog << "The geometry consists of " << geo.NumRegions << " regions\n";
   
   // Allocate BEM matrix and rhs vector
   HMatrix *matrix = geo.AllocateBEMMatrix();
@@ -96,30 +119,30 @@ int main(int argc, char **argv)
    
   for ( unsigned int i=0;i<geo.NumRegions; i++ )
   {
-    double omega = 1.0;
-    std::cout << "Refractive index in region " << i << ": " << geo.RegionMPs[i]->GetRefractiveIndex(omega) << std::endl;
+    double omega = 1.0; // Dummy variable as the refractive index is not freq dependent here
+    std::clog << "Refractive index in region " << i << ": " << geo.RegionMPs[i]->GetRefractiveIndex(omega) << std::endl;
   }
   for ( unsigned int i=0;i<geo.NumRegions; i++ )
   {
-    std::cout << "Description of region " << i << " " << geo.RegionLabels[i] << std::endl;
+    std::clog << "Description of region " << i << " " << geo.RegionLabels[i] << std::endl;
   }
   
   #ifdef DEBUG
     unsigned int sourceNum = 0;
     for (IncField* IF=&pw; IF != NULL; IF=IF->Next)
     {
-      std::cout << "Region index of source " << sourceNum++ << ": " << IF->RegionIndex << std::endl;
+      std::clog << "Region index of source " << sourceNum++ << ": " << IF->RegionIndex << std::endl;
     }
   #endif
 
   const unsigned int N_runs = 1;
-  const double kR[N_runs] = {10.0};
+  const double kR[N_runs] = {0.5};
 
   // Assembling BEM matrix
   const double detectorPosition = 1E4;
   const double deviationMax = 0.5*detectorPosition;
-  const unsigned int nDetectorPixelsInEachDirection = 60;
-  HMatrix Xpoints(nDetectorPixelsInEachDirection*nDetectorPixelsInEachDirection, 3);
+  const unsigned int nDetectorPixelsInEachDirection = 30;
+  HMatrix *Xpoints = new HMatrix(nDetectorPixelsInEachDirection*nDetectorPixelsInEachDirection, 3);
 
   // Fill evaluation points
   for ( unsigned int i=0;i<nDetectorPixelsInEachDirection;i++ )
@@ -128,33 +151,35 @@ int main(int argc, char **argv)
     for ( unsigned int j=0;j<nDetectorPixelsInEachDirection;j++ )
     {
       double y = -deviationMax + 2.0*deviationMax*static_cast<double>(j)/static_cast<double>(nDetectorPixelsInEachDirection-1);
-      Xpoints.SetEntry(i*nDetectorPixelsInEachDirection+j, 0, x);
-      Xpoints.SetEntry(i*nDetectorPixelsInEachDirection+j, 1, y); 
-      Xpoints.SetEntry(i*nDetectorPixelsInEachDirection+j, 2, detectorPosition); 
+      Xpoints->SetEntry(i*nDetectorPixelsInEachDirection+j, 0, x);
+      Xpoints->SetEntry(i*nDetectorPixelsInEachDirection+j, 1, y); 
+      Xpoints->SetEntry(i*nDetectorPixelsInEachDirection+j, 2, detectorPosition); 
     }
   }
   
-  HMatrix evaluatedFields( nDetectorPixelsInEachDirection*nDetectorPixelsInEachDirection, 6, LHM_COMPLEX );
+  HMatrix *evaluatedFields = new HMatrix( nDetectorPixelsInEachDirection*nDetectorPixelsInEachDirection, 6, LHM_COMPLEX );
   
   for ( unsigned int run=0;run<N_runs;run++)
   {
     double omega = kR[run];
-    std::cout << "*************************************************************\n";
-    std::cout << "Run="<<run<<std::endl;
+    std::clog << "*************************************************************\n";
+    std::clog << "Run="<<run<<std::endl;
     pw.SetnHat(kHat);
 
-    std::cout << "Assembling BEM matrix..." << std::flush;
+    std::clog << "Assembling BEM matrix...";
     geo.AssembleBEMMatrix(static_cast<cdouble>(omega), matrix);
-    std::cout << " done\n";
+    std::clog << " done\n";
 
+    std::clog << "Computing LU decomposition... ";
     matrix->LUFactorize();
+    clog << "done\n";
  
-    std::cout << "Assembling rhs vector..." << std::flush;
+    std::clog << "Assembling rhs vector...";
     geo.AssembleRHSVector(static_cast<cdouble>(omega), &pw, rhsVec);
-    std::cout << " done\n";
+    std::clog << " done\n";
 
     #ifdef PRINT_RHS_VECTOR
-      std::cout << "RHS Vector before solving...\n";
+      std::clog << "RHS Vector before solving...\n";
       for ( unsigned int i=0;i<rhsVec->N; i++ )
       {
         std::cout << rhsVec->GetEntry(i) << " ";
@@ -162,12 +187,12 @@ int main(int argc, char **argv)
       std::cout << std::endl;
     #endif
 
-    std::cout << "Solving system of equations... " << std::flush;
+    std::clog << "Solving system of equations... " << std::flush;
     int info = matrix->LUSolve(rhsVec);
-    std::cout << " done\n";
+    std::clog << " done\n";
 
     #ifdef PRINT_RHS_VECTOR
-      std::cout << "RHS Vector after solving...\n";
+      std::clog << "RHS Vector after solving...\n";
       for ( unsigned int i=0;i<rhsVec->N;i++ )
       {
         std::cout << rhsVec->GetEntry(i) << " ";
@@ -178,34 +203,35 @@ int main(int argc, char **argv)
     // Overview file
     Json::Value base;
     string surfaceFname("data/surfaceCurrent.pp");
-    cout << "Exporting surface currents... ";
+    clog << "Exporting surface currents... ";
     geo.PlotSurfaceCurrents(rhsVec, static_cast<cdouble>(omega), surfaceFname.c_str() );
-    cout << " done\n";
+    clog << " done\n";
     base["SurfaceCurrents"] = surfaceFname;
 
     // Store fields and flux
-    std::cerr << "Evaluating fields... ";
-    geo.GetFields( NULL, rhsVec, omega, &Xpoints, &evaluatedFields );
+    std::clog << "Evaluating fields...\n";
+    evaluatedFields = geo.GetFields( NULL, rhsVec, omega, Xpoints, evaluatedFields );
     stringstream ss;
     ss << "data/scattered" << run << ".bin";
 
     try
     {
-      saveField( evaluatedFields, nDetectorPixelsInEachDirection, ss.str() );
+      saveField( *evaluatedFields, nDetectorPixelsInEachDirection, ss.str() );
       base["ScatteredField"] = ss.str();
       ss.clear();
       ss.str("");
-      geo.GetFields( &pw, rhsVec, omega, &Xpoints, &evaluatedFields );
+      evaluatedFields = geo.GetFields( &pw, rhsVec, omega, Xpoints, evaluatedFields );
 
       ss << "data/totalfield" << run << ".bin";
-      saveField( evaluatedFields, nDetectorPixelsInEachDirection, ss.str() );
+      //saveField( *evaluatedFields, nDetectorPixelsInEachDirection, ss.str() );
       base["TotalField"] = ss.str();
     }
     catch ( exception &exc )
     {
-      cout << exc.what() << endl;
+      clog << exc.what() << endl;
       return 1;
     }
+    clog << "Field evaluation finished\n";
     
 
     base["Detector"]["z"] = detectorPosition;
@@ -220,17 +246,18 @@ int main(int argc, char **argv)
     ofstream overview(ss.str().c_str());
     if ( !overview.good() )
     {
-      cout << "Could not open file " << ss.str() << endl;
+      clog << "Could not open file " << ss.str() << endl;
       return 1;
     }
     overview << sw.write(base) << endl;
     overview.close();
-    cout << "Overview file written to " << ss.str() << endl;
+    clog << "Overview file written to " << ss.str() << endl;
   }
   
   delete matrix;
   delete rhsVec;
-
+  delete evaluatedFields;
+  delete Xpoints;
 
   return 0;
 }
