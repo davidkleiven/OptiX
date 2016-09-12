@@ -14,7 +14,7 @@ def scatteringPattern( n, qR ):
     return np.abs(1.0+formFactor(n,qR))**2
 
 def main():
-    filename = "data/overview0.json"
+    filename = "data/overview0.json" 
     infile = open(filename, 'r' )
     overview = json.load(infile)
     infile.close()
@@ -76,12 +76,12 @@ def main():
     fig2 = plt.figure()
     ax2 = fig2.add_subplot(1,1,1)
 #    ax2.plot(thetaDeg, centerLine/np.max(centerLine), 'k')
-    ax2.plot( thetaDeg, intensity/np.max(intensity), 'k', label="BEM")
+    ax2.plot( thetaDeg, intensity/np.max(intensity), 'ko', fillstyle="none", label="BEM")
 
     pattern = np.abs(formFactor( n, qR ))**2
     #ax2.plot( thetaDeg, pattern*np.cos(theta)**2/np.max(pattern) ) 
     ax2.plot( thetaDeg, S1*np.cos(theta)**2/np.max(S1), label="$S_1$")
-    #ax2.plot( thetaDeg, S2*np.cos(theta)**2/np.max(S2))
+    ax2.plot( thetaDeg, S2*np.cos(theta)**2/np.max(S2), label="$S_2$")
     #ax2.plot( thetaDeg, np.cos(theta)**2 )
     #ax2.set_yscale('log')
     ax2.legend(frameon=False)

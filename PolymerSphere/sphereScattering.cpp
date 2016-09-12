@@ -158,7 +158,7 @@ int main(int argc, char **argv)
   // Assembling BEM matrix
   const double detectorPosition = 1E4;
   const double deviationMax = 1.5*detectorPosition;
-  const unsigned int nDetectorPixelsInEachDirection = 60;
+  const unsigned int nDetectorPixelsInEachDirection = 100;
   HMatrix *Xpoints = new HMatrix(nDetectorPixelsInEachDirection*nDetectorPixelsInEachDirection, 3);
 
   // Fill evaluation points
@@ -251,9 +251,9 @@ int main(int argc, char **argv)
       
       for ( unsigned int i=0;i<nDetectorPixelsInEachDirection;i++)
       {
-        double x = -deviationMax + 2.0*deviationMax*static_cast<double>(i)/static_cast<double>(nDetectorPixelsInEachDirection-1);
-        Xpoints->SetEntry(i, 0, x);
-        Xpoints->SetEntry(i, 1, 0.0);
+        double y = -deviationMax + 2.0*deviationMax*static_cast<double>(i)/static_cast<double>(nDetectorPixelsInEachDirection-1);
+        Xpoints->SetEntry(i, 0, 0.0);
+        Xpoints->SetEntry(i, 1, y);
         Xpoints->SetEntry(i, 2, detectorPosition);
       }
       evaluatedFields = geo.GetFields( NULL, rhsVec, omega, Xpoints, evaluatedFields ); 
