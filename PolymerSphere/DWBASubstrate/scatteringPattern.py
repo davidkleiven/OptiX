@@ -9,18 +9,66 @@ from matplotlib import pyplot as plt
 import json
 import fresnelExact as fe
 
-def formFactorSphere( incWaveVec, x, y, z, Rsphere ): 
-    angle = np.arctan( np.sqrt(x**2 + y**2)/z )
-    q = np.sqrt( np.sum(incWaveVec**2) )
-    qR = q*Rsphere*np.sin(angle/2.0)
+def Born1( incWaveVec, x, y, z, Rsphere ):
+    q_parallel = qPar( incWaveVec )
+    k_scattered_z = kScatteredPerp( incWaveVec, x, y, z )
+    q_norm = k_scattered_z - incWaveVec[2]
+    return formFactorSphere( q_parallel, q_norm, Rsphere )
+ 
+def reflectedFromSubsrate( incWaveVec, x, y, z, Rsphere, epsSubst, pol="TE" ):
+    q_parallel = qPar( incWaveVec )
+    k_scattered_z = kScatteredPerp( incWaveVec, x, y, z )
+    q_norm = k_scattered_z + incWaveVec[2]
+    form = formFactorSphere( q_parallel, q_norm, Rsphere )
+    k = np.sqrt( np.sum(incWaveVec**2) )
+    if ( pol == "TE" ):
+        return form*fe.rs( 1.0, epsSubst, 1.0, 1.0, incAngle(incWaveVec), k )
+    return form*fe.rp( 1.0, epsSubst, 1.0, 1.0, incAngle(incWaveVec), k )
+
+def reflectedFromSubstrateAfter( incWaveVec, x, y, z, Rsphere, epsSubst, pol="TE" ):
+    q_parallel = qPar( incWaveVec )
+    k_scattered_z = kScatteredPerp( incWaveVec, x, y, z )
+    q_norm = -k_scattered_z - incWaveVec[2]
+    form = formFactorSphere( q_parallel, q_norm, Rsphere )
+    k = np.sqrt( np.sum(incWaveVec**2) )
+    angle = np.arccos(k_scattered_z/k)*180.0/np.pi
+    if ( pol == "TE" ):
+        return form*fe.rs( 1.0, epsSubst, 1.0, 1.0, angle, k )
+    return form*fe.rp( 1.0, epsSubst, 1.0, 1.0, angle, k )
+    
+def reflectedFromSubsrateBeforeAndAfter( incWaveVec, x, y, z, Rsphere, epsSubst, pol="TE" ):
+    q_parallel = qPar( incWaveVec )
+    k_scattered_z = kScatteredPerp( incWaveVec, x, y, z )
+    q_norm = -k_scattered_z + incWaveVec[2]
+    form = formFactorSphere( q_parallel, q_norm, Rsphere )
+    k = np.sqrt( np.sum(incWaveVec**2) )
+    angle = np.arccos(k_scattered_z/k)*180.0/np.pi
+    if ( pol == "TE" ):
+        return form*fe.rs( 1.0, epsSubst, 1.0, 1.0, incAngle(incWaveVec), k )*fe.rs(1.0, epsSubst, 1.0,1.0, angle, k)
+    return form*fe.rp( 1.0, epsSubst, 1.0, 1.0, incAngle(incWaveVec), k )*fe.rp(1.0, epsSub, 1.0, 1.0, angle, k )
+    
+def incAngle( incWaveVec ):
+    k = np.sqrt( np.sum(incWaveVec**2) )
+    return np.arccos( incWaveVec[2]/k )*180.0/np.pi
+
+def qPar( incWaveVec ):
+    return np.sqrt(incWaveVec[0]**2 + incWaveVec[1]**2)
+
+def kScatteredPerp( incWaveVec, x, y, z ):
+    k = np.sqrt( np.sum(incWaveVec**2) )
+    return k*np.sqrt(x**2 + y**2)/np.sqrt(x**2+y**2+z**2)
+    
+def formFactorSphere( q_parallel, q_norm, Rsphere ):
+    qR = np.sqrt( q_parallel**2 + q_norm**2 )*Rsphere
     qR[np.abs(qR) < 1E-5] = 1E-5
     form = ( np.sin(qR) - qR*np.cos(qR) )/qR**3
-    return form/np.max(form)
+    return form
 
 def grazingIncidence(grazingAngle, polarisation, epsSub):
     mu = 1.0
     epsInc = 1.0
     alpha_c = fe.criticalGrazingAngle( 1.0, np.sqrt(epsSub*mu) )
+    print ("Critical angle: %.4f"%(alpha_c*180.0/np.pi))
     Rsphere = 1.0
     kR = 10.0
     k = np.zeros(3)
@@ -31,10 +79,11 @@ def grazingIncidence(grazingAngle, polarisation, epsSub):
     k_scattered[1] = kR*np.sin(grazingAngle*alpha_c)
     k_scattered[2] = kR*np.cos(grazingAngle*alpha_c)
 
+    incAngle = 90.0 - grazingAngle*alpha_c*180.0/np.pi
     if ( polarisation == "TE" ):
-        r = fe.rs( epsInc, epsSub, mu, mu, np.pi/2.0-grazingAngle*alpha_c, kR )
+        r = fe.rs( epsInc, epsSub, mu, mu, incAngle, kR )
     elif ( polarisation == "TM" ):
-        r = fe.rp( epsInc, epsSub, mu, mu, np.pi/2.0-grazingAngle*alpha_c, kR )
+        r = fe.rp( epsInc, epsSub, mu, mu, incAngle, kR )
     else:
         print ("Unknown polarisation...")
         return
@@ -43,9 +92,11 @@ def grazingIncidence(grazingAngle, polarisation, epsSub):
     x = np.linspace( -z, z, 101 )
     y = np.linspace( -z, z, 101 )
     X, Y = np.meshgrid( x, y )
-    f1 = formFactorSphere( k, X, Y, z, Rsphere )
-    f2 = formFactorSphere( k_scattered, X, Y, z, Rsphere )
-    f = np.abs(f1 + r*f2)**2
+    f1 = Born1( k, X, Y, z, Rsphere )
+    f2 = reflectedFromSubsrate( k_scattered, X, Y, z, Rsphere, epsSub )
+    f3 = reflectedFromSubstrateAfter( k_scattered, X, Y, z, Rsphere, epsSub )
+    f4 = reflectedFromSubsrateBeforeAndAfter( k_scattered, X, Y, z, Rsphere, epsSub )
+    f = np.abs(f1 + f2 + f3 + f4)**2
     
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
@@ -55,17 +106,15 @@ def grazingIncidence(grazingAngle, polarisation, epsSub):
     fig.savefig( fname, bbox_inches="tight" )
     print ("Figure written to %s"%(fname))
 
-    f1x = formFactorSphere( k, x, 0.0, z, Rsphere )
-    f2x = formFactorSphere( k_scattered, x, 0.0, z, Rsphere )
-    fx = np.abs(f1x + r*f2x)**2
-    f1y = formFactorSphere( k, 0.0, y,z, Rsphere )
-    f2y = formFactorSphere( k_scattered, 0.0, y, z, Rsphere )
-    fy = np.abs(f1y + r*f2y)**2
+    f1 = Born1( k, x, 0.0, z, Rsphere )
+    f2 = reflectedFromSubsrate( k_scattered, x, 0.0, z, Rsphere, epsSub )
+    f3 = reflectedFromSubstrateAfter( k_scattered, x, 0.0, z, Rsphere, epsSub )
+    f4 = reflectedFromSubsrateBeforeAndAfter( k_scattered, x, 0.0, z, Rsphere, epsSub )
+    f = np.abs(f1 + f2 + f3 + f4)**2
      
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
-    ax.plot( x, fx, 'k', label="Parallel" )
-    ax.plot( y, fy, 'k--', label="Perpendicular")
+    ax.plot( x, f1, 'k', label="Parallel" )
     ax.set_xlabel("Distance from center of screen")
     ax.legend(frameon=False)
     fname = "Figures/pattern1D.pdf"
@@ -73,9 +122,7 @@ def grazingIncidence(grazingAngle, polarisation, epsSub):
     print ("Figure written to %s"%(fname))
 
 def main():
-    grazingIncidence( 0.0001, "TE", 1-1E-5+1j*1E-6 )
+    grazingIncidence( 10.0, "TE", (1-1E-5+1j*1E-6)**2 )
 
 if __name__ == "__main__":
-    main()
-    
-    
+    main() 
