@@ -216,6 +216,12 @@ int main(int argc, char **argv)
       }
       std::cout << std::endl;
     #endif
+
+    stringstream solFname;
+    solFname << "solution" << run << ".h5";
+    clog << "Exporting solution...\n";
+    rhsVec->ExportToHDF5( solFname.str().c_str(), "SolutionVec" );
+    clog << " done. Written to " << solFname.str() << endl;
     
     // Overview file
     Json::Value base;
