@@ -7,22 +7,44 @@ from matplotlib import colors as colors
 import json
 import h5py
 
+HELP_MSG = "Usage: python plotPattern.py [--file=overview.json --help]\n"
+HELP_MSG += "--help - Print this message\n"
+HELP_MSG += "--file - overview file contianing information about other files\n"
+HELP_MSG += "         if not present it will use the one in *data* folder\n"
+
 def formFactor( n, qR ):
     return (n**2 - 1.0)*(np.sin(qR) - qR*np.cos(qR))/(qR**3)
 
 def scatteringPattern( n, qR ):
     return np.abs(1.0+formFactor(n,qR))**2
 
-def main():
+def infilename( filenameInJson, folder ):
+    # Verify that there is no folder present in front of the filename
+    fname = filenameInJson.split("/")[-1]
+    return folder+"/"+fname
+
+def main(argv):
     filename = "data/overview0.json" 
+    for arg in argv:
+        if ( arg.find("--file=") != -1 ):
+            filename = arg.split("--file=")[1]
+        elif ( arg.find("--help") != -1 ):
+            print HELP_MSG
+            return
+    fnameSplit = filename.split("/")
+    folder = fnameSplit[0]
+    for i in range(1, len(fnameSplit)-1):
+        print i
+        folder += "/"
+        folder += fnameSplit[i]
     infile = open(filename, 'r' )
     overview = json.load(infile)
     infile.close()
     eps = overview["eps"]["real"] + 1j*overview["eps"]["imag"]
     n = np.sqrt(eps)
 
-    data = np.fromfile(overview["ScatteredField"], dtype=np.float64)
-    dataTot = np.fromfile(overview["TotalField"], dtype=np.float64)
+    data = np.fromfile(infilename(overview["ScatteredField"],folder), dtype=np.float64)
+    dataTot = np.fromfile(infilename(overview["TotalField"],folder), dtype=np.float64)
     print ("Detector position (unit R): %.1f"%(overview["Detector"]["z"]))
     
     xmin = overview["Detector"]["min"]
@@ -53,11 +75,11 @@ def main():
     axT.contourf(X, Y, dataTot, 200, cmap="gist_heat")
 
     # Extract data through the center
-    with h5py.File(overview["XpointsCenter"], 'r') as hf:
+    with h5py.File(infilename(overview["XpointsCenter"],folder), 'r') as hf:
         print(hf.keys())
         posVec = hf["rVec"].value
     xCenter = posVec[:,0]
-    with h5py.File(overview["FieldCenter"], 'r') as hf:
+    with h5py.File(infilename(overview["FieldCenter"], folder), 'r') as hf:
         print (hf.keys()) 
         fields = hf["Fields"].value
     
@@ -98,4 +120,4 @@ def plotAllLines(data):
     ax.legend()
     fig.show()
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1:])
