@@ -51,3 +51,10 @@ def Rp( eps1, eps2, mu1, mu2, kzi, k ):
 
 def Ts( eps1, eps2, mu1, mu2, kzi, k ):
     return np.abs( rp(eps1,eps2,mu1,mu2,kzi,k) )**2
+
+def criticalGrazingAngle( n1, n2 ):
+    n1 = np.real(n1)
+    n2 = np.real(n2)
+    if ( n1 < n2 ):
+        return np.pi
+    return np.arccos(n2/n1)
