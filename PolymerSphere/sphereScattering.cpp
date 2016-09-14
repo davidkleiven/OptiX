@@ -9,19 +9,38 @@
 #include <cassert>
 #include <set>
 #include <stdexcept>
+#include <cstdlib>
+#include <ctime>
 //#define DEBUG
 //#define PRINT_VALUES_INSIDE_LOOPS
 //#define PRINT_BEM_MATRIX
 //#define PRINT_RHS_VECTOR
 #define DOUBLE_COMPARISON_ZERO 1E-5
 #define PWVAC (0.5/ZVAC)
+#define UID_DIGITS 6
 
 const double PI = acos(-1.0);
 enum class Polarisation_t {CIRCULAR, LINEAR};
+const unsigned int UID_MAX = pow(10, UID_DIGITS);
 
 using namespace std;
 typedef std::complex<double> cdouble;
 
+  
+unsigned int uidFromH5filename( const string& fname )
+{
+  auto suffix = fname.find(".h5");
+  if ( ( suffix != string::npos ) && (suffix >= UID_DIGITS ) )
+  {
+    string uid = fname.substr(suffix-UID_DIGITS, UID_DIGITS);
+    stringstream ss;
+    ss << uid;
+    unsigned int int_uid;
+    ss >> int_uid;
+    return int_uid;
+  }
+  return UID_MAX;
+}
   
 void avgPoynting( const cdouble E[3], const cdouble H[3], double poynting[3] )
 {
@@ -85,7 +104,8 @@ void saveField( HMatrix &data, unsigned int pixels, const string &fname )
 
 int main(int argc, char **argv)
 {
- 
+  srand(time(0)); 
+  unsigned int uid = rand()%UID_MAX;
   #ifdef DEBUG
     clog << "Compiled with DEBUG flag...\n";
   #endif
@@ -93,12 +113,25 @@ int main(int argc, char **argv)
     clog << "Compiled with PRINT_VALUES_INSIDE_LOOPS flag...\n";
   #endif
 
+  // Check if a solution file is specified in the input arguments
+  string solutionfile("");
+  for ( unsigned int i=1;i<argc;i++ )
+  {
+    string arg(argv[i]);
+    if ( arg.find("--solution=") != string::npos )
+    {
+      solutionfile = arg.substr(9);
+    }
+  }
+       
   Polarisation_t pol=Polarisation_t::LINEAR;
 
   string geofile("sphere.scuffgeo");
   //scuff::RWGGeometry::AssignBasisFunctionsToExteriorEdges=false;
   scuff::RWGGeometry geo = scuff::RWGGeometry(geofile.c_str());
-  SetLogFileName("sphere.log");
+  stringstream logfilename;
+  logfilename << "sphere" << uid << ".log";
+  SetLogFileName(logfilename.str().c_str());
   geo.SetLogLevel(SCUFF_VERBOSELOGGING);
 
   std::clog << "The geometry consists of " << geo.NumRegions << " regions\n";
@@ -153,7 +186,7 @@ int main(int argc, char **argv)
   #endif
 
   const unsigned int N_runs = 1;
-  const double kR[N_runs] = {10.0};
+  const double kR[N_runs] = {5.0};
 
   // Assembling BEM matrix
   const double detectorPosition = 1E4;
@@ -178,35 +211,53 @@ int main(int argc, char **argv)
   
   for ( unsigned int run=0;run<N_runs;run++)
   {
+    uid = rand()%UID_MAX;
     double omega = kR[run];
     std::clog << "*************************************************************\n";
     std::clog << "Run="<<run<<std::endl;
+    clog << "kR=" << kR[run] << endl;
     pw.SetnHat(kHat);
 
-    std::clog << "Assembling BEM matrix...";
-    geo.AssembleBEMMatrix(static_cast<cdouble>(omega), matrix);
-    std::clog << " done\n";
+    if ( solutionfile == "" )
+    {
+      // Run new simulation
+      std::clog << "Assembling BEM matrix...";
+      geo.AssembleBEMMatrix(static_cast<cdouble>(omega), matrix);
+      std::clog << " done\n";
 
-    std::clog << "Computing LU decomposition... ";
-    matrix->LUFactorize();
-    clog << "done\n";
- 
-    std::clog << "Assembling rhs vector...";
-    geo.AssembleRHSVector(static_cast<cdouble>(omega), &pw, rhsVec);
-    std::clog << " done\n";
+      std::clog << "Computing LU decomposition... ";
+      matrix->LUFactorize();
+      clog << "done\n";
+   
+      std::clog << "Assembling rhs vector...";
+      geo.AssembleRHSVector(static_cast<cdouble>(omega), &pw, rhsVec);
+      std::clog << " done\n";
 
-    #ifdef PRINT_RHS_VECTOR
-      std::clog << "RHS Vector before solving...\n";
-      for ( unsigned int i=0;i<rhsVec->N; i++ )
-      {
-        std::cout << rhsVec->GetEntry(i) << " ";
-      }
-      std::cout << std::endl;
-    #endif
+      #ifdef PRINT_RHS_VECTOR
+        std::clog << "RHS Vector before solving...\n";
+        for ( unsigned int i=0;i<rhsVec->N; i++ )
+        {
+          std::cout << rhsVec->GetEntry(i) << " ";
+        }
+        std::cout << std::endl;
+      #endif
 
-    std::clog << "Solving system of equations... " << std::flush;
-    int info = matrix->LUSolve(rhsVec);
-    std::clog << " done\n";
+      std::clog << "Solving system of equations... " << std::flush;
+      int info = matrix->LUSolve(rhsVec);
+      std::clog << " done\n";
+      stringstream solFname;
+      solFname << "data/solution" <<uid<< ".h5";
+      clog << "Exporting solution...\n";
+      rhsVec->ExportToHDF5( solFname.str().c_str(), "SolutionVec" );
+      clog << " done. Written to " << solFname.str() << endl;
+    }
+    else
+    {
+      // Only evaluate fields using the input file
+      rhsVec->ImportFromHDF5(solutionfile.c_str(), "solution");
+      uid = uidFromH5filename( solutionfile );
+    }
+    delete matrix;
 
     #ifdef PRINT_RHS_VECTOR
       std::clog << "RHS Vector after solving...\n";
@@ -217,25 +268,21 @@ int main(int argc, char **argv)
       std::cout << std::endl;
     #endif
 
-    stringstream solFname;
-    solFname << "solution" << run << ".h5";
-    clog << "Exporting solution...\n";
-    rhsVec->ExportToHDF5( solFname.str().c_str(), "SolutionVec" );
-    clog << " done. Written to " << solFname.str() << endl;
     
     // Overview file
     Json::Value base;
-    string surfaceFname("data/surfaceCurrent.pp");
+    stringstream surfFname;
+    surfFname << "data/surfaceCurrent" << uid << ".pp";
     clog << "Exporting surface currents... ";
-    geo.PlotSurfaceCurrents(rhsVec, static_cast<cdouble>(omega), surfaceFname.c_str() );
+    geo.PlotSurfaceCurrents(rhsVec, static_cast<cdouble>(omega), surfFname.str().c_str() );
     clog << " done\n";
-    base["SurfaceCurrents"] = surfaceFname;
+    base["SurfaceCurrents"] = surfFname.str();
 
     // Store fields and flux
     std::clog << "Evaluating fields...\n";
     evaluatedFields = geo.GetFields( NULL, rhsVec, omega, Xpoints, evaluatedFields );
     stringstream ss;
-    ss << "data/scattered" << run << ".bin";
+    ss << "data/scattered" << uid << ".bin";
 
     try
     {
@@ -245,7 +292,7 @@ int main(int argc, char **argv)
       ss.str("");
       evaluatedFields = geo.GetFields( &pw, rhsVec, omega, Xpoints, evaluatedFields );
 
-      ss << "data/totalfield" << run << ".bin";
+      ss << "data/totalfield" << uid << ".bin";
       saveField( *evaluatedFields, nDetectorPixelsInEachDirection, ss.str() );
       base["TotalField"] = ss.str();
 
@@ -265,12 +312,12 @@ int main(int argc, char **argv)
       evaluatedFields = geo.GetFields( NULL, rhsVec, omega, Xpoints, evaluatedFields ); 
       ss.clear();
       ss.str("");
-      ss << "data/xPointCenter" << run << ".h5";
+      ss << "data/xPointCenter" << uid << ".h5";
       base["XpointsCenter"] = ss.str();
       Xpoints->ExportToHDF5( ss.str().c_str(), "rVec" );
       ss.clear();
       ss.str("");
-      ss << "data/fieldsCenter" << run << ".h5";
+      ss << "data/fieldsCenter" << uid << ".h5";
       base["FieldCenter"] = ss.str();
       evaluatedFields->ExportToHDF5( ss.str().c_str(), "Fields" );
     }
@@ -289,10 +336,11 @@ int main(int argc, char **argv)
     base["kR"] = kR[run];
     base["eps"]["real"] = real(eps);
     base["eps"]["imag"] = imag(eps);
+    base["nodes"] = rhsVec->N;
     Json::StyledWriter sw;
     ss.clear();
     ss.str("");
-    ss << "data/overview" << run << ".json";
+    ss << "data/overview" << uid << ".json";
     ofstream overview(ss.str().c_str());
     if ( !overview.good() )
     {
@@ -304,7 +352,6 @@ int main(int argc, char **argv)
     clog << "Overview file written to " << ss.str() << endl;
   }
   
-  delete matrix;
   delete rhsVec;
   delete evaluatedFields;
   delete Xpoints;
