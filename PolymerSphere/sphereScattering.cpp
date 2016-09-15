@@ -104,6 +104,11 @@ void saveField( HMatrix &data, unsigned int pixels, const string &fname )
 
 int main(int argc, char **argv)
 {
+  string HELP_MSG("Usage: ./sphereScatter.out [--help --solution=<solution.h5]\n");
+  HELP_MSG += "--help - Print this message\n";
+  HELP_MSG += "--solution - HDF5 file containing the solution vector of the problem\n";
+  HELP_MSG += "If no option is given it will solve the system using the geometry file sphere.scuffgeo\n";
+
   srand(time(0)); 
   unsigned int uid = rand()%UID_MAX;
   #ifdef DEBUG
@@ -120,7 +125,18 @@ int main(int argc, char **argv)
     string arg(argv[i]);
     if ( arg.find("--solution=") != string::npos )
     {
-      solutionfile = arg.substr(9);
+      solutionfile = arg.substr(11);
+    }
+    else if ( arg.find("--help") != string::npos )
+    {
+      std::cout << HELP_MSG << endl;
+      return 0;
+    }
+    else
+    {
+      cout << "Unrecognized option: " << arg << endl;
+      cout << "Run: ./sphereScat.out --help for more information\n";
+      return 0;
     }
   }
        
@@ -189,9 +205,9 @@ int main(int argc, char **argv)
   const double kR[N_runs] = {5.0};
 
   // Assembling BEM matrix
-  const double detectorPosition = 1E4;
+  const double detectorPosition = 1E2;
   const double deviationMax = 1.5*detectorPosition;
-  const unsigned int nDetectorPixelsInEachDirection = 100;
+  const unsigned int nDetectorPixelsInEachDirection = 80;
   HMatrix *Xpoints = new HMatrix(nDetectorPixelsInEachDirection*nDetectorPixelsInEachDirection, 3);
 
   // Fill evaluation points
@@ -254,7 +270,7 @@ int main(int argc, char **argv)
     else
     {
       // Only evaluate fields using the input file
-      rhsVec->ImportFromHDF5(solutionfile.c_str(), "solution");
+      rhsVec->ImportFromHDF5(solutionfile.c_str(), "SolutionVec");
       uid = uidFromH5filename( solutionfile );
     }
     delete matrix;
@@ -355,6 +371,12 @@ int main(int argc, char **argv)
   delete rhsVec;
   delete evaluatedFields;
   delete Xpoints;
+  
+  if ( matrix != NULL )
+  {
+    // Just in case...
+    delete matrix;
+  }
 
   return 0;
 }
