@@ -1,6 +1,7 @@
 import sys
 sys.path.append("../../FresnelBEM")
 sys.path.append("../../FresnelFDTD")
+sys.path.append("../../")
 import matplotlib
 import mplLaTeX as ml
 matplotlib.rcParams.update( ml.params )
@@ -8,6 +9,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 import json
 import fresnelExact as fe
+import colorScheme as cs
 
     
 def dwba( waveVector, x, y, z, eps, mode="Born" ):
@@ -76,14 +78,13 @@ def grazingIncidence(grazingAngle, polarisation, epsSub):
     tot = dwba( k, x, 0.0, z, epsSub)
     alpha_f = np.arctan(x/z)/alpha_c
 
-    colors = ["#a6cee3", "#1f78b4", "#b2df8a", "#33a02c", "#fb9a99"]
     markers = ['-o', '-v', '-s', '-h', '-d']
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
-    ax.plot( alpha_f, np.abs(born)**2, color=colors[0], label="A")
-    ax.plot( alpha_f, np.abs(f1)**2, color=colors[1], label="B")
-    ax.plot( alpha_f, np.abs(f2)**2, color=colors[2], label="C")
-    ax.plot( alpha_f, np.abs(f3)**2, color=colors[3], label="D")
+    ax.plot( alpha_f, np.abs(born)**2, color=cs.COLORS[0], label="A")
+    ax.plot( alpha_f, np.abs(f1)**2, color=cs.COLORS[1], label="B")
+    ax.plot( alpha_f, np.abs(f2)**2, color=cs.COLORS[2], label="C")
+    ax.plot( alpha_f, np.abs(f3)**2, color=cs.COLORS[3], label="D")
     ax.set_yscale('log')
     ax.set_xlabel("$\\alpha_f/\\alpha_c$")
     ax.set_ylabel("Intensity (a.u.)")

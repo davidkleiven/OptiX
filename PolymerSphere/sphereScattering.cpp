@@ -139,6 +139,10 @@ int main(int argc, char **argv)
       return 0;
     }
   }
+  if ( solutionfile == "" )
+  {
+    cout << "UID for this run is: " << uid << endl;
+  }
        
   Polarisation_t pol=Polarisation_t::LINEAR;
 
@@ -205,7 +209,7 @@ int main(int argc, char **argv)
   const double kR[N_runs] = {5.0};
 
   // Assembling BEM matrix
-  const double detectorPosition = 1E2;
+  const double detectorPosition = 1E3;
   const double deviationMax = 1.5*detectorPosition;
   const unsigned int nDetectorPixelsInEachDirection = 80;
   HMatrix *Xpoints = new HMatrix(nDetectorPixelsInEachDirection*nDetectorPixelsInEachDirection, 3);
@@ -225,9 +229,9 @@ int main(int argc, char **argv)
   
   HMatrix *evaluatedFields = new HMatrix( nDetectorPixelsInEachDirection*nDetectorPixelsInEachDirection, 6, LHM_COMPLEX );
   
-  for ( unsigned int run=0;run<N_runs;run++)
+  for ( unsigned int run=0;run<1;run++)
   {
-    uid = rand()%UID_MAX;
+    //uid = rand()%UID_MAX; // Only run onc
     double omega = kR[run];
     std::clog << "*************************************************************\n";
     std::clog << "Run="<<run<<std::endl;
@@ -353,6 +357,7 @@ int main(int argc, char **argv)
     base["eps"]["real"] = real(eps);
     base["eps"]["imag"] = imag(eps);
     base["nodes"] = rhsVec->N;
+    base["UID"] = uid;
     Json::StyledWriter sw;
     ss.clear();
     ss.str("");
