@@ -122,6 +122,7 @@ int main(int argc, char **argv)
   // Check if a solution file is specified in the input arguments
   string solutionfile("");
   string geofile("");
+  bool isInfiniteExtended = false;
   for ( unsigned int i=1;i<argc;i++ )
   {
     string arg(argv[i]);
@@ -136,8 +137,12 @@ int main(int argc, char **argv)
     }
     else if (arg.find("--geo=") != string::npos )
     {
-      geofile = arg.substr(7);
+      geofile = arg.substr(6);
     }  
+    else if ( arg.find("--periodic") != string::npos )
+    {
+      isInfiniteExtended = true;
+    }
     else
     {
       cout << "Unrecognized option: " << arg << endl;
@@ -155,8 +160,12 @@ int main(int argc, char **argv)
     cout << "Run: ./sphereScat.out --help fpr more information\n";
     return 1;
   }
-       
+  if ( isInfiniteExtended )
+  {
+    cout << "Using infinite extended geometry\n";
+  }     
   Polarisation_t pol=Polarisation_t::LINEAR;
+  double kBloch[2] = {0.0,0.0};
 
   //scuff::RWGGeometry::AssignBasisFunctionsToExteriorEdges=false;
   scuff::RWGGeometry geo = scuff::RWGGeometry(geofile.c_str());
@@ -253,7 +262,14 @@ int main(int argc, char **argv)
     {
       // Run new simulation
       std::clog << "Assembling BEM matrix...";
-      geo.AssembleBEMMatrix(static_cast<cdouble>(omega), matrix);
+      if ( isInfiniteExtended )
+      {
+        geo.AssembleBEMMatrix(static_cast<cdouble>(omega), kBloch, matrix);
+      } 
+      else
+      {
+        geo.AssembleBEMMatrix(static_cast<cdouble>(omega), matrix);
+      }
       std::clog << " done\n";
 
       std::clog << "Computing LU decomposition... ";
@@ -261,7 +277,14 @@ int main(int argc, char **argv)
       clog << "done\n";
    
       std::clog << "Assembling rhs vector...";
-      geo.AssembleRHSVector(static_cast<cdouble>(omega), &pw, rhsVec);
+      if ( isInfiniteExtended )
+      {
+        geo.AssembleRHSVector(static_cast<cdouble>(omega), kBloch, &pw, rhsVec);
+      }
+      else
+      {
+        geo.AssembleRHSVector(static_cast<cdouble>(omega), &pw, rhsVec);
+      }
       std::clog << " done\n";
 
       #ifdef PRINT_RHS_VECTOR
@@ -311,7 +334,14 @@ int main(int argc, char **argv)
 
     // Store fields and flux
     std::clog << "Evaluating fields...\n";
-    evaluatedFields = geo.GetFields( NULL, rhsVec, omega, Xpoints, evaluatedFields );
+    if ( isInfiniteExtended )
+    {
+      evaluatedFields = geo.GetFields( NULL, rhsVec, omega, kBloch, Xpoints, evaluatedFields );
+    }
+    else
+    {
+      evaluatedFields = geo.GetFields( NULL, rhsVec, omega, Xpoints, evaluatedFields );
+    }
     stringstream ss;
     ss << "data/scattered" << uid << ".bin";
 
@@ -321,7 +351,14 @@ int main(int argc, char **argv)
       base["ScatteredField"] = ss.str();
       ss.clear();
       ss.str("");
-      evaluatedFields = geo.GetFields( &pw, rhsVec, omega, Xpoints, evaluatedFields );
+      if ( isInfiniteExtended )
+      {
+        evaluatedFields = geo.GetFields( &pw, rhsVec, omega, kBloch, Xpoints, evaluatedFields );
+      }
+      else
+      {
+        evaluatedFields = geo.GetFields( &pw, rhsVec, omega, Xpoints, evaluatedFields );
+      }
 
       ss << "data/totalfield" << uid << ".bin";
       saveField( *evaluatedFields, nDetectorPixelsInEachDirection, ss.str() );
@@ -340,7 +377,14 @@ int main(int argc, char **argv)
         Xpoints->SetEntry(i, 1, y);
         Xpoints->SetEntry(i, 2, detectorPosition);
       }
-      evaluatedFields = geo.GetFields( NULL, rhsVec, omega, Xpoints, evaluatedFields ); 
+      if ( isInfiniteExtended )
+      {
+        evaluatedFields = geo.GetFields( NULL, rhsVec, omega, kBloch, Xpoints, evaluatedFields ); 
+      }
+      else
+      {
+        evaluatedFields = geo.GetFields( NULL, rhsVec, omega, Xpoints, evaluatedFields ); 
+      }
       ss.clear();
       ss.str("");
       ss << "data/xPointCenter" << uid << ".h5";
