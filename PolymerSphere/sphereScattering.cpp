@@ -104,10 +104,11 @@ void saveField( HMatrix &data, unsigned int pixels, const string &fname )
 
 int main(int argc, char **argv)
 {
-  string HELP_MSG("Usage: ./sphereScatter.out [--help --solution=<solution.h5]\n");
+  string HELP_MSG("Usage: ./sphereScatter.out --geofile=<geo.scuffgeo> [--help --solution=<solution.h5]\n");
   HELP_MSG += "--help - Print this message\n";
   HELP_MSG += "--solution - HDF5 file containing the solution vector of the problem\n";
   HELP_MSG += "If no option is given it will solve the system using the geometry file sphere.scuffgeo\n";
+  HELP_MSG += "geofile - scuffgeo file containing information of the geometry\n";
 
   srand(time(0)); 
   unsigned int uid = rand()%UID_MAX;
@@ -120,6 +121,7 @@ int main(int argc, char **argv)
 
   // Check if a solution file is specified in the input arguments
   string solutionfile("");
+  string geofile("");
   for ( unsigned int i=1;i<argc;i++ )
   {
     string arg(argv[i]);
@@ -132,6 +134,10 @@ int main(int argc, char **argv)
       std::cout << HELP_MSG << endl;
       return 0;
     }
+    else if (arg.find("--geo=") != string::npos )
+    {
+      geofile = arg.substr(7);
+    }  
     else
     {
       cout << "Unrecognized option: " << arg << endl;
@@ -143,10 +149,15 @@ int main(int argc, char **argv)
   {
     cout << "UID for this run is: " << uid << endl;
   }
+  if ( geofile == "" )
+  {
+    cout << "No geometry file specified.\n";
+    cout << "Run: ./sphereScat.out --help fpr more information\n";
+    return 1;
+  }
        
   Polarisation_t pol=Polarisation_t::LINEAR;
 
-  string geofile("sphere.scuffgeo");
   //scuff::RWGGeometry::AssignBasisFunctionsToExteriorEdges=false;
   scuff::RWGGeometry geo = scuff::RWGGeometry(geofile.c_str());
   stringstream logfilename;
