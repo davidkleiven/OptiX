@@ -104,11 +104,12 @@ void saveField( HMatrix &data, unsigned int pixels, const string &fname )
 
 int main(int argc, char **argv)
 {
-  string HELP_MSG("Usage: ./sphereScatter.out --geofile=<geo.scuffgeo> [--help --solution=<solution.h5]\n");
+  string HELP_MSG("Usage: ./sphereScatter.out --geofile=<geo.scuffgeo> --kR=<size parameter> [--help --solution=<solution.h5]\n");
   HELP_MSG += "--help - Print this message\n";
   HELP_MSG += "--solution - HDF5 file containing the solution vector of the problem\n";
   HELP_MSG += "If no option is given it will solve the system using the geometry file sphere.scuffgeo\n";
   HELP_MSG += "geofile - scuffgeo file containing information of the geometry\n";
+  HELP_MSG += "kR: size parameter\n";
 
   srand(time(0)); 
   unsigned int uid = rand()%UID_MAX;
@@ -123,6 +124,7 @@ int main(int argc, char **argv)
   string solutionfile("");
   string geofile("");
   bool isInfiniteExtended = false;
+  double sizeParam = -1.0;
   for ( unsigned int i=1;i<argc;i++ )
   {
     string arg(argv[i]);
@@ -143,6 +145,12 @@ int main(int argc, char **argv)
     {
       isInfiniteExtended = true;
     }
+    else if ( arg.find("--kR=") != string::npos )
+    {
+      stringstream ss;
+      ss << arg.substr(5);
+      ss >> sizeParam;
+    }
     else
     {
       cout << "Unrecognized option: " << arg << endl;
@@ -159,6 +167,10 @@ int main(int argc, char **argv)
     cout << "No geometry file specified.\n";
     cout << "Run: ./sphereScat.out --help fpr more information\n";
     return 1;
+  }
+  if ( sizeParam < 0.0 )
+  {
+    cout << "No kR spesicied\n";
   }
   if ( isInfiniteExtended )
   {
@@ -226,7 +238,7 @@ int main(int argc, char **argv)
   #endif
 
   const unsigned int N_runs = 1;
-  const double kR[N_runs] = {5.0};
+  const double kR[N_runs] = {sizeParam};
 
   // Assembling BEM matrix
   const double detectorPosition = 1E3;
