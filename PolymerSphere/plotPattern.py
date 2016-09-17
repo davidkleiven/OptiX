@@ -129,6 +129,7 @@ def main(argv):
     #ax2.plot( thetaDeg, S1/np.max(S1), label="$S_1$")
     #ax2.plot( thetaDeg, S2/np.max(S2), label="$S_2$")
     ax2.plot( thetaDeg, pattern*np.cos(theta)**5/np.max(pattern), color=cs.COLORS[4], label="Born", lw=2 ) 
+    ax2.plot( thetaDeg, pattern*np.cos(theta)**3/np.max(pattern), color=cs.COLORS[5], label="Born", lw=2 ) 
     ax2.plot( thetaDeg, S1*np.cos(theta)**3/np.max(S1), label="$S_1$", color=cs.COLORS[1])
     ax2.plot( thetaDeg, S2*np.cos(theta)**3/np.max(S2), label="$S_2$", color=cs.COLORS[2])
     ax2.legend(frameon=False)
