@@ -10,4 +10,5 @@ UID    | Description                   | Result Comment                         
 284528 | kR=5, eps=1E-4 + 1E-6i, Nodes = 4099, periodic only spheres | Out of memory while assembling why? |
 200001 | lambda=0.7, eps=1-1E-5+1E-6i, Nodes=23302, MoM prec=0, VCFIE prec=0 | Puma run, the results show lobes" |
 627234 | kR=5, eps=0.81+1E-6i, Nodes = 1027 | Very good results, short runtime |
-176935 | kR=5, eps=0.98+1E-6i, Nodes = 2017 | Running |
+176935 | kR=5, eps=0.98+1E-6i, Nodes = 1027 | Very good results, short runtime |
+131925 | kR=5, eps=0.998 + 1E-6i, Nodes = 1027  | Good, deviates more than run 627234 and 176935 |
