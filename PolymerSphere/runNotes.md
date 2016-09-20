@@ -12,3 +12,6 @@ UID    | Description                   | Result Comment                         
 627234 | kR=5, eps=0.81+1E-6i, Nodes = 1027 | Very good results, short runtime |
 176935 | kR=5, eps=0.98+1E-6i, Nodes = 1027 | Very good results, short runtime |
 131925 | kR=5, eps=0.998 + 1E-6i, Nodes = 1027  | Good, deviates more than run 627234 and 176935 |
+501846 | kR=10, eps=0.9999+1E-6i, Nodes = 771, cube | Not analysed | 
+161737 | kR=10, eps=0.99998+1E-6, Nodes = 771, cube | Not analysed |
+562343 | kR=10, eps=0.998+1E-6i, Nodes = 771, cube | Not analysed |
