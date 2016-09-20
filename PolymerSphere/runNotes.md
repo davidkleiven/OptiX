@@ -15,3 +15,5 @@ UID    | Description                   | Result Comment                         
 501846 | kR=10, eps=0.9999+1E-6i, Nodes = 771, cube | Not analysed | 
 161737 | kR=10, eps=0.99998+1E-6, Nodes = 771, cube | Not analysed |
 562343 | kR=10, eps=0.998+1E-6i, Nodes = 771, cube | Not analysed |
+358059 | kR=5, eps=0.998+1E-6i, Nodes = 771, cube | Not analysed | 
+625837 | kR=10, eps=0.998+1E-6i, Nodes = 3075, cube | Running |
