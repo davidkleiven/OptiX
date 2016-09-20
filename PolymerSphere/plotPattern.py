@@ -17,10 +17,18 @@ HELP_MSG = "Usage: python plotPattern.py [--file=overview.json --help]\n"
 HELP_MSG += "--help - Print this message\n"
 HELP_MSG += "--file - overview file contianing information about other files\n"
 HELP_MSG += "         if not present it will use the one in *data* folder\n"
+HELP_MSG += "--cube - use the form factor for a cube\n"
 NORM = "LOG"
 
 def formFactor( n, qR ):
     return (n**2 - 1.0)*(np.sin(qR) - qR*np.cos(qR))/(qR**3)
+
+def formFactorCube( n, k, x, y, z ):
+    ki = np.array([0,0,1])
+    qx = k*x/np.sqrt(x**2+y**2+z**2)
+    qy = k*y/np.sqrt(x**2+y**2+z**2)
+    qz = k*(1.0-z/np.sqrt(x**2+y**2+z**2))
+    return ( np.sinc(qx)*np.sinc(qy)*np.sinc(qz) )*np.exp(1j*(qx+qy+qz))
 
 def scatteringPattern( n, qR ):
     return np.abs(1.0+formFactor(n,qR))**2
@@ -32,12 +40,15 @@ def infilename( filenameInJson, folder ):
 
 def main(argv):
     filename = "data/overview0.json" 
+    useCube = False
     for arg in argv:
         if ( arg.find("--file=") != -1 ):
             filename = arg.split("--file=")[1]
         elif ( arg.find("--help") != -1 ):
             print HELP_MSG
-            return
+        elif ( arg.find("--cube") != -1 ):
+            print ("Using cube formula...")
+            useCube = True
     fnameSplit = filename.split("/")
     folder = fnameSplit[0]
     for i in range(1, len(fnameSplit)-1):
@@ -86,7 +97,10 @@ def main(argv):
     plt.xlabel("$x$")
     plt.ylabel("$y$")
     #cbar.set_label("Intensity")
-    fname = "Figures/scatteringPattern%d.png"%(overview["UID"])
+    if ( useCube ):
+        fname = "Figures/scatteringPatterCube%d.png"%(overview["UID"])
+    else:
+        fname = "Figures/scatteringPattern%d.png"%(overview["UID"])
     fig.savefig(fname, bbox_inches="tight")
     print ("Figure written to %s"%(fname))
 
@@ -123,20 +137,30 @@ def main(argv):
     fig2 = plt.figure()
     ax2 = fig2.add_subplot(1,1,1)
 
-    pattern = np.abs(formFactor( n, qR ))**2
-    #ax2.plot( thetaDeg, pattern/np.max(pattern), label="1st Born approx" ) 
-    #ax2.plot( thetaDeg, S1/np.max(S1), label="$S_1$")
-    #ax2.plot( thetaDeg, S2/np.max(S2), label="$S_2$")
+    if ( useCube ):
+        pattern = np.abs( formFactorCube( n, overview["kR"], 0.0, y, overview["Detector"]["z"] ) )**2
+    else:
+        pattern = np.abs(formFactor( n, qR ))**2
+
     ax2.plot( thetaDeg, pattern*np.cos(theta)**5/np.max(pattern), color=cs.COLORS[4], label="Born", lw=2 ) 
     ax2.plot( thetaDeg, pattern*np.cos(theta)**3/np.max(pattern), color=cs.COLORS[5], label="Born", lw=2 ) 
-    ax2.plot( thetaDeg, S1*np.cos(theta)**3/np.max(S1), label="$S_1$", color=cs.COLORS[1])
-    ax2.plot( thetaDeg, S2*np.cos(theta)**3/np.max(S2), label="$S_2$", color=cs.COLORS[2])
+
+    if ( not useCube ):
+        # Analytical solution for a sphere
+        ax2.plot( thetaDeg, S1*np.cos(theta)**3/np.max(S1), label="$S_1$", color=cs.COLORS[1])
+        ax2.plot( thetaDeg, S2*np.cos(theta)**3/np.max(S2), label="$S_2$", color=cs.COLORS[2])
+
     ax2.plot( thetaDeg, intensity/np.max(intensity), 'ko', ms=2, fillstyle="none", label="BEM")
+
     ax2.legend(frameon=False)
     ax2.set_xlabel("Scattering angle (deg)")
     ax2.set_ylabel("Normalised scattering amplitude")
     #plotAllLines(data)
-    fname = "Figures/pattern1D%d.pdf"%(overview["UID"])
+    if ( useCube ):
+        fname  = "Figures/pattern1DCube%d.pdf"%(overview["UID"])
+    else:
+        fname = "Figures/pattern1D%d.pdf"%(overview["UID"])
+
     fig2.savefig(fname, bbox_inches="tight")
     print ("Figures written to %s"%(fname))
     #plt.show()
