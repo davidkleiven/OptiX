@@ -23,12 +23,12 @@ NORM = "LOG"
 def formFactor( n, qR ):
     return (n**2 - 1.0)*(np.sin(qR) - qR*np.cos(qR))/(qR**3)
 
-def formFactorCube( n, k, x, y, z ):
+def formFactorCube( n, kL, x, y, z ):
     ki = np.array([0,0,1])
-    qx = k*x/np.sqrt(x**2+y**2+z**2)
-    qy = k*y/np.sqrt(x**2+y**2+z**2)
-    qz = k*(1.0-z/np.sqrt(x**2+y**2+z**2))
-    return ( np.sinc(qx)*np.sinc(qy)*np.sinc(qz) )*np.exp(1j*(qx+qy+qz))
+    qx = kL*x/np.sqrt(x**2 +y**2 +z**2)
+    qy = kL*y/np.sqrt(x**2 + y**2 + z**2)
+    qz = kL*(1.0-z/np.sqrt(x**2 + y**2 + z**2)) # Assume that the incident wave vector is in the z-direction
+    return np.sinc(qx/np.pi)*np.sinc(qy/np.pi)*np.sinc(qz/np.pi)*np.exp(1j*(qx+qy+qz))
 
 def scatteringPattern( n, qR ):
     return np.abs(1.0+formFactor(n,qR))**2
@@ -49,10 +49,10 @@ def main(argv):
         elif ( arg.find("--cube") != -1 ):
             print ("Using cube formula...")
             useCube = True
+
     fnameSplit = filename.split("/")
     folder = fnameSplit[0]
     for i in range(1, len(fnameSplit)-1):
-        print i
         folder += "/"
         folder += fnameSplit[i]
     infile = open(filename, 'r' )
@@ -142,8 +142,13 @@ def main(argv):
     else:
         pattern = np.abs(formFactor( n, qR ))**2
 
-    ax2.plot( thetaDeg, pattern*np.cos(theta)**5/np.max(pattern), color=cs.COLORS[4], label="Born", lw=2 ) 
-    ax2.plot( thetaDeg, pattern*np.cos(theta)**3/np.max(pattern), color=cs.COLORS[5], label="Born", lw=2 ) 
+    if ( useCube ):
+        lwBorn = 1
+    else:
+        lwBorn = 2
+
+    ax2.plot( thetaDeg, pattern*np.cos(theta)**5/np.max(pattern), color=cs.COLORS[4], label="Born", lw=lwBorn ) 
+    ax2.plot( thetaDeg, pattern*np.cos(theta)**3/np.max(pattern), color=cs.COLORS[5], label="Born", lw=lwBorn ) 
 
     if ( not useCube ):
         # Analytical solution for a sphere
