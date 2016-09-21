@@ -17,4 +17,6 @@ UID    | Description                   | Result Comment                         
 562343 | kR=10, eps=0.998+1E-6i, Nodes = 771, cube | Very good results |
 358059 | kR=5, eps=0.998+1E-6i, Nodes = 771, cube | Very good results | 
 625837 | kR=10, eps=0.998+1E-6i, Nodes = 3075, cube | Was apperently launched with kR=0 |
-| 685739 | kR=5, eps=0.99998+1E-6i, Nodes = 3075, cube | Running |
+| 685739 | kR=5, eps=0.99998+1E-6i, Nodes = 3075, cube | Better, still it does not follow good near the tails |
+| 272259 | kR=10, eps=0.99998+1E-6i, Nodes = 3075, cube | Results did not fit good | 
+| 345269 | kR=5, eps=0.99998+1E-6i, Nodes=4452, sphere | Running |
