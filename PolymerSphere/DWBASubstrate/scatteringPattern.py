@@ -10,9 +10,16 @@ from matplotlib import pyplot as plt
 import json
 import fresnelExact as fe
 import colorScheme as cs
+import scatteringStructures as scat
 
     
-def dwba( waveVector, x, y, z, eps, mode="Born" ):
+HELP_MSG = "Usage: python scatteringPattern.py [--usefilm --d=filmthickness --alpha=0.5]\n"
+HELP_MSG += "--help - print this message\n"
+HELP_MSG += "--usefilm - use the thinfilm reflection coefficients in stead\n"
+HELP_MSG += "--d - film thickness in units of the radius of the sphere\n"
+HELP_MSG += "--alpha - incident angle in units of the critical angle, 1 is the default\n"
+
+def dwba( waveVector, x, y, z, scatObj, mode="Born" ):
     k = np.sqrt( np.sum(waveVector**2) )
     q_paralell = np.sqrt( waveVector[1]**2 + waveVector[2]**2 ) 
     rHat_x = x/np.sqrt(x**2+y**2+z**2)
@@ -28,7 +35,7 @@ def dwba( waveVector, x, y, z, eps, mode="Born" ):
     qx = kx_scat + waveVector[0]
     qR = np.sqrt( q_paralell**2 + qx**2 )
     angleWithSubstrateDeg = np.arccos(-waveVector[0]/k)*180.0/np.pi
-    firstDWBA = formFactorSphere(qR)*fe.rs(1.0,eps,1.0,1.0,angleWithSubstrateDeg, k)
+    firstDWBA = formFactorSphere(qR)*scatObj.reflection(angleWithSubstrateDeg)#fe.rs(1.0,eps,1.0,1.0,angleWithSubstrateDeg, k)
     if ( mode == "First" ):
         return firstDWBA
 
@@ -36,7 +43,7 @@ def dwba( waveVector, x, y, z, eps, mode="Born" ):
     qx = -kx_scat - waveVector[0]
     qR = np.sqrt( q_paralell**2 + qx**2 )
     angleWithSubstrateDeg = np.arccos(kx_scat/k)*180.0/np.pi
-    secondDWBA = formFactorSphere(qR)*fe.rs(1.0,eps,1.0,1.0,angleWithSubstrateDeg,k)
+    secondDWBA = formFactorSphere(qR)*scatObj.reflection(angleWithSubstrateDeg)#fe.rs(1.0,eps,1.0,1.0,angleWithSubstrateDeg,k)
     secondDWBA[-kx_scat>0.0] = 0.0 # Ray leaves sphere with kx = -kx_scat
     if ( mode == "Second" ):
         return secondDWBA
@@ -46,7 +53,7 @@ def dwba( waveVector, x, y, z, eps, mode="Born" ):
     qR = np.sqrt( q_paralell**2 + qx**2 )
     angleWithSubstrateFirstDeg = np.arccos(np.abs(waveVector[0])/k)*180.0/np.pi
     angleWithSubstrateSecondDeg = np.arccos(kx_scat/k)*180.0/np.pi
-    thirdDWBA = formFactorSphere(qR)*fe.rs(1.0,eps,1.0,1.0,angleWithSubstrateFirstDeg,k)*fe.rs(1.0,eps,1.0,1.0,angleWithSubstrateSecondDeg,k) 
+    thirdDWBA = formFactorSphere(qR)*scatObj.reflection(angleWithSubstrateFirstDeg)*scatObj.reflection(angleWithSubstrateSecondDeg)#fe.rs(1.0,eps,1.0,1.0,angleWithSubstrateFirstDeg,k)*fe.rs(1.0,eps,1.0,1.0,angleWithSubstrateSecondDeg,k) 
     thirdDWBA[-kx_scat>0.0] = 0.0
     if ( mode == "Third" ):
         return thirdDWBA
@@ -57,13 +64,24 @@ def formFactorSphere( qR ):
     form = ( np.sin(qR) - qR*np.cos(qR) )/qR**3
     return form
 
-def grazingIncidence(grazingAngle, polarisation, epsSub):
+def grazingIncidence(grazingAngle, polarisation, epsSub, useFilm=False, dInUnitsOfR=None):
     mu = 1.0
     epsInc = 1.0
+    if ( useFilm ):
+        scatObj = scat.FilmScatterer()
+        if ( dInUnitsOfR is None ):
+            print ("Cannot use film coefficients without a thickness")
+            return
+        scatObj.thickness = dInUnitsOfR 
+    else:
+        scatObj = scat.PlaneScatterer()
+
+    scatObj.eps2 = epsSub
     alpha_c = fe.criticalGrazingAngle( 1.0, np.sqrt(epsSub*mu) )
     print ("Critical angle: %.4f"%(alpha_c*180.0/np.pi))
     Rsphere = 1.0
     kR = 10.0
+    scatObj.k = kR
     k = np.zeros(3)
     k[0] = -kR*np.sin(grazingAngle*alpha_c)
     k[2] = kR*np.cos(grazingAngle*alpha_c)
@@ -71,11 +89,11 @@ def grazingIncidence(grazingAngle, polarisation, epsSub):
     incAngle = 90.0 - grazingAngle*alpha_c*180.0/np.pi
     z = 100.0
     x = np.linspace(0.0,2.5*z,10001)
-    born = dwba( k, x, 0.0, z, epsSub, mode="Born")
-    f1 = dwba( k, x, 0.0, z, epsSub, mode="First")
-    f2 = dwba( k, x, 0.0, z, epsSub, mode="Second")
-    f3 = dwba( k, x, 0.0, z, epsSub, mode="Third")
-    tot = dwba( k, x, 0.0, z, epsSub)
+    born = dwba( k, x, 0.0, z, scatObj, mode="Born")
+    f1 = dwba( k, x, 0.0, z, scatObj, mode="First")
+    f2 = dwba( k, x, 0.0, z, scatObj, mode="Second")
+    f3 = dwba( k, x, 0.0, z, scatObj, mode="Third")
+    tot = dwba( k, x, 0.0, z, scatObj)
     alpha_f = np.arctan(x/z)/alpha_c
 
     markers = ['-o', '-v', '-s', '-h', '-d']
@@ -95,12 +113,30 @@ def grazingIncidence(grazingAngle, polarisation, epsSub):
     else:
         ax.text( 0.8*alpha_f[-1], 1E-10, "$\\alpha_i = %.1f\\alpha_c$"%(grazingAngle))
     ax.legend( loc="lower right", frameon=False, ncol=4 )
-    fname = "Figures/pattern1D.pdf"
+    
+    if ( useFilm ):
+        fname = "Figures/patternFilm1D.pdf"
+    else:
+        fname = "Figures/pattern1D.pdf"
+
     fig.savefig( fname, bbox_inches="tight" )
     print ("Figure written to %s"%(fname))
 
-def main():
-    grazingIncidence( 0.5, "TE", (1-1E-5+1j*1E-6)**2 )
+def main(argv):
+    useFilm = False
+    dInUnitsOfR = None
+    alpha = 1.0
+    for arg in argv:
+        if ( arg.find("--usefilm") != -1 ):
+            useFilm = True
+        elif ( arg.find("--d=") != -1 ):
+            dInUnitsOfR = float(arg.split("--d=")[1])
+        elif ( arg.find("--help") != -1 ):
+            print HELP_MSG
+            return 0
+        elif ( arg.find("--alpha=") != -1 ):
+            alpha = float( arg.split("--alpha=")[1])
+    grazingIncidence( alpha, "TE", (1-1E-5+1j*1E-6)**2, useFilm=useFilm, dInUnitsOfR=dInUnitsOfR )
 
 if __name__ == "__main__":
-    main() 
+    main(sys.argv[1:]) 

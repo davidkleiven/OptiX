@@ -21,6 +21,7 @@ def phaseDifference( n1, n2, thickness, k, incAngleRadians ):
 def filmCoefficients( n1, n2, filmThick, k, incAngleCriticalAngle, pol="TE" ):
     '''
     @brief Computes the film reflection and transission coefficient
+    @Note: incAngleCriticalAngle is the incident angle in units of the critical angle (grazing angle)
     @return reflection, transmission
     '''
     alpha_c = fe.criticalGrazingAngle( n1, n2 )
