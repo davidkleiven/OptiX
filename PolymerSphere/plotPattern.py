@@ -28,7 +28,7 @@ def formFactorCube( n, kL, x, y, z ):
     qx = kL*x/np.sqrt(x**2 +y**2 +z**2)
     qy = kL*y/np.sqrt(x**2 + y**2 + z**2)
     qz = kL*(1.0-z/np.sqrt(x**2 + y**2 + z**2)) # Assume that the incident wave vector is in the z-direction
-    return np.sinc(qx/np.pi)*np.sinc(qy/np.pi)*np.sinc(qz/np.pi)*np.exp(1j*(qx+qy+qz))
+    return np.sinc(0.5*qx/np.pi)*np.sinc(0.5*qy/np.pi)*np.sinc(0.5*qz/np.pi)*np.exp(1j*0.5*(qx+qy+qz))
 
 def scatteringPattern( n, qR ):
     return np.abs(1.0+formFactor(n,qR))**2
@@ -46,6 +46,7 @@ def main(argv):
             filename = arg.split("--file=")[1]
         elif ( arg.find("--help") != -1 ):
             print HELP_MSG
+            return 0
         elif ( arg.find("--cube") != -1 ):
             print ("Using cube formula...")
             useCube = True
