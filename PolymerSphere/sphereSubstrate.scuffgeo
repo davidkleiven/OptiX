@@ -3,10 +3,11 @@
 # Halfspace with epsilon01 when z>0
 # The region exterior is implicitly defined with vacuum
 
-REGION Exterior MATERIAL VACUUM
+#REGION Exterior MATERIAL VACUUM
 #REGION Sphere MATERIAL CONST_EPS_0.99998+1.99998E-6i
 #REGION Sphere MATERIAL CONST_EPS_0.995+0.005i
 #REGION Substrate MATERIAL CONST_EPS_0.995+0.005i
+
   
 OBJECT Sphere
   MESHFILE sphere.msh
@@ -16,6 +17,7 @@ ENDOBJECT
 OBJECT Substrate
   MESHFILE cube.msh
   MATERIAL CONST_EPS_0.995+0.005i
+  DISPLACED -1.0 -1.0 2.001
 ENDOBJECT
 
 #SURFACE Interface
@@ -28,7 +30,3 @@ ENDOBJECT
 #  REGIONS Exterior Substrate
 #ENDSURFACE
 
-TRANSFORMATION CubeTrans
-  OBJECT Substrate
-  DISPLACED -1.0 -1.0 1.001
-ENDTRANSFORMATION
