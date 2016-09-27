@@ -17,16 +17,5 @@ ENDOBJECT
 OBJECT Substrate
   MESHFILE cube.msh
   MATERIAL CONST_EPS_0.995+0.005i
-  DISPLACED -1.0 -1.0 2.001
+  DISPLACED -2.5 -2.5 1.001
 ENDOBJECT
-
-#SURFACE Interface
-#  MESHFILE sphere.msh
-#  REGIONS Exterior Sphere
-#ENDSURFACE
-
-#SURFACE SubstExterior
-#  MESHFILE cube.msh
-#  REGIONS Exterior Substrate
-#ENDSURFACE
-
