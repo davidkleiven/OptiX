@@ -218,7 +218,14 @@ int main(int argc, char **argv)
   }  
   E0_s[2].real(0.0);
   E0_s[2].imag(0.0);
-  PlaneWave incField(E0_s, kHat);
+
+  #ifndef USE_GAUSSIAN_BEAM
+    PlaneWave incField(E0_s, kHat);
+  #else
+    double beamCenter[3] = {0.0,0.0,0.0};
+    double beamWaist = 3.0;
+    GaussianBeam incField(beamCenter, kHat, E0_s, beamWaist);
+  #endif
    
   for ( unsigned int i=0;i<geo.NumRegions; i++ )
   {
@@ -269,7 +276,12 @@ int main(int argc, char **argv)
     std::clog << "*************************************************************\n";
     std::clog << "Run="<<run<<std::endl;
     clog << "kR=" << kR[run] << endl;
-    incField.SetnHat(kHat);
+
+    #ifndef USE_GAUSSIAN_BEAM
+      incField.SetnHat(kHat);
+    #else
+      incField.SetKProp(kHat);
+    #endif
 
     if ( solutionfile == "" )
     {
