@@ -39,7 +39,7 @@ params_simu.targetName = 'sphere'
 params_simu.f = c/wave
 # the lc (characteristic length) factor -- it will multiply lambda (the wavelength)
 # to obtain the average edge length (lc) of the mesh. Usually: lc ~= lambda/10.
-params_simu.lc_factor = 0.05
+params_simu.lc_factor = 0.06
 # the dimensions of the target (if applicable)
 params_simu.lx = 2.0
 params_simu.ly = 2.0
@@ -70,7 +70,7 @@ elif (params_simu.meshFormat == 'ANSYS'):
     params_simu.meshFileTermination = '.lis'
 
 #relative epsilon and mu of the host medium
-params_simu.eps_r = 1.0-1E-5 + 1E-6*1j
+params_simu.eps_r = 0.99998 + 1E-6*1j
 params_simu.mu_r = 1. + 0.j
 
 # computation settings. Bistatic computation is default.
@@ -222,7 +222,7 @@ params_simu.INNER_RESTART = 30
 params_simu.PRECOND = "FROB"
 
 # figure that shows the far field or the RCS of the target
-params_simu.SHOW_FIGURE = 1
+params_simu.SHOW_FIGURE = 0
 
 # CURRENTS_VISUALIZATION tells if we want to create a view of the currents in
 # GMSH or not. if 1, you can use GMSH to view the currents that have been created.
