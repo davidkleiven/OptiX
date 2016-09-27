@@ -20,4 +20,5 @@ UID    | Description                   | Result Comment                         
 | 685739 | kR=5, eps=0.99998+1E-6i, Nodes = 3075, cube | Better, still it does not follow good near the tails |
 | 272259 | kR=10, eps=0.99998+1E-6i, Nodes = 3075, cube | Results did not fit good | 
 | 345269 | kR=5, eps=0.99998+1E-6i, Nodes=4452, sphere | Not analysed, the results will probably be poor |
-|200758 | kR=5, eps=0.995+0.005i, Nodes=737, sphere | Good results, can proceed with these parameters | 
+|200758 | kR=5, eps=0.995+0.005i, Nodes=739, sphere | Good results, can proceed with these parameters | 
+| 216156 | kR=5, eps=0.99500.005i, Nsphere=739, Nsubst=835, Grazing angle=90 | Running |
