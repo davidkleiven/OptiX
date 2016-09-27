@@ -18,6 +18,7 @@
 #define DOUBLE_COMPARISON_ZERO 1E-5
 #define PWVAC (0.5/ZVAC)
 #define UID_DIGITS 6
+#define USE_GAUSSIAN_BEAM
 
 const double PI = acos(-1.0);
 enum class Polarisation_t {CIRCULAR, LINEAR};
@@ -217,7 +218,7 @@ int main(int argc, char **argv)
   }  
   E0_s[2].real(0.0);
   E0_s[2].imag(0.0);
-  PlaneWave pw(E0_s, kHat);
+  PlaneWave incField(E0_s, kHat);
    
   for ( unsigned int i=0;i<geo.NumRegions; i++ )
   {
@@ -231,7 +232,7 @@ int main(int argc, char **argv)
   
   #ifdef DEBUG
     unsigned int sourceNum = 0;
-    for (IncField* IF=&pw; IF != NULL; IF=IF->Next)
+    for (IncField* IF=&incField; IF != NULL; IF=IF->Next)
     {
       std::clog << "Region index of source " << sourceNum++ << ": " << IF->RegionIndex << std::endl;
     }
@@ -268,7 +269,7 @@ int main(int argc, char **argv)
     std::clog << "*************************************************************\n";
     std::clog << "Run="<<run<<std::endl;
     clog << "kR=" << kR[run] << endl;
-    pw.SetnHat(kHat);
+    incField.SetnHat(kHat);
 
     if ( solutionfile == "" )
     {
@@ -291,11 +292,11 @@ int main(int argc, char **argv)
       std::clog << "Assembling rhs vector...";
       if ( isInfiniteExtended )
       {
-        geo.AssembleRHSVector(static_cast<cdouble>(omega), kBloch, &pw, rhsVec);
+        geo.AssembleRHSVector(static_cast<cdouble>(omega), kBloch, &incField, rhsVec);
       }
       else
       {
-        geo.AssembleRHSVector(static_cast<cdouble>(omega), &pw, rhsVec);
+        geo.AssembleRHSVector(static_cast<cdouble>(omega), &incField, rhsVec);
       }
       std::clog << " done\n";
 
@@ -365,11 +366,11 @@ int main(int argc, char **argv)
       ss.str("");
       if ( isInfiniteExtended )
       {
-        evaluatedFields = geo.GetFields( &pw, rhsVec, omega, kBloch, Xpoints, evaluatedFields );
+        evaluatedFields = geo.GetFields( &incField, rhsVec, omega, kBloch, Xpoints, evaluatedFields );
       }
       else
       {
-        evaluatedFields = geo.GetFields( &pw, rhsVec, omega, Xpoints, evaluatedFields );
+        evaluatedFields = geo.GetFields( &incField, rhsVec, omega, Xpoints, evaluatedFields );
       }
 
       ss << "data/totalfield" << uid << ".bin";
