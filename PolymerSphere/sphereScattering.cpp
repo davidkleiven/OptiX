@@ -223,7 +223,7 @@ int main(int argc, char **argv)
     PlaneWave incField(E0_s, kHat);
   #else
     double beamCenter[3] = {0.0,0.0,0.0};
-    double beamWaist = 3.0;
+    double beamWaist = 1.0;
     GaussianBeam incField(beamCenter, kHat, E0_s, beamWaist);
   #endif
    
