@@ -1,0 +1,34 @@
+# Geometry file that describes the Fresnel geometry
+# Halfspace with epsilon=2.25 when z<0
+# Halfspace with epsilon01 when z>0
+# The region exterior is implicitly defined with vacuum
+
+REGION Exterior MATERIAL VACUUM
+#REGION Sphere MATERIAL CONST_EPS_0.99998+1.99998E-6i
+#REGION Sphere MATERIAL CONST_EPS_0.995+0.005i
+#REGION Substrate MATERIAL CONST_EPS_0.995+0.005i
+  
+OBJECT Sphere
+  MESHFILE sphere.msh
+  MATERIAL CONST_EPS_0.995+0.005i
+ENDOBJECT
+
+OBJECT Substrate
+  MESHFILE cube.msh
+  MATERIAL CONST_EPS_0.995+0.005i
+ENDIBJECT
+
+#SURFACE Interface
+#  MESHFILE sphere.msh
+#  REGIONS Exterior Sphere
+#ENDSURFACE
+
+#SURFACE SubstExterior
+#  MESHFILE cube.msh
+#  REGIONS Exterior Substrate
+#ENDSURFACE
+
+TRANSFORMATION CubeTrans
+  OBJECT Substrate
+  DISPLACED -1.0 -1.0 1.001
+ENDTRANSFORMATION
