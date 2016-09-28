@@ -132,11 +132,11 @@ class GrazingHandler:
         ax.set_xlabel("$\\alpha_f/\\alpha_c$")
         ax.set_ylabel("Intensity (a.u.)")
         if ( self.grazingAngle > 1.0 ):
-            ax.text( 0.8*alpha_f[-1], 1E-5, "$\\alpha_i = %d\\alpha_c$"%(self.grazingAngle))
+            ax.text( 0.1, 0.15, "$\\alpha_i = %d\\alpha_c$"%(self.grazingAngle), transform=ax.transAxes)
         elif( self.grazingAngle == 1 ):
-            ax.text( 0.8*alpha_f[-1], 1E-5, "$\\alpha_i = \\alpha_c$") 
+            ax.text( 0.1,0.15, "$\\alpha_i = \\alpha_c$", transform=ax.transAxes)
         else:
-            ax.text( 0.8*alpha_f[-1], 1E-5, "$\\alpha_i = %.1f\\alpha_c$"%(self.grazingAngle))
+            ax.text( 0.1, 0.15, "$\\alpha_i = %.1f\\alpha_c$"%(self.grazingAngle), transform=ax.transAxes)
         ax.legend( loc="lower right", frameon=False, ncol=4 )
         
         if ( self.usefilm ):
@@ -151,7 +151,6 @@ class GrazingHandler:
         fig = plt.figure()
         ax = fig.add_subplot(1,1,1)
         for i in range(0, len(angles)):
-            print angles[i]
             if ( angles[i] < 1.0 ):
                 label = "$\\alpha = %.1f$\\alpha_c$"%(self.grazingAngle)
             elif ( angles[i] == 1 ):
