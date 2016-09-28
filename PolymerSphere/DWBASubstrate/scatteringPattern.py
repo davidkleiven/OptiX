@@ -11,6 +11,7 @@ import json
 import fresnelExact as fe
 import colorScheme as cs
 import scatteringStructures as scat
+import grazing as graz
 
     
 HELP_MSG = "Usage: python scatteringPattern.py [--usefilm --d=filmthickness --alpha=0.5]\n"
@@ -80,7 +81,7 @@ def grazingIncidence(grazingAngle, polarisation, epsSub, useFilm=False, dInUnits
     alpha_c = fe.criticalGrazingAngle( 1.0, np.sqrt(epsSub*mu) )
     print ("Critical angle: %.4f"%(alpha_c*180.0/np.pi))
     Rsphere = 1.0
-    kR = 10.0
+    kR = 5.0
     scatObj.k = kR
     k = np.zeros(3)
     k[0] = -kR*np.sin(grazingAngle*alpha_c)
@@ -107,11 +108,11 @@ def grazingIncidence(grazingAngle, polarisation, epsSub, useFilm=False, dInUnits
     ax.set_xlabel("$\\alpha_f/\\alpha_c$")
     ax.set_ylabel("Intensity (a.u.)")
     if ( grazingAngle > 1.0 ):
-        ax.text( 0.8*alpha_f[-1], 1E-10, "$\\alpha_i = %d\\alpha_c$"%(grazingAngle))
+        ax.text( 0.8*alpha_f[-1], 1E-5, "$\\alpha_i = %d\\alpha_c$"%(grazingAngle))
     elif( grazingAngle == 1 ):
-        ax.text( 0.8*alpha_f[-1], 1E-10, "$\\alpha_i = \\alpha_c$") 
+        ax.text( 0.8*alpha_f[-1], 1E-5, "$\\alpha_i = \\alpha_c$") 
     else:
-        ax.text( 0.8*alpha_f[-1], 1E-10, "$\\alpha_i = %.1f\\alpha_c$"%(grazingAngle))
+        ax.text( 0.8*alpha_f[-1], 1E-5, "$\\alpha_i = %.1f\\alpha_c$"%(grazingAngle))
     ax.legend( loc="lower right", frameon=False, ncol=4 )
     
     if ( useFilm ):
@@ -136,7 +137,14 @@ def main(argv):
             return 0
         elif ( arg.find("--alpha=") != -1 ):
             alpha = float( arg.split("--alpha=")[1])
-    grazingIncidence( alpha, "TE", (1-1E-5+1j*1E-6)**2, useFilm=useFilm, dInUnitsOfR=dInUnitsOfR )
+    #grazingIncidence( alpha, "TE", (0.992+1j*0.002)**2, useFilm=useFilm, dInUnitsOfR=dInUnitsOfR )
+
+    # Test the new GrazingHandler class
+    gz = graz.GrazingHandler(useFilm)
+    gz.setEpsilonSubst( (0.992+1j*0.002)**2 )
+    gz.setFilmThickness(dInUnitsOfR)
+    gz.prepareDWBA(alpha)
+    gz.plotTerms()
 
 if __name__ == "__main__":
     main(sys.argv[1:]) 

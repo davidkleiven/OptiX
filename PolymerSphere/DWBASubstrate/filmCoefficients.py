@@ -89,11 +89,11 @@ def main(argv):
         alpha_c = fe.criticalGrazingAngle(n1,n2)
             
         alpha = np.linspace(0.0, alphaMax, 10000.0)
-        kd = 1E-2
+        kd = 1
         r1, t1 = filmCoefficients( n1, n2, d, kd, alpha )
         kd = 10
         r2, t2 = filmCoefficients( n1, n2, d, kd, alpha )
-        kd = 1E4
+        kd = 100
         r3, t3 = filmCoefficients( n1, n2, d, kd, alpha )
         
         
@@ -101,9 +101,9 @@ def main(argv):
         ax = fig.add_subplot(1,1,1)
         ax.plot( alpha, np.abs(r1)**2, color=cs.COLORS[1], label="$kd=1$" )
         ax.plot( alpha, np.abs(t1)**2, color=cs.COLORS[1], ls="--" )
-        ax.plot( alpha, np.abs(r2)**2, color=cs.COLORS[3], label="$kd=10^{2}$" )
+        ax.plot( alpha, np.abs(r2)**2, color=cs.COLORS[3], label="$kd=10$" )
         ax.plot( alpha, np.abs(t2)**2, color=cs.COLORS[3], ls="--" )
-        ax.plot( alpha, np.abs(r3)**2, color=cs.COLORS[5], label="$kd=10^{4}$" )
+        ax.plot( alpha, np.abs(r3)**2, color=cs.COLORS[5], label="$kd=100$" )
         ax.plot( alpha, np.abs(t3)**2, color=cs.COLORS[5], ls="--" )
         ax.set_xlabel("$\\alpha/\\alpha_c$")
         ax.set_ylabel("Reflectance/Transmittance")
@@ -138,8 +138,8 @@ def main(argv):
         ax.set_yscale("log")
         ax.set_ylim(1E-7,5.0)
         ax.set_xscale("log")
-        ax.text(5E-2, 5E-2, "R (solid)\n T (dashed)")
-        ax.legend(loc="lower center", frameon=False)
+        ax.text(1.5E-2, 5E-2, "R (solid)\n T (dashed)")
+        ax.legend(loc="lower left", frameon=False)
         fname = "Figures/fieldKSweep.pdf"
         fig.savefig(fname, bbox_inches="tight")
         print ("Figure written to %s"%(fname))
