@@ -152,22 +152,30 @@ class GrazingHandler:
         ax = fig.add_subplot(1,1,1)
         for i in range(0, len(angles)):
             if ( angles[i] < 1.0 ):
-                label = "$\\alpha = %.1f$\\alpha_c$"%(self.grazingAngle)
+                label = "$\\alpha = %.1f\\alpha_c$"%(angles[i])
             elif ( angles[i] == 1 ):
-                label = "$\\alpha = \\alpha_c$"%(self.grazingAngle)
+                label = "$\\alpha = \\alpha_c$"%(angles[i])
             else:
-                label = "$\\alpha=%d\\alpha_c$"%(self.grazingAngle)
+                label = "$\\alpha=%d\\alpha_c$"%(angles[i])
             self.prepareDWBA(angles[i])
             alpha_f = np.arctan(self.x/self.detectorPosition)/self.alpha_c
             tot = np.abs(self.bornTotal()**2)
-            tot /= np.max(tot)
+            firstBorn = np.abs(self.f1)**2
+        #    tot /= np.max(tot)
             ax.plot( alpha_f, tot, color=cs.COLORS[i], label=label)
-        firstBorn = np.abs(self.f1)**2
-        firstBorn /= np.max(firstBorn)
-        ax.plot( alpha_f, firstBorn, label="First born")
+            ax.plot( alpha_f, firstBorn, ls="--", lw=0.3, color=cs.COLORS[i])
+        #firstBorn /= np.max(firstBorn)
+        #ax.plot( alpha_f, firstBorn, label="BA", color=cs.COLORS[len(angles)])
         ax.set_xlabel("$\\alpha_f/\\alpha_c$" )
-        ax.set_ylabel("Normalised intensity")
-        ax.legend(loc="upper right", frameon=False)
-        fname = "Figures/dwbaPattern.pdf"
+        ax.set_ylabel("Intensity (a.u.)")
+        ax.set_yscale("log")
+        ax.set_ylim(bottom=1E-8)
+        ax.text(0.72,0.9, "DWBA (solid)", transform=ax.transAxes)
+        ax.text(0.72,0.82, "BA (dashed)", transform=ax.transAxes)
+        ax.legend(loc="lower left", frameon=False, labelspacing=0.5)
+        if ( self.usefilm ):
+            fname = "Figures/dwbaPatternFilm.pdf"
+        else:
+            fname = "Figures/dwbaPattern.pdf"
         fig.savefig(fname, bbox_inches="tight")
         print ("Figure written to %s"%(fname))

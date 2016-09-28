@@ -15,7 +15,7 @@ def main(argv):
             print MSG
             return 0
     thickInUnitsOfR = 2.0
-    angles = np.array([0.5, 1.0, 2.000000000001])
+    angles = np.array([0.5, 1.0, 2.0,10.0])
     try:
         gz = graz.GrazingHandler(usefilm) 
         gz.setEpsilonSubst( (0.992+0.002j)**2 )
