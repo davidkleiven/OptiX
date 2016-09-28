@@ -14,14 +14,18 @@ import scatteringStructures as scat
 
 class GrazingHandler:
     def __init__(self, usefilm):
+        self.filmThickIsSet = False
         if ( usefilm ):
             self.coeff = scat.FilmScatterer()
         else:
             self.coeff = scat.PlaneScatterer()
+            self.filmThickIsSet = True # Set to true since it is irrelevant
         self.detectorPosition = 100.0
         self.Rsphere = 1.0
         self.kR = 5.0
         self.usefilm = usefilm
+
+        self.epsSubstIsSet = False
 
         # Variables for storing computed quantities
         self.f1 = None # Sphere --> detector
@@ -32,6 +36,8 @@ class GrazingHandler:
 
         # Scattered wave vector
         self.kx_scat = None
+        self.ky_scat = None
+        self.kz_scat = None
         self.waveVector = np.zeros(3)
         self.q_parallel = None
         self.k = None # Think this is the same as kR so it is unnessecary, carries over from earlier development
@@ -41,10 +47,17 @@ class GrazingHandler:
 
     def setEpsilonSubst(self, epsSubst):
         self.coeff.eps2 = epsSubst
+        self.epsSubstIsSet = True
+
     def setFilmThickness(self, filmThick):
         self.coeff.thickness = filmThick
+        self.filmThickIsSet = True
 
     def prepareDWBA(self, grazingAngle): 
+        if ( not self.filmThickIsSet ):
+            raise Exception("You have to set the film thickness before computing DWBA quantities!")
+        if ( not self.epsSubstIsSet ):
+            raise Exception("You have to specify epsilon in the scatterer(s) before computing DWBA quantities!")
         mu = 1.0
         self.coeff.k = self.kR
         self.alpha_c = fe.criticalGrazingAngle( 1.0, np.sqrt(self.coeff.eps2*mu) )
@@ -53,9 +66,13 @@ class GrazingHandler:
         self.grazingAngle = grazingAngle
         y = 0.0
         self.k = np.sqrt( np.sum(self.waveVector**2) )
-        self.q_parallel = np.sqrt( self.waveVector[1]**2 + self.waveVector[2]**2 ) 
+        #self.q_parallel = np.sqrt( self.waveVector[1]**2 + self.waveVector[2]**2 ) 
         rHat_x = self.x/np.sqrt(self.x**2+y**2+self.detectorPosition**2)
+        rHat_z = self.detectorPosition/np.sqrt(self.x**2+y**2+self.detectorPosition**2)
         self.kx_scat = self.k*rHat_x
+        self.ky_scat = 0.0
+        self.kz_scat = self.k*rHat_z
+        self.q_parallel = np.sqrt( (self.ky_scat-self.waveVector[1])**2 + (self.kz_scat-self.waveVector[2])**2 ) 
 
     def born(self):
         qx = self.kx_scat - self.waveVector[0]
@@ -128,4 +145,30 @@ class GrazingHandler:
             fname = "Figures/pattern1D.pdf"
 
         fig.savefig( fname, bbox_inches="tight" )
+        print ("Figure written to %s"%(fname))
+
+    def totalAngleSweep(self, angles):
+        fig = plt.figure()
+        ax = fig.add_subplot(1,1,1)
+        for i in range(0, len(angles)):
+            print angles[i]
+            if ( angles[i] < 1.0 ):
+                label = "$\\alpha = %.1f$\\alpha_c$"%(self.grazingAngle)
+            elif ( angles[i] == 1 ):
+                label = "$\\alpha = \\alpha_c$"%(self.grazingAngle)
+            else:
+                label = "$\\alpha=%d\\alpha_c$"%(self.grazingAngle)
+            self.prepareDWBA(angles[i])
+            alpha_f = np.arctan(self.x/self.detectorPosition)/self.alpha_c
+            tot = np.abs(self.bornTotal()**2)
+            tot /= np.max(tot)
+            ax.plot( alpha_f, tot, color=cs.COLORS[i], label=label)
+        firstBorn = np.abs(self.f1)**2
+        firstBorn /= np.max(firstBorn)
+        ax.plot( alpha_f, firstBorn, label="First born")
+        ax.set_xlabel("$\\alpha_f/\\alpha_c$" )
+        ax.set_ylabel("Normalised intensity")
+        ax.legend(loc="upper right", frameon=False)
+        fname = "Figures/dwbaPattern.pdf"
+        fig.savefig(fname, bbox_inches="tight")
         print ("Figure written to %s"%(fname))
