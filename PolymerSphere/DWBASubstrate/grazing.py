@@ -164,8 +164,6 @@ class GrazingHandler:
         print ("Figure written to %s"%(fname))
 
     def totalAngleSweep(self, angles):
-        if ( not self.prepDWBAIsCalled ):
-            raise Exception(self.prepMSG)
         fig = plt.figure()
         ax = fig.add_subplot(1,1,1)
         for i in range(0, len(angles)):
