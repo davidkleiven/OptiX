@@ -79,17 +79,20 @@ class GrazingTransmissionHandler(graz.GrazingHandler):
             else:
                 label = "$\\alpha=%d\\alpha_c$"%(angles[i])
             
+            scatteringAngle = self.detectorTransform.scatteringAngle(angles[i], alpha_f)
             self.prepareDWBA(angles[i]) 
             ba = self.born()
             tot = self.total()
-            ax.plot(alpha_f, np.abs(ba)**2, ls="--", lw=0.3, color=cs.COLORS[i])
-            ax.plot(alpha_f, np.abs(tot)**2, color=cs.COLORS[i], label=label)
+            if ( i== len(angles)-1 ):
+                ax.plot(scatteringAngle, np.abs(ba)**2, lw=0.3, color=cs.COLORS[len(angles)], label="BA")
+            else:
+                ax.plot(scatteringAngle, np.abs(ba)**2, lw=0.3, color=cs.COLORS[len(angles)])
+            ax.plot(scatteringAngle, np.abs(tot)**2, color=cs.COLORS[i], label=label)
         fname = "Figures/dwbaTransmissionPattern.pdf"
-        ax.set_xlabel("$\\alpha_f/\\alpha_c$")
+        ax.set_xlabel(self.detectorTransform.axisLabel())
         ax.set_ylabel("Intensity (a.u.)")
         ax.set_yscale("log")
-        ax.text(0.7, 0.17, "DWBA (solid)", transform=ax.transAxes)
-        ax.text(0.7, 0.1, "BA (dashed)", transform=ax.transAxes)
-        ax.legend(loc="lower left", frameon=False)
+        ax.set_ylim(bottom=1E-8)
+        ax.legend(loc="upper left", frameon=False, labelspacing=0.2 )
         fig.savefig(fname, bbox_inches="tight")
         print ("Figure written to %s"%(fname)) 
