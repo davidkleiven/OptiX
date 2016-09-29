@@ -2,6 +2,7 @@ import sys
 import grazing as graz
 import grazingTransmission as grazT
 import numpy as np
+import transformDetector as td
 
 MSG = "Usage: python plotTotal.py [--usefilm --help --transmission]\n"
 MSG += "help - print this message\n"
@@ -28,6 +29,7 @@ def main(argv):
             gz = graz.GrazingHandler(usefilm) 
         gz.setEpsilonSubst( (0.992+0.002j)**2 )
         gz.setFilmThickness(thickInUnitsOfR)
+        gz.detectorTransform = td.DetectorCenterBeam()
         if ( useTransmission ):
             gz.plotPattern(angles)
         else:

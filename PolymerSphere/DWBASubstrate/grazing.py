@@ -11,6 +11,7 @@ import json
 import fresnelExact as fe
 import colorScheme as cs
 import scatteringStructures as scat
+import transformDetector as td # Wrapper wich shifts the observation angle
 
 class GrazingHandler:
     def __init__(self, usefilm):
@@ -46,6 +47,8 @@ class GrazingHandler:
         self.alpha_c = None
         self.x = np.linspace(0.0,2.5*self.detectorPosition, 100001)
         self.grazingAngle = 0.0
+
+        self.detectorTransform = td.DetectorTransformer() # Default is the identity
 
     def setEpsilonSubst(self, epsSubst):
         self.coeff.eps2 = epsSubst
@@ -174,21 +177,21 @@ class GrazingHandler:
             else:
                 label = "$\\alpha=%d\\alpha_c$"%(angles[i])
             self.prepareDWBA(angles[i])
-            alpha_f = np.arctan(self.x/self.detectorPosition)/self.alpha_c
+            alpha_f = np.arctan(self.x/self.detectorPosition)
+            alpha_f /= self.alpha_c
+            scatteringAngle = self.detectorTransform.scatteringAngle(angles[i], alpha_f)
             tot = np.abs(self.bornTotal()**2)
             firstBorn = np.abs(self.f1)**2
-        #    tot /= np.max(tot)
-            ax.plot( alpha_f, tot, color=cs.COLORS[i], label=label)
-            ax.plot( alpha_f, firstBorn, ls="--", lw=0.3, color=cs.COLORS[i])
-        #firstBorn /= np.max(firstBorn)
-        #ax.plot( alpha_f, firstBorn, label="BA", color=cs.COLORS[len(angles)])
-        ax.set_xlabel("$\\alpha_f/\\alpha_c$" )
+            ax.plot( scatteringAngle, tot, color=cs.COLORS[i], label=label)
+            if ( i == (len(angles)-1) ):
+                ax.plot( scatteringAngle, firstBorn, lw=0.3, color=cs.COLORS[len(angles)], label="BA")
+            else:
+                ax.plot( scatteringAngle, firstBorn, lw=0.3, color=cs.COLORS[len(angles)])
+        ax.set_xlabel( self.detectorTransform.axisLabel() )
         ax.set_ylabel("Intensity (a.u.)")
         ax.set_yscale("log")
         ax.set_ylim(bottom=1E-8)
-        ax.text(0.72,0.9, "DWBA (solid)", transform=ax.transAxes)
-        ax.text(0.72,0.82, "BA (dashed)", transform=ax.transAxes)
-        ax.legend(loc="lower left", frameon=False, labelspacing=0.5)
+        ax.legend(loc="upper right", frameon=False, labelspacing=0.2)
         if ( self.usefilm ):
             fname = "Figures/dwbaPatternFilm.pdf"
         else:
