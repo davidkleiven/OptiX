@@ -26,6 +26,8 @@ class GrazingHandler:
         self.usefilm = usefilm
 
         self.epsSubstIsSet = False
+        self.prepDWBAIsCalled = False
+        self.prepMSG = "You have to call prepareDWBA before doing any computations!"
 
         # Variables for storing computed quantities
         self.f1 = None # Sphere --> detector
@@ -73,8 +75,12 @@ class GrazingHandler:
         self.ky_scat = 0.0
         self.kz_scat = self.k*rHat_z
         self.q_parallel = np.sqrt( (self.ky_scat-self.waveVector[1])**2 + (self.kz_scat-self.waveVector[2])**2 ) 
+        self.prepDWBAIsCalled = True
 
     def born(self):
+        if ( not self.prepDWBAIsCalled ):
+            raise Exception(self.prepMSG)
+
         qx = self.kx_scat - self.waveVector[0]
         qR = np.sqrt( self.q_parallel**2 + qx**2 )
         qR[qx<0.0] = -qR[qx<0.0]
@@ -82,6 +88,8 @@ class GrazingHandler:
         return self.f1
 
     def bornSubstrateSphere(self): 
+        if ( not self.prepDWBAIsCalled ):
+            raise Exception(self.prepMSG)
         qx = self.kx_scat + self.waveVector[0]
         qR = np.sqrt( self.q_parallel**2 + qx**2 )
         angleWithSubstrateDeg = np.arccos(-self.waveVector[0]/self.k)*180.0/np.pi
@@ -89,6 +97,8 @@ class GrazingHandler:
         return self.f2
     
     def bornSphereSubstrate(self): 
+        if ( not self.prepDWBAIsCalled ):
+            raise Exception(self.prepMSG)
         qx = -self.kx_scat - self.waveVector[0]
         qR = np.sqrt( self.q_parallel**2 + qx**2 )
         angleWithSubstrateDeg = np.arccos(self.kx_scat/self.k)*180.0/np.pi
@@ -97,6 +107,8 @@ class GrazingHandler:
         return self.f3
 
     def bornSubstrateSphereSubstrate(self): 
+        if ( not self.prepDWBAIsCalled ):
+            raise Exception(self.prepMSG)
         qx = -self.kx_scat + self.waveVector[0]
         qR = np.sqrt( self.q_parallel**2 + qx**2 )
         angleWithSubstrateFirstDeg = np.arccos(np.abs(self.waveVector[0])/self.k)*180.0/np.pi
@@ -106,6 +118,8 @@ class GrazingHandler:
         return self.f4
 
     def bornTotal(self):
+        if ( not self.prepDWBAIsCalled ):
+            raise Exception(self.prepMSG)
         self.born()
         self.bornSubstrateSphere()
         self.bornSphereSubstrate()
@@ -117,6 +131,8 @@ class GrazingHandler:
         return form
 
     def plotTerms(self): 
+        if ( not self.prepDWBAIsCalled ):
+            raise Exception(self.prepMSG)
         self.born()
         self.bornSubstrateSphere()
         self.bornSphereSubstrate()
@@ -148,6 +164,8 @@ class GrazingHandler:
         print ("Figure written to %s"%(fname))
 
     def totalAngleSweep(self, angles):
+        if ( not self.prepDWBAIsCalled ):
+            raise Exception(self.prepMSG)
         fig = plt.figure()
         ax = fig.add_subplot(1,1,1)
         for i in range(0, len(angles)):

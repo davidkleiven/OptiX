@@ -42,11 +42,11 @@ class FilmScatterer(PlaneScatterer):
         incAngleInUnitsOfAlpha_c = incGrazingAngle*np.pi/(180.0*critGrazingAngle)
         return fc.filmCoefficients(n1,n2, self.thickness, self.k, incAngleInUnitsOfAlpha_c, pol=self.polarisation)
 
-    def reflection(self, incAngle):
-        r,t = self.bothCoeff(incAngle)
+    def reflection(self, incAngleDeg):
+        r,t = self.bothCoeff(incAngleDeg)
         return r
     def transmission(self, incAngleDeg):
-        r,t = self.bothCoeff(incAngle)
+        r,t = self.bothCoeff(incAngleDeg)
         return t
             
         
