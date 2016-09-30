@@ -21,7 +21,7 @@ def main(argv):
         elif ( arg.find("--transmission") != -1 ):
             useTransmission = True
     thickInUnitsOfR = 2.0
-    angles = np.array([0.5, 1.0, 2.0,10.0])
+    angles = np.array([0.5, 1.0, 2.0,5.0])
     try:
         if ( useTransmission ):
             gz = grazT.GrazingTransmissionHandler()

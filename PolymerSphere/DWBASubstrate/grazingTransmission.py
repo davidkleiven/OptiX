@@ -61,6 +61,7 @@ class GrazingTransmissionHandler(graz.GrazingHandler):
         ax.set_xlabel("$\\alpha_f/\\alpha_c$")
         ax.set_ylabel("Intensity (a.u.)")
         ax.set_yscale("log")
+        ax.text(0.7,0.1, "$\\alpha = %.1f\\alpha_c$"%(self.grazingAngle), transform=ax.transAxes)
         ax.legend(loc="lower left", ncol=2, frameon=False)
         fname = "Figures/termsTransmission.pdf"
         fig.savefig(fname, bbox_inches="tight")

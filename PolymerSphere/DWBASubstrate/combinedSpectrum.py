@@ -56,23 +56,24 @@ class CombinedDetector:
             ax.plot( validPlus, totPluss, color=cs.COLORS[i], label=label)
             ax.plot( validMinus, totMinus, color=cs.COLORS[i])
             if ( i == len(angles)-1 ):
-                ax.plot( validPlus, np.abs(firstBornPluss)**2, lw=0.3, color=cs.COLORS[len(angles)], label="BA")
+                ax.plot( validPlus, firstBornPluss, lw=0.3, color=cs.COLORS[len(angles)], label="BA")
             else:
-                ax.plot( validPlus, np.abs(firstBornPluss)**2, lw=0.3, color=cs.COLORS[len(angles)])
-            ax.plot( validMinus, np.abs(firstBornMinus)**2, lw=0.3, color=cs.COLORS[len(angles)])
+                ax.plot( validPlus, firstBornPluss, lw=0.3, color=cs.COLORS[len(angles)])
+            ax.plot( validMinus, firstBornMinus, lw=0.3, color=cs.COLORS[len(angles)])
 
         fname = "Figures/dwbaTotalPattern.pdf" 
         ax.set_xlabel(self.reflected.detectorTransform.axisLabel())
         ax.set_ylabel("Intensity (a.u.)")
         ax.set_yscale("log")
-        ax.legend(loc="lower left", frameon=False)
+        ax.set_ylim(bottom=1E-6)
+        ax.legend(loc="upper left", frameon=False, labelspacing=0.05)
         fig.savefig(fname, bbox_inches="tight")
         print ("Figure written to %s"%(fname)) 
         
 
 # Add a main function for plotting the total spectrum
 def main():
-    angles = np.array([0.5,1.0,2.0,10.0])
+    angles = np.array([0.5,1.0,2.0,5.0])
     try:
         combHandler = CombinedDetector()
         combHandler.plotTotal(angles)
