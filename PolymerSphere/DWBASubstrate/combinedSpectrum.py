@@ -19,10 +19,14 @@ class CombinedDetector:
         self.reflected.setFilmThickness(self.thick)
         self.transmitted.setFilmThickness(self.thick)
         self.reflected.detectorTransform = td.DetectorCenterBeam()
+        self.transmitted.detectorTransform = td.DetectorCenterBeam()
 
     def plotTotal(self, angles):
         fig = plt.figure()
         ax = fig.add_subplot(1,1,1)
+        self.reflected.prepareDWBA(angles[0])
+        self.transmitted.prepareDWBA(angles[0])
+     
         for i in range(0, len(angles)):
             if ( angles[i] < 1.0 ):
                 label = "$\\alpha = %.1f\\alpha_c$"%(angles[i])
@@ -30,26 +34,32 @@ class CombinedDetector:
                 label = "$\\alpha = \\alpha_c$"%(angles[i])
             else:
                 label = "$\\alpha=%d\\alpha_c$"%(angles[i])
+            scatteringAngles = np.linspace(-89.0*np.pi/(180.0*self.reflected.alpha_c), 85.0*np.pi/(180.0*self.reflected.alpha_c), 100001)
+            validPlus = self.reflected.adjustX(angles[i], scatteringAngles)
+            scatteringAngles = np.linspace(-89.0*np.pi/(180.0*self.reflected.alpha_c), 85.0*np.pi/(180.0*self.reflected.alpha_c), 100001)
+            validMinus = self.transmitted.adjustX(angles[i], scatteringAngles)
+
             self.reflected.prepareDWBA(angles[i])
             self.transmitted.prepareDWBA(angles[i]) 
-            alpha_f_plus = np.arctan(self.reflected.x/self.reflected.detectorPosition)/self.reflected.alpha_c
-            alpha_f_minus = np.arctan(self.transmitted.x/self.transmitted.detectorPosition)/self.transmitted.alpha_c
-
-            
+            #alpha_f_plus = np.arctan(self.reflected.x/self.reflected.detectorPosition)/self.reflected.alpha_c
+            #alpha_f_minus = np.arctan(self.transmitted.x/self.transmitted.detectorPosition)/self.transmitted.alpha_c
+         
             totPluss = np.abs(self.reflected.bornTotal())**2
             firstBornPluss = np.abs(self.reflected.f1)**2
             firstBornMinus = np.abs(self.transmitted.born())**2
             totMinus = np.abs(self.transmitted.total())**2
+            print len(validPlus), len(totPluss), len(firstBornPluss)
+            print len(validMinus), len(totMinus), len(firstBornMinus)
         
-            scatPlus = self.reflected.detectorTransform(angles[i], alpha_f_plus)
-            scatMinus = self.reflected.detectorTransform(angles[i], alpha_f_minus)
-            ax.plot( scatPlus, totPluss, color=cs.COLORS[i], label=label)
-            ax.plot( scatMinus, totMinus, color=cs.COLORS[i])
+            #scatPlus = self.reflected.detectorTransform.scatteringAngle(angles[i], alpha_f_plus)
+            #scatMinus = self.reflected.detectorTransform.scatteringAngle(angles[i], alpha_f_minus)
+            ax.plot( validPlus, totPluss, color=cs.COLORS[i], label=label)
+            ax.plot( validMinus, totMinus, color=cs.COLORS[i])
             if ( i == len(angles)-1 ):
-                ax.plot( scatPlus, np.abs(firstBornPluss)**2, lw=0.3, color=cs.COLORS[len(angles)], label="BA")
+                ax.plot( validPlus, np.abs(firstBornPluss)**2, lw=0.3, color=cs.COLORS[len(angles)], label="BA")
             else:
-                ax.plot( scatPlus, np.abs(firstBornPluss)**2, lw=0.3, color=cs.COLORS[len(angles)])
-            ax.plot( scatMinus, np.abs(firstBornMinus)**2, lw=0.3, color=cs.COLORS[len(angles)])
+                ax.plot( validPlus, np.abs(firstBornPluss)**2, lw=0.3, color=cs.COLORS[len(angles)])
+            ax.plot( validMinus, np.abs(firstBornMinus)**2, lw=0.3, color=cs.COLORS[len(angles)])
 
         fname = "Figures/dwbaTotalPattern.pdf" 
         ax.set_xlabel(self.reflected.detectorTransform.axisLabel())

@@ -68,17 +68,20 @@ class GrazingTransmissionHandler(graz.GrazingHandler):
 
     def adjustX(self, incAngle, scatteringAngles):
         alpha_f = self.detectorTransform.alpha_f(incAngle, scatteringAngles)
+        alpha_fDeg = alpha_f*self.alpha_c*180.0/np.pi
+        alpha_f = alpha_f[alpha_fDeg > -90.0]
+        scatteringAngles = scatteringAngles[alpha_fDeg > -90.0]
+
         self.x = self.detectorPosition*np.tan(alpha_f*self.alpha_c)
-        scatteringAngles = scatteringAngles[self.x<0.0]
-        alpha_f = alpha_f[self.x<0.0]
-        self.x = self.x[self.x<0.0]
+        scatteringAngles = scatteringAngles[alpha_f<0.0]
+        self.x = self.x[alpha_f<0.0]
+        alpha_f = alpha_f[alpha_f<0.0]
         return scatteringAngles
 
     def plotPattern(self, angles):
         self.prepareDWBA(angles[0]) 
         fig = plt.figure()
         ax = fig.add_subplot(1,1,1)
-        scatteringAngles = np.linspace(-89.9*np.pi/(180.0*self.alpha_c), 85.0*np.pi/(180.0*self.alpha_c), 100001)
         for i in range(0, len(angles)): 
             if ( angles[i] < 1.0 ):
                 label = "$\\alpha = %.1f\\alpha_c$"%(angles[i])
@@ -86,6 +89,7 @@ class GrazingTransmissionHandler(graz.GrazingHandler):
                 label = "$\\alpha = \\alpha_c$"%(angles[i])
             else:
                 label = "$\\alpha=%d\\alpha_c$"%(angles[i]) 
+            scatteringAngles = np.linspace(-89.9*np.pi/(180.0*self.alpha_c), 85.0*np.pi/(180.0*self.alpha_c), 100001)
             validScatAngles = self.adjustX(angles[i], scatteringAngles)
             self.prepareDWBA(angles[i]) 
             ba = self.born()
@@ -95,6 +99,7 @@ class GrazingTransmissionHandler(graz.GrazingHandler):
                 ax.plot(validScatAngles, np.abs(ba)**2, lw=0.3, color=cs.COLORS[len(angles)], label="BA")
             else:
                 ax.plot(validScatAngles, np.abs(ba)**2, lw=0.3, color=cs.COLORS[len(angles)])
+
         fname = "Figures/dwbaTransmissionPattern.pdf"
         ax.set_xlabel(self.detectorTransform.axisLabel())
         ax.set_ylabel("Intensity (a.u.)")

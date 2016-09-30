@@ -29,7 +29,7 @@ def main(argv):
             gz = graz.GrazingHandler(usefilm)
         gz.setEpsilonSubst( (0.992+0.002j)**2 )
         gz.setFilmThickness(thickInUnitsOfR)
-        gz.detectorTransform = td.DetectorCenterBeam()
+        gz.detectorTransform = td.DetectorCenterBeam() # Plot in terms of deflection angle
         if ( useTransmission ):
             gz.plotPattern(angles)
         else:

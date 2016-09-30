@@ -192,17 +192,20 @@ class GrazingHandler:
 
     def adjustX(self, incAngle, scatteringAngles):
         alpha_f = self.detectorTransform.alpha_f(incAngle, scatteringAngles)
+        alpha_fDeg = alpha_f*self.alpha_c*180.0/np.pi
+        alpha_f = alpha_f[alpha_fDeg < 90.0]
+        scatteringAngles = scatteringAngles[alpha_fDeg < 90.0]
+
         self.x = self.detectorPosition*np.tan(alpha_f*self.alpha_c)
         scatteringAngles = scatteringAngles[alpha_f>0.0]
-        alpha_f = alpha_f[self.x>0.0]
-        self.x = self.x[self.x>0.0]
+        self.x = self.x[alpha_f>0.0]
+        alpha_f = alpha_f[alpha_f>0.0]
         return scatteringAngles
          
     def totalAngleSweep(self, angles):
         fig = plt.figure()
         ax = fig.add_subplot(1,1,1)
         self.prepareDWBA(angles[0]) # Just to compute alpha_c
-        scatteringAngles = np.linspace(0.0, 89.0*np.pi/(180.0*self.alpha_c), 100001)
         for i in range(0, len(angles)):
             if ( angles[i] < 1.0 ):
                 label = "$\\alpha = %.1f\\alpha_c$"%(angles[i])
@@ -210,6 +213,7 @@ class GrazingHandler:
                 label = "$\\alpha = \\alpha_c$"%(angles[i])
             else:
                 label = "$\\alpha=%d\\alpha_c$"%(angles[i])
+            scatteringAngles = np.linspace(0.0, 89.0*np.pi/(180.0*self.alpha_c), 100001)
             validScatAngles = self.adjustX(angles[i], scatteringAngles)
             self.prepareDWBA(angles[i]) 
             tot = np.abs(self.bornTotal())**2
