@@ -26,7 +26,7 @@ def main(argv):
         if ( useTransmission ):
             gz = grazT.GrazingTransmissionHandler()
         else:
-            gz = graz.GrazingHandler(usefilm) 
+            gz = graz.GrazingHandler(usefilm)
         gz.setEpsilonSubst( (0.992+0.002j)**2 )
         gz.setFilmThickness(thickInUnitsOfR)
         gz.detectorTransform = td.DetectorCenterBeam()
