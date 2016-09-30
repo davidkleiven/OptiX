@@ -66,33 +66,40 @@ class GrazingTransmissionHandler(graz.GrazingHandler):
         fig.savefig(fname, bbox_inches="tight")
         print ("Figure written to %s"%(fname)) 
 
+    def adjustX(self, incAngle, scatteringAngles):
+        alpha_f = self.detectorTransform.alpha_f(incAngle, scatteringAngles)
+        self.x = self.detectorPosition*np.tan(alpha_f*self.alpha_c)
+        scatteringAngles = scatteringAngles[self.x<0.0]
+        alpha_f = alpha_f[self.x<0.0]
+        self.x = self.x[self.x<0.0]
+        return scatteringAngles
+
     def plotPattern(self, angles):
         self.prepareDWBA(angles[0]) 
         fig = plt.figure()
         ax = fig.add_subplot(1,1,1)
-        alpha_f = np.arctan(self.x/self.detectorPosition)/self.alpha_c
+        scatteringAngles = np.linspace(-89.9*np.pi/(180.0*self.alpha_c), 85.0*np.pi/(180.0*self.alpha_c), 100001)
         for i in range(0, len(angles)): 
             if ( angles[i] < 1.0 ):
                 label = "$\\alpha = %.1f\\alpha_c$"%(angles[i])
             elif ( angles[i] == 1 ):
                 label = "$\\alpha = \\alpha_c$"%(angles[i])
             else:
-                label = "$\\alpha=%d\\alpha_c$"%(angles[i])
-            
-            scatteringAngle = self.detectorTransform.scatteringAngle(angles[i], alpha_f)
+                label = "$\\alpha=%d\\alpha_c$"%(angles[i]) 
+            validScatAngles = self.adjustX(angles[i], scatteringAngles)
             self.prepareDWBA(angles[i]) 
             ba = self.born()
             tot = self.total()
-            if ( i== len(angles)-1 ):
-                ax.plot(scatteringAngle, np.abs(ba)**2, lw=0.3, color=cs.COLORS[len(angles)], label="BA")
+            ax.plot(validScatAngles, np.abs(tot)**2, color=cs.COLORS[i], label=label)
+            if ( i == (len(angles)-1) ):
+                ax.plot(validScatAngles, np.abs(ba)**2, lw=0.3, color=cs.COLORS[len(angles)], label="BA")
             else:
-                ax.plot(scatteringAngle, np.abs(ba)**2, lw=0.3, color=cs.COLORS[len(angles)])
-            ax.plot(scatteringAngle, np.abs(tot)**2, color=cs.COLORS[i], label=label)
+                ax.plot(validScatAngles, np.abs(ba)**2, lw=0.3, color=cs.COLORS[len(angles)])
         fname = "Figures/dwbaTransmissionPattern.pdf"
         ax.set_xlabel(self.detectorTransform.axisLabel())
         ax.set_ylabel("Intensity (a.u.)")
         ax.set_yscale("log")
         ax.set_ylim(bottom=1E-8)
-        ax.legend(loc="upper left", frameon=False, labelspacing=0.2 )
+        ax.legend(loc="upper left", frameon=False, labelspacing=0.05 )
         fig.savefig(fname, bbox_inches="tight")
         print ("Figure written to %s"%(fname)) 

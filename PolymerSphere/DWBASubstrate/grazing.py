@@ -45,6 +45,7 @@ class GrazingHandler:
         self.q_parallel = None
         self.k = None # Think this is the same as kR so it is unnessecary, carries over from earlier development
         self.alpha_c = None
+        self.alpha_f = None
         self.x = np.linspace(0.0,2.5*self.detectorPosition, 100001)
         self.grazingAngle = 0.0
 
@@ -166,9 +167,42 @@ class GrazingHandler:
         fig.savefig( fname, bbox_inches="tight" )
         print ("Figure written to %s"%(fname))
 
+
+    def scatteringExtremum(self, angles):
+        '''
+        @brief Returns the maximum scatteirng angle in units of the critical angle
+        '''
+        if ( not self.prepDWBAIsCalled ):
+            raise Exception(self.prepMSG)
+
+        alpha_f = np.arctan(self.x/self.detectorPosition)/self.alpha_c
+        if ( self.x[-1] < 0.0 ):
+            # We are studying the transmission case
+            return np.min(self.detectorTransform.scatteringAngle(np.min(angles), alpha_f))
+
+        # We are studying grazing reflection
+        alpha_f = np.arctan(self.x/self.detectorPosition)/self.alpha_c
+        return np.max(self.detectorTransform.scatteringAngle(np.max(angles), alpha_f))
+
+    def extendX(self, incAngle, scatExtr):
+        alpha_fmax = self.detectorTransform.alpha_f(scatExtr, incAngle)
+        alpha_f = np.linspace(0.0,alpha_fmax*self.alpha_c, len(self.x))
+        self.x = self.detectorPosition*np.tan(alpha_f)
+        return alpha_f/self.alpha_c
+
+    def adjustX(self, incAngle, scatteringAngles):
+        alpha_f = self.detectorTransform.alpha_f(incAngle, scatteringAngles)
+        self.x = self.detectorPosition*np.tan(alpha_f*self.alpha_c)
+        scatteringAngles = scatteringAngles[alpha_f>0.0]
+        alpha_f = alpha_f[self.x>0.0]
+        self.x = self.x[self.x>0.0]
+        return scatteringAngles
+         
     def totalAngleSweep(self, angles):
         fig = plt.figure()
         ax = fig.add_subplot(1,1,1)
+        self.prepareDWBA(angles[0]) # Just to compute alpha_c
+        scatteringAngles = np.linspace(0.0, 89.0*np.pi/(180.0*self.alpha_c), 100001)
         for i in range(0, len(angles)):
             if ( angles[i] < 1.0 ):
                 label = "$\\alpha = %.1f\\alpha_c$"%(angles[i])
@@ -176,22 +210,20 @@ class GrazingHandler:
                 label = "$\\alpha = \\alpha_c$"%(angles[i])
             else:
                 label = "$\\alpha=%d\\alpha_c$"%(angles[i])
-            self.prepareDWBA(angles[i])
-            alpha_f = np.arctan(self.x/self.detectorPosition)
-            alpha_f /= self.alpha_c
-            scatteringAngle = self.detectorTransform.scatteringAngle(angles[i], alpha_f)
-            tot = np.abs(self.bornTotal()**2)
+            validScatAngles = self.adjustX(angles[i], scatteringAngles)
+            self.prepareDWBA(angles[i]) 
+            tot = np.abs(self.bornTotal())**2
             firstBorn = np.abs(self.f1)**2
-            ax.plot( scatteringAngle, tot, color=cs.COLORS[i], label=label)
+            ax.plot( validScatAngles, tot, color=cs.COLORS[i], label=label)
             if ( i == (len(angles)-1) ):
-                ax.plot( scatteringAngle, firstBorn, lw=0.3, color=cs.COLORS[len(angles)], label="BA")
+                ax.plot( validScatAngles, firstBorn, lw=0.3, color=cs.COLORS[len(angles)], label="BA")
             else:
-                ax.plot( scatteringAngle, firstBorn, lw=0.3, color=cs.COLORS[len(angles)])
+                ax.plot( validScatAngles, firstBorn, lw=0.3, color=cs.COLORS[len(angles)])
         ax.set_xlabel( self.detectorTransform.axisLabel() )
         ax.set_ylabel("Intensity (a.u.)")
         ax.set_yscale("log")
         ax.set_ylim(bottom=1E-8)
-        ax.legend(loc="upper right", frameon=False, labelspacing=0.2)
+        ax.legend(loc="upper right", frameon=False, labelspacing=0.05)
         if ( self.usefilm ):
             fname = "Figures/dwbaPatternFilm.pdf"
         else:
