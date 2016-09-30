@@ -6,6 +6,7 @@ import mplLaTeX as ml
 matplotlib.rcParams.update( ml.params )
 from matplotlib import pyplot as plt
 import colorScheme as cs
+import transformDetector as td
 
 class CombinedDetector:
     def __init__(self):
@@ -17,6 +18,7 @@ class CombinedDetector:
         self.transmitted.setEpsilonSubst(self.n2**2)
         self.reflected.setFilmThickness(self.thick)
         self.transmitted.setFilmThickness(self.thick)
+        self.reflected.detectorTransform = td.DetectorCenterBeam()
 
     def plotTotal(self, angles):
         fig = plt.figure()
@@ -39,17 +41,20 @@ class CombinedDetector:
             firstBornMinus = np.abs(self.transmitted.born())**2
             totMinus = np.abs(self.transmitted.total())**2
         
-            ax.plot( alpha_f_plus, totPluss, color=cs.COLORS[i], label=label)
-            ax.plot( alpha_f_minus, totMinus, color=cs.COLORS[i])
-            ax.plot(alpha_f_plus, np.abs(firstBornPluss)**2, ls="--", lw=0.3, color=cs.COLORS[i])
-            ax.plot(alpha_f_minus, np.abs(firstBornMinus)**2, ls="--", lw=0.3, color=cs.COLORS[i])
+            scatPlus = self.reflected.detectorTransform(angles[i], alpha_f_plus)
+            scatMinus = self.reflected.detectorTransform(angles[i], alpha_f_minus)
+            ax.plot( scatPlus, totPluss, color=cs.COLORS[i], label=label)
+            ax.plot( scatMinus, totMinus, color=cs.COLORS[i])
+            if ( i == len(angles)-1 ):
+                ax.plot( scatPlus, np.abs(firstBornPluss)**2, lw=0.3, color=cs.COLORS[len(angles)], label="BA")
+            else:
+                ax.plot( scatPlus, np.abs(firstBornPluss)**2, lw=0.3, color=cs.COLORS[len(angles)])
+            ax.plot( scatMinus, np.abs(firstBornMinus)**2, lw=0.3, color=cs.COLORS[len(angles)])
 
         fname = "Figures/dwbaTotalPattern.pdf" 
-        ax.set_xlabel("$\\alpha_f/\\alpha_c$")
+        ax.set_xlabel(self.reflected.detectorTransform.axisLabel())
         ax.set_ylabel("Intensity (a.u.)")
         ax.set_yscale("log")
-        ax.text(0.7, 0.17, "DWBA (solid)", transform=ax.transAxes)
-        ax.text(0.7, 0.1, "BA (dashed)", transform=ax.transAxes)
         ax.legend(loc="lower left", frameon=False)
         fig.savefig(fname, bbox_inches="tight")
         print ("Figure written to %s"%(fname)) 
