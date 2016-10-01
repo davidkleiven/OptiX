@@ -24,4 +24,5 @@ UID    | Description                   | Result Comment                         
 | 216156 | kR=5, eps=0.99500.005i, Nsphere=739, Nsubst=835, Grazing angle=90 | Induced currents seems OK |
 | 16522 | kR=5, eps=0.995+0.005i, Nsphere=1016, Nsubst=1382, Grazing angle=90, Gaussian beam waist=3.0  | Forgot to do git pull, same as 216156 but with better resolution |
 | 542786 | kR=5, eps=0.995+0.005i, Nsphere=1016, Nsubst=1382, Grazing angle=90, Gaussian beam waist=3.0 | Seems OK |
-| 184327 | kR=5, eps=0.995+0.005i, Nsphere=1016, Nsubst=1382, Grazing angle=90, Gaussian beam waist=1.0 | Running |
+| 184327 | kR=5, eps=0.995+0.005i, Nsphere=1016, Nsubst=1382, Grazing angle=90, Gaussian beam waist=1.0 | Pattern seems narrower than expected |
+| 75347 | kR=5, eps=0.995+0.001i, N=739, Gaussian waist = 3.0 | Good results  |  
