@@ -26,4 +26,5 @@ UID    | Description                   | Result Comment                         
 | 542786 | kR=5, eps=0.995+0.005i, Nsphere=1016, Nsubst=1382, Grazing angle=90, Gaussian beam waist=3.0 | Pattern mush narrower than expected |
 | 184327 | kR=5, eps=0.995+0.005i, Nsphere=1016, Nsubst=1382, Grazing angle=90, Gaussian beam waist=1.0 | Pattern seems narrower than expected |
 | 75347 | kR=5, eps=0.995+0.001i, N=739, Gaussian waist = 3.0 | Good results  |  
-| 356437 | kR=5, eps=0.995+0.001i, Nsphere=739, Ncube=3248. Gaussian. waist=3.0 | Running | 
+| 356437 | kR=5, eps=0.995+0.001i, Nsphere=739, Ncube=3248. Gaussian. waist=3.0 | Pattern i very narrow | 
+| 87373 | kR=5, eps=0.995+0.001i, Nsphere=739, Ncube=3248. Gaussian. waist=2.0 | Running | 
