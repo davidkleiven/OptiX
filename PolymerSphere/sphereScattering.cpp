@@ -224,7 +224,7 @@ int main(int argc, char **argv)
     clog << "Using plane wave source\n";
   #else
     double beamCenter[3] = {0.0,0.0,0.0};
-    double beamWaist = 3.0;
+    double beamWaist = 2.0;
     clog << "Using Gaussian beam source. Center: " << beamCenter[0] << ",";
     clog << beamCenter[1] << "," << beamCenter[2] << ". W0=" << beamWaist << endl;
     GaussianBeam incField(beamCenter, kHat, E0_s, beamWaist);
