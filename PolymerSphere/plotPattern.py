@@ -8,7 +8,7 @@ mpl.rcParams.update(ml.params)
 from pymiecoated import Mie
 import numpy as np
 from matplotlib import pyplot as plt
-from matplotlib import colors as colors 
+from matplotlib import colors as colors
 import json
 import h5py
 import colorScheme as cs
@@ -19,6 +19,16 @@ HELP_MSG += "--file - overview file contianing information about other files\n"
 HELP_MSG += "         if not present it will use the one in *data* folder\n"
 HELP_MSG += "--cube - use the form factor for a cube\n"
 NORM = "LOG"
+
+USE_NORM_BY_INTEGRAL = True
+def normByMax(x):
+    return x/np.max(x)
+
+def normByIntegral(x):
+    s = np.sum(x)
+    N = len(x)
+    integral = s/N
+    return x/integral
 
 def formFactor( n, qR ):
     return (n**2 - 1.0)*(np.sin(qR) - qR*np.cos(qR))/(qR**3)
@@ -39,7 +49,7 @@ def infilename( filenameInJson, folder ):
     return folder+"/"+fname
 
 def main(argv):
-    filename = "data/overview0.json" 
+    filename = "data/overview0.json"
     useCube = False
     for arg in argv:
         if ( arg.find("--file=") != -1 ):
@@ -66,7 +76,7 @@ def main(argv):
     dataTot = np.fromfile(infilename(overview["TotalField"],folder), dtype=np.float64)
     print ("Detector position (unit R): %.1f"%(overview["Detector"]["z"]))
     print ("Size parameters. %.2f"%(overview["kR"]))
-    
+
     xmin = overview["Detector"]["min"]
     xmax = overview["Detector"]["max"]
     x = np.linspace(xmin,xmax, overview["Detector"]["pixels"])
@@ -85,7 +95,7 @@ def main(argv):
     X,Y = np.meshgrid(x,y)
     data = data.reshape((overview["Detector"]["pixels"],-1))
     dataTot = dataTot.reshape((overview["Detector"]["pixels"],-1))
-    
+
     fig = plt.figure()
 #    ax = fig.add_subplot(1,1,1)
     if ( NORM == "LOG" ):
@@ -115,9 +125,9 @@ def main(argv):
         posVec = hf["rVec"].value
     xCenter = posVec[:,0]
     with h5py.File(infilename(overview["FieldCenter"], folder), 'r') as hf:
-        print (hf.keys()) 
+        print (hf.keys())
         fields = hf["Fields"].value
-    
+
     E = fields[:3,:]
     H = fields[3:,:]
     Ereal = E[:,::2]
@@ -129,7 +139,7 @@ def main(argv):
 
     #intensity = np.sum(np.abs(S)**2, axis=1)
     #intensity = np.sum(abs(Ec)**2, axis=0)
-    
+
     thetaDeg = theta*180.0/np.pi
     centerLine = data[int(overview["Detector"]["pixels"]/2)-1,:]
     indxmax = data.argmax()
@@ -148,15 +158,34 @@ def main(argv):
     else:
         lwBorn = 2
 
-    ax2.plot( thetaDeg, pattern*np.cos(theta)**5/np.max(pattern), color=cs.COLORS[4], label="Born", lw=lwBorn ) 
-    ax2.plot( thetaDeg, pattern*np.cos(theta)**3/np.max(pattern), color=cs.COLORS[5], label="Born", lw=lwBorn ) 
+    plotPatternInPlane = pattern*np.cos(theta)**5
+    plotPatternOutOfPlane = pattern*np.cos(theta)**3
+    if ( USE_NORM_BY_INTEGRAL ):
+        plotPatternInPlane = normByIntegral(plotPatternInPlane)
+        plotPatternOutOfPlane = normByIntegral(plotPatternOutOfPlane)
+    else:
+        plotPatternInPlane = normByMax( plotPatternInPlane )
+        plotPatternOutOfPlane = normByMax( plotPatternOutOfPlane )
+
+    ax2.plot( thetaDeg, plotPatternInPlane, color=cs.COLORS[4], label="Born", lw=lwBorn )
+    ax2.plot( thetaDeg, plotPatternOutOfPlane, color=cs.COLORS[5], label="Born", lw=lwBorn )
 
     if ( not useCube ):
         # Analytical solution for a sphere
-        ax2.plot( thetaDeg, S1*np.cos(theta)**3/np.max(S1), label="$S_1$", color=cs.COLORS[1])
-        ax2.plot( thetaDeg, S2*np.cos(theta)**3/np.max(S2), label="$S_2$", color=cs.COLORS[2])
+        if ( USE_NORM_BY_INTEGRAL ):
+            analyticInPlane = normByIntegral( S1*np.cos(theta)**3 )
+            analyticOutOfPlane = normByIntegral( S2*np.cos(theta)**3 )
+        else:
+            analyticInPlane = normByMax( S1*np.cos(theta)**3 )
+            analyticOutOfPlane = normByMax( S2*np.cos(theta)**3 )
+        ax2.plot( thetaDeg, analyticInPlane, label="$S_1$", color=cs.COLORS[1])
+        ax2.plot( thetaDeg, analyticOutOfPlane, label="$S_2$", color=cs.COLORS[2])
 
-    ax2.plot( thetaDeg, intensity/np.max(intensity), 'ko', ms=2, fillstyle="none", label="BEM")
+    if ( USE_NORM_BY_INTEGRAL ):
+        intensity = normByIntegral( intensity )
+    else:
+        intensity = normByMax( intensity )
+    ax2.plot( thetaDeg, intensity, 'ko', ms=2, fillstyle="none", label="BEM")
 
     ax2.legend(frameon=False)
     ax2.set_xlabel("Scattering angle (deg)")
