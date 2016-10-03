@@ -20,7 +20,7 @@ HELP_MSG += "         if not present it will use the one in *data* folder\n"
 HELP_MSG += "--cube - use the form factor for a cube\n"
 NORM = "LOG"
 
-USE_NORM_BY_INTEGRAL = True
+USE_NORM_BY_INTEGRAL = False
 def normByMax(x):
     return x/np.max(x)
 
