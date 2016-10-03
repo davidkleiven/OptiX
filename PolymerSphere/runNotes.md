@@ -28,4 +28,6 @@ UID    | Description                   | Result Comment                         
 | 75347 | kR=5, eps=0.995+0.001i, N=739, Gaussian waist = 3.0 | Good results  |  
 | 356437 | kR=5, eps=0.995+0.001i, Nsphere=739, Ncube=3248. Gaussian. waist=3.0 | Pattern is very narrow |
 | 87373 | kR=5, eps=0.995+0.001i, Nsphere=739, Ncube=3248. Gaussian. waist=2.0 | Same as 356437 |
-| 498264 | kR=5, eps=0.995+0.001i, Nsphere=739, Ncube=2305. Gaussian. waist=2.0 Thickness=0.2 | Running | 
+| 498264 | kR=5, eps=0.995+0.001i, Nsphere=739, Ncube=2305. Gaussian. waist=2.0 Thickness=0.2 | Observe an effect of the film |
+| 961865 | kR=5, eps=0.995+0.001i, Nsphere=739, Ncube=2305. Plane wave | Looks like the film scatters a lot |
+| 621734 | kR=5, eps=0.995+0.001i, Nsphere=739, Ncube=2305. Gaussian. waist=1.0 Thickness=0.2. Note: this beam diverges a lot | Running |
