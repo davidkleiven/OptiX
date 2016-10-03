@@ -18,7 +18,7 @@
 #define DOUBLE_COMPARISON_ZERO 1E-5
 #define PWVAC (0.5/ZVAC)
 #define UID_DIGITS 6
-#define USE_GAUSSIAN_BEAM
+//#define USE_GAUSSIAN_BEAM
 
 const double PI = acos(-1.0);
 enum class Polarisation_t {CIRCULAR, LINEAR};
