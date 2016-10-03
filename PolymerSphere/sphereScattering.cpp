@@ -27,7 +27,7 @@ const unsigned int UID_MAX = pow(10, UID_DIGITS);
 using namespace std;
 typedef std::complex<double> cdouble;
 
-  
+
 unsigned int uidFromH5filename( const string& fname )
 {
   auto suffix = fname.find(".h5");
@@ -42,16 +42,16 @@ unsigned int uidFromH5filename( const string& fname )
   }
   return UID_MAX;
 }
-  
+
 void avgPoynting( const cdouble E[3], const cdouble H[3], double poynting[3] )
 {
   poynting[0] = 0.5*real(E[1]*conj(H[2]) - E[2]*conj(H[1]));
   poynting[1] = 0.5*real(E[2]*conj(H[0]) - E[0]*conj(H[2]));
   poynting[2] = 0.5*real(E[0]*conj(H[1]) - E[1]*conj(H[0]));
 }
-  
+
 void saveField( HMatrix &data, unsigned int pixels, const string &fname )
-{ 
+{
     double intensity[pixels][pixels];
     #ifdef DEBUG
       clog << "Copying files to temporary array... ";
@@ -112,7 +112,7 @@ int main(int argc, char **argv)
   HELP_MSG += "geofile - scuffgeo file containing information of the geometry\n";
   HELP_MSG += "kR: size parameter\n";
 
-  srand(time(0)); 
+  srand(time(0));
   unsigned int uid = rand()%UID_MAX;
   #ifdef DEBUG
     clog << "Compiled with DEBUG flag...\n";
@@ -141,7 +141,7 @@ int main(int argc, char **argv)
     else if (arg.find("--geo=") != string::npos )
     {
       geofile = arg.substr(6);
-    }  
+    }
     else if ( arg.find("--periodic") != string::npos )
     {
       isInfiniteExtended = true;
@@ -176,7 +176,7 @@ int main(int argc, char **argv)
   if ( isInfiniteExtended )
   {
     cout << "Using infinite extended geometry\n";
-  }     
+  }
   Polarisation_t pol=Polarisation_t::LINEAR;
   double kBloch[2] = {0.0,0.0};
 
@@ -188,7 +188,7 @@ int main(int argc, char **argv)
   geo.SetLogLevel(SCUFF_VERBOSELOGGING);
 
   std::clog << "The geometry consists of " << geo.NumRegions << " regions\n";
-  
+
   // Allocate BEM matrix and rhs vector
   HMatrix *matrix = geo.AllocateBEMMatrix();
   HVector *rhsVec = geo.AllocateRHSVector();
@@ -215,7 +215,7 @@ int main(int argc, char **argv)
       E0_s[1].imag(0.0);
       clog << "Using linear polarised incident wave...\n";
       break;
-  }  
+  }
   E0_s[2].real(0.0);
   E0_s[2].imag(0.0);
 
@@ -224,12 +224,12 @@ int main(int argc, char **argv)
     clog << "Using plane wave source\n";
   #else
     double beamCenter[3] = {0.0,0.0,0.0};
-    double beamWaist = 2.0;
+    double beamWaist = 1.0;
     clog << "Using Gaussian beam source. Center: " << beamCenter[0] << ",";
     clog << beamCenter[1] << "," << beamCenter[2] << ". W0=" << beamWaist << endl;
     GaussianBeam incField(beamCenter, kHat, E0_s, beamWaist);
   #endif
-   
+
   for ( unsigned int i=0;i<geo.NumRegions; i++ )
   {
     double omega = 1.0; // Dummy variable as the refractive index is not freq dependent here
@@ -239,7 +239,7 @@ int main(int argc, char **argv)
   {
     std::clog << "Description of region " << i << " " << geo.RegionLabels[i] << std::endl;
   }
-  
+
   #ifdef DEBUG
     unsigned int sourceNum = 0;
     for (IncField* IF=&incField; IF != NULL; IF=IF->Next)
@@ -265,13 +265,13 @@ int main(int argc, char **argv)
     {
       double y = -deviationMax + 2.0*deviationMax*static_cast<double>(j)/static_cast<double>(nDetectorPixelsInEachDirection-1);
       Xpoints->SetEntry(i*nDetectorPixelsInEachDirection+j, 0, x);
-      Xpoints->SetEntry(i*nDetectorPixelsInEachDirection+j, 1, y); 
-      Xpoints->SetEntry(i*nDetectorPixelsInEachDirection+j, 2, detectorPosition); 
+      Xpoints->SetEntry(i*nDetectorPixelsInEachDirection+j, 1, y);
+      Xpoints->SetEntry(i*nDetectorPixelsInEachDirection+j, 2, detectorPosition);
     }
   }
-  
+
   HMatrix *evaluatedFields = new HMatrix( nDetectorPixelsInEachDirection*nDetectorPixelsInEachDirection, 6, LHM_COMPLEX );
-  
+
   for ( unsigned int run=0;run<1;run++)
   {
     //uid = rand()%UID_MAX; // Only run onc
@@ -293,7 +293,7 @@ int main(int argc, char **argv)
       if ( isInfiniteExtended )
       {
         geo.AssembleBEMMatrix(static_cast<cdouble>(omega), kBloch, matrix);
-      } 
+      }
       else
       {
         geo.AssembleBEMMatrix(static_cast<cdouble>(omega), matrix);
@@ -303,7 +303,7 @@ int main(int argc, char **argv)
       std::clog << "Computing LU decomposition... ";
       matrix->LUFactorize();
       clog << "done\n";
-   
+
       std::clog << "Assembling rhs vector...";
       if ( isInfiniteExtended )
       {
@@ -350,7 +350,7 @@ int main(int argc, char **argv)
       std::cout << std::endl;
     #endif
 
-    
+
     // Overview file
     Json::Value base;
     stringstream surfFname;
@@ -397,7 +397,7 @@ int main(int argc, char **argv)
       delete evaluatedFields;
       Xpoints = new HMatrix(nDetectorPixelsInEachDirection, 3);
       evaluatedFields = new HMatrix(nDetectorPixelsInEachDirection, 6, LHM_COMPLEX );
-      
+
       for ( unsigned int i=0;i<nDetectorPixelsInEachDirection;i++)
       {
         double y = -deviationMax + 2.0*deviationMax*static_cast<double>(i)/static_cast<double>(nDetectorPixelsInEachDirection-1);
@@ -407,11 +407,11 @@ int main(int argc, char **argv)
       }
       if ( isInfiniteExtended )
       {
-        evaluatedFields = geo.GetFields( NULL, rhsVec, omega, kBloch, Xpoints, evaluatedFields ); 
+        evaluatedFields = geo.GetFields( NULL, rhsVec, omega, kBloch, Xpoints, evaluatedFields );
       }
       else
       {
-        evaluatedFields = geo.GetFields( NULL, rhsVec, omega, Xpoints, evaluatedFields ); 
+        evaluatedFields = geo.GetFields( NULL, rhsVec, omega, Xpoints, evaluatedFields );
       }
       ss.clear();
       ss.str("");
@@ -430,7 +430,7 @@ int main(int argc, char **argv)
       return 1;
     }
     clog << "Field evaluation finished\n";
-    
+
     cdouble eps = geo.RegionMPs[1]->GetEps(omega);
     base["Detector"]["z"] = detectorPosition;
     base["Detector"]["min"] = -deviationMax;
@@ -455,11 +455,11 @@ int main(int argc, char **argv)
     overview.close();
     clog << "Overview file written to " << ss.str() << endl;
   }
-  
+
   delete rhsVec;
   delete evaluatedFields;
   delete Xpoints;
-  
+
   if ( matrix != NULL )
   {
     // Just in case...
@@ -468,4 +468,3 @@ int main(int argc, char **argv)
 
   return 0;
 }
-
