@@ -1,6 +1,6 @@
 cl__1 = 1;
 Lx = 10.0;
-Lz = 2.0;
+Lz = 0.2;
 Point(1) = {0, 0, 0, 2.0};
 Point(2) = {0, Lx, 0, 2.0};
 Point(3) = {Lx, 0, 0, 2.0};
@@ -34,4 +34,3 @@ Line Loop(22) = {10, -5, -9, 1};
 Plane Surface(22) = {22};
 Line Loop(24) = {2, 3, 4, 1};
 Plane Surface(24) = {24};
-
