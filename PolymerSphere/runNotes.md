@@ -32,4 +32,5 @@ UID    | Description                   | Result Comment                         
 | 961865 | kR=5, eps=0.995+0.001i, Nsphere=739, Ncube=2305. Plane wave | Looks like the film scatters a lot |
 | 621734 | kR=5, eps=0.995+0.001i, Nsphere=739, Ncube=2305. Gaussian. waist=1.0 Thickness=0.2. Note: this beam diverges a lot | Not analysed |
 | 156499 | kR=5, eps=0.995+0.001i, Nsphere=739, Ncube=4409. Plane wave. Plane width=30 | Did not finish, was aborted?? |
-| 516730 | kR=5, eps=0.995+0.001i, Nsphere=739, Ncube=2823. Plane wave. Plane width=30 | Running |
+| 516730 | kR=5, eps=0.995+0.001i, Nsphere=739, Ncube=2823. Plane wave. Plane width=30 | The mesh is too coarse |
+| 352807 | kR=5, eps=0.995+0.005i, Nodes=319, sphere. VIE | Issues when importing with the plotPattern script |
