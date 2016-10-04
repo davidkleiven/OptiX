@@ -4,7 +4,7 @@ def main(argv):
     MSG = "Usage: python config.py --scuffh=<pathToScuffHeader> --buffh=<pathToBuffHeader>\n"
     OUTFILE = "libHeaders.sh"
 
-    outentries = {"scuffheader":"", "buffheader":""}
+    outentries = {"scuffheader":"./", "buffheader":"./"}
     for arg in argv:
         if ( arg.find("--help") != -1):
             print MSG
