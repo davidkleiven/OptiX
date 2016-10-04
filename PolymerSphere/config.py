@@ -1,10 +1,10 @@
 import sys
 
 def main(argv):
-    MSG = "Usage: python config.py --scuffh=<pathToScuffHeader> --buffh=<pathToBuffHeader>\n"
+    MSG = "Usage: python config.py --scuffh=<pathToScuffHeader> --buffh=<pathToBuffHeader> --libpath=<path to lib>\n"
     OUTFILE = "libHeaders.sh"
 
-    outentries = {"scuffheader":"./", "buffheader":"./"}
+    outentries = {"scuffheader":"./", "buffheader":"./", "libpaths":"./"}
     for arg in argv:
         if ( arg.find("--help") != -1):
             print MSG
@@ -13,6 +13,8 @@ def main(argv):
             outentries["scuffheader"] = arg.split("--scuffh=")[1]
         elif ( arg.find("--buffh=") != -1 ):
             outentries["buffheader"] = arg.split("--buffh=")[1]
+        elif ( arg.find("--libpath=") != -1 ):
+            outentries["libpaths"] = arg.split("--libpath=")[1]
         else:
             print ("Unknown argument %s"%(arg))
             return 0
@@ -20,6 +22,7 @@ def main(argv):
     ofile = open(OUTFILE, 'w')
     ofile.write("SCUFF_HEADER=%s\n"%(outentries["scuffheader"]))
     ofile.write("BUFF_HEADER=%s\n"%(outentries["buffheader"]))
+    ofile.write("LIB_PATHS=%s\n"%(outentries["libpaths"]))
     ofile.close()
     return 0
 
