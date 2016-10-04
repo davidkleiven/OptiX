@@ -7,7 +7,7 @@ include libHeaders.sh
 #BUFF_HEADER=/usr/local/include/buff-em
 
 sphereScat.out: ${ODIR}/sphereScattering.o
-	g++ $^ -o $@ ${LIBS}
+	g++ $^ -o $@ -L ${LIB_PATHS} ${LIBS}
 
 sphereVIE.out: ${ODIR}/sphereScatVIE.o
 	g++ $^ -o $@ -L ${LIB_PATHS} ${LIBS}
