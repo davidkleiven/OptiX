@@ -2,8 +2,9 @@ SDIR=./
 ODIR=./
 IDIR=./
 LIBS=-lscuff -lbuff -lcblas -llapack -ljsoncpp
-SCUFF_HEADER=/usr/local/include/scuff-em
-BUFF_HEADER=/usr/local/include/buff-em
+include libHeaders.sh
+#SCUFF_HEADER=/usr/local/include/scuff-em
+#BUFF_HEADER=/usr/local/include/buff-em
 
 sphereScat.out: ${ODIR}/sphereScattering.o
 	g++ $^ -o $@ ${LIBS}
