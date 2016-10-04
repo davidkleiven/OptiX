@@ -34,3 +34,4 @@ UID    | Description                   | Result Comment                         
 | 156499 | kR=5, eps=0.995+0.001i, Nsphere=739, Ncube=4409. Plane wave. Plane width=30 | Did not finish, was aborted?? |
 | 516730 | kR=5, eps=0.995+0.001i, Nsphere=739, Ncube=2823. Plane wave. Plane width=30 | The mesh is too coarse |
 | 352807 | kR=5, eps=0.995+0.005i, Nodes=319, sphere. VIE | Issues when importing with the plotPattern script |
+| 881929| kR=5, eps=0.995+0.005i, Nodes=808, sphere. VIE | Running |

@@ -88,19 +88,6 @@ int main(int argc, char **argv)
   const double detectorPosition = 1E3;
   const double deviationMax = 1.5*detectorPosition;
   const unsigned int nDetectorPixelsInEachDirection = 80;
-  HMatrix *Xpoints = new HMatrix(nDetectorPixelsInEachDirection*nDetectorPixelsInEachDirection, 3);
-
-  for ( unsigned int i=0;i<nDetectorPixelsInEachDirection;i++ )
-  {
-    double x = -deviationMax + 2.0*deviationMax*static_cast<double>(i)/static_cast<double>(nDetectorPixelsInEachDirection-1);
-    for ( unsigned int j=0;j<nDetectorPixelsInEachDirection;j++ )
-    {
-      double y = -deviationMax + 2.0*deviationMax*static_cast<double>(j)/static_cast<double>(nDetectorPixelsInEachDirection-1);
-      Xpoints->SetEntry(i*nDetectorPixelsInEachDirection+j, 0, x);
-      Xpoints->SetEntry(i*nDetectorPixelsInEachDirection+j, 1, y);
-      Xpoints->SetEntry(i*nDetectorPixelsInEachDirection+j, 2, detectorPosition);
-    }
-  }
 
   // Allocate memory
   HMatrix* matrix = geo.AllocateVIEMatrix();
@@ -122,7 +109,17 @@ int main(int argc, char **argv)
   int info = matrix->LUSolve(rhs);
   clog << "done\n";
   delete matrix;
+
+  // Evaluate fields quantities
   HMatrix* evaluatedFields = new HMatrix(nDetectorPixelsInEachDirection, 6, LHM_COMPLEX );
+  HMatrix *Xpoints = new HMatrix(nDetectorPixelsInEachDirection, 3);
+  for ( unsigned int i=0;i<nDetectorPixelsInEachDirection;i++)
+  {
+    double y = -deviationMax + 2.0*deviationMax*static_cast<double>(i)/static_cast<double>(nDetectorPixelsInEachDirection-1);
+    Xpoints->SetEntry(i, 0, 0.0);
+    Xpoints->SetEntry(i, 1, y);
+    Xpoints->SetEntry(i, 2, detectorPosition);
+  }
 
   stringstream solfname;
   Json::Value base;
