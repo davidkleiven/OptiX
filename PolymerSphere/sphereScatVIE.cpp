@@ -40,7 +40,7 @@ int main(int argc, char **argv)
     }
     else if ( arg.find("--geo=") != string::npos )
     {
-      geofile = arg.substr(7);
+      geofile = arg.substr(6);
     }
     else if ( arg.find("--help") != string::npos )
     {
@@ -68,6 +68,7 @@ int main(int argc, char **argv)
 
   srand(time(0));
   unsigned int uid = rand()%UID_MAX;
+  clog << "UID: " << uid << endl;
   buff::SWGGeometry geo = buff::SWGGeometry(geofile.c_str());
 
   // Define incident field
@@ -167,7 +168,7 @@ int main(int argc, char **argv)
   Json::StyledWriter sw;
 
   stringstream overviewFile;
-  overviewFile << "data/overview"<<uid<<".h5";
+  overviewFile << "data/overview"<<uid<<".json";
   ofstream overview(overviewFile.str().c_str());
   if ( !overview.good() )
   {
