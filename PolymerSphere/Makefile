@@ -10,7 +10,7 @@ sphereScat.out: ${ODIR}/sphereScattering.o
 	g++ $^ -o $@ ${LIBS}
 
 sphereVIE.out: ${ODIR}/sphereScatVIE.o
-	g++ $^ -o $@ ${LIBS}
+	g++ $^ -o $@ -L ${LIB_PATHS} ${LIBS}
 
 ${ODIR}/%.o: ${SDIR}/%.cpp
 	g++ -c -std=c++11 $< -o $@ -I ${SCUFF_HEADER} -I ${IDIR} -I ${BUFF_HEADER}
