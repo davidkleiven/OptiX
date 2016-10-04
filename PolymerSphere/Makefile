@@ -8,6 +8,9 @@ BUFF_HEADER=/usr/local/include/buff-em
 sphereScat.out: ${ODIR}/sphereScattering.o
 	g++ $^ -o $@ ${LIBS}
 
+sphereVIE.out: ${ODIR}/sphereScatVIE.o
+	g++ $^ -o $@ ${LIBS}
+
 ${ODIR}/%.o: ${SDIR}/%.cpp
 	g++ -c -std=c++11 $< -o $@ -I ${SCUFF_HEADER} -I ${IDIR} -I ${BUFF_HEADER}
 
