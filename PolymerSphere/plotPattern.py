@@ -19,6 +19,7 @@ HELP_MSG += "--file - overview file contianing information about other files\n"
 HELP_MSG += "         if not present it will use the one in *data* folder\n"
 HELP_MSG += "--cube - use the form factor for a cube\n"
 NORM = "LOG"
+USE_LOG_ON_1D_PATTERN = True
 
 USE_NORM_BY_INTEGRAL = False
 def normByMax(x):
@@ -187,9 +188,16 @@ def main(argv):
         intensity = normByMax( intensity )
     ax2.plot( thetaDeg, intensity, 'ko', ms=2, fillstyle="none", label="BEM")
 
-    ax2.legend(frameon=False)
+
     ax2.set_xlabel("Scattering angle (deg)")
     ax2.set_ylabel("Normalised scattering amplitude")
+    if ( USE_LOG_ON_1D_PATTERN ):
+        ax2.set_yscale("log")
+
+    if ( USE_LOG_ON_1D_PATTERN ):
+        ax2.legend(loc = "lower center", frameon=False)
+    else:
+        ax2.legend(frameon=False)
     #plotAllLines(data)
     if ( useCube ):
         fname  = "Figures/pattern1DCube%d.pdf"%(overview["UID"])
