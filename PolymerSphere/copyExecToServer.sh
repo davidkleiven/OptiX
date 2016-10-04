@@ -1,5 +1,5 @@
 source servers.sh
-FILES="sphere.msh cube.msh"
+FILES="sphere.msh cube.msh sphere3D.msh"
 
 executable="$1"
 FILES="${FILES} $executable"
