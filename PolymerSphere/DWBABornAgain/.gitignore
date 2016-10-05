@@ -2,3 +2,5 @@
 *.o
 *.out
 searchPaths.sh
+Fig/*
+*.int
