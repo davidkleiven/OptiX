@@ -41,7 +41,7 @@ def main( argv ):
     cb.set_label("Intensity (a.u.)")
     plt.xlabel("$\phi_f$ (deg)")
     plt.ylabel("$\\alpha_f$ (deg)")
-    ofname = "Fig/pattern2D.png"
+    ofname = "Fig/pattern2D.pdf"
     plt.savefig(ofname, bbox_inches="tight")
     print ("Figure written to %s"%(ofname))
 
