@@ -20,8 +20,8 @@ int main(int argc, char **argv)
   string HELP_MSG("Usage: ./sphereSubstrate [arguments]\n");
   HELP_MSG += "--help: Print this message\n";
   HELP_MSG += "--sphere: Run simulation with a single sphere\n";
-  HELP_MSG += "--sphereOnPlane: Run simulation with a sphere on a plane\n";
-  HELP_MSG += "--sphereOnMembrane: Run simulation with a sphere on a membrane\n";
+  HELP_MSG += "--onPlane: Run simulation with a sphere on a plane\n";
+  HELP_MSG += "--onMembrane: Run simulation with a sphere on a membrane\n";
   HELP_MSG += "--thick: Thickness of the membrane in units of the radius of the sphere\n";
 
   // Parse arguments
@@ -30,15 +30,15 @@ int main(int argc, char **argv)
   for ( unsigned int i=1;i<argc;i++ )
   {
     string arg( argv[i] );
-    if ( arg.find( "--sphere") != string::npos )
+    if ( arg.find("--sphere") != string::npos )
     {
       mode = Mode_t::ONLY_SPHERE;
     }
-    else if ( arg.find("--sphereOnPlane") != string::npos )
+    else if ( arg.find("--onPlane") != string::npos )
     {
       mode = Mode_t::SPHERE_ON_PLANE;
     }
-    else if ( arg.find("--sphereOnMembrane") != string::npos )
+    else if ( arg.find("--onMembrane") != string::npos )
     {
       mode = Mode_t::SPHERE_ON_MEMBRANE;
     }
@@ -59,6 +59,7 @@ int main(int argc, char **argv)
       return 0;
     }
   }
+
   // Refractive index of substrate
   // n = 1-delta + i*beta
   double refractiveIndexSubstrateDelta = 1.5E-5;
@@ -96,6 +97,7 @@ int main(int argc, char **argv)
       clog << "Running with a sphere on a plane\n";
       sample.addLayer(airLayer);
       sample.addLayer(substrateLayer);
+      break;
     case Mode_t::SPHERE_ON_MEMBRANE:
       clog << "Running with a sphere on a membrane of finite thickness\n";
       sample.addLayer(airLayer);
@@ -105,11 +107,12 @@ int main(int argc, char **argv)
       break;
   }
 
-  auto alpha_min = 0.0*Units::degree;
-  auto alpha_max = 0.9*Units::degree;
-  auto phi_min = -0.3*Units::degree;
-  auto phi_max = 0.3*Units::degree;
   auto incidentGrazingAngle = 0.2*Units::degree;
+  auto alpha_min = 0.15*Units::degree;
+  auto alpha_max = 0.25*Units::degree;
+  auto phi_min = -0.05*Units::degree;
+  auto phi_max = 0.05*Units::degree;
+
   switch ( mode )
   {
     case Mode_t::ONLY_SPHERE:
@@ -121,7 +124,7 @@ int main(int argc, char **argv)
 
   // Setup Simulation
   GISASSimulation simulation;
-  simulation.setDetectorParameters(512, phi_min, phi_max, 512, alpha_min, alpha_max);
+  simulation.setDetectorParameters(1024, phi_min, phi_max, 1024, alpha_min, alpha_max);
   simulation.setBeamParameters(1.0*Units::angstrom, incidentGrazingAngle, 0.0*Units::degree);
   simulation.setSample(sample);
 
