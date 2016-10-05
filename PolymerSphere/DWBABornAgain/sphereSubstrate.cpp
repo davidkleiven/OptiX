@@ -42,7 +42,7 @@ int main(int argc, char **argv)
 
   // Setup Simulation
   GISASSimulation simulation;
-  simulation.setDetectorParameters(400, -1.0*Units::degree, 1.0*Units::degree, 400, 0.0*Units::degree, 2.0*Units::degree);
+  simulation.setDetectorParameters(512, -0.3*Units::degree, 0.3*Units::degree, 512, 0.0*Units::degree, 0.9*Units::degree);
   simulation.setBeamParameters(1.0*Units::angstrom, 0.2*Units::degree, 0.0*Units::degree);
   simulation.setSample(sample);
 
