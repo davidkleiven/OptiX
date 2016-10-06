@@ -2,7 +2,7 @@ IDIR=inc
 ODIR=obj
 SDIR=src
 
-SOURCES :=cladding.cpp waveGuide.cpp waveGuideRadiusCurvature.cpp main.cpp
+SOURCES :=cladding.cpp waveGuide.cpp waveGuideRadiusCurvature.cpp main.cpp numerovSolver.cpp
 OBJECTS := ${SOURCES:.cpp=.o}
 SOURCES := $(addprefix ${SDIR}/, ${SOURCES})
 OBJECTS := $(addprefix ${ODIR}/, ${OBJECTS})
