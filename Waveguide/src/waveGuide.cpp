@@ -5,6 +5,7 @@
 #include <jsoncpp/json/writer.h>
 #include <H5Cpp.h>
 #include <hdf5_hl.h>
+#include <fstream>
 
 using namespace std;
 
@@ -46,4 +47,26 @@ void WaveGuide1DSimulation::save( const string &fname ) const
   H5LTmake_dataset( file_id, h5dataname.c_str(), rank, &dims, H5T_NATIVE_DOUBLE, &solver->getSolution()[0]);
 
   H5Fclose(file_id);
+
+  // Write information to a json file
+  Json::Value base;
+  Json::Value solverParameters;
+  solver->fillJsonObj(solverParameters);
+  base["solver"] = solverParameters;
+  base["solutionfile"] = h5fname;
+  base["datasetname"] = h5dataname;
+
+  Json::StyledWriter sw;
+
+  ofstream out(jsonfname.c_str());
+
+  if ( !out.good() )
+  {
+    cout << "Could not open " << jsonfname << endl;
+    return;
+  }
+  out << sw.write(base);
+  out.close();
+  cout << "Data written to " << h5fname << endl;
+  cout << "Statistics and information written to " << jsonfname << endl;
 }

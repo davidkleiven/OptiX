@@ -3,7 +3,6 @@
 #include <cassert>
 #include <iostream>
 #include "waveGuide.hpp"
-
 using namespace std;
 
 void Numerov::setUpperInitialCondition( double x1, double value1, double x2, double value2 )
@@ -12,6 +11,7 @@ void Numerov::setUpperInitialCondition( double x1, double value1, double x2, dou
   upper.value1 = value1;
   upper.x2 = x2;
   upper.value2 = value2;
+
 }
 
 void Numerov::setLowerInitialCondition( double x1, double value1, double x2, double value2 )
@@ -20,6 +20,7 @@ void Numerov::setLowerInitialCondition( double x1, double value1, double x2, dou
   lower.value1 = value1;
   lower.x2 = x2;
   lower.value2 = value2;
+
 }
 
 void Numerov::setPropgationWavenumberLimits( double beta1, double beta2 )
@@ -123,7 +124,7 @@ void Numerov::solve()
   gsl_root_fsolver_set(s, &F, beta_min, beta_max);
 
   int status = GSL_CONTINUE;
-  unsigned int iter = 0;
+  iter = 0;
   while (( status == GSL_CONTINUE ) && ( iter < maxIterations ))
   {
     iter++;
@@ -137,4 +138,15 @@ void Numerov::solve()
   {
     cout << "Warning: Reached max number of iterations...\n";
   }
+}
+
+void Numerov::fillJsonObj( Json::Value &obj ) const
+{
+  Solver1D::fillJsonObj(obj);
+  obj["xmin"] = lower.x1;
+  obj["xmax"] = upper.x2;
+  obj["iterations"] = iter;
+  obj["maxIterations"] = maxIterations;
+  obj["beta_min"] = beta_min;
+  obj["beta_max"] = beta_max;
 }

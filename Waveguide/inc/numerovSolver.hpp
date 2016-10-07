@@ -21,8 +21,10 @@ public:
   void setInitialEigenvalue( double eigen ){ eigenvalue = eigen; };
   void setMaxIter( unsigned int mxIter ){ maxIterations = mxIter; };
   void setPropgationWavenumberLimits( double beta_min, double beta_max );
+  void fillJsonObj( Json::Value &obj ) const override final;
 private:
   double stepsize;
+  unsigned int iter{0};
   InitialCondition upper;
   InitialCondition lower;
   void iterateForward( unsigned int last );
