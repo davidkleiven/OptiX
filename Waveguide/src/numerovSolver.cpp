@@ -3,6 +3,7 @@
 #include <cassert>
 #include <iostream>
 #include "waveGuide.hpp"
+#include "cladding.hpp"
 #include <stdexcept>
 using namespace std;
 
@@ -28,8 +29,8 @@ void Numerov::setPropgationWavenumberLimits( double beta1, double beta2 )
   {
     throw (runtime_error("No waveguide set\n"));
   }
-  beta_min = beta1*waveguide->getWavenumber();
-  beta_max = beta2*waveguide->getWavenumber();
+  beta_min = beta1;//*waveguide->getWavenumber();
+  beta_max = beta2;//*waveguide->getWavenumber();
   initPropagationWavenumberLimits = false;
 }
 
@@ -44,6 +45,13 @@ void Numerov::iterateForward( unsigned int last )
   double yn_m1 = (*solution)[last-1];
   (*solution)[last + 1] = 2.0*yn*alpha_n(currX) - yn_m1*alpha_nm1(prevX);
   (*solution)[last + 1] /= alpha_np1(nextX);
+
+  /*
+  if ( (*solution)[last] < 0.0 )
+  {
+    cout << "x:" << currX << " value:" << (*solution)[last] << endl;
+  }
+  */
 }
 
 void Numerov::iterateBackward( unsigned int last )
@@ -62,7 +70,9 @@ void Numerov::iterateBackward( unsigned int last )
 double Numerov::effectivePotential( double x ) const
 {
   double k = waveguide->getWavenumber();
-  return -(waveguide->potential(x) + eigenvalue*eigenvalue - k*k);
+  //return -(waveguide->potential(x) + eigenvalue*eigenvalue - k*k);
+  //cout << "Potential(:" << waveguide->potential(x) - eigenvalue << ") ";
+  return -(waveguide->potential(x) - eigenvalue);
 }
 
 double Numerov::alpha_np1( double x ) const
@@ -129,11 +139,11 @@ void Numerov::solve()
 
   if ( initPropagationWavenumberLimits )
   {
-    beta_min = 0.8*waveguide->getWavenumber();
-    beta_max = 1.0*waveguide->getWavenumber();
+    beta_min = 0.0;
+    beta_max = 0.99*waveguide->getCladding().getPotential();
   }
 
-  const gsl_root_fsolver_type *T = gsl_root_fsolver_brent;
+  const gsl_root_fsolver_type *T = gsl_root_fsolver_bisection;
   gsl_root_fsolver *s = gsl_root_fsolver_alloc(T);
 
   gsl_root_fsolver_set(s, &F, beta_min, beta_max);
@@ -142,12 +152,12 @@ void Numerov::solve()
   iter = 0;
   while (( status == GSL_CONTINUE ) && ( iter < maxIterations ))
   {
-    cout << "\n=================== ITER " << iter << " =====================================\n";
+    //cout << "\n=================== ITER " << iter << " =====================================\n";
     iter++;
     eigenvalue = gsl_root_fsolver_root(s);
     beta_min = gsl_root_fsolver_x_lower(s);
     beta_max = gsl_root_fsolver_x_upper(s);
-    status = gsl_root_test_interval(beta_min, beta_max, 0.0, 0.001);
+    status = gsl_root_test_interval(beta_min, beta_max, 0.0, 0.00001);
   }
   gsl_root_fsolver_free(s);
   if ( iter == maxIterations )

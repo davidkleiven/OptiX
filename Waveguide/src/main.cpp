@@ -1,36 +1,40 @@
 #include "waveGuideRadiusCurvature.hpp"
 #include "cladding.hpp"
 #include "numerovSolver.hpp"
+#include "waveGuideStraight.hpp"
 #include <iostream>
 #include <string>
 #include <stdexcept>
+#include <gsl/gsl_errno.h>
 
 using namespace std;
 
 int main( int argc, char** argv )
 {
+  gsl_error_handler_t* prevHandler = gsl_set_error_handler_off();
   double eDensityTa = 4066.5; // nm^-3 same number as Salditt et al.
   Cladding cladding;
   cladding.setElectronDensity( eDensityTa );
 
   cout << "Potential in Ta: " << cladding.getPotential() << "nm^{-2}\n";
 
-  WaveGuideLargeCurvature wg;
-  wg.setRadiusOfCurvature( 40E6 ); // 40 mm
+  //WaveGuideLargeCurvature wg;
+  WaveGuideStraight wg;
+  //wg.setRadiusOfCurvature( 40E6 ); // 40 mm
   wg.setWidth( 100.0 ); // 100 nm
   wg.setCladding( cladding );
   wg.setWaveLength( 0.1 );
 
   Numerov solver;
-  solver.setUpperInitialCondition( 500.0, 1E-2, 0.0);
-  solver.setLowerInitialCondition( -600.0, 0.0, 1E-2);
+  solver.setUpperInitialCondition( 100, 1E-6, 0.0);
+  solver.setLowerInitialCondition( -200.0, 0.0, 1E-6 );
   solver.setStepsize(0.0001); // 1 nm
-  solver.setMaxIter(1);
+  solver.setMaxIter(100000);
 
   wg.setSolver( solver );
   try
   {
-    solver.setPropgationWavenumberLimits( 0.7, 1.0);
+    solver.setPropgationWavenumberLimits( 0.0, 0.5*cladding.getPotential() );
     wg.solve();
     string fname("data/waveguide");
     wg.save(fname);

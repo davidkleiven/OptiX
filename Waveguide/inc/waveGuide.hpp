@@ -9,8 +9,9 @@ class Solver1D;
 class WaveGuide1DSimulation
 {
 public:
-  WaveGuide1DSimulation(){};
+  WaveGuide1DSimulation(const char* name):name(name){};
   void setCladding( const Cladding &cladding );
+  const Cladding& getCladding() const { return *cladding; };
   void setWidth( double newwidth ){ width = newwidth; };
   void setSolver( Solver1D &solv );
   void setWavenumber( double k ){ wavenumber = k; };
@@ -27,5 +28,7 @@ protected:
   double wavenumber;
   Solver1D *solver{NULL};
   static const double PI;
+  std::string name;
+  void writePotentialToFile( const std::string &fname ) const;
 };
 #endif

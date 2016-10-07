@@ -45,6 +45,5 @@ BOOST_AUTO_TEST_CASE( coefficients )
 
   alpha = test.alpha_nm1Test( x );
   BOOST_CHECK_CLOSE( alpha, alpha_exp, 0.1f );
-
 }
 BOOST_AUTO_TEST_SUITE_END()
