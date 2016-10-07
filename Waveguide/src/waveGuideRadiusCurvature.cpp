@@ -1,8 +1,15 @@
 #include "waveGuideRadiusCurvature.hpp"
 #include "cladding.hpp"
+#include <iostream>
+
+using namespace std;
 
 double WaveGuideLargeCurvature::potential( double x ) const
 {
+  if (( x > 0.0 ) || ( x < -width ))
+  {
+    return -2.0*wavenumber*wavenumber*x/outerRadius;
+  }
   double claddingPotential = cladding->getPotential();
   return claddingPotential - (2.0*wavenumber*wavenumber - 2.0*claddingPotential)*x/outerRadius;
 }

@@ -5,7 +5,7 @@
 class WaveGuideLargeCurvature: public WaveGuide1DSimulation
 {
 public:
-  WaveGuideLargeCurvature();
+  WaveGuideLargeCurvature(){};
   void setRadiusOfCurvature( double R ){ outerRadius = R; };
   double potential( double x ) const override;
 };

@@ -6,8 +6,11 @@
 #include <H5Cpp.h>
 #include <hdf5_hl.h>
 #include <fstream>
+#include <cmath>
 
 using namespace std;
+
+const double WaveGuide1DSimulation::PI = acos(-1.0);
 
 void WaveGuide1DSimulation::setCladding( const Cladding &newCladding )
 {

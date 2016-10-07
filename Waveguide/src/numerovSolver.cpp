@@ -3,30 +3,33 @@
 #include <cassert>
 #include <iostream>
 #include "waveGuide.hpp"
+#include <stdexcept>
 using namespace std;
 
-void Numerov::setUpperInitialCondition( double x1, double value1, double x2, double value2 )
+void Numerov::setUpperInitialCondition( double x1, double value1, double value2 )
 {
   upper.x1 = x1;
   upper.value1 = value1;
-  upper.x2 = x2;
   upper.value2 = value2;
 
 }
 
-void Numerov::setLowerInitialCondition( double x1, double value1, double x2, double value2 )
+void Numerov::setLowerInitialCondition( double x1, double value1, double value2 )
 {
   lower.x1 = x1;
   lower.value1 = value1;
-  lower.x2 = x2;
   lower.value2 = value2;
 
 }
 
 void Numerov::setPropgationWavenumberLimits( double beta1, double beta2 )
 {
-  beta_min = beta1;
-  beta_max = beta2;
+  if ( waveguide == NULL )
+  {
+    throw (runtime_error("No waveguide set\n"));
+  }
+  beta_min = beta1*waveguide->getWavenumber();
+  beta_max = beta2*waveguide->getWavenumber();
   initPropagationWavenumberLimits = false;
 }
 
@@ -54,12 +57,13 @@ void Numerov::iterateBackward( unsigned int last )
   double yn_p1 = (*solution)[last+1];
   (*solution)[last-1] = 2.0*yn*alpha_n(currX) - yn_p1*alpha_np1(prevX);
   (*solution)[last-1] /= alpha_nm1(nextX);
+  cout << (*solution)[last] << " ";
 }
 
 double Numerov::effectivePotential( double x ) const
 {
   double k = waveguide->getWavenumber();
-  return waveguide->potential(x) - eigenvalue*eigenvalue + k*k;
+  return (waveguide->potential(x) + eigenvalue*eigenvalue - k*k);
 }
 
 double Numerov::alpha_np1( double x ) const
@@ -69,7 +73,7 @@ double Numerov::alpha_np1( double x ) const
 
 double Numerov::alpha_n( double x ) const
 {
-  return 2.0*(1.0 - 5.0*stepsize*stepsize*effectivePotential(x)/12.0);
+  return (1.0 - 5.0*stepsize*stepsize*effectivePotential(x)/12.0);
 }
 
 double Numerov::alpha_nm1( double x ) const
@@ -84,7 +88,7 @@ void Numerov::iterateAll()
   {
     iterateForward(i);
   }
-  for ( unsigned int i=solution->size()-2;i>=N/2;i--)
+  for ( unsigned int i=solution->size()-2;i>N/2;i--)
   {
     iterateBackward(i);
   }
@@ -102,12 +106,23 @@ double Numerov::rootSolverFunction( double beta, void *params )
 
 void Numerov::solve()
 {
+  if ( stepsize < 0.0 )
+  {
+    throw (runtime_error("Invalid stepsize"));
+  }
+
+  cerr << beta_min << " " << beta_max << endl;
   double middle = 0.5*(upper.x2 + lower.x1);
   unsigned int N = (upper.x2 - lower.x1)/stepsize;
 
   // Set the solution size
   solution->clear();
   solution->resize(N);
+  (*solution)[0] = lower.value1;
+  (*solution)[1] = lower.value2;
+  (*solution)[solution->size()-1] = upper.value2;
+  (*solution)[solution->size()-2] = upper.value1;
+
   gsl_function F;
   F.function = &rootSolverFunction;
   F.params = this;

@@ -16,14 +16,15 @@ class Numerov: public Solver1D
 public:
   Numerov(): Solver1D("Numerov"){};
   void solve() override final;
-  void setUpperInitialCondition( double x1, double value1, double x2, double value2 );
-  void setLowerInitialCondition( double x1, double value1, double x2, double value2 );
+  void setUpperInitialCondition( double x1, double value1, double value2 );
+  void setLowerInitialCondition( double x1, double value1, double value2 );
   void setInitialEigenvalue( double eigen ){ eigenvalue = eigen; };
   void setMaxIter( unsigned int mxIter ){ maxIterations = mxIter; };
   void setPropgationWavenumberLimits( double beta_min, double beta_max );
   void fillJsonObj( Json::Value &obj ) const override final;
+  void setStepsize( double step ){ stepsize=step; };
 private:
-  double stepsize;
+  double stepsize{-1.0};
   unsigned int iter{0};
   InitialCondition upper;
   InitialCondition lower;
