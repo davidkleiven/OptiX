@@ -22,17 +22,18 @@ int main( int argc, char** argv )
   wg.setWaveLength( 0.1 );
 
   Numerov solver;
-  solver.setUpperInitialCondition( 100.0, 1E-3, 0.0);
-  solver.setLowerInitialCondition( -100.0, 0.0, 1E-3);
-  solver.setStepsize(0.01); // 1 nm
+  solver.setUpperInitialCondition( 500.0, 1E-2, 0.0);
+  solver.setLowerInitialCondition( -600.0, 0.0, 1E-2);
+  solver.setStepsize(0.0001); // 1 nm
+  solver.setMaxIter(1);
 
   wg.setSolver( solver );
   try
   {
-    solver.setPropgationWavenumberLimits( 0.999, 1.0);
+    solver.setPropgationWavenumberLimits( 0.7, 1.0);
     wg.solve();
-    //string fname("data/waveguide");
-    //wg.save(fname);
+    string fname("data/waveguide");
+    wg.save(fname);
   }
   catch ( exception &exc )
   {

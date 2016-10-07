@@ -7,8 +7,7 @@ struct InitialCondition
 {
   double x1;
   double value1;
-  double x2;
-  double value2;
+  double value2; // Value at x1+stepsize
 };
 
 class Numerov: public Solver1D
@@ -23,7 +22,7 @@ public:
   void setPropgationWavenumberLimits( double beta_min, double beta_max );
   void fillJsonObj( Json::Value &obj ) const override final;
   void setStepsize( double step ){ stepsize=step; };
-private:
+protected:
   double stepsize{-1.0};
   unsigned int iter{0};
   InitialCondition upper;

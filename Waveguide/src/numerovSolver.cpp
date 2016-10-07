@@ -43,7 +43,7 @@ void Numerov::iterateForward( unsigned int last )
   double yn = (*solution)[last];
   double yn_m1 = (*solution)[last-1];
   (*solution)[last + 1] = 2.0*yn*alpha_n(currX) - yn_m1*alpha_nm1(prevX);
-  (*solution)[last+1] /= alpha_np1(nextX);
+  (*solution)[last + 1] /= alpha_np1(nextX);
 }
 
 void Numerov::iterateBackward( unsigned int last )
@@ -57,13 +57,12 @@ void Numerov::iterateBackward( unsigned int last )
   double yn_p1 = (*solution)[last+1];
   (*solution)[last-1] = 2.0*yn*alpha_n(currX) - yn_p1*alpha_np1(prevX);
   (*solution)[last-1] /= alpha_nm1(nextX);
-  cout << (*solution)[last] << " ";
 }
 
 double Numerov::effectivePotential( double x ) const
 {
   double k = waveguide->getWavenumber();
-  return (waveguide->potential(x) + eigenvalue*eigenvalue - k*k);
+  return -(waveguide->potential(x) + eigenvalue*eigenvalue - k*k);
 }
 
 double Numerov::alpha_np1( double x ) const
@@ -84,11 +83,12 @@ double Numerov::alpha_nm1( double x ) const
 void Numerov::iterateAll()
 {
   unsigned int N = solution->size();
-  for ( unsigned int i=1;i<N/2;i++ )
+  unsigned int meetingPoint = N/2;
+  for ( unsigned int i=1;i<meetingPoint-1;i++ )
   {
     iterateForward(i);
   }
-  for ( unsigned int i=solution->size()-2;i>N/2;i--)
+  for ( unsigned int i=solution->size()-2;i>meetingPoint;i--)
   {
     iterateBackward(i);
   }
@@ -112,16 +112,16 @@ void Numerov::solve()
   }
 
   cerr << beta_min << " " << beta_max << endl;
-  double middle = 0.5*(upper.x2 + lower.x1);
-  unsigned int N = (upper.x2 - lower.x1)/stepsize;
+  unsigned int N = (upper.x1 + stepsize - lower.x1)/stepsize;
 
   // Set the solution size
   solution->clear();
   solution->resize(N);
+  fill( solution->begin(), solution->end(), 0.0);
   (*solution)[0] = lower.value1;
   (*solution)[1] = lower.value2;
-  (*solution)[solution->size()-1] = upper.value2;
   (*solution)[solution->size()-2] = upper.value1;
+  (*solution)[solution->size()-1] = upper.value2;
 
   gsl_function F;
   F.function = &rootSolverFunction;
@@ -142,6 +142,7 @@ void Numerov::solve()
   iter = 0;
   while (( status == GSL_CONTINUE ) && ( iter < maxIterations ))
   {
+    cout << "\n=================== ITER " << iter << " =====================================\n";
     iter++;
     eigenvalue = gsl_root_fsolver_root(s);
     beta_min = gsl_root_fsolver_x_lower(s);
@@ -159,7 +160,7 @@ void Numerov::fillJsonObj( Json::Value &obj ) const
 {
   Solver1D::fillJsonObj(obj);
   obj["xmin"] = lower.x1;
-  obj["xmax"] = upper.x2;
+  obj["xmax"] = upper.x1+stepsize;
   obj["iterations"] = iter;
   obj["maxIterations"] = maxIterations;
   obj["beta_min"] = beta_min;
