@@ -13,6 +13,7 @@ class Solver1D
     double getEigenvalue() const { return eigenvalue; };
     std::string getName() const { return name; };
     void setGuide( const WaveGuide1DSimulation &guide ){ waveguide = &guide; };
+    const std::vector<double>& getSolution() const { return *solution; };
   protected:
     std::string name;
     double eigenvalue;
