@@ -7,6 +7,54 @@ import numpy as np
 import json
 import h5py as h5
 from matplotlib import pyplot as plt
+DELTA = 4.14E-5 # Salditt et al
+BETA = 3.45E-6 # Salditt et al
+
+def damping( u, v, k, width, eigenvalue, R ):
+    q = np.sqrt( k**2 - eigenvalue )
+    print q
+    return np.exp(-BETA*v*k**2/q*(1.0+2.0*u/R))
+
+def plot2DInRealCrd( u, transverseProfile, stat ):
+    R = stat["outerRadius"]
+    v = np.linspace(0.0, 5E5, 1001)
+    U, V = np.meshgrid(u,v)
+    A = damping(U, V, stat["wavenumber"], stat["width"], stat["solver"]["eigenvalue"], R)
+    energy = np.zeros(U.shape)
+    for i in range(0, U.shape[1]):
+        if (( U[0,i] > 0.0 ) or ( U[0,i] < -stat["width"])):
+            energy[:,i] = transverseProfile[i]*A[:,i]
+        else:
+            energy[:,i] = transverseProfile[i]
+
+    plt.contourf(U,V/1000.0, energy, 100, cmap="gist_heat", norm=mpl.colors.LogNorm())
+    plt.xlabel("$u$ (nm)")
+    plt.ylabel("$v \; (\mathrm{\mu m})$")
+    fname = "Figures/profile2D_uvplane.png"
+    plt.savefig(fname, bbox_inches="tight", dpi=300)
+    print ("Figure written to %s"%(fname))
+
+    plt.clf()
+
+    XYcompl = R*np.exp((U+1j*V)/R)
+    transverse = XYcompl.real
+    longitudinal = XYcompl.imag
+
+    plt.contourf(longitudinal/1000.0,transverse,energy, 100, cmap="gist_heat", norm=mpl.colors.LogNorm())
+    plt.xlabel("$z \; (\mathrm{\mu m}$)")
+    plt.ylabel("$x$ (nm)")
+    fname = "Figures/profile2D_xyplane.png"
+    plt.savefig(fname, bbox_inches="tight", dpi=300)
+    print ("Figure written to %s"%(fname))
+    return longitudinal, transverse, energy
+
+def computeEffectiveFieldAbsorption( x, profile, wgstart, wgend ):
+    totalpower = np.sum(profile**2)
+    indxstart = np.argmin( np.abs(x-wgstart) )
+    indxend = np.argmin( np.abs(x-wgend) )
+    inside = np.sum(profile[indxstart:indxend]**2)
+    outside = totalpower-inside
+    return BETA*outside/totalpower
 
 def main(argv):
     fname = ""
@@ -32,7 +80,7 @@ def main(argv):
 
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
-    ax.plot( u, data, 'k')
+    ax.plot( u, data**2, 'k')
     figname = "Figures/profile.pdf"
     fig.savefig(figname, bbox_inches="tight")
     print ("Figure written to %s"%(figname))
@@ -47,5 +95,9 @@ def main(argv):
     fname = "Figures/potential.pdf"
     fig.savefig( fname, bbox_inches="tight")
     print ("Figure written to %s"%(fname))
+
+    longitudinal, transverse, energy = plot2DInRealCrd(u, data, stat )
+    absorb = computeEffectiveFieldAbsorption( u, data, -stat["width"], 0.0)
+    print "Absorption %.2E"%(absorb)
 if __name__ == "__main__":
     main(sys.argv[1:])

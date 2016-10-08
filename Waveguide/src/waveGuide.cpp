@@ -63,6 +63,10 @@ void WaveGuide1DSimulation::save( const string &fname ) const
   base["name"] = name;
   base["potentialFname"] = potfname;
   base["potentialLabel"] = "potential";
+  base["innerRadius"] = innerRadius;
+  base["outerRadius"] = outerRadius;
+  base["width"] = width;
+  base["wavenumber"] = wavenumber;
 
   Json::StyledWriter sw;
 

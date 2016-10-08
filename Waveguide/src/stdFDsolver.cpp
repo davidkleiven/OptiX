@@ -40,6 +40,7 @@ void StandardFD::solve()
   }
 
   // Solve the symmetric tridiagonal system
+  cerr << N << endl;
   double eigvec[N*N];
   int info;
   char compz[] ="I";
