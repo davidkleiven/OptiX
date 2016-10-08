@@ -4,7 +4,8 @@ LDIR=/usr/lib/x86_64-linux-gnu/hdf5/serial/lib
 ODIR=obj
 SDIR=src
 
-SOURCES:= main.cpp cladding.cpp waveGuide.cpp waveGuideRadiusCurvature.cpp numerovSolver.cpp solver1D.cpp waveGuideStraight.cpp
+SOURCES:= main.cpp cladding.cpp waveGuide.cpp waveGuideRadiusCurvature.cpp numerovSolver.cpp solver1D.cpp waveGuideStraight.cpp \
+	        stdFDsolver.cpp
 OBJECTS := ${SOURCES:.cpp=.o}
 SOURCES := $(addprefix ${SDIR}/, ${SOURCES})
 OBJECTS := $(addprefix ${ODIR}/, ${OBJECTS})
