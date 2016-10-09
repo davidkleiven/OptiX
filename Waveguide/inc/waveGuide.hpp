@@ -29,6 +29,6 @@ protected:
   Solver1D *solver{NULL};
   static const double PI;
   std::string name;
-  void writePotentialToFile( const std::string &fname ) const;
+  void writePotentialToFile( const std::string &fname, double xmin, double xmax ) const;
 };
 #endif

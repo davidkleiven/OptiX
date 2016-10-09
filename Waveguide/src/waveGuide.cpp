@@ -51,7 +51,9 @@ void WaveGuide1DSimulation::save( const string &fname ) const
   H5LTmake_dataset( file_id, h5dataname.c_str(), rank, &dims, H5T_NATIVE_DOUBLE, &solver->getSolution()[0]);
 
   H5Fclose(file_id);
-  writePotentialToFile( potfname );
+  double potXmin = -2.0*width;
+  double potXmax = width;
+  writePotentialToFile( potfname, potXmin, potXmax );
 
   // Write information to a json file
   Json::Value base;
@@ -67,6 +69,8 @@ void WaveGuide1DSimulation::save( const string &fname ) const
   base["outerRadius"] = outerRadius;
   base["width"] = width;
   base["wavenumber"] = wavenumber;
+  base["potentialXmin"] = potXmin;
+  base["potentialXmax"] = potXmax;
 
   Json::StyledWriter sw;
 
@@ -84,10 +88,8 @@ void WaveGuide1DSimulation::save( const string &fname ) const
   cout << "Statistics and information written to " << jsonfname << endl;
 }
 
-void WaveGuide1DSimulation::writePotentialToFile( const string &fname ) const
+void WaveGuide1DSimulation::writePotentialToFile( const string &fname, double xmin, double xmax ) const
 {
-  double xmin = -2.0*width;
-  double xmax = width;
   unsigned int N = 100;
   vector<double> pot;
   for ( unsigned int i=0;i<N;i++ )

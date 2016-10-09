@@ -31,7 +31,7 @@ def plot2DInRealCrd( u, transverseProfile, stat ):
     plt.xlabel("$u$ (nm)")
     plt.ylabel("$v \; (\mathrm{\mu m})$")
     fname = "Figures/profile2D_uvplane.png"
-    plt.savefig(fname, bbox_inches="tight", dpi=300)
+    plt.savefig(fname, bbox_inches="tight", dpi=800)
     print ("Figure written to %s"%(fname))
 
     plt.clf()
@@ -41,10 +41,11 @@ def plot2DInRealCrd( u, transverseProfile, stat ):
     longitudinal = XYcompl.imag
 
     plt.contourf(longitudinal/1000.0,transverse,energy, 100, cmap="gist_heat", norm=mpl.colors.LogNorm())
+    plt.gca().set_axis_bgcolor("#3E0000")
     plt.xlabel("$z \; (\mathrm{\mu m}$)")
     plt.ylabel("$x$ (nm)")
     fname = "Figures/profile2D_xyplane.png"
-    plt.savefig(fname, bbox_inches="tight", dpi=300)
+    plt.savefig(fname, bbox_inches="tight", dpi=800)
     print ("Figure written to %s"%(fname))
     return longitudinal, transverse, energy
 
@@ -96,6 +97,8 @@ def main(argv):
     ax.plot( u, data**2, 'k')
     ymin, ymax = ax.get_ylim()
     ax = addShadedBkg( ax, -stat["width"], 0.0)
+    ax.set_xlabel("$u$ (nm)")
+    ax.set_ylabel("Intensity (a.u.)")
     figname = "Figures/profile.pdf"
     fig.savefig(figname, bbox_inches="tight")
     print ("Figure written to %s"%(figname))
@@ -106,7 +109,10 @@ def main(argv):
 
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
-    ax.plot(potential, 'k')
+    xPot = np.linspace( stat["potentialXmin"], stat["potentialXmax"], len(potential))
+    ax.plot(xPot, potential, 'k')
+    ax.set_xlabel("$u$ (nm)")
+    ax.set_ylabel("Potential (nm$^{-2}$)")
     fname = "Figures/potential.pdf"
     fig.savefig( fname, bbox_inches="tight")
     print ("Figure written to %s"%(fname))
