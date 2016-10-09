@@ -56,6 +56,19 @@ def computeEffectiveFieldAbsorption( x, profile, wgstart, wgend ):
     outside = totalpower-inside
     return BETA*outside/totalpower
 
+def addShadedBkg(ax, wgstart, wgend):
+    xmin, xmax = ax.get_xlim()
+    ymin, ymax = ax.get_ylim()
+    width1 = wgstart-xmin
+    height = ymax-ymin
+    width2 = xmax-wgend
+    color = "#d3d3d3"
+    R1 = mpl.patches.Rectangle((xmin,ymin), width1, height, facecolor=color, edgecolor="none")
+    R2 = mpl.patches.Rectangle((wgend,ymin), width2, height, facecolor=color, edgecolor="none")
+    ax.add_patch(R1)
+    ax.add_patch(R2)
+    return ax
+
 def main(argv):
     fname = ""
     for arg in argv:
@@ -81,6 +94,8 @@ def main(argv):
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
     ax.plot( u, data**2, 'k')
+    ymin, ymax = ax.get_ylim()
+    ax = addShadedBkg( ax, -stat["width"], 0.0)
     figname = "Figures/profile.pdf"
     fig.savefig(figname, bbox_inches="tight")
     print ("Figure written to %s"%(figname))
