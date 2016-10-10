@@ -17,8 +17,20 @@ public:
   CrankNicholson():Solver2D("CrankNicholson"){};
   ~CrankNicholson();
   void build() override final;
+  void solve() override final;
 private:
+  static unsigned int rowColToIndx( unsigned int Nz, unsigned int ix, unsigned int iz );
+  static void indxToRowCol( unsigned int Nz, unsigned int indx, unsigned int &ix, unsigned int &iz );
   CSRBuild< std::complex<double> > matrix;
+
+  unsigned int Nx;
+  unsigned int Nz;
+  double stepX, stepZ;
+  double xmin;
+  double zmin;
+  double wavenumber;
+
+  void solveCurrent( double iz );
 };
 
 #endif
