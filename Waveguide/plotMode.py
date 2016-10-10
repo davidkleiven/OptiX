@@ -30,7 +30,7 @@ def plot2DInRealCrd( u, transverseProfile, stat ):
     plt.contourf(U,V/1000.0, energy, 100, cmap="gist_heat", norm=mpl.colors.LogNorm())
     plt.xlabel("$u$ (nm)")
     plt.ylabel("$v \; (\mathrm{\mu m})$")
-    fname = "Figures/profile2D_uvplane.png"
+    fname = "Figures/profile2D_uvplane.jpeg"
     plt.savefig(fname, bbox_inches="tight", dpi=800)
     print ("Figure written to %s"%(fname))
 
@@ -44,7 +44,7 @@ def plot2DInRealCrd( u, transverseProfile, stat ):
     plt.gca().set_axis_bgcolor("#3E0000")
     plt.xlabel("$z \; (\mathrm{\mu m}$)")
     plt.ylabel("$x$ (nm)")
-    fname = "Figures/profile2D_xyplane.png"
+    fname = "Figures/profile2D_xyplane.jpeg"
     plt.savefig(fname, bbox_inches="tight", dpi=800)
     print ("Figure written to %s"%(fname))
     return longitudinal, transverse, energy
