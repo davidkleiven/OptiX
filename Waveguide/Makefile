@@ -5,7 +5,7 @@ ODIR=obj
 SDIR=src
 
 SOURCES:= main.cpp cladding.cpp waveGuide.cpp waveGuideRadiusCurvature.cpp numerovSolver.cpp solver1D.cpp waveGuideStraight.cpp \
-	        stdFDsolver.cpp
+	        stdFDsolver.cpp crancNicholson.cpp waveGuideFDSimulation.cpp
 OBJECTS := ${SOURCES:.cpp=.o}
 SOURCES := $(addprefix ${SDIR}/, ${SOURCES})
 OBJECTS := $(addprefix ${ODIR}/, ${OBJECTS})
