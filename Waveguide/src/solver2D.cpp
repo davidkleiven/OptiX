@@ -2,6 +2,7 @@
 #include "waveGuideFDSimulation.hpp"
 #include <complex>
 #include <stdexcept>
+#include <iostream>
 
 using namespace std;
 
@@ -59,9 +60,9 @@ void Solver2D::realOrImagPart( double **compsolution, Comp_t comp ) const
     throw (runtime_error("No equation system has been solved!"));
   }
 
-  for ( unsigned int iz;iz<guide->nodeNumberLongitudinal(); iz++ )
+  for ( unsigned int iz=0;iz<guide->nodeNumberLongitudinal(); iz++ )
   {
-    for ( unsigned int ix; ix < guide->nodeNumberTransverse(); ix++ )
+    for ( unsigned int ix=0; ix < guide->nodeNumberTransverse(); ix++ )
     {
       switch ( comp )
       {

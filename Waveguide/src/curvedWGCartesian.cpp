@@ -25,6 +25,7 @@ int main( int argc, char **argv )
 
   try
   {
+    clog << "Initializing simulation...";
     string fname( "data/intensity2D_FD" );
     CurvedWaveGuideFD wg;
     wg.setRadiusOfCurvature( 40E6 );
@@ -36,8 +37,14 @@ int main( int argc, char **argv )
     CrankNicholson solver;
     wg.setSolver(solver);
     wg.setBoundaryConditions();
+    clog << " done\n";
+    clog << "Solving linear system... ";
     wg.solve();
+    clog << "done\n";
+    clog << "Exporting results...\n";
     wg.save(fname);
+    clog << "Finished exporting\n";
+
   }
   catch ( exception &exc )
   {
@@ -48,5 +55,7 @@ int main( int argc, char **argv )
   {
     cerr << "An unrecognized exception occured!\n";
   }
+
+  clog << "The simulation ended successfully\n";
   return 0;
 }

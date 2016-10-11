@@ -31,7 +31,7 @@ protected:
   double wavenumber{1.0};
   ThomasAlgorithm matrixSolver;
 
-  void solveCurrent( double iz );
+  void solveCurrent( unsigned int iz );
 };
 
 #endif

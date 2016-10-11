@@ -74,6 +74,11 @@ void WaveGuideFDSimulation::setCladding( const Cladding &clad )
 
 void WaveGuideFDSimulation::save( const string &fname ) const
 {
+  if ( solver == NULL )
+  {
+    throw ( runtime_error("No solver specified!\n"));
+  }
+
   string h5fname = fname+".h5";
   string jsonfname = fname+".json";
 
@@ -104,7 +109,8 @@ void WaveGuideFDSimulation::save( const string &fname ) const
   base["zDiscretization"]["max"] = zDisc->max;
   base["zDiscretization"]["step"] = zDisc->step;
   fillInfo( wginfo );
-  solver->fillInfo( solverInfo );
+  // TODO: For some reason the next line gives a segmentation fault
+  //solver->fillInfo( solverInfo );
   base["solver"] = solverInfo;
   base["waveguide"] = wginfo;
 
@@ -119,6 +125,7 @@ void WaveGuideFDSimulation::save( const string &fname ) const
 
   out << sw.write(base) << endl;
   out.close();
+  clog << "Information written to " << jsonfname << endl;
 }
 
 double** WaveGuideFDSimulation::allocateSolutionMatrix() const

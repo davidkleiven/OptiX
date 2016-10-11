@@ -26,7 +26,7 @@ bool CurvedWaveGuideFD::isInsideGuide( double x, double z ) const
 {
   // TODO: Issues with numerical pressicion here?
   double d = sqrt(x*x + z*z);
-  return ( d < R+width) && (d > R-width );
+  return ( d < R+width) && (d > R );
 }
 
 void CurvedWaveGuideFD::setBoundaryConditions()

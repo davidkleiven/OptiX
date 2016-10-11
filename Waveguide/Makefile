@@ -10,7 +10,8 @@ OBJECTS := ${SOURCES:.cpp=.o}
 SOURCES := $(addprefix ${SDIR}/, ${SOURCES})
 OBJECTS := $(addprefix ${ODIR}/, ${OBJECTS})
 
-TEST_SOURCES := thomasAlgTest.cpp numerovTest.cpp waveGuideRadiusCurvatureTest.cpp alltests.cpp testMatrixBuild.cpp
+TEST_SOURCES := thomasAlgTest.cpp numerovTest.cpp waveGuideRadiusCurvatureTest.cpp alltests.cpp testMatrixBuild.cpp \
+                curvedWaveGuide2DTest.cpp
 TEST_OBJECTS := ${TEST_SOURCES:%.cpp=%.o}
 TEST_SOURCES := $(addprefix unittest/, ${TEST_SOURCES})
 TEST_OBJECTS := $(addprefix unittest/, ${TEST_OBJECTS})

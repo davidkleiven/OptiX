@@ -34,7 +34,7 @@ void CrankNicholson::solve()
   }
 }
 
-void CrankNicholson::solveCurrent( double iz )
+void CrankNicholson::solveCurrent( unsigned int iz )
 {
   assert( iz>=1 );
   cdouble *subdiag = new cdouble[Nx-1];
@@ -72,6 +72,7 @@ void CrankNicholson::solveCurrent( double iz )
 
   // Solve the tridiagonal system
   matrixSolver.solve( diag, subdiag, rhs, Nx);
+
   delete [] rhs;
   delete [] subdiag;
 }
