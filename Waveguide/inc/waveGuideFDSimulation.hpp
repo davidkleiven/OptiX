@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <complex>
 #include <string>
+#include <jsoncpp/json/writer.h>
 class Solver2D;
 
 struct Disctretization
@@ -31,10 +32,12 @@ public:
   std::string getName() const { return name; };
   void setCladding( const Cladding &clad );
   const Cladding& getCladding() const { return *cladding; };
+  void save( const std::string &fname ) const;
 
   // Virtual methods
   virtual std::complex<double> getRefractiveIndex( double x, double z ) const = 0;
   virtual void setBoundaryConditions() = 0; // This function should fill the boundary
+  virtual void fillInfo( Json::Value &obj ) const {};
 protected:
   Solver2D *solver{NULL};
   Disctretization *xDisc; // Transverse
@@ -42,5 +45,8 @@ protected:
   double wavenumber;
   std::string name;
   const Cladding *cladding{NULL};
+
+  double** allocateSolutionMatrix() const;
+  void deallocateSolutionMatrix( double **matrix ) const;
 };
 #endif

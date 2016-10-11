@@ -11,6 +11,7 @@ public:
   CurvedWaveGuideFD(): WaveGuideFDSimulation("CurvedWaveGuide2D"){};
   cdouble getRefractiveIndex( double x, double z ) const override final;
   void setBoundaryConditions() override final;
+  void fillInfo( Json::Value &obj ) const override final;
 protected:
   double R;
   double width;

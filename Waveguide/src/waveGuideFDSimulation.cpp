@@ -1,7 +1,12 @@
 #include "waveGuideFDSimulation.hpp"
 #include "solver2D.hpp"
 #include "cladding.hpp"
+#include <H5Cpp.h>
+#include <hdf5_hl.h>
+#include <iostream>
+#include <fstream>
 
+using namespace std;
 WaveGuideFDSimulation::WaveGuideFDSimulation(): xDisc(new Disctretization), zDisc(new Disctretization), name(""){};
 
 WaveGuideFDSimulation::WaveGuideFDSimulation( const char* wgname ): WaveGuideFDSimulation()
@@ -47,4 +52,72 @@ void WaveGuideFDSimulation::setSolver( Solver2D &solv )
 void WaveGuideFDSimulation::setCladding( const Cladding &clad )
 {
   cladding = &clad;
+}
+
+void WaveGuideFDSimulation::save( const string &fname ) const
+{
+  string h5fname = fname+".h5";
+  string jsonfname = fname+".json";
+
+  hsize_t dims[2] = {nodeNumberLongitudinal(), nodeNumberTransverse()};
+  unsigned int rank = 2;
+  double **solution = allocateSolutionMatrix();
+
+  solver->realPart(solution);
+  hid_t file_id = H5Fcreate(h5fname.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT );
+  H5LTmake_dataset( file_id, "real", rank, dims, H5T_NATIVE_DOUBLE, solution);
+  solver->imagPart(solution);
+  H5LTmake_dataset( file_id, "imag", rank, dims, H5T_NATIVE_DOUBLE, solution);
+  H5Fclose(file_id);
+  deallocateSolutionMatrix(solution);
+  clog << "Solution written to " << h5fname << endl;
+
+  Json::Value base;
+  Json::Value wginfo;
+  Json::Value solverInfo;
+  wginfo["Cladding"]["real"] = cladding->getRefractiveIndex().real();
+  wginfo["Cladding"]["imag"] = cladding->getRefractiveIndex().imag();
+  base["datafile"] = h5fname;
+  base["name"] = name;
+  base["xDiscretization"]["min"] = xDisc->min;
+  base["xDiscretization"]["max"] = xDisc->max;
+  base["xDiscretization"]["step"] = xDisc->step;
+  base["zDiscretization"]["min"] = zDisc->min;
+  base["zDiscretization"]["max"] = zDisc->max;
+  base["zDiscretization"]["step"] = zDisc->step;
+  fillInfo( wginfo );
+  solver->fillInfo( solverInfo );
+  base["solver"] = solverInfo;
+  base["waveguide"] = wginfo;
+
+  Json::StyledWriter sw;
+
+  ofstream out(jsonfname.c_str());
+  if ( !out.good() )
+  {
+    cerr << "Could not open file " << jsonfname << endl;
+    return;
+  }
+
+  out << sw.write(base) << endl;
+  out.close();
+}
+
+double** WaveGuideFDSimulation::allocateSolutionMatrix() const
+{
+  double **solution = new double*[nodeNumberLongitudinal()];
+  for ( unsigned int i=0;i<nodeNumberLongitudinal();i++ )
+  {
+    solution[i] = new double[nodeNumberTransverse()];
+  }
+  return solution;
+}
+
+void WaveGuideFDSimulation::deallocateSolutionMatrix( double **matrix ) const
+{
+  for ( unsigned int i=0;i<nodeNumberLongitudinal();i++ )
+  {
+    delete [] matrix[i];
+  }
+  delete [] matrix;
 }

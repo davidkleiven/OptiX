@@ -35,3 +35,9 @@ void CurvedWaveGuideFD::setBoundaryConditions()
   vector<cdouble> values(Nx, 1.0);
   solver->setLeftBC(&values[0]);
 }
+
+void CurvedWaveGuideFD::fillInfo( Json::Value &obj ) const
+{
+  obj["RadiusOfCurvature"] = R;
+  obj["Width"] = width;
+}
