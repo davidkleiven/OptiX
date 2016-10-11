@@ -20,9 +20,6 @@ public:
   void solve() override final;
   void initValuesFromWaveGuide();
 protected:
-  static unsigned int rowColToIndx( unsigned int Nz, unsigned int ix, unsigned int iz );
-  static void indxToRowCol( unsigned int Nz, unsigned int indx, unsigned int &ix, unsigned int &iz );
-
   unsigned int Nx{0};
   unsigned int Nz{0};
   double stepX{1.0}, stepZ{1.0};

@@ -81,8 +81,9 @@ void WaveGuideFDSimulation::save( const string &fname ) const
 
   string h5fname = fname+".h5";
   string jsonfname = fname+".json";
+  string wgFname = fname+"_wg.h5";
 
-  hsize_t dims[2] = {nodeNumberLongitudinal(), nodeNumberTransverse()};
+  hsize_t dims[2] = {nodeNumberTransverse(), nodeNumberLongitudinal()};
   unsigned int rank = 2;
   double **solution = allocateSolutionMatrix();
 
@@ -95,12 +96,16 @@ void WaveGuideFDSimulation::save( const string &fname ) const
   deallocateSolutionMatrix(solution);
   clog << "Solution written to " << h5fname << endl;
 
+  saveWG( wgFname );
+  clog << "Points inside waveguide written to " << wgFname << endl;
+
   Json::Value base;
   Json::Value wginfo;
   Json::Value solverInfo;
-  wginfo["Cladding"]["real"] = cladding->getRefractiveIndex().real();
-  wginfo["Cladding"]["imag"] = cladding->getRefractiveIndex().imag();
+  wginfo["Cladding"]["delta"] = cladding->getDelta();
+  wginfo["Cladding"]["beta"] = cladding->getBeta();
   base["datafile"] = h5fname;
+  base["wgfile"] = wgFname;
   base["name"] = name;
   base["xDiscretization"]["min"] = xDisc->min;
   base["xDiscretization"]["max"] = xDisc->max;
@@ -130,19 +135,47 @@ void WaveGuideFDSimulation::save( const string &fname ) const
 
 double** WaveGuideFDSimulation::allocateSolutionMatrix() const
 {
-  double **solution = new double*[nodeNumberLongitudinal()];
-  for ( unsigned int i=0;i<nodeNumberLongitudinal();i++ )
+  double **solution = new double*[nodeNumberTransverse()];
+  for ( unsigned int i=0;i<nodeNumberTransverse();i++ )
   {
-    solution[i] = new double[nodeNumberTransverse()];
+    solution[i] = new double[nodeNumberLongitudinal()];
   }
   return solution;
 }
 
 void WaveGuideFDSimulation::deallocateSolutionMatrix( double **matrix ) const
 {
-  for ( unsigned int i=0;i<nodeNumberLongitudinal();i++ )
+  for ( unsigned int i=0;i<nodeNumberTransverse();i++ )
   {
     delete [] matrix[i];
   }
   delete [] matrix;
+}
+
+void WaveGuideFDSimulation::saveWG( const string &fname ) const
+{
+  vector<double> xInside;
+  vector<double> zInside;
+
+  for ( unsigned int ix=0; ix<nodeNumberTransverse(); ix++ )
+  {
+    double x = xDisc->min + static_cast<double>(ix)*xDisc->step;
+    for ( unsigned int iz=0; iz<nodeNumberLongitudinal(); iz++ )
+    {
+      double z = zDisc->min + static_cast<double>(iz)*zDisc->step;
+      if ( isInsideGuide( x, z ) )
+      {
+        xInside.push_back(x);
+        zInside.push_back(z);
+      }
+    }
+  }
+
+  hsize_t dim = xInside.size();
+  unsigned int rank = 1;
+
+  hid_t file_id = H5Fcreate(fname.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT );
+  H5LTmake_dataset( file_id, "xInside", rank, &dim, H5T_NATIVE_DOUBLE, &xInside[0]);
+  H5LTmake_dataset( file_id, "zInside", rank, &dim, H5T_NATIVE_DOUBLE, &zInside[0]);
+  H5Fclose(file_id);
 }

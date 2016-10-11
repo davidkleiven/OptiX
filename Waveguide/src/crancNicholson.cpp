@@ -39,21 +39,19 @@ void CrankNicholson::solveCurrent( unsigned int iz )
   assert( iz>=1 );
   cdouble *subdiag = new cdouble[Nx-1];
   cdouble *rhs = new cdouble[Nx];
+  cdouble *diag = new cdouble[Nx];
 
   // Two useful dimensionless numbers
   double rho = stepZ/(wavenumber*stepX*stepX);
   double r = wavenumber*stepZ;
 
-  cdouble alpha = 0.5*IMAG_UNIT/wavenumber;
-  cdouble *diag = getSolution( iz ); // Pointer to where the next solution should be stored
-  const cdouble *prevSol = getSolution( iz-1 );
-  double z = zmin + iz*stepZ;
-  for ( unsigned int ix=0;ix<Nx;ix++ )
+  double z = zmin + static_cast<double>(iz)*stepZ;
+  for ( unsigned int ix=0; ix<Nx; ix++ )
   {
-    double x = xmin + ix*stepX;
+    double x = xmin + static_cast<double>(ix)*stepX;
     double delta, beta;
     guide->getXrayMatProp( x, z, delta, beta );
-    diag[ix] = 1.0 + 0.5*IMAG_UNIT*rho + beta*r + IMAG_UNIT*delta*r;
+    diag[ix] = 1.0 + 0.5*IMAG_UNIT*rho + 0.5*(beta*r + IMAG_UNIT*delta*r);
 
     if ( ix < Nx-1 )
     {
@@ -63,32 +61,32 @@ void CrankNicholson::solveCurrent( unsigned int iz )
     // Fill right hand side
     if ( ix > 0 )
     {
-      rhs[ix] = prevSol[ix-1];
+      rhs[ix] = solution[ix-1][iz-1];
+    }
+    else
+    {
+      rhs[ix] = 0.0; // Make sure that it is not a random value
     }
 
     if ( ix < Nx-1 )
     {
-      rhs[ix] += prevSol[ix+1];
+      rhs[ix] += solution[ix+1][iz-1];
     }
     rhs[ix] *=  (0.25*IMAG_UNIT*rho);
-    rhs[ix] -= 0.5*prevSol[ix]*IMAG_UNIT*rho;
-    rhs[ix] += (1.0 - beta*r - IMAG_UNIT*delta*r)*prevSol[ix];
+    rhs[ix] -= 0.5*solution[ix][iz-1]*IMAG_UNIT*rho;
+    rhs[ix] += (1.0 - 0.5*(beta*r + IMAG_UNIT*delta*r) )*solution[ix][iz-1];
   }
 
   // Solve the tridiagonal system
   matrixSolver.solve( diag, subdiag, rhs, Nx);
 
+  // Copy solution to matrix
+  for ( unsigned int ix=0;ix<Nx;ix++ )
+  {
+    solution[ix][iz] = diag[ix];
+  }
+
   delete [] rhs;
   delete [] subdiag;
-}
-
-unsigned int CrankNicholson::rowColToIndx( unsigned int Nz, unsigned int ix, unsigned int iz )
-{
-  return ix*Nz+iz;
-}
-
-void CrankNicholson::indxToRowCol( unsigned int Nz, unsigned int indx, unsigned int &ix, unsigned int &iz )
-{
-  ix = indx/Nz;
-  iz = indx%Nz;
+  delete [] diag;
 }

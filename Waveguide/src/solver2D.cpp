@@ -11,10 +11,9 @@ Solver2D::~Solver2D()
   if ( solution != NULL )
   {
     unsigned int Nx = guide->nodeNumberTransverse();
-    unsigned int Nz = guide->nodeNumberLongitudinal();
-    for ( unsigned int iz=0;iz<Nz;iz++ )
+    for ( unsigned int ix=0;ix<Nx;ix++ )
     {
-      delete [] solution[iz];
+      delete [] solution[ix];
     }
     delete [] solution;
   }
@@ -25,10 +24,10 @@ void Solver2D::setGuide( const WaveGuideFDSimulation &wg )
   guide = &wg;
   unsigned int Nx = guide->nodeNumberTransverse();
   unsigned int Nz = guide->nodeNumberLongitudinal();
-  solution = new complex<double>*[Nz];
-  for ( unsigned int iz=0;iz<Nz;iz++ )
+  solution = new complex<double>*[Nx];
+  for ( unsigned int ix=0;ix<Nx;ix++ )
   {
-    solution[iz] = new complex<double>[Nx];
+    solution[ix] = new complex<double>[Nz];
   }
 }
 
@@ -40,7 +39,7 @@ void Solver2D::setLeftBC( const cdouble values[] )
   }
   for ( unsigned int i=0;i<guide->nodeNumberTransverse();i++ )
   {
-    solution[0][i] = values[i];
+    solution[i][0] = values[i];
   }
 }
 
@@ -60,17 +59,17 @@ void Solver2D::realOrImagPart( double **compsolution, Comp_t comp ) const
     throw (runtime_error("No equation system has been solved!"));
   }
 
-  for ( unsigned int iz=0;iz<guide->nodeNumberLongitudinal(); iz++ )
+  for ( unsigned int ix=0; ix<guide->nodeNumberTransverse(); ix++ )
   {
-    for ( unsigned int ix=0; ix < guide->nodeNumberTransverse(); ix++ )
+    for ( unsigned int iz=0; iz < guide->nodeNumberLongitudinal(); iz++ )
     {
       switch ( comp )
       {
         case Comp_t::REAL:
-          compsolution[iz][ix] = solution[iz][ix].real();
+          compsolution[ix][iz] = solution[ix][iz].real();
           break;
         case Comp_t::IMAG:
-          compsolution[iz][ix] = solution[iz][ix].imag();
+          compsolution[ix][iz] = solution[ix][iz].imag();
           break;
       }
     }

@@ -12,27 +12,29 @@ typedef complex<double> cdouble;
 int main( int argc, char **argv )
 {
   Cladding cladding;
-  double delta = 3.45E-5;
-  double beta = 3.45E-6;
+  //double delta = 3.45E-5;
+  //double beta = 3.45E-6;
+  double delta = 0.0;
+  double beta = 0.0;
   cladding.setRefractiveIndex(delta, beta);
   double Rcurv = 40E6;
   double width = 100.0;
   double xmax = Rcurv + 4.0*width;
   double xmin = xmax - 5E3;
-  double stepX = 10.0;
+  double stepX = 1.0;
   double zmin = 0.0;
-  double zmax = 5E3;
-  double stepZ = 1000.0;
+  double zmax = 500E3;
+  double stepZ = 100.0;
 
   try
   {
     clog << "Initializing simulation...";
     string fname( "data/intensity2D_FD" );
     CurvedWaveGuideFD wg;
-    wg.setRadiusOfCurvature( 40E6 );
-    wg.setWidth( 100.0 );
+    wg.setRadiusOfCurvature( Rcurv );
+    wg.setWidth( width );
     wg.setWaveLength( 0.1569 );
-    wg.setCladding(cladding);
+    wg.setCladding( cladding );
     wg.setTransverseDiscretization(xmin,xmax,stepX);
     wg.setLongitudinalDiscretization(zmin,zmax,stepZ);
     CrankNicholson solver;

@@ -17,6 +17,6 @@ public:
 protected:
   double R;
   double width;
-  bool isInsideGuide( double x, double z ) const;
+  bool isInsideGuide( double x, double z ) const override final;
 };
 #endif

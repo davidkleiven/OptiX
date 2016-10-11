@@ -8,23 +8,29 @@ import h5py as h5
 import json
 from matplotlib import pyplot as plt
 
-def plot2D(data, stat):
-    x = np.linspace(stat["xDiscretization"]["min"], stat["xDiscretization"]["max"], data.shape[0])
-    z = np.linspace(stat["zDiscretization"]["min"], stat["zDiscretization"]["max"], data.shape[1])
+def plot2D(dataReal, dataImag, stat):
+    x = np.linspace(stat["xDiscretization"]["min"], stat["xDiscretization"]["max"], dataReal.shape[0])
+    z = np.linspace(stat["zDiscretization"]["min"], stat["zDiscretization"]["max"], dataReal.shape[1])
     Z,X = np.meshgrid(z,x)
 
-    print np.max(data)
-    print np.min(data)
+    k = 2.0*np.pi/0.1569
+    field = (dataReal+1j*dataImag)*np.exp(1j*k*Z)
 
-    for i in range(0, data.shape[0]):
-        print data[i,:]
-
-    #plt.contourf(Z/1000.0,X,data, 200, cmap="gist_heat", norm=mpl.colors.LogNorm())
-    plt.contourf(data, cmap="gist_heat", norm=mpl.colors.LogNorm())
+    plt.contourf(Z/1000.0,X, np.abs(field)**2, 200, cmap="gist_heat")# norm=mpl.colors.LogNorm())
     plt.xlabel("$z$ ($\mathrm{\mu m}$)")
     plt.ylabel("$x$ (nm)")
     fname = "Figures/contourLinScale.jpeg"
     plt.savefig(fname, bbox_inches="tight", dpi=800)
+    print ("Figure written to %s"%(fname))
+
+def plotWG( x, z ):
+    fig = plt.figure()
+    ax = fig.add_subplot(1,1,1)
+    ax.plot( z/1000.0, x, 'k.')
+    ax.set_xlabel("$z$ $\mathrm{\mu m}$")
+    ax.set_ylabel("$x$ (nm)")
+    fname = "Figures/pointsInWG.jpeg"
+    fig.savefig(fname, bbox_inches="tight", dpi=800)
     print ("Figure written to %s"%(fname))
 
 def main(argv):
@@ -50,9 +56,12 @@ def main(argv):
     with h5.File(stat["datafile"], "r") as hf:
         dataReal = np.array( hf.get("real") )
         dataImag = np.array( hf.get("imag") )
-    print dataReal.shape
-    intensity = dataReal**2 + dataImag**2
-    plot2D( intensity, stat )
+
+    with h5.File(stat["wgfile"], 'r') as hf:
+        xInside = np.array( hf.get("xInside"))
+        zInside = np.array( hf.get("zInside"))
+    plot2D( dataReal, dataImag, stat )
+    #plotWG( xInside, zInside )
 
 if __name__ == "__main__":
     main(sys.argv[1:])

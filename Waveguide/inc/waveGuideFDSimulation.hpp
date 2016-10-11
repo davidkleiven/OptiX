@@ -35,6 +35,7 @@ public:
   const Cladding& getCladding() const { return *cladding; };
   void solve();
   void save( const std::string &fname ) const;
+  void saveWG( const std::string &fname ) const;
 
   // Virtual methods
   // Refractive index: n = 1 - delta + i*beta
@@ -51,5 +52,8 @@ protected:
 
   double** allocateSolutionMatrix() const;
   void deallocateSolutionMatrix( double **matrix ) const;
+
+  // Virtual funcitons
+  virtual bool isInsideGuide( double x, double z ) const = 0;
 };
 #endif
