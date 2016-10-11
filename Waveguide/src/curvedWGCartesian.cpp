@@ -1,7 +1,7 @@
 #include <iostream>
 #include "cladding.hpp"
 #include "curvedWaveGuide2D.hpp"
-#include "crancNicholson.hpp"
+#include "crankNicholson.hpp"
 #include <complex>
 #include <stdexcept>
 
@@ -12,16 +12,16 @@ typedef complex<double> cdouble;
 int main( int argc, char **argv )
 {
   Cladding cladding;
-  cdouble n(1.0-3.45E-5, 3,45E-6);
+  cdouble n(1.0-3.45E-5, 3.45E-6);
   cladding.setRefractiveIndex(n);
   double Rcurv = 40E6;
-  double width = 100.0,
+  double width = 100.0;
   double xmax = Rcurv + 4.0*width;
   double xmin = xmax - 5E3;
   double stepX = 1.0;
   double zmin = 0.0;
   double zmax = 500E3;
-  double stepZ = 10.0;
+  double stepZ = 100.0;
 
   try
   {

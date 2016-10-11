@@ -17,6 +17,15 @@ WaveGuideFDSimulation::WaveGuideFDSimulation( const char* wgname ): WaveGuideFDS
   name = wgname;
 }
 
+void WaveGuideFDSimulation::solve()
+{
+  if ( solver == NULL )
+  {
+    throw ( runtime_error("No solver specified!"));
+  }
+  solver->solve();
+}
+
 WaveGuideFDSimulation::~WaveGuideFDSimulation()
 {
   delete xDisc;

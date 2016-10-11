@@ -33,6 +33,7 @@ public:
   std::string getName() const { return name; };
   void setCladding( const Cladding &clad );
   const Cladding& getCladding() const { return *cladding; };
+  void solve();
   void save( const std::string &fname ) const;
 
   // Virtual methods

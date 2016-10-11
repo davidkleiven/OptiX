@@ -12,7 +12,7 @@ public:
   cdouble getRefractiveIndex( double x, double z ) const override final;
   void setBoundaryConditions() override final;
   void fillInfo( Json::Value &obj ) const override final;
-  void setRadiusOfCurvature( double newR ) { R = newR; };
+  void setRadiusOfCurvature( double newR ) { R = newR; };
   void setWidth( double newWidth ) { width = newWidth; };
 protected:
   double R;
