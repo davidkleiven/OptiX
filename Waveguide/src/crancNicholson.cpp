@@ -1,14 +1,22 @@
 #include "crankNicholson.hpp"
 #include "waveGuideFDSimulation.hpp"
 #include <cassert>
+#include <iostream>
+#include <stdexcept>
 
 using namespace std;
 
 typedef complex<double> cdouble;
 
 cdouble IMAG_UNIT(0.0,1.0);
-void CrankNicholson::solve()
+CrankNicholson::~CrankNicholson(){};
+
+void CrankNicholson::initValuesFromWaveGuide()
 {
+  if ( guide == NULL )
+  {
+    throw( runtime_error("No waveguide specified!"));
+  }
   Nx = guide->nodeNumberTransverse();
   Nz = guide->nodeNumberLongitudinal();
   stepX = guide->transverseDiscretization().step;
@@ -17,21 +25,30 @@ void CrankNicholson::solve()
   zmin = guide->longitudinalDiscretization().min;
   wavenumber = guide->getWavenumber();
 }
+void CrankNicholson::solve()
+{
+  initValuesFromWaveGuide();
+  for ( unsigned int iz=1;iz<Nz;iz++ )
+  {
+    solveCurrent( iz );
+  }
+}
+
 void CrankNicholson::solveCurrent( double iz )
 {
   assert( iz>=1 );
-  cdouble subdiag[Nx-1];
-  cdouble rhs[Nx];
+  cdouble *subdiag = new cdouble[Nx-1];
+  cdouble *rhs = new cdouble[Nx];
   cdouble alpha = 0.5*IMAG_UNIT/wavenumber;
-  cdouble diag[Nx];
-
+  cdouble *diag = getSolution( iz ); // Pointer to where the next solution should be stored
   const cdouble *prevSol = getSolution( iz-1 );
   double z = zmin + iz*stepZ;
   for ( unsigned int ix=0;ix<Nx;ix++ )
   {
     double x = xmin + ix*stepX;
-    cdouble gamma = guide->getRefractiveIndex( x, z )*0.5/wavenumber;
+    cdouble gamma = guide->getRefractiveIndex( x, z )*0.5*IMAG_UNIT/wavenumber;
     diag[ix] = 1.0/stepZ + alpha/(stepX*stepX) - 0.5*gamma;
+
     if ( ix < Nx-1 )
     {
       subdiag[ix] = -0.5*alpha/(stepX*stepX);
@@ -54,6 +71,9 @@ void CrankNicholson::solveCurrent( double iz )
   }
 
   // Solve the tridiagonal system
+  matrixSolver.solve( diag, subdiag, rhs, Nx);
+  delete [] rhs;
+  delete [] subdiag;
 }
 
 unsigned int CrankNicholson::rowColToIndx( unsigned int Nz, unsigned int ix, unsigned int iz )

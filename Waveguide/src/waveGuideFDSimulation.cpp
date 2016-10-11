@@ -1,4 +1,5 @@
 #include "waveGuideFDSimulation.hpp"
+#include "solver2D.hpp"
 
 WaveGuideFDSimulation::WaveGuideFDSimulation(): xDisc(new Disctretization), zDisc(new Disctretization){};
 
@@ -23,10 +24,16 @@ void WaveGuideFDSimulation::setLongitudinalDiscretization( double xmin, double x
 
 unsigned int WaveGuideFDSimulation::nodeNumberTransverse() const
 {
-  return (xDisc->max - xDisc->min)/xDisc->step;
+  return (xDisc->max - xDisc->min)/xDisc->step + 1.0;
 }
 
 unsigned int WaveGuideFDSimulation::nodeNumberLongitudinal() const
 {
-  return ( zDisc->max - zDisc->min)/zDisc->step;
+  return ( zDisc->max - zDisc->min)/zDisc->step + 1.0;
+}
+
+void WaveGuideFDSimulation::setSolver( Solver2D &solv )
+{
+  solver = &solv;
+  solver->setGuide( *this );
 }

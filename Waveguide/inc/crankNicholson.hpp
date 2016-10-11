@@ -1,6 +1,7 @@
 #ifndef CRANC_NICHOLSON_H
 #define CRANC_NICHOLSON_H
 #include "solver2D.hpp"
+#include "thomasAlgorithm.hpp"
 #include <complex>
 
 template<class T>
@@ -16,19 +17,19 @@ class CrankNicholson: public Solver2D
 public:
   CrankNicholson():Solver2D("CrankNicholson"){};
   ~CrankNicholson();
-  void build() override final;
   void solve() override final;
-private:
+  void initValuesFromWaveGuide();
+protected:
   static unsigned int rowColToIndx( unsigned int Nz, unsigned int ix, unsigned int iz );
   static void indxToRowCol( unsigned int Nz, unsigned int indx, unsigned int &ix, unsigned int &iz );
-  CSRBuild< std::complex<double> > matrix;
 
-  unsigned int Nx;
-  unsigned int Nz;
-  double stepX, stepZ;
-  double xmin;
-  double zmin;
-  double wavenumber;
+  unsigned int Nx{0};
+  unsigned int Nz{0};
+  double stepX{1.0}, stepZ{1.0};
+  double xmin{0.0};
+  double zmin{0.0};
+  double wavenumber{1.0};
+  ThomasAlgorithm matrixSolver;
 
   void solveCurrent( double iz );
 };

@@ -5,21 +5,26 @@
 
 class WaveGuideFDSimulation;
 
+typedef std::complex<double> cdouble;
 class Solver2D
 {
 public:
   Solver2D( const char* name ):name(name){};
-  virtual ~Solver2D(){};
+  virtual ~Solver2D();
   std::string getName() const { return name; };
   void setGuide( const WaveGuideFDSimulation &guide );
-  virtual void build() = 0; // Build the matrices and vectors
+  const cdouble* getSolution( unsigned int iz ) const { return solution[iz]; };
+
+  // Set boundary condition at z=0
+  void setLeftBC( const cdouble values[] );
+
+  // Virtual functions
   virtual void solve() = 0;
 protected:
   std::string name;
   const WaveGuideFDSimulation *guide;
-  std::complex<double> **solution{NULL};
+  cdouble **solution{NULL};
 
-  const std::complex<double>* getSolution( unsigned int iz ) const { return solution[iz]; };
-  std::complex<double>* getSolution( unsigned int iz ) { return solution[iz]; };
+  cdouble* getSolution( unsigned int iz ) { return solution[iz]; };
 };
 #endif
