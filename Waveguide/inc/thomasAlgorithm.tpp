@@ -22,7 +22,6 @@ void ThomasAlgorithm::solve( T diag[], const T subdiag[], T rhs[], unsigned int 
   }
 
   // Solve
-
   diag[N-1] = rhs[N-1];
   for ( int i=N-2;i>=0;i-- )
   {
