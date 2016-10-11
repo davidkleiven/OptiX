@@ -12,8 +12,9 @@ public:
   double getPotential() const { return potential; };
 
   // Alternatives
-  void setRefractiveIndex( cdouble refr ){ refrIndx=refr; };
-  cdouble getRefractiveIndex( ) const { return refrIndx; };
+  void setRefractiveIndex( double delta, double beta );
+  double getDelta() const { return delta; }
+  double getBeta() const { return beta; };
 private:
   void computePotential();
   double delta{0.0};
@@ -21,6 +22,5 @@ private:
   double thomsonScatteringLength{2.8179403267E-6}; // in nanometer
   double electronDensity{0.0};
   double potential{0.0}; // = 4pi*r0*rho
-  cdouble refrIndx;
 };
 #endif

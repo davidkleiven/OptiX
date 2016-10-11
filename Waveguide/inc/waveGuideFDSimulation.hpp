@@ -37,7 +37,8 @@ public:
   void save( const std::string &fname ) const;
 
   // Virtual methods
-  virtual std::complex<double> getRefractiveIndex( double x, double z ) const = 0;
+  // Refractive index: n = 1 - delta + i*beta
+  virtual void getXrayMatProp( double x, double z, double &delta, double &beta ) const = 0;
   virtual void setBoundaryConditions() = 0; // This function should fill the boundary
   virtual void fillInfo( Json::Value &obj ) const {};
 protected:

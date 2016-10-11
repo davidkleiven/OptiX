@@ -7,7 +7,7 @@
 
 using namespace std;
 
-cdouble CurvedWaveGuideFD::getRefractiveIndex( double x, double z) const
+void CurvedWaveGuideFD::getXrayMatProp( double x, double z, double &delta, double &beta) const
 {
   // Some assertions for debugging
   assert( cladding != NULL );
@@ -17,14 +17,15 @@ cdouble CurvedWaveGuideFD::getRefractiveIndex( double x, double z) const
   assert ( z <= zDisc->max );
   if ( isInsideGuide( x, z) )
   {
-    return 1.0;
+    beta = 0.0;
+    delta = 0.0;
   }
-  return cladding->getRefractiveIndex();
+  delta = cladding->getDelta();
+  beta = cladding->getBeta();
 }
 
 bool CurvedWaveGuideFD::isInsideGuide( double x, double z ) const
 {
-  // TODO: Issues with numerical pressicion here?
   double d = sqrt(x*x + z*z);
   return ( d < R+width) && (d > R );
 }

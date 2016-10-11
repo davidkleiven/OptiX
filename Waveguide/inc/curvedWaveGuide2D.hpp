@@ -9,7 +9,7 @@ class CurvedWaveGuideFD: public WaveGuideFDSimulation
 {
 public:
   CurvedWaveGuideFD(): WaveGuideFDSimulation("CurvedWaveGuide2D"){};
-  cdouble getRefractiveIndex( double x, double z ) const override final;
+  void getXrayMatProp( double x, double z, double &delta, double &beta ) const override final;
   void setBoundaryConditions() override final;
   void fillInfo( Json::Value &obj ) const override final;
   void setRadiusOfCurvature( double newR ) { R = newR; };

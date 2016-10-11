@@ -39,6 +39,11 @@ void CrankNicholson::solveCurrent( unsigned int iz )
   assert( iz>=1 );
   cdouble *subdiag = new cdouble[Nx-1];
   cdouble *rhs = new cdouble[Nx];
+
+  // Two useful dimensionless numbers
+  double rho = stepZ/(wavenumber*stepX*stepX);
+  double r = wavenumber*stepZ;
+
   cdouble alpha = 0.5*IMAG_UNIT/wavenumber;
   cdouble *diag = getSolution( iz ); // Pointer to where the next solution should be stored
   const cdouble *prevSol = getSolution( iz-1 );
@@ -46,12 +51,13 @@ void CrankNicholson::solveCurrent( unsigned int iz )
   for ( unsigned int ix=0;ix<Nx;ix++ )
   {
     double x = xmin + ix*stepX;
-    cdouble gamma = guide->getRefractiveIndex( x, z )*0.5*IMAG_UNIT/wavenumber;
-    diag[ix] = 1.0/stepZ + alpha/(stepX*stepX) - 0.5*gamma;
+    double delta, beta;
+    guide->getXrayMatProp( x, z, delta, beta );
+    diag[ix] = 1.0 + 0.5*IMAG_UNIT*rho + beta*r + IMAG_UNIT*delta*r;
 
     if ( ix < Nx-1 )
     {
-      subdiag[ix] = -0.5*alpha/(stepX*stepX);
+      subdiag[ix] = -0.25*IMAG_UNIT*rho;
     }
 
     // Fill right hand side
@@ -64,10 +70,9 @@ void CrankNicholson::solveCurrent( unsigned int iz )
     {
       rhs[ix] += prevSol[ix+1];
     }
-    rhs[ix] *=  0.5*alpha;
-    rhs[ix] -= prevSol[ix]*alpha;
-    rhs[ix] /= (stepX*stepX);
-    rhs[ix] += (0.5*gamma + 1.0/stepZ)*prevSol[ix];
+    rhs[ix] *=  (0.25*IMAG_UNIT*rho);
+    rhs[ix] -= 0.5*prevSol[ix]*IMAG_UNIT*rho;
+    rhs[ix] += (1.0 - beta*r - IMAG_UNIT*delta*r)*prevSol[ix];
   }
 
   // Solve the tridiagonal system

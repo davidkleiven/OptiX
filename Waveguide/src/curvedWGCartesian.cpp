@@ -12,16 +12,17 @@ typedef complex<double> cdouble;
 int main( int argc, char **argv )
 {
   Cladding cladding;
-  cdouble n(1.0-3.45E-5, 3.45E-6);
-  cladding.setRefractiveIndex(n);
+  double delta = 3.45E-5;
+  double beta = 3.45E-6;
+  cladding.setRefractiveIndex(delta, beta);
   double Rcurv = 40E6;
   double width = 100.0;
   double xmax = Rcurv + 4.0*width;
   double xmin = xmax - 5E3;
-  double stepX = 1.0;
+  double stepX = 10.0;
   double zmin = 0.0;
-  double zmax = 500E3;
-  double stepZ = 100.0;
+  double zmax = 5E3;
+  double stepZ = 1000.0;
 
   try
   {
