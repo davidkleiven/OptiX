@@ -2,6 +2,7 @@
 #define WAVE_GUIDE_FD_SIMULATION_H
 #include <cstddef>
 #include <complex>
+#include <string>
 class Solver2D;
 
 struct Disctretization
@@ -11,10 +12,12 @@ struct Disctretization
   double step;
 };
 
+class Cladding;
 class WaveGuideFDSimulation
 {
 public:
   WaveGuideFDSimulation();
+  WaveGuideFDSimulation(const char *name);
   ~WaveGuideFDSimulation();
   void setTransverseDiscretization( double xmin , double xmax, double step );
   void setLongitudinalDiscretization( double zmin , double zmax, double step );
@@ -25,6 +28,9 @@ public:
   double getWavenumber() const{ return wavenumber; };
   void setWavenumber( double k ){ wavenumber = k; };
   void setSolver( Solver2D &solv );
+  std::string getName() const { return name; };
+  void setCladding( const Cladding &clad );
+  const Cladding& getCladding() const { return *cladding; };
 
   // Virtual methods
   virtual std::complex<double> getRefractiveIndex( double x, double z ) const = 0;
@@ -34,5 +40,7 @@ protected:
   Disctretization *xDisc; // Transverse
   Disctretization *zDisc; // Along optical axis
   double wavenumber;
+  std::string name;
+  const Cladding *cladding{NULL};
 };
 #endif

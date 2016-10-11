@@ -1,7 +1,13 @@
 #include "waveGuideFDSimulation.hpp"
 #include "solver2D.hpp"
+#include "cladding.hpp"
 
-WaveGuideFDSimulation::WaveGuideFDSimulation(): xDisc(new Disctretization), zDisc(new Disctretization){};
+WaveGuideFDSimulation::WaveGuideFDSimulation(): xDisc(new Disctretization), zDisc(new Disctretization), name(""){};
+
+WaveGuideFDSimulation::WaveGuideFDSimulation( const char* wgname ): WaveGuideFDSimulation()
+{
+  name = wgname;
+}
 
 WaveGuideFDSimulation::~WaveGuideFDSimulation()
 {
@@ -36,4 +42,9 @@ void WaveGuideFDSimulation::setSolver( Solver2D &solv )
 {
   solver = &solv;
   solver->setGuide( *this );
+}
+
+void WaveGuideFDSimulation::setCladding( const Cladding &clad )
+{
+  cladding = &clad;
 }
