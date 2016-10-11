@@ -5,6 +5,9 @@
 #include <hdf5_hl.h>
 #include <iostream>
 #include <fstream>
+#include <cmath>
+
+const double PI = acos(-1.0);
 
 using namespace std;
 WaveGuideFDSimulation::WaveGuideFDSimulation(): xDisc(new Disctretization), zDisc(new Disctretization), name(""){};
@@ -19,6 +22,12 @@ WaveGuideFDSimulation::~WaveGuideFDSimulation()
   delete xDisc;
   delete zDisc;
 }
+
+void WaveGuideFDSimulation::setWaveLength( double lambda )
+{
+  wavenumber = 2.0*PI/lambda;
+}
+
 void WaveGuideFDSimulation::setTransverseDiscretization( double xmin, double xmax, double step )
 {
   xDisc->min = xmin;

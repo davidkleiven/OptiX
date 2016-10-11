@@ -28,6 +28,7 @@ public:
   const Disctretization& longitudinalDiscretization() const { return *zDisc; };
   double getWavenumber() const{ return wavenumber; };
   void setWavenumber( double k ){ wavenumber = k; };
+  void setWaveLength( double lambda );
   void setSolver( Solver2D &solv );
   std::string getName() const { return name; };
   void setCladding( const Cladding &clad );
