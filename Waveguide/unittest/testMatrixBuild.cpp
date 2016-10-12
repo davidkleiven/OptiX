@@ -5,7 +5,8 @@
 #include <stdexcept>
 #include <vector>
 #include <armadillo>
-#define STEP 0.5
+#define STEP 0.2
+#define DEBUG
 
 using namespace std;
 
@@ -19,8 +20,8 @@ public:
   void setBoundaryConditions() override final;
   cdouble transverseBC( double z ) const override final;
   const Solver2D& getSolver() const { return *solver; };
-  double _delta;
-  double _beta;
+  double _delta{0.0};
+  double _beta{0.0};
 };
 
 cdouble MinimalWG::transverseBC( double z ) const
@@ -93,6 +94,9 @@ BOOST_AUTO_TEST_CASE( testSolution )
     {
       if ( abs( sol(ix,iz).real() - expectedSolution) > 1E-4 )
       {
+        #ifdef DEBUG
+          cout << ix << " " << iz << " " << sol(ix,iz).real() << " " << expectedSolution << endl;
+        #endif
         numberOfUnequalElements++;
       }
     }
@@ -124,6 +128,9 @@ BOOST_AUTO_TEST_CASE( testWidthAbs )
       double expected = exp(-wg->_beta*z*0.1);
       if ( abs( sol(ix,iz).real() - expected) > 1E-2 )
       {
+        #ifdef DEBUG
+          cout << ix << " " << iz << " " << sol(ix,iz).real() << " " << expected << endl;
+        #endif
         numberOfUnequalElements++;
       }
     }
