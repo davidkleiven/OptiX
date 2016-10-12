@@ -42,8 +42,9 @@ def plot2D(data, stat):
 def plot2Dsparse( x, z, intensity, stat ):
     print ("Using sparse plotting by triangulation...")
     trianulation = tri.Triangulation( z/1000.0, x )
+    print ("Mesh finished...")
     plt.clf()
-    plt.tricontour( trianulation, intensity**2, cmap="gist_heat")
+    plt.tripcolor( intensity**2, shading="gouraud", cmap="gist_heat")
     plt.xlabel("$z$ ($\mathrm{\mu m}$)")
     plt.ylabel("$x$ (nm)")
     plt.colorbar()
@@ -51,6 +52,7 @@ def plot2Dsparse( x, z, intensity, stat ):
     plt.savefig(fname, bbox_inches="tight", dpi=800)
     print ("Figure written to %s"%(fname))
 
+    '''
     plt.clf()
     plt.tricontour( trianulation, intensity**2, cmap="gist_heat", norm=mpl.colors.LogNorm(np.min(intensity**2), np.max(intensity**2)))
     plt.xlabel("$z$ ($\mathrm{\mu m}$)")
@@ -59,6 +61,7 @@ def plot2Dsparse( x, z, intensity, stat ):
     fname = "Figures/contourLogScale.jpeg"
     plt.savefig(fname, bbox_inches="tight", dpi=800)
     print ("Figure written to %s"%(fname))
+    '''
 
 def plotWG( x, z ):
     fig = plt.figure()
