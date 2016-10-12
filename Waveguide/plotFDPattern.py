@@ -44,7 +44,7 @@ def plot2Dsparse( x, z, intensity, stat ):
     #trianulation = tri.Triangulation( z/1000.0, x )
     zInterp = np.linspace(np.min(z), np.max(z), 501)
     xInterp = np.linspace(np.min(x), np.max(x), 501)
-    intensityInterp = interpolate.griddata( [z,x], intensity, [zInterp,xInterp], method="cubic")
+    intensityInterp = interpolate.griddata( [z,x], intensity, [zInterp,xInterp], method="linear")
     Z, X = np.meshgrid( zInterp, xInterp )
     print ("Interpolation...")
     plt.clf()
