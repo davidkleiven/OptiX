@@ -56,6 +56,7 @@ protected:
   double* allocateSolutionMatrix() const;
   void deallocateSolutionMatrix( double *matrix ) const;
 
+  void sparseSave( const std::string &fname, double intensityThreshold ) const;
   // Virtual funcitons
   virtual bool isInsideGuide( double x, double z ) const { return true; };
 };

@@ -84,22 +84,17 @@ void WaveGuideFDSimulation::save( const string &fname ) const
   string wgFname = fname+"_wg.h5";
 
   //arma::abs(solver->getSolution()).save(h5fname.c_str(), arma::hdf5_binary);
-  arma::mat absSol = arma::abs(solver->getSolution());
-  absSol.save(h5fname.c_str(), arma::hdf5_binary);
-
-  /*
-  hsize_t dims[2] = {nodeNumberTransverse(), nodeNumberLongitudinal()};
-  unsigned int rank = 2;
-  double *solution = allocateSolutionMatrix();
-
-  solver->realPart(solution);
-  hid_t file_id = H5Fcreate(h5fname.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT );
-  H5LTmake_dataset( file_id, "real", rank, dims, H5T_NATIVE_DOUBLE, solution);
-  solver->imagPart(solution);
-  H5LTmake_dataset( file_id, "imag", rank, dims, H5T_NATIVE_DOUBLE, solution);
-  H5Fclose(file_id);
-  deallocateSolutionMatrix(solution);
-  */
+  bool useSparse = true;
+  double threshold = 1E-4;
+  if ( useSparse )
+  {
+    sparseSave( h5fname, threshold );
+  }
+  else
+  {
+    arma::mat absSol = arma::abs(solver->getSolution());
+    absSol.save(h5fname.c_str(), arma::hdf5_binary);
+  }
   clog << "Solution written to " << h5fname << endl;
 
   saveWG( wgFname );
@@ -113,6 +108,8 @@ void WaveGuideFDSimulation::save( const string &fname ) const
   base["datafile"] = h5fname;
   base["wgfile"] = wgFname;
   base["name"] = name;
+  base["sparseSave"] = useSparse;
+  base["sparseThreshold"] = threshold;
   base["xDiscretization"]["min"] = xDisc->min;
   base["xDiscretization"]["max"] = xDisc->max;
   base["xDiscretization"]["step"] = xDisc->step;
@@ -175,5 +172,36 @@ void WaveGuideFDSimulation::saveWG( const string &fname ) const
   hid_t file_id = H5Fcreate(fname.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT );
   H5LTmake_dataset( file_id, "xInside", rank, &dim, H5T_NATIVE_DOUBLE, &xInside[0]);
   H5LTmake_dataset( file_id, "zInside", rank, &dim, H5T_NATIVE_DOUBLE, &zInside[0]);
+  H5Fclose(file_id);
+}
+
+void WaveGuideFDSimulation::sparseSave( const string &fname, double intensityThreshold ) const
+{
+  vector<double> xSave;
+  vector<double> zSave;
+  vector<double> intensity;
+  unsigned int Nx = nodeNumberTransverse();
+  unsigned int Nz = nodeNumberLongitudinal();
+  arma::cx_mat sol = solver->getSolution();
+  for ( unsigned int ix=0;ix<Nx; ix++ )
+  {
+    for ( unsigned int iz=0; iz<Nz; iz++ )
+    {
+      if ( abs(sol(ix, iz)) > intensityThreshold )
+      {
+        double x = xDisc->min + static_cast<double>(ix)*xDisc->step;
+        double z = zDisc->min + static_cast<double>(iz)*zDisc->step;
+        xSave.push_back(x);
+        zSave.push_back(z);
+        intensity.push_back( abs(sol(ix,iz)));
+      }
+    }
+  }
+
+  hsize_t dim = xSave.size();
+  hid_t file_id = H5Fcreate( fname.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+  H5LTmake_dataset( file_id, "x", 1, &dim, H5T_NATIVE_DOUBLE, &xSave[0]);
+  H5LTmake_dataset( file_id, "z", 1, &dim, H5T_NATIVE_DOUBLE, &zSave[0]);
+  H5LTmake_dataset( file_id, "intensity", 1, &dim, H5T_NATIVE_DOUBLE, &intensity[0]);
   H5Fclose(file_id);
 }
