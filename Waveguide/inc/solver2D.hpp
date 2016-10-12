@@ -8,6 +8,8 @@
 class WaveGuideFDSimulation;
 
 typedef std::complex<double> cdouble;
+
+
 class Solver2D
 {
 public:
@@ -16,7 +18,8 @@ public:
   virtual ~Solver2D();
   std::string getName() const { return name; };
   void setGuide( const WaveGuideFDSimulation &guide );
-  const arma::cx_mat& getSolution( unsigned int iz ) const { return *solution; };
+  const arma::cx_mat& getSolution( unsigned int iz ) const { return *solution; }; // Depricated. iz is not used.
+  const arma::cx_mat& getSolution() const { return *solution; };
   void realPart( double *realsolution ) const;
   void imagPart( double *imagsolution ) const;
 

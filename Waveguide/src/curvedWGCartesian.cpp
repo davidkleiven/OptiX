@@ -26,7 +26,7 @@ int main( int argc, char **argv )
   double stepX = 3.0;
   double zmin = 0.0;
   double zmax = 500E3;
-  double stepZ = 3.0;
+  double stepZ = 30.0;
 
   try
   {

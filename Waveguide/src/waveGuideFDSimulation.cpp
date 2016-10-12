@@ -83,6 +83,11 @@ void WaveGuideFDSimulation::save( const string &fname ) const
   string jsonfname = fname+".json";
   string wgFname = fname+"_wg.h5";
 
+  //arma::abs(solver->getSolution()).save(h5fname.c_str(), arma::hdf5_binary);
+  arma::mat absSol = arma::abs(solver->getSolution());
+  absSol.save(h5fname.c_str(), arma::hdf5_binary);
+
+  /*
   hsize_t dims[2] = {nodeNumberTransverse(), nodeNumberLongitudinal()};
   unsigned int rank = 2;
   double *solution = allocateSolutionMatrix();
@@ -94,6 +99,7 @@ void WaveGuideFDSimulation::save( const string &fname ) const
   H5LTmake_dataset( file_id, "imag", rank, dims, H5T_NATIVE_DOUBLE, solution);
   H5Fclose(file_id);
   deallocateSolutionMatrix(solution);
+  */
   clog << "Solution written to " << h5fname << endl;
 
   saveWG( wgFname );
