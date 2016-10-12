@@ -10,6 +10,7 @@ import numpy as np
 import h5py as h5
 import json
 from matplotlib import pyplot as plt
+from matplotlib import tri
 
 def plot2D(data, stat):
     x = np.linspace(stat["xDiscretization"]["min"], stat["xDiscretization"]["max"], data.shape[0])
@@ -36,6 +37,27 @@ def plot2D(data, stat):
     fname = "Figures/contourLogScale.jpeg"
     plt.savefig(fname, bbox_inches="tight", dpi=800)
     print ("Figure written to %s"%(fname))
+
+def plot2Dsparse( x, z, intensity, stat ):
+    trianulation = tri.Triangulation( z/1000.0, x )
+    plt.clf()
+    plt.tricontour( trianulation, intensity**2, cmap="gist_heat")
+    plt.xlabel("$z$ ($\mathrm{\mu m}$)")
+    plt.ylabel("$x$ (nm)")
+    plt.colorbar()
+    fname = "Figures/contourLinScale.jpeg"
+    plt.savefig(fname, bbox_inches="tight", dpi=800)
+    print ("Figure written to %s"%(fname))
+
+    plt.clf()
+    plt.tricontour( trianulation, intensity**2, cmap="gist_heat", norm=mpl.colors.LogNorm(np.min(intensity**2), np.max(intensity**2)))
+    plt.xlabel("$z$ ($\mathrm{\mu m}$)")
+    plt.ylabel("$x$ (nm)")
+    plt.colorbar()
+    fname = "Figures/contourLogScale.jpeg"
+    plt.savefig(fname, bbox_inches="tight", dpi=800)
+    print ("Figure written to %s"%(fname))
+
 
 def plotWG( x, z ):
     fig = plt.figure()
@@ -67,8 +89,14 @@ def main(argv):
         print("Could not open file %s"%(fname))
         return 1
 
-    with h5.File(stat["datafile"], "r") as hf:
-        data = np.array( hf.get("dataset") )
+    if ( stat["sparseSave"] ):
+        with h5.File(stat["datafile"], 'r') as hf:
+            xVal = np.array( hf.get("x") )
+            zVal = np.array( hf.get("z") )
+            intensity = np.array( hf.get("intensity") )
+    else:
+        with h5.File(stat["datafile"], "r") as hf:
+            data = np.array( hf.get("dataset") )
 
     data = data.T # Transpose the dataset
     with h5.File(stat["wgfile"], 'r') as hf:
@@ -81,7 +109,10 @@ def main(argv):
         x0 = np.min(xInside)
     stat["x0"] = x0
 
-    plot2D( data, stat )
+    if ( stat["sparseSave"] ):
+        plot2Dsparse( xVal, zVal, intensity, stat )
+    else:
+        plot2D( data, stat )
     plotWG( xInside-x0, zInside )
 
 if __name__ == "__main__":
