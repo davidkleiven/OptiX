@@ -44,8 +44,9 @@ def plot2Dsparse( x, z, intensity, stat ):
     #trianulation = tri.Triangulation( z/1000.0, x )
     zInterp = np.linspace(np.min(z), np.max(z), 501)
     xInterp = np.linspace(np.min(x), np.max(x), 501)
-    intensityInterp = interpolate.griddata( [z,x], intensity, [zInterp,xInterp], method="linear")
     Z, X = np.meshgrid( zInterp, xInterp )
+
+    intensityInterp = interpolate.griddata( np.vstack(z,x).T, intensity, (Z,X), method="linear")
     print ("Interpolation...")
     plt.clf()
     plt.contourf( Z/1000.0, X, intensityInterp**2, shading="gouraud", cmap="gist_heat")
