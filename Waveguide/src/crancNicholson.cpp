@@ -61,20 +61,25 @@ void CrankNicholson::solveCurrent( unsigned int iz )
     // Fill right hand side
     if ( ix > 0 )
     {
-      rhs[ix] = solution[ix-1][iz-1];
+      rhs[ix] = (*solution)(ix-1,iz-1);
     }
     else
     {
-      rhs[ix] = 0.0; // Make sure that it is not a random value
+      rhs[ix] = 2.0*guide->transverseBC(z); // Make sure that it is not a random value
     }
 
     if ( ix < Nx-1 )
     {
-      rhs[ix] += solution[ix+1][iz-1];
+      rhs[ix] += (*solution)(ix+1,iz-1);
     }
+    else
+    {
+      rhs[ix] += 2.0*guide->transverseBC(z);
+    }
+
     rhs[ix] *=  (0.25*IMAG_UNIT*rho);
-    rhs[ix] -= 0.5*solution[ix][iz-1]*IMAG_UNIT*rho;
-    rhs[ix] += (1.0 - 0.5*(beta*r + IMAG_UNIT*delta*r) )*solution[ix][iz-1];
+    rhs[ix] -= 0.5*(*solution)(ix,iz-1)*IMAG_UNIT*rho;
+    rhs[ix] += (1.0 - 0.5*(beta*r + IMAG_UNIT*delta*r) )*(*solution)(ix,iz-1);
   }
 
   // Solve the tridiagonal system
@@ -83,7 +88,7 @@ void CrankNicholson::solveCurrent( unsigned int iz )
   // Copy solution to matrix
   for ( unsigned int ix=0;ix<Nx;ix++ )
   {
-    solution[ix][iz] = diag[ix];
+    (*solution)(ix,iz) = diag[ix];
   }
 
   delete [] rhs;

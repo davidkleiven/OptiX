@@ -1,6 +1,8 @@
 IDIR=inc/
 IDIR_HDF5=/usr/lib/x86_64-linux-gnu/hdf5/serial/include
 LDIR=/usr/lib/x86_64-linux-gnu/hdf5/serial/lib
+ARMA_PATH=/home/david/Documents/localLib/armadillo-7.400.4/
+ARMA_INC=/home/david/Documents/localLib/include
 ODIR=obj
 SDIR=src
 
@@ -17,20 +19,22 @@ TEST_SOURCES := $(addprefix unittest/, ${TEST_SOURCES})
 TEST_OBJECTS := $(addprefix unittest/, ${TEST_OBJECTS})
 
 waveguide.out: ${OBJECTS}
-	g++ -std=c++11 -o $@ $^ -L ${LDIR} -lcblas -llapack -lgsl -ljsoncpp -lz -lhdf5_serial -lhdf5_serial_hl -lhdf5_cpp -lhdf5_hl_cpp
+	g++ -std=c++11 -o $@ $^ -L ${LDIR} -L ${ARMA_PATH} -lcblas -llapack -lgsl -ljsoncpp -lz -lhdf5_serial -lhdf5_serial_hl \
+	-lhdf5_cpp -lhdf5_hl_cpp -larmadillo
 
 unittest.out: ${TEST_OBJECTS} $(filter-out obj/main.o, ${OBJECTS})
-	g++ -std=c++11 -o $@ $^ -L ${LDIR} -lcblas -lgsl -llapack -ljsoncpp -lz -lhdf5_serial -lhdf5_serial_hl -lhdf5_cpp -lhdf5_hl_cpp \
-	-lboost_program_options -lboost_unit_test_framework
+	g++ -std=c++11 -o $@ $^ -L ${LDIR} -L ${ARMA_PATH} -lcblas -lgsl -llapack -ljsoncpp -lz -lhdf5_serial -lhdf5_serial_hl \
+	-lhdf5_cpp -lhdf5_hl_cpp -lboost_program_options -lboost_unit_test_framework
 
 curvedWG2D.out: $(filter-out obj/main.o, ${OBJECTS}) ${ODIR}/curvedWGCartesian.o
-	g++ -std=c++11 -o $@ $^ -L ${LDIR} -lcblas -lgsl -llapack -ljsoncpp -lz -lhdf5_serial -lhdf5_serial_hl -lhdf5_cpp -lhdf5_hl_cpp
+	g++ -std=c++11 -o $@ $^ -L ${LDIR} -L ${ARMA_PATH} -lcblas -lgsl -llapack -ljsoncpp -lz -lhdf5_serial -lhdf5_serial_hl -lhdf5_cpp
+	-lhdf5_hl_cpp -larmadillo
 
 ${ODIR}/%.o: ${SDIR}/%.cpp
-	g++ -std=c++11 -MMD -c $< -I ${IDIR} -I ${IDIR_HDF5} -o $@
+	g++ -std=c++11 -MMD -c $< -I ${IDIR} -I ${IDIR_HDF5} -I ${ARMA_INC} -o $@
 
 unittest/%.o: unittest/%.cpp
-	g++ -std=c++11 -MMD -c $< -I ${IDIR} -I ${IDIR_HDF5} -o $@
+	g++ -std=c++11 -MMD -c $< -I ${IDIR} -I ${IDIR_HDF5} -I ${ARMA_INC} -o $@
 
 obj/alltest.o:
 	g++ -std=c++11 -MMD -c $< -I ${IDIR} -O ${SDIR} -I ${IDIR_HDF5} -o $@

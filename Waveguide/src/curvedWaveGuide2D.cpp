@@ -4,6 +4,7 @@
 #include <vector>
 #include "cladding.hpp"
 #include "solver2D.hpp"
+#include <cmath>
 
 using namespace std;
 
@@ -41,4 +42,12 @@ void CurvedWaveGuideFD::fillInfo( Json::Value &obj ) const
 {
   obj["RadiusOfCurvature"] = R;
   obj["Width"] = width;
+}
+
+cdouble CurvedWaveGuideFD::transverseBC( double z ) const
+{
+  double delta = cladding->getDelta();
+  double beta = cladding->getBeta();
+  cdouble im(0.0,1.0);
+  return exp(-beta*wavenumber*z)*exp(-im*delta*wavenumber*z);
 }

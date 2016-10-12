@@ -85,7 +85,7 @@ void WaveGuideFDSimulation::save( const string &fname ) const
 
   hsize_t dims[2] = {nodeNumberTransverse(), nodeNumberLongitudinal()};
   unsigned int rank = 2;
-  double **solution = allocateSolutionMatrix();
+  double *solution = allocateSolutionMatrix();
 
   solver->realPart(solution);
   hid_t file_id = H5Fcreate(h5fname.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT );
@@ -133,22 +133,14 @@ void WaveGuideFDSimulation::save( const string &fname ) const
   clog << "Information written to " << jsonfname << endl;
 }
 
-double** WaveGuideFDSimulation::allocateSolutionMatrix() const
+double* WaveGuideFDSimulation::allocateSolutionMatrix() const
 {
-  double **solution = new double*[nodeNumberTransverse()];
-  for ( unsigned int i=0;i<nodeNumberTransverse();i++ )
-  {
-    solution[i] = new double[nodeNumberLongitudinal()];
-  }
+  double *solution = new double[nodeNumberTransverse()*nodeNumberLongitudinal()];
   return solution;
 }
 
-void WaveGuideFDSimulation::deallocateSolutionMatrix( double **matrix ) const
+void WaveGuideFDSimulation::deallocateSolutionMatrix( double *matrix ) const
 {
-  for ( unsigned int i=0;i<nodeNumberTransverse();i++ )
-  {
-    delete [] matrix[i];
-  }
   delete [] matrix;
 }
 

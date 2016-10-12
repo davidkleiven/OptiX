@@ -3,6 +3,7 @@
 #include <string>
 #include <complex>
 #include <jsoncpp/json/writer.h>
+#include <armadillo>
 
 class WaveGuideFDSimulation;
 
@@ -15,9 +16,9 @@ public:
   virtual ~Solver2D();
   std::string getName() const { return name; };
   void setGuide( const WaveGuideFDSimulation &guide );
-  const cdouble* getSolution( unsigned int iz ) const { return solution[iz]; };
-  void realPart( double **realsolution ) const;
-  void imagPart( double **imagsolution ) const;
+  const arma::cx_mat& getSolution( unsigned int iz ) const { return *solution; };
+  void realPart( double *realsolution ) const;
+  void imagPart( double *imagsolution ) const;
 
   // Set boundary condition at z=0
   void setLeftBC( const cdouble values[] );
@@ -28,9 +29,9 @@ public:
 protected:
   std::string name;
   const WaveGuideFDSimulation *guide;
-  cdouble **solution{NULL};
+  arma::cx_mat *solution{NULL};
 
-  cdouble* getSolution( unsigned int iz ) { return solution[iz]; };
-  void realOrImagPart( double **solution, Comp_t comp ) const;
+  arma::cx_mat& getSolution( unsigned int iz ) { return *solution; };
+  void realOrImagPart( double *solution, Comp_t comp ) const;
 };
 #endif

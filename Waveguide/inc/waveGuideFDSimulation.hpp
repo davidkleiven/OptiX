@@ -13,6 +13,8 @@ struct Disctretization
   double step;
 };
 
+typedef std::complex<double> cdouble;
+
 class Cladding;
 class WaveGuideFDSimulation
 {
@@ -42,6 +44,7 @@ public:
   virtual void getXrayMatProp( double x, double z, double &delta, double &beta ) const = 0;
   virtual void setBoundaryConditions() = 0; // This function should fill the boundary
   virtual void fillInfo( Json::Value &obj ) const {};
+  virtual cdouble transverseBC( double z ) const{ return 0.0; };
 protected:
   Solver2D *solver{NULL};
   Disctretization *xDisc; // Transverse
@@ -50,10 +53,10 @@ protected:
   std::string name;
   const Cladding *cladding{NULL};
 
-  double** allocateSolutionMatrix() const;
-  void deallocateSolutionMatrix( double **matrix ) const;
+  double* allocateSolutionMatrix() const;
+  void deallocateSolutionMatrix( double *matrix ) const;
 
   // Virtual funcitons
-  virtual bool isInsideGuide( double x, double z ) const = 0;
+  virtual bool isInsideGuide( double x, double z ) const { return true; };
 };
 #endif

@@ -14,6 +14,7 @@ public:
   void fillInfo( Json::Value &obj ) const override final;
   void setRadiusOfCurvature( double newR ) { R = newR; };
   void setWidth( double newWidth ) { width = newWidth; };
+  cdouble transverseBC( double z ) const override final;
 protected:
   double R;
   double width;
