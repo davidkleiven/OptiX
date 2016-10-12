@@ -46,7 +46,7 @@ def plot2Dsparse( x, z, intensity, stat ):
     xInterp = np.linspace(np.min(x), np.max(x), 501)
     Z, X = np.meshgrid( zInterp, xInterp )
 
-    intensityInterp = interpolate.griddata( np.vstack(z,x).T, intensity, (Z,X), method="linear")
+    intensityInterp = interpolate.griddata( np.vstack((z,x)).T, intensity, (Z,X), method="linear")
     print ("Interpolation...")
     plt.clf()
     plt.contourf( Z/1000.0, X, intensityInterp**2, shading="gouraud", cmap="gist_heat")
