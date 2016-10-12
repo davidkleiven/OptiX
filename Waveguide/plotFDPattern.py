@@ -2,7 +2,7 @@ import sys
 sys.path.append("../FresnelFDTD")
 import mplLaTeX as ml
 import matplotlib as mpl
-mpl.rcParams.update(ml.params)
+#mpl.rcParams.update(ml.params)
 import numpy as np
 import h5py as h5
 import json
@@ -43,11 +43,6 @@ def plotWG( x, z ):
     fname = "Figures/pointsInWG.jpeg"
     fig.savefig(fname, bbox_inches="tight", dpi=800)
     print ("Figure written to %s"%(fname))
-
-def convertArmaMatrix( data ):
-    matrix = np.zeros(data.shape, dtype=np.complex64)
-    matrix = data[:,:][0] + 1j*data[:,:][1]
-    return matrix
 
 def main(argv):
     fname = ""

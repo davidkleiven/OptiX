@@ -4,13 +4,23 @@
 #include "crankNicholson.hpp"
 #include <complex>
 #include <stdexcept>
+#include <cstdlib>
+#include <ctime>
+#include <cmath>
+#include <sstream>
+
+#define UID_DIGITS 6
 
 using namespace std;
+unsigned int UID_MAX = pow(10,UID_DIGITS);
 
 typedef complex<double> cdouble;
 
 int main( int argc, char **argv )
 {
+  srand(time(NULL));
+  unsigned int uid = rand()%UID_MAX;
+
   Cladding cladding;
   double delta = 4.14E-5;
   double beta = 3.45E-6;
@@ -26,12 +36,18 @@ int main( int argc, char **argv )
   double stepX = 3.0;
   double zmin = 0.0;
   double zmax = 500E3;
-  double stepZ = 30.0;
+  double stepZ = 3.0;
 
   try
   {
+    clog << "UID for the current run " << uid << endl;
     clog << "Initializing simulation...";
     string fname( "data/intensity2D_FD" );
+    stringstream ss;
+    ss << fname;
+    ss << uid;
+    fname = ss.str();
+
     CurvedWaveGuideFD wg;
     wg.setRadiusOfCurvature( Rcurv );
     wg.setWidth( width );
