@@ -27,7 +27,7 @@ unittest.out: ${TEST_OBJECTS} $(filter-out obj/main.o, ${OBJECTS})
 	-lhdf5_cpp -lhdf5_hl_cpp -lboost_program_options -lboost_unit_test_framework
 
 curvedWG2D.out: $(filter-out obj/main.o, ${OBJECTS}) ${ODIR}/curvedWGCartesian.o
-	g++ -std=c++11 -o $@ $^ -L ${LDIR} -L ${ARMA_PATH} -lcblas -lgsl -llapack -ljsoncpp -lz -lhdf5_serial -lhdf5_serial_hl -lhdf5_cpp
+	g++ -std=c++11 -o $@ $^ -L ${LDIR} -L ${ARMA_PATH} -lcblas -lgsl -llapack -ljsoncpp -lz -lhdf5_serial -lhdf5_serial_hl -lhdf5_cpp \
 	-lhdf5_hl_cpp -larmadillo
 
 ${ODIR}/%.o: ${SDIR}/%.cpp
