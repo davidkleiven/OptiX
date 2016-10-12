@@ -3,6 +3,9 @@ sys.path.append("../FresnelFDTD")
 import mplLaTeX as ml
 import matplotlib as mpl
 #mpl.rcParams.update(ml.params)
+CALL_OVER_SSH = True
+if ( CALL_OVER_SSH ):
+    mpl.use("Agg")
 import numpy as np
 import h5py as h5
 import json
