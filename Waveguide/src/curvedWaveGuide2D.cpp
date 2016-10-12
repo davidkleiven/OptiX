@@ -20,6 +20,7 @@ void CurvedWaveGuideFD::getXrayMatProp( double x, double z, double &delta, doubl
   {
     beta = 0.0;
     delta = 0.0;
+    return;
   }
   delta = cladding->getDelta();
   beta = cladding->getBeta();
@@ -27,8 +28,9 @@ void CurvedWaveGuideFD::getXrayMatProp( double x, double z, double &delta, doubl
 
 bool CurvedWaveGuideFD::isInsideGuide( double x, double z ) const
 {
-  double d = sqrt(x*x + z*z);
-  return ( d < R+width) && (d > R );
+//  double d = sqrt(x*x + z*z);
+  return (2.0*x*R+z*z > 0.0 ) && (2.0*x*R+z*z < 2.0*width*R);
+  //return ( d < R+width) && (d > R );
 }
 
 void CurvedWaveGuideFD::setBoundaryConditions()

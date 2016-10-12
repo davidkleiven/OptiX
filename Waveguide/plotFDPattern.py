@@ -10,16 +10,26 @@ from matplotlib import pyplot as plt
 
 def plot2D(dataReal, dataImag, stat):
     x = np.linspace(stat["xDiscretization"]["min"], stat["xDiscretization"]["max"], dataReal.shape[0])
+    x -= stat["x0"]
     z = np.linspace(stat["zDiscretization"]["min"], stat["zDiscretization"]["max"], dataReal.shape[1])
     Z,X = np.meshgrid(z,x)
 
     k = 2.0*np.pi/0.1569
-    field = (dataReal+1j*dataImag)*np.exp(1j*k*Z)
-
-    plt.contourf(Z/1000.0,X, np.abs(field)**2, 200, cmap="gist_heat")# norm=mpl.colors.LogNorm())
+    field = (dataReal+1j*dataImag)
+    plt.contourf(Z/1000.0,X, np.abs(field)**2, 200, cmap="gist_heat")
     plt.xlabel("$z$ ($\mathrm{\mu m}$)")
     plt.ylabel("$x$ (nm)")
+    plt.colorbar()
     fname = "Figures/contourLinScale.jpeg"
+    plt.savefig(fname, bbox_inches="tight", dpi=800)
+    print ("Figure written to %s"%(fname))
+
+    plt.clf()
+    plt.contourf(Z/1000.0,X, np.abs(field)**2, 200, cmap="gist_heat", norm=mpl.colors.LogNorm())
+    plt.xlabel("$z$ ($\mathrm{\mu m}$)")
+    plt.ylabel("$x$ (nm)")
+    plt.colorbar()
+    fname = "Figures/contourLogScale.jpeg"
     plt.savefig(fname, bbox_inches="tight", dpi=800)
     print ("Figure written to %s"%(fname))
 
@@ -60,8 +70,14 @@ def main(argv):
     with h5.File(stat["wgfile"], 'r') as hf:
         xInside = np.array( hf.get("xInside"))
         zInside = np.array( hf.get("zInside"))
+
+    if ( np.min(xInside) > stat["xDiscretization"]["min"]):
+        x0 = stat["xDiscretization"]["min"]
+    else:
+        x0 = np.min(xInside)
+    stat["x0"] = x0
     plot2D( dataReal, dataImag, stat )
-    #plotWG( xInside, zInside )
+    plotWG( xInside-x0, zInside )
 
 if __name__ == "__main__":
     main(sys.argv[1:])

@@ -50,7 +50,10 @@ void CrankNicholson::solveCurrent( unsigned int iz )
   {
     double x = xmin + static_cast<double>(ix)*stepX;
     double delta, beta;
+    double deltaPrev, betaPrev;
     guide->getXrayMatProp( x, z, delta, beta );
+    guide->getXrayMatProp( x, z-stepZ, deltaPrev, betaPrev);
+
     diag[ix] = 1.0 + 0.5*IMAG_UNIT*rho + 0.5*(beta*r + IMAG_UNIT*delta*r);
 
     if ( ix < Nx-1 )
@@ -79,7 +82,7 @@ void CrankNicholson::solveCurrent( unsigned int iz )
 
     rhs[ix] *=  (0.25*IMAG_UNIT*rho);
     rhs[ix] -= 0.5*(*solution)(ix,iz-1)*IMAG_UNIT*rho;
-    rhs[ix] += (1.0 - 0.5*(beta*r + IMAG_UNIT*delta*r) )*(*solution)(ix,iz-1);
+    rhs[ix] += (1.0 - 0.5*(betaPrev*r + IMAG_UNIT*deltaPrev*r) )*(*solution)(ix,iz-1);
   }
 
   // Solve the tridiagonal system

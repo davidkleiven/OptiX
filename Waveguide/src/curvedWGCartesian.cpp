@@ -12,19 +12,21 @@ typedef complex<double> cdouble;
 int main( int argc, char **argv )
 {
   Cladding cladding;
-  //double delta = 3.45E-5;
-  //double beta = 3.45E-6;
-  double delta = 0.0;
-  double beta = 0.0;
+  double delta = 4.14E-5;
+  double beta = 3.45E-6;
+  //double delta = 0.0;
+  //double beta = 0.0;
   cladding.setRefractiveIndex(delta, beta);
   double Rcurv = 40E6;
   double width = 100.0;
-  double xmax = Rcurv + 4.0*width;
-  double xmin = xmax - 5E3;
-  double stepX = 1.0;
+  //double xmax = Rcurv + 1E3;//4.0*width;
+  //double xmin = xmax - 2E3;
+  double xmax = width+1E3;//4.0*width;
+  double xmin = -4E3;
+  double stepX = 3.0;
   double zmin = 0.0;
   double zmax = 500E3;
-  double stepZ = 100.0;
+  double stepZ = 3.0;
 
   try
   {
