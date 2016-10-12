@@ -10,7 +10,7 @@ import numpy as np
 import h5py as h5
 import json
 from matplotlib import pyplot as plt
-from matplotlib import tri
+from scipy import interpolate
 
 def plot2D(data, stat):
     print ("Plotting the full matrix...")
@@ -42,9 +42,13 @@ def plot2D(data, stat):
 def plot2Dsparse( x, z, intensity, stat ):
     print ("Using sparse plotting by triangulation...")
     trianulation = tri.Triangulation( z/1000.0, x )
-    print ("Mesh finished...")
+    zInterp = np.linspace(np.min(z), np.max(z), 501)
+    xInterp = np.linspace(np.min(x), np.max(x), 501)
+    intensityInterp = interpolate.griddata( [x,z], intensity, method="cubic")
+    Z, X = np.meshgrid( zInterp, xInterp )
+    print ("Interpolation...")
     plt.clf()
-    plt.tripcolor( intensity**2, shading="gouraud", cmap="gist_heat")
+    plt.contourf( Z/1000.0, X, intensityInterp**2, shading="gouraud", cmap="gist_heat")
     plt.xlabel("$z$ ($\mathrm{\mu m}$)")
     plt.ylabel("$x$ (nm)")
     plt.colorbar()
