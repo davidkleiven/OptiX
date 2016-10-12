@@ -74,21 +74,25 @@ void WaveGuideFDSimulation::setCladding( const Cladding &clad )
 
 void WaveGuideFDSimulation::save( const string &fname ) const
 {
+  save(fname, -1.0);
+}
+
+void WaveGuideFDSimulation::save( const string &fname, double intensityThreshold ) const
+{
   if ( solver == NULL )
   {
     throw ( runtime_error("No solver specified!\n"));
   }
 
+  bool useSparse = (intensityThreshold > 0.0);
   string h5fname = fname+".h5";
   string jsonfname = fname+".json";
   string wgFname = fname+"_wg.h5";
 
   //arma::abs(solver->getSolution()).save(h5fname.c_str(), arma::hdf5_binary);
-  bool useSparse = true;
-  double threshold = 1E-4;
   if ( useSparse )
   {
-    sparseSave( h5fname, threshold );
+    sparseSave( h5fname, intensityThreshold );
   }
   else
   {
@@ -109,7 +113,7 @@ void WaveGuideFDSimulation::save( const string &fname ) const
   base["wgfile"] = wgFname;
   base["name"] = name;
   base["sparseSave"] = useSparse;
-  base["sparseThreshold"] = threshold;
+  base["sparseThreshold"] = intensityThreshold;
   base["xDiscretization"]["min"] = xDisc->min;
   base["xDiscretization"]["max"] = xDisc->max;
   base["xDiscretization"]["step"] = xDisc->step;

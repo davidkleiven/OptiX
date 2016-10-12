@@ -37,6 +37,7 @@ public:
   const Cladding& getCladding() const { return *cladding; };
   void solve();
   void save( const std::string &fname ) const;
+  void save( const std::string &fname, double intensityThreshold ) const;
   void saveWG( const std::string &fname ) const;
 
   // Virtual methods

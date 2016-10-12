@@ -63,7 +63,7 @@ int main( int argc, char **argv )
     wg.solve();
     clog << "done\n";
     clog << "Exporting results...\n";
-    wg.save(fname);
+    wg.save(fname, 1E-2);
     clog << "Finished exporting\n";
 
   }

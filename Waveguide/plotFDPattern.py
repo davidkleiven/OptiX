@@ -49,7 +49,7 @@ def plot2Dsparse( x, z, intensity, stat ):
     intensityInterp = interpolate.griddata( np.vstack((z,x)).T, intensity, (Z,X), method="linear")
     print ("Interpolation...")
     plt.clf()
-    plt.contourf( Z/1000.0, X, intensityInterp**2, shading="gouraud", cmap="gist_heat")
+    plt.contourf( Z/1000.0, X, intensityInterp**2, cmap="gist_heat")
     plt.xlabel("$z$ ($\mathrm{\mu m}$)")
     plt.ylabel("$x$ (nm)")
     plt.colorbar()
