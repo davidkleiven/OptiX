@@ -13,6 +13,7 @@ from matplotlib import pyplot as plt
 from matplotlib import tri
 
 def plot2D(data, stat):
+    print ("Plotting the full matrix...")
     x = np.linspace(stat["xDiscretization"]["min"], stat["xDiscretization"]["max"], data.shape[0])
     x -= stat["x0"]
     z = np.linspace(stat["zDiscretization"]["min"], stat["zDiscretization"]["max"], data.shape[1])
@@ -39,6 +40,7 @@ def plot2D(data, stat):
     print ("Figure written to %s"%(fname))
 
 def plot2Dsparse( x, z, intensity, stat ):
+    print ("Using sparse plotting by triangulation...")
     trianulation = tri.Triangulation( z/1000.0, x )
     plt.clf()
     plt.tricontour( trianulation, intensity**2, cmap="gist_heat")
@@ -57,7 +59,6 @@ def plot2Dsparse( x, z, intensity, stat ):
     fname = "Figures/contourLogScale.jpeg"
     plt.savefig(fname, bbox_inches="tight", dpi=800)
     print ("Figure written to %s"%(fname))
-
 
 def plotWG( x, z ):
     fig = plt.figure()
@@ -98,7 +99,6 @@ def main(argv):
         with h5.File(stat["datafile"], "r") as hf:
             data = np.array( hf.get("dataset") )
 
-    data = data.T # Transpose the dataset
     with h5.File(stat["wgfile"], 'r') as hf:
         xInside = np.array( hf.get("xInside"))
         zInside = np.array( hf.get("zInside"))
@@ -112,6 +112,7 @@ def main(argv):
     if ( stat["sparseSave"] ):
         plot2Dsparse( xVal, zVal, intensity, stat )
     else:
+        data = data.T # Transpose the dataset
         plot2D( data, stat )
     plotWG( xInside-x0, zInside )
 
