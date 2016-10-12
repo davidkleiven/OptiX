@@ -41,7 +41,7 @@ def plot2D(data, stat):
 
 def plot2Dsparse( x, z, intensity, stat ):
     print ("Using sparse plotting by triangulation...")
-    trianulation = tri.Triangulation( z/1000.0, x )
+    #trianulation = tri.Triangulation( z/1000.0, x )
     zInterp = np.linspace(np.min(z), np.max(z), 501)
     xInterp = np.linspace(np.min(x), np.max(x), 501)
     intensityInterp = interpolate.griddata( [x,z], intensity, method="cubic")
