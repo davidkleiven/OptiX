@@ -5,6 +5,7 @@
 #include <hdf5_hl.h>
 #include <iostream>
 #include <fstream>
+#include <cassert>
 #include <cmath>
 
 const double PI = acos(-1.0);
@@ -208,4 +209,34 @@ void WaveGuideFDSimulation::sparseSave( const string &fname, double intensityThr
   H5LTmake_dataset( file_id, "z", 1, &dim, H5T_NATIVE_DOUBLE, &zSave[0]);
   H5LTmake_dataset( file_id, "intensity", 1, &dim, H5T_NATIVE_DOUBLE, &intensity[0]);
   H5Fclose(file_id);
+}
+
+void WaveGuideFDSimulation::closestIndex( double x, double z, unsigned int &ix, unsigned int &iz ) const
+{
+  ix = (x - xDisc->min)/xDisc->step;
+  iz = (z - zDisc->min)/zDisc->step;
+}
+
+double WaveGuideFDSimulation::getIntensity( double x, double z ) const
+{
+  // Some assertions for debugging
+  assert( x < xDisc->max );
+  assert( x >= xDisc->min );
+  assert( z < zDisc->max );
+  assert( z >= zDisc->min );
+
+  unsigned int ix, iz;
+  closestIndex( x, z, ix, iz );
+
+  double x1 = xDisc->min + ix*xDisc->step;
+  double x2 = x1 + xDisc->step;
+  double z1 = zDisc->min + iz*zDisc->step;
+  double z2 = z1 + iz*zDisc->step;
+  arma::cx_mat sol = solver->getSolution();
+
+  double intensity = pow( abs(sol(ix,iz)),2 )*(x2 - x)*(z2-z);
+  intensity += pow( abs(sol(ix+1,iz)), 2 )*(x-x1)*(z2-z);
+  intensity += pow( abs(sol(ix,iz+1)), 2 )*(z-z1)*(x2-x);
+  intensity += pow( abs(sol(ix+1,iz+1)), 2 )*(z2-z)*(x-x1);
+  return intensity/( (x2-x1)*(z2-z1) );
 }

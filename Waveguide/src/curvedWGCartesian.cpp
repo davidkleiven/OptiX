@@ -27,16 +27,16 @@ int main( int argc, char **argv )
   //double delta = 0.0;
   //double beta = 0.0;
   cladding.setRefractiveIndex(delta, beta);
-  double Rcurv = 40E6;
+  double Rcurv = 80E6;
   double width = 100.0;
   //double xmax = Rcurv + 1E3;//4.0*width;
   //double xmin = xmax - 2E3;
-  double xmax = width+1E3;//4.0*width;
-  double xmin = -4E3;
+  double xmax = width+0.5E3;//4.0*width;
+  double xmin = xmax-2.5E3;
   double stepX = 3.0;
   double zmin = 0.0;
   double zmax = 500E3;
-  double stepZ = 3.0;
+  double stepZ = 50.0;
 
   try
   {
@@ -63,7 +63,7 @@ int main( int argc, char **argv )
     wg.solve();
     clog << "done\n";
     clog << "Exporting results...\n";
-    wg.save(fname, 1E-2);
+    wg.save(fname);
     clog << "Finished exporting\n";
 
   }

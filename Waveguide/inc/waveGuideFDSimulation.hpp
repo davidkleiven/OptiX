@@ -39,6 +39,7 @@ public:
   void save( const std::string &fname ) const;
   void save( const std::string &fname, double intensityThreshold ) const;
   void saveWG( const std::string &fname ) const;
+  double getIntensity( double x, double z ) const;
 
   // Virtual methods
   // Refractive index: n = 1 - delta + i*beta
@@ -58,6 +59,7 @@ protected:
   void deallocateSolutionMatrix( double *matrix ) const;
 
   void sparseSave( const std::string &fname, double intensityThreshold ) const;
+  void closestIndex( double x, double z, unsigned int &ix, unsigned int &iz ) const;
   // Virtual funcitons
   virtual bool isInsideGuide( double x, double z ) const { return true; };
 };

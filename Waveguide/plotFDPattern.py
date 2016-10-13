@@ -26,22 +26,25 @@ def plot2D(data, stat):
                  stat["xDiscretization"]["min"], stat["xDiscretization"]["max"]]
 
     k = 2.0*np.pi/0.1569
-    plt.imshow(np.abs(data)**2, extent=extent, cmap="gist_heat")
+    plt.imshow(np.abs(data)**2, extent=extent, cmap="coolwarm", aspect=1.0, origin ="lower")
     plt.xlabel("$z$ ($\mathrm{\mu m}$)")
     plt.ylabel("$x$ (nm)")
+    plt.gca().set_aspect( np.abs( (extent[1]-extent[0])/(extent[3]-extent[2]) ))
     plt.colorbar()
     fname = "Figures/contourLinScale%d.jpeg"%(stat["uid"])
     plt.savefig(fname, bbox_inches="tight", dpi=800)
     print ("Figure written to %s"%(fname))
 
     plt.clf()
-    minval = np.min(np.abs(data)**2)
+    minval = 1E-8
     maxval = np.max(np.abs(data)**2)
+    maxval = 1E-3 # T. Salditt et. al maxwav
 
-    plt.imshow(np.abs(data)**2, extent=extent, cmap="gist_heat", norm=mpl.colors.LogNorm(minval, maxval))
+    plt.imshow(np.abs(data)**2, extent=extent, cmap="coolwarm", aspect=1.0, origin="lower", norm=mpl.colors.LogNorm(minval, maxval))
     plt.xlabel("$z$ ($\mathrm{\mu m}$)")
     plt.ylabel("$x$ (nm)")
     plt.colorbar()
+    plt.gca().set_aspect( np.abs( (extent[1]-extent[0])/(extent[3]-extent[2]) ))
     fname = "Figures/contourLogScale%d.jpeg"%(stat["uid"])
     plt.savefig(fname, bbox_inches="tight", dpi=800)
     print ("Figure written to %s"%(fname))

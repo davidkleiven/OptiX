@@ -53,3 +53,10 @@ cdouble CurvedWaveGuideFD::transverseBC( double z ) const
   cdouble im(0.0,1.0);
   return exp(-beta*wavenumber*z)*exp(-im*delta*wavenumber*z);
 }
+
+void CurvedWaveGuideFD::computeTransmission( double step ) const
+{
+  // Integrate across waveguide
+  double fluxAtZero = 0.0;
+  unsigned int wgStart = 0.0;
+}
