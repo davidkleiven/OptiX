@@ -18,9 +18,11 @@ def plot2D(data, stat):
     x -= stat["x0"]
     z = np.linspace(stat["zDiscretization"]["min"], stat["zDiscretization"]["max"], data.shape[1])
     Z,X = np.meshgrid(z,x)
+    extend = [stat["zDiscretization"]["min"]/1000.0, stat["zDiscretization"]["max"]/1000.0,
+                 stat["xDiscretization"]["min"], stat["xDiscretization"]["max"]]
 
     k = 2.0*np.pi/0.1569
-    plt.contourf(Z/1000.0,X, np.abs(data)**2, 200, cmap="gist_heat")
+    plt.imshow(np.abs(data)**2, extend=extend, 200, cmap="gist_heat")
     plt.xlabel("$z$ ($\mathrm{\mu m}$)")
     plt.ylabel("$x$ (nm)")
     plt.colorbar()
@@ -31,7 +33,10 @@ def plot2D(data, stat):
     plt.clf()
     minval = np.min(np.abs(data)**2)
     maxval = np.max(np.abs(data)**2)
-    plt.contourf(Z/1000.0,X, np.abs(data)**2, 200, cmap="gist_heat", norm=mpl.colors.LogNorm(minval, maxval))
+    extend = [stat["zDiscretization"]["min"]/1000.0, stat["zDiscretization"]["max"]/1000.0, \
+             stat["xDiscretization"]["min"], stat["xDiscretization"]["max"]]
+
+    plt.imshow(np.abs(data)**2, 200, extend=extend, cmap="gist_heat", norm=mpl.colors.LogNorm(minval, maxval))
     plt.xlabel("$z$ ($\mathrm{\mu m}$)")
     plt.ylabel("$x$ (nm)")
     plt.colorbar()
