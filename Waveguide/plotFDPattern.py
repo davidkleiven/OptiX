@@ -38,7 +38,7 @@ def plot2D(data, stat):
     minval = np.min(np.abs(data)**2)
     maxval = np.max(np.abs(data)**2)
 
-    plt.imshow(np.abs(data)**2, extend=extend, cmap="gist_heat", norm=mpl.colors.LogNorm(minval, maxval))
+    plt.imshow(np.abs(data)**2, extent=extent, cmap="gist_heat", norm=mpl.colors.LogNorm(minval, maxval))
     plt.xlabel("$z$ ($\mathrm{\mu m}$)")
     plt.ylabel("$x$ (nm)")
     plt.colorbar()
