@@ -101,6 +101,11 @@ def main(argv):
         print("Could not open file %s"%(fname))
         return 1
 
+    try:
+        val = stat["sparseSave"]
+    except:
+        stat["sparseSave"] = False
+
     if ( stat["sparseSave"] ):
         with h5.File(stat["datafile"], 'r') as hf:
             xVal = np.array( hf.get("x") )
