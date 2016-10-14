@@ -16,4 +16,4 @@
 392795 | Lx=2.5 um, Lz=500 um. dx=3nm, dz=50nm R=40mm, delta=4.49E-5 | Wrong parameters |
 852045 | Lx=5.0 um, Lz=500 um. dx=3nm, dz=50nm R=40mm, delta=4.49E-5 | The beam is lost around 0.4 mm |
 385496 | Lx=5.0 um, Lz=500 um. dx=3nm, dz=50nm R=40mm, delta=4.49E-5, try with full circle formula | The beam is lost around 0.4 mm |
-263117 | Lx=5.0 um, Lz=500 um. dx=1nm, dz=50nm R=40mm, delta=4.49E-5, try with full circle formula | Looks very, very good |
+263117 | Lx=5.0 um, Lz=500 um. dx=1nm, dz=50nm R=40mm, delta=4.49E-5 | Looks very, very good |

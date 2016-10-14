@@ -2,6 +2,7 @@
 #include "cladding.hpp"
 #include "curvedWaveGuide2D.hpp"
 #include "crankNicholson.hpp"
+#include "controlFile.hpp"
 #include <complex>
 #include <stdexcept>
 #include <cstdlib>
@@ -9,44 +10,32 @@
 #include <cmath>
 #include <sstream>
 
-#define UID_DIGITS 6
-
 using namespace std;
-unsigned int UID_MAX = pow(10,UID_DIGITS);
 
 typedef complex<double> cdouble;
 
 int main( int argc, char **argv )
 {
-  srand(time(NULL));
-  unsigned int uid = rand()%UID_MAX;
-
   Cladding cladding;
-  double delta = 4.14E-5;
+  ControlFile ctl("data/singleCurvedWG"); // File for all parameters and settings
+  //double delta = 4.14E-5;
+  double delta = 4.49E-5;
   double beta = 3.45E-6;
-  //double delta = 0.0;
-  //double beta = 0.0;
   cladding.setRefractiveIndex(delta, beta);
-  double Rcurv = 80E6;
+  double Rcurv = 40E6;
   double width = 100.0;
   //double xmax = Rcurv + 1E3;//4.0*width;
   //double xmin = xmax - 2E3;
   double xmax = width+0.5E3;//4.0*width;
-  double xmin = xmax-2.5E3;
-  double stepX = 3.0;
+  double xmin = xmax-5.0E3;
+  double stepX = 1.0;
   double zmin = 0.0;
   double zmax = 500E3;
-  double stepZ = 50.0;
+  double stepZ = 100.0;
 
   try
   {
-    clog << "UID for the current run " << uid << endl;
     clog << "Initializing simulation...";
-    string fname( "data/intensity2D_FD" );
-    stringstream ss;
-    ss << fname;
-    ss << uid;
-    fname = ss.str();
 
     CurvedWaveGuideFD wg;
     wg.setRadiusOfCurvature( Rcurv );
@@ -63,7 +52,8 @@ int main( int argc, char **argv )
     wg.solve();
     clog << "done\n";
     clog << "Exporting results...\n";
-    wg.save(fname);
+    wg.save( ctl);
+    ctl.save();
     clog << "Finished exporting\n";
 
   }

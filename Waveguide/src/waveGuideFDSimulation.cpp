@@ -1,6 +1,7 @@
 #include "waveGuideFDSimulation.hpp"
 #include "solver2D.hpp"
 #include "cladding.hpp"
+#include "controlFile.hpp"
 #include <H5Cpp.h>
 #include <hdf5_hl.h>
 #include <iostream>
@@ -73,12 +74,12 @@ void WaveGuideFDSimulation::setCladding( const Cladding &clad )
   cladding = &clad;
 }
 
-void WaveGuideFDSimulation::save( const string &fname ) const
+void WaveGuideFDSimulation::save( ControlFile &ctl ) const
 {
-  save(fname, -1.0);
+  save(ctl, -1.0);
 }
 
-void WaveGuideFDSimulation::save( const string &fname, double intensityThreshold ) const
+void WaveGuideFDSimulation::save( ControlFile &ctl, double intensityThreshold ) const
 {
   if ( solver == NULL )
   {
@@ -86,6 +87,7 @@ void WaveGuideFDSimulation::save( const string &fname, double intensityThreshold
   }
 
   bool useSparse = (intensityThreshold > 0.0);
+  string fname = ctl.getFnameTemplate();
   string h5fname = fname+".h5";
   string jsonfname = fname+".json";
   string wgFname = fname+"_wg.h5";
@@ -105,7 +107,7 @@ void WaveGuideFDSimulation::save( const string &fname, double intensityThreshold
   saveWG( wgFname );
   clog << "Points inside waveguide written to " << wgFname << endl;
 
-  Json::Value base;
+  Json::Value base = ctl.get();
   Json::Value wginfo;
   Json::Value solverInfo;
   wginfo["Cladding"]["delta"] = cladding->getDelta();
@@ -126,19 +128,6 @@ void WaveGuideFDSimulation::save( const string &fname, double intensityThreshold
   //solver->fillInfo( solverInfo );
   base["solver"] = solverInfo;
   base["waveguide"] = wginfo;
-
-  Json::StyledWriter sw;
-
-  ofstream out(jsonfname.c_str());
-  if ( !out.good() )
-  {
-    cerr << "Could not open file " << jsonfname << endl;
-    return;
-  }
-
-  out << sw.write(base) << endl;
-  out.close();
-  clog << "Information written to " << jsonfname << endl;
 }
 
 double* WaveGuideFDSimulation::allocateSolutionMatrix() const
@@ -239,4 +228,31 @@ double WaveGuideFDSimulation::getIntensity( double x, double z ) const
   intensity += pow( abs(sol(ix,iz+1)), 2 )*(z-z1)*(x2-x);
   intensity += pow( abs(sol(ix+1,iz+1)), 2 )*(z2-z)*(x-x1);
   return intensity/( (x2-x1)*(z2-z1) );
+}
+
+double WaveGuideFDSimulation::getIntensity( unsigned int ix, unsigned int iz ) const
+{
+  arma::cx_mat sol = solver->getSolution();
+  return pow( abs( sol(ix,iz) ), 2 );
+}
+
+double WaveGuideFDSimulation::getZ( unsigned int iz ) const
+{
+  return zDisc->min + iz*zDisc->step;
+}
+
+double WaveGuideFDSimulation::getX( unsigned int ix ) const
+{
+  return xDisc->min + ix*xDisc->step;
+}
+
+double WaveGuideFDSimulation::trapezoidalIntegrateIntensityZ( unsigned int iz, unsigned int ixStart, unsigned int ixEnd ) const
+{
+  double integral = getIntensity( ixStart, iz ) + getIntensity( ixEnd, iz );
+  for ( unsigned int ix=ixStart+1; ix <= ixEnd-1; ix ++ )
+  {
+    integral += 2.0*getIntensity( ix, iz );
+  }
+  double dx = ( getX( ixEnd) - getX( ixStart ) )/static_cast<double>( ixEnd - ixStart );
+  return integral*dx*0.5;
 }

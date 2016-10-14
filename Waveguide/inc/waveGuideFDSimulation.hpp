@@ -16,6 +16,7 @@ struct Disctretization
 typedef std::complex<double> cdouble;
 
 class Cladding;
+class ControlFile;
 class WaveGuideFDSimulation
 {
 public:
@@ -36,10 +37,11 @@ public:
   void setCladding( const Cladding &clad );
   const Cladding& getCladding() const { return *cladding; };
   void solve();
-  void save( const std::string &fname ) const;
-  void save( const std::string &fname, double intensityThreshold ) const;
+  void save( ControlFile &ctl ) const;
+  void save( ControlFile &ctl, double intensityThreshold ) const;
   void saveWG( const std::string &fname ) const;
-  double getIntensity( double x, double z ) const;
+  double getIntensity( double x, double z ) const; // Using linear interpolation
+  double getIntensity( unsigned int ix, unsigned int iz ) const; // Returns value in matrix at (ix,iz)
 
   // Virtual methods
   // Refractive index: n = 1 - delta + i*beta
@@ -60,6 +62,10 @@ protected:
 
   void sparseSave( const std::string &fname, double intensityThreshold ) const;
   void closestIndex( double x, double z, unsigned int &ix, unsigned int &iz ) const;
+  double getZ( unsigned int iz ) const;
+  double getX ( unsigned int ix ) const;
+  double trapezoidalIntegrateIntensityZ( unsigned int iz, unsigned int ixStart, unsigned int ixEnd ) const;
+
   // Virtual funcitons
   virtual bool isInsideGuide( double x, double z ) const { return true; };
 };
