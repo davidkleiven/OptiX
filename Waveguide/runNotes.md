@@ -24,4 +24,4 @@
 799571 | Lx=5.0 um, Lz=200 um. dx=1nm, dz=50nm R=20mm, delta=4.49E-5 | Too low stepsize when computing transmission |
 776143 | Lx=2.0 um, Lz=200 um. dx=1nm, dz=50nm R=20mm, delta=4.49E-5 | Too low stepsize when computing transmission |
 519783 | Lx=2.0 um, Lz=200 um. dx=1nm, dz=50nm R=20mm, delta=4.49E-5 | Looks good. Damping: 1.18 mm |
-821665 | Lx=2.5 um, Lz=300 um. dx=1nm, dz=50nm R=30mm, delta=4.49E-5 | Running |
+821665 | Lx=2.5 um, Lz=300 um. dx=1nm, dz=50nm R=30mm, delta=4.49E-5 | Looks good. Damping: 1.83 mm |
