@@ -107,27 +107,26 @@ void WaveGuideFDSimulation::save( ControlFile &ctl, double intensityThreshold ) 
   saveWG( wgFname );
   clog << "Points inside waveguide written to " << wgFname << endl;
 
-  Json::Value base = ctl.get();
   Json::Value wginfo;
   Json::Value solverInfo;
   wginfo["Cladding"]["delta"] = cladding->getDelta();
   wginfo["Cladding"]["beta"] = cladding->getBeta();
-  base["datafile"] = h5fname;
-  base["wgfile"] = wgFname;
-  base["name"] = name;
-  base["sparseSave"] = useSparse;
-  base["sparseThreshold"] = intensityThreshold;
-  base["xDiscretization"]["min"] = xDisc->min;
-  base["xDiscretization"]["max"] = xDisc->max;
-  base["xDiscretization"]["step"] = xDisc->step;
-  base["zDiscretization"]["min"] = zDisc->min;
-  base["zDiscretization"]["max"] = zDisc->max;
-  base["zDiscretization"]["step"] = zDisc->step;
+  ctl.get()["datafile"] = h5fname;
+  ctl.get()["wgfile"] = wgFname;
+  ctl.get()["name"] = name;
+  ctl.get()["sparseSave"] = useSparse;
+  ctl.get()["sparseThreshold"] = intensityThreshold;
+  ctl.get()["xDiscretization"]["min"] = xDisc->min;
+  ctl.get()["xDiscretization"]["max"] = xDisc->max;
+  ctl.get()["xDiscretization"]["step"] = xDisc->step;
+  ctl.get()["zDiscretization"]["min"] = zDisc->min;
+  ctl.get()["zDiscretization"]["max"] = zDisc->max;
+  ctl.get()["zDiscretization"]["step"] = zDisc->step;
   fillInfo( wginfo );
   // TODO: For some reason the next line gives a segmentation fault
   //solver->fillInfo( solverInfo );
-  base["solver"] = solverInfo;
-  base["waveguide"] = wginfo;
+  ctl.get()["solver"] = solverInfo;
+  ctl.get()["waveguide"] = wginfo;
 }
 
 double* WaveGuideFDSimulation::allocateSolutionMatrix() const

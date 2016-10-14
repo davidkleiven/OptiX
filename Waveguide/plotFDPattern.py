@@ -11,6 +11,7 @@ import h5py as h5
 import json
 from matplotlib import pyplot as plt
 from scipy import interpolate
+import transmission as trans
 
 def uidFromFilename( fname ):
     uid = np.int( fname[-11:-5])
@@ -138,7 +139,16 @@ def main(argv):
     else:
         data = data.T # Transpose the dataset
         plot2D( data, stat )
-    plotWG( xInside-x0, zInside )
+    #plotWG( xInside-x0, zInside )
+
+    # Plot transmission. Put in try catch as some of the simulaitons do not compute the transmission
+    try:
+        with h5.File(stat["Transmission"]["file"], 'r') as hf:
+            data = np.array( hf.get("transmission") )
+        trans.plotTransmission( data, stat )
+    except Exception as exc:
+        print str(exc)
+        print ("Error when plotting transmission")
 
 if __name__ == "__main__":
     main(sys.argv[1:])

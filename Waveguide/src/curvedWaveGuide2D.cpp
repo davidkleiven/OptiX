@@ -91,11 +91,13 @@ void CurvedWaveGuideFD::saveTransmission( ControlFile &ctl ) const
   trans["step"] = stepWhenComputingTransmission;
   string fname = ctl.getFnameTemplate();
   fname += "_trans.h5";
+  trans["file"] = fname;
 
   int rank = 1;
   hsize_t dim = transmission.size();
   hid_t file_id = H5Fcreate( fname.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
   H5LTmake_dataset( file_id, "transmission", rank, &dim, H5T_NATIVE_DOUBLE, &transmission[0]);
   H5Fclose(file_id);
+  ctl.get()["Transmission"] = trans;
   clog << "Transmission is written to " << fname << endl;
 }

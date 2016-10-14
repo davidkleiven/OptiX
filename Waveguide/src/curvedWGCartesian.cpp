@@ -23,16 +23,16 @@ int main( int argc, char **argv )
   double delta = 4.49E-5;
   double beta = 3.45E-6;
   cladding.setRefractiveIndex(delta, beta);
-  double Rcurv = 40E6;
+  double Rcurv = 30E6;
   double width = 100.0;
   //double xmax = Rcurv + 1E3;//4.0*width;
   //double xmin = xmax - 2E3;
   double xmax = width+0.5E3;//4.0*width;
-  double xmin = xmax-5.0E3;
+  double xmin = xmax-2.5E3;
   double stepX = 1.0;
   double zmin = 0.0;
-  double zmax = 500E3;
-  double stepZ = 100.0;
+  double zmax = 300E3;
+  double stepZ = 50.0;
 
   try
   {
@@ -51,10 +51,11 @@ int main( int argc, char **argv )
     clog << " done\n";
     clog << "Solving linear system... ";
     wg.solve();
-    wg.computeTransmission( 5E4 ); // Compute transmission every 50 um
+    wg.computeTransmission( 1.5E4 ); // Compute transmission every 10 um
     clog << "done\n";
     clog << "Exporting results...\n";
-    wg.save( ctl);
+    wg.save( ctl );
+    wg.saveTransmission( ctl );
     ctl.save();
     clog << "Finished exporting\n";
 

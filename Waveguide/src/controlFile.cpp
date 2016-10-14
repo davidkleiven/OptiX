@@ -34,7 +34,7 @@ ControlFile::~ControlFile()
 void ControlFile::save() const
 {
   string ofname = fname+".json";
-  ofstream out(fname);
+  ofstream out(ofname);
   if ( !out.good() )
   {
     cout << "Could not open file " << ofname << endl;
