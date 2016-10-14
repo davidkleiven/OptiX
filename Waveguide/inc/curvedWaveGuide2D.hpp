@@ -4,6 +4,8 @@
 #include <complex>
 #include <vector>
 
+class ControlFile;
+
 typedef std::complex<double> cdouble;
 
 class CurvedWaveGuideFD: public WaveGuideFDSimulation
@@ -17,6 +19,7 @@ public:
   void setWidth( double newWidth ) { width = newWidth; };
   cdouble transverseBC( double z ) const override final;
   void computeTransmission( double step );
+  void saveTransmission( ControlFile &ctl ) const;
 protected:
   double R;
   double width;

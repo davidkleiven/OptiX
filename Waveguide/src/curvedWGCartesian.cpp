@@ -16,6 +16,7 @@ typedef complex<double> cdouble;
 
 int main( int argc, char **argv )
 {
+
   Cladding cladding;
   ControlFile ctl("data/singleCurvedWG"); // File for all parameters and settings
   //double delta = 4.14E-5;
@@ -50,6 +51,7 @@ int main( int argc, char **argv )
     clog << " done\n";
     clog << "Solving linear system... ";
     wg.solve();
+    wg.computeTransmission( 5E4 ); // Compute transmission every 50 um
     clog << "done\n";
     clog << "Exporting results...\n";
     wg.save( ctl);
