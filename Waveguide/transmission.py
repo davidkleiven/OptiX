@@ -11,15 +11,15 @@ from scipy import stats
 
 def plotTransmission( data, stat ):
     z = np.linspace( stat["Transmission"]["zStart"], stat["Transmission"]["zEnd"], len(data))
-
-    slope, interscept, rvalue, pvalue, stderr = stats.linregress( z, np.log(data) )
+    fitStart = int( 3*len(data)/4 )
+    slope, interscept, rvalue, pvalue, stderr = stats.linregress( z[fitStart:], np.log(data[fitStart:]) )
     zFit = np.linspace( np.min(z), np.max(z), 101 )
     fit = np.exp(interscept)*np.exp(slope*zFit)
     print ("Decay length: %.2E mm"%(-1.0/(1E6*slope)))
     print ("Interscept: %.2E"%(np.exp(interscept)))
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
-    ax.plot( z/1E6, data, 'k.')
+    ax.plot( z/1E6, data, 'k.', ms=2 )
     ax.plot ( zFit/1E6, fit, 'k--')
     ax.set_xlabel("$z (\SI{}{\milli\meter}$)")
     ax.set_ylabel("Tranmission")
