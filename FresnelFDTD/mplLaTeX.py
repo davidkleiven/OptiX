@@ -1,6 +1,6 @@
 ONE_COLUMN = False
 LATEX_PREAMBLE = "\usepackage{gensymb}"
-LATEX_PREAMBLE += "\IfFileExists{siunitx.sty}{\usepackage{siunitx}}{\providecommand{\SI}[2]{#1\mathrm{#2}}}"
+LATEX_PREAMBLE += "\IfFileExists{siunitx.sty}{\usepackage{siunitx}}{\providecommand{\SI}[2]{{#1}\mathrm{ {#2} }}}"
 LATEX_PREAMBLE += "\providecommand{\micro}{\mu}"
 
 if ( ONE_COLUMN ):
