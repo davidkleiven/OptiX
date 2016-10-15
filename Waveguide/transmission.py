@@ -19,7 +19,7 @@ def plotTransmission( data, stat ):
     print ("Interscept: %.2E"%(np.exp(interscept)))
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
-    ax.plot( z/1E6, data, 'k.', ms=2 )
+    ax.plot( z/1E6, data, 'k.', ms=4, fillstyle="none" )
     ax.plot ( zFit/1E6, fit, 'k--')
     ax.set_xlabel("$z (\SI{}{\milli\meter}$)")
     ax.set_ylabel("Tranmission")
