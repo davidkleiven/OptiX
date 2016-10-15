@@ -1,7 +1,9 @@
 ONE_COLUMN = False
 LATEX_PREAMBLE = "\usepackage{gensymb}"
-LATEX_PREAMBLE += "\IfFileExists{siunitx.sty}{\usepackage{siunitx}}{ \providecommand{\SI}[2]{{#1}\ensuremath{\mathrm{ {#2} }}} }"
-LATEX_PREAMBLE += "\providecommand{\micro}{\mu}"
+LATEX_PREAMBLE += "\IfFileExists{siunitx.sty}{\usepackage{siunitx}}{ \providecommand{\SI}[2]{{#1} \; {#2}} }"
+LATEX_PREAMBLE += "\providecommand{\micro}{\ensuremath{\mathrm{\mu}}}"
+LATEX_PREAMBLE += "\providecommand{\milli}{\ensuremath{\mathrm{m}}}"
+LATEX_PREAMBLE += "\providecommand{\meter}{\ensuremath{\mathrm{m}}}"
 
 if ( ONE_COLUMN ):
     figsize = [6.0, 4.5]
