@@ -1,10 +1,14 @@
 ONE_COLUMN = False
+LATEX_PREAMBLE = "\usepackage{gensymb}"
+LATEX_PREAMBLE += "\IfFileExists{siunitx.sty}{\usepackage{siunitx}}{\providecommand{\SI}[2]{#1\mathrm{#2}}}"
+LATEX_PREAMBLE += "\providecommand{\micro}{\mu}"
+
 if ( ONE_COLUMN ):
     figsize = [6.0, 4.5]
 else:
     figsize = [3.5, 2.25]
 params = {'backend': 'ps',
-       'text.latex.preamble': ['\usepackage{gensymb}\IfFileExists{siunitx.sty}{\usepackage{siunitx}}{\providecommand{\SI}[2]{#1\mathrm{#2}}}'],
+       'text.latex.preamble': [LATEX_PREAMBLE],
        'axes.labelsize': 8, # fontsize for x and y labels (was 10)
        'axes.titlesize': 8,
        'font.size': 8, # was 10
