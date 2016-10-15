@@ -1,6 +1,8 @@
 ONE_COLUMN = False
 LATEX_PREAMBLE = "\usepackage{gensymb}"
 LATEX_PREAMBLE += "\IfFileExists{siunitx.sty}{\usepackage{siunitx}}{}"
+
+# Provide an SI command and macros if the siunitx-package is not found
 LATEX_PREAMBLE += "\providecommand{\SI}[2]{{#1} \; {#2}}"
 LATEX_PREAMBLE += "\providecommand{\micro}{\ensuremath{\mathrm{\mu}}}"
 LATEX_PREAMBLE += "\providecommand{\milli}{\ensuremath{\mathrm{m}}}"
