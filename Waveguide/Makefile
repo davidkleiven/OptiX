@@ -5,6 +5,7 @@ ARMA_PATH=/home/david/Documents/localLib/armadillo-7.400.4/
 ARMA_INC=/home/david/Documents/localLib/include
 ODIR=obj
 SDIR=src
+OPT=-O2#-pg
 
 SOURCES:= main.cpp cladding.cpp waveGuide.cpp waveGuideRadiusCurvature.cpp numerovSolver.cpp solver1D.cpp waveGuideStraight.cpp \
 	        stdFDsolver.cpp crancNicholson.cpp waveGuideFDSimulation.cpp solver2D.cpp curvedWaveGuide2D.cpp controlFile.cpp
@@ -19,7 +20,7 @@ TEST_SOURCES := $(addprefix unittest/, ${TEST_SOURCES})
 TEST_OBJECTS := $(addprefix unittest/, ${TEST_OBJECTS})
 
 waveguide.out: ${OBJECTS}
-	g++ -std=c++11 -o $@ $^ -L ${LDIR} -L ${ARMA_PATH} -lcblas -llapack -lgsl -ljsoncpp -lz -lhdf5_serial -lhdf5_serial_hl \
+	g++ -std=c++11 ${OPT} -o $@ $^ -L ${LDIR} -L ${ARMA_PATH} -lcblas -llapack -lgsl -ljsoncpp -lz -lhdf5_serial -lhdf5_serial_hl \
 	-lhdf5_cpp -lhdf5_hl_cpp -larmadillo
 
 unittest.out: ${TEST_OBJECTS} $(filter-out obj/main.o, ${OBJECTS})
@@ -31,7 +32,7 @@ curvedWG2D.out: $(filter-out obj/main.o, ${OBJECTS}) ${ODIR}/curvedWGCartesian.o
 	-lhdf5_hl_cpp -larmadillo
 
 ${ODIR}/%.o: ${SDIR}/%.cpp
-	g++ -std=c++11 -MMD -c $< -I ${IDIR} -I ${IDIR_HDF5} -I ${ARMA_INC} -o $@
+	g++ -std=c++11 -MMD ${OPT} -c $< -I ${IDIR} -I ${IDIR_HDF5} -I ${ARMA_INC} -o $@
 
 unittest/%.o: unittest/%.cpp
 	g++ -std=c++11 -MMD -c $< -I ${IDIR} -I ${IDIR_HDF5} -I ${ARMA_INC} -o $@
