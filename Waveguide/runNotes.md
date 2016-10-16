@@ -28,4 +28,16 @@
 628369 | Lx=5.0 um, Lz=500 um. dx=1nm, dz=100nm R=40mm, delta=4.14E-5 | Error with HDF5 and Armadillo |
 272786 | Lx=5.0 um, Lz=500 um. dx=1nm, dz=100nm R=40mm, delta=4.14E-5 | T=0.79. L=2.13 mm. Think T. Salditt uses delta=4.49E-5 |
 181476 | Lx=5.0 um, Lz=500 um. dx=1nm, dz=100nm R=40mm, delta=4.49E-5 | Not analysed |
-<font color="red">117646 | Lz/R=0.01 max(dx) =1.0, dz=calculated, delta=4.45E-5, R=10 mm | Looks Ok | </font>
+-------| ------------------------------------------------------------- | ----------|
+-------| ------------------------------------------------------------- | ----------|
+117646 | Lz/R=0.01 max(dx) =1.0, dz=calculated, delta=4.45E-5, R=10 mm | Looks Ok |
+559170 | R = 20 mm | Looks OK |
+240280 | R = 30 mm | Looks OK |
+647340 | R = 40 mm | Looks OK |
+920626 | R = 60 mm | Looks OK |
+992235 | R = 80 mm | Looks OK |
+605795 | R = 100 mm | To large stepsize in z? |
+187870 | R = 150 mm | Too large stepsize in z? |
+109596 | R = 200 mm | Too large stepsize in z? |
+-------| ------------------------------------------------------------- | ----------|
+-------| ------------------------------------------------------------- | ----------|
