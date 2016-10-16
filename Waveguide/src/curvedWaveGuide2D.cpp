@@ -73,8 +73,8 @@ void CurvedWaveGuideFD::computeTransmission( double step )
   double z = step;
   while ( z < zDisc->max )
   {
-    double xWgStart = -0.5*z*z/R;
-    double xWgEnd = xWgStart+width;
+    double xWgStart = waveGuideStartX( z );
+    double xWgEnd = waveGuideEndX( z );
     closestIndex( xWgStart, z, wgStart, zIndx );
     closestIndex( xWgEnd, z, wgEnd, zIndx );
 
@@ -87,6 +87,16 @@ void CurvedWaveGuideFD::computeTransmission( double step )
     z += step;
   }
   stepWhenComputingTransmission = step; // Save for later
+}
+
+double CurvedWaveGuideFD::waveGuideStartX( double z ) const
+{
+  return -0.5*z*z/R;
+}
+
+double CurvedWaveGuideFD::waveGuideEndX( double z ) const
+{
+  return waveGuideStartX( z ) + width;
 }
 
 void CurvedWaveGuideFD::saveTransmission( ControlFile &ctl ) const

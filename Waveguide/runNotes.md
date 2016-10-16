@@ -47,3 +47,6 @@
 91570 | R = 80 mm | Looks OK |
 184063 | R = 100 mm | Looks OK |
 866239 | R = 150 mm | Looks OK |
+%%% | %%% | %%%
+293663 | Lz/R=0.01 max(dx) =1.0, dz=calculated, delta=4.45E-5, Straight waveguide | L=5.35 mm, way too wide domain in the transverse direction |
+702004 | Lz/R=0.01 max(dx) =1.0, dz=calculated, delta=4.45E-5, Straight waveguide | L = 5.32 mm, looks good |

@@ -14,16 +14,19 @@ public:
   CurvedWaveGuideFD(): WaveGuideFDSimulation("CurvedWaveGuide2D"){};
   void getXrayMatProp( double x, double z, double &delta, double &beta ) const override final;
   void setBoundaryConditions() override final;
-  void fillInfo( Json::Value &obj ) const override final;
+  virtual void fillInfo( Json::Value &obj ) const override;
   void setRadiusOfCurvature( double newR ) { R = newR; };
   void setWidth( double newWidth ) { width = newWidth; };
   cdouble transverseBC( double z ) const override final;
   void computeTransmission( double step );
   void saveTransmission( ControlFile &ctl ) const;
 protected:
+  CurvedWaveGuideFD( const char *name): WaveGuideFDSimulation(name){};
   double R;
   double width;
-  bool isInsideGuide( double x, double z ) const override final;
+  virtual bool isInsideGuide( double x, double z ) const override;
+  virtual double waveGuideStartX( double z ) const;
+  virtual double waveGuideEndX( double z ) const;
   std::vector<double> transmission;
   double stepWhenComputingTransmission{0.0};
 };
