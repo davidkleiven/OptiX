@@ -29,15 +29,20 @@ def main( argv ):
         stepZ = np.array( hf.get("stepsizeZ") )
         errorZ = np.array( hf.get("errorRatioZ") )
 
+    stepsize = np.zeros(len(errorX))
+    for i in range(0, len(stepsize)):
+        stepsize[i] = 2**i
     stepRef = np.linspace(0.01, 1.0, 101)
     errorRef = 10*stepRef**2
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
-    ax.plot( stepX/np.max(stepX), errorX, '^', color="black", label="X")
-    ax.plot( stepZ/np.max(stepZ), 0.1*errorZ, 's', color="black", label="Z")
-    ax.plot(stepRef, errorRef, color="black")
+    #ax.plot( stepX/np.max(stepX), errorX, '^', color="black", label="X")
+    #ax.plot( stepZ/np.max(stepZ), 0.1*errorZ, 's', color="black", label="Z")
+    ax.plot( stepsize, errorX, '^', color="black", label="X")
+    ax.plot( stepsize, errorZ, 's', color="black", label="Z")
+    #ax.plot(stepRef, errorRef, color="black")
     ax.set_yscale("log")
-    ax.set_xscale("log")
+    ax.set_xscale("log", basex=2)
     ax.set_ylabel("Error")
     ax.set_xlabel("Normalized stepsize")
     ax.legend(loc="lower right", frameon=False)

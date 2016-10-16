@@ -78,13 +78,15 @@ int main( int argc, char** argv )
   vector<double> errorZ = errorRatio( solutionAtTestPointZ );
 
   string fname("data/convergence.h5");
-  hsize_t dim = Nx;
+  hsize_t dim = errorX.size();
   int rank = 1;
   hid_t file_id = H5Fcreate(fname.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT );
   H5LTmake_dataset( file_id, "errorRatioX", rank, &dim, H5T_NATIVE_DOUBLE, &errorX[0]);
+  dim = Nx;
   H5LTmake_dataset( file_id, "stepsizeX", rank, &dim, H5T_NATIVE_DOUBLE, stepX);
-  dim = Nz;
+  dim = errorZ.size();
   H5LTmake_dataset( file_id, "errorRatioZ", rank, &dim, H5T_NATIVE_DOUBLE, &errorZ[0]);
+  dim = Nz;
   H5LTmake_dataset( file_id, "stepsizeZ", rank, &dim, H5T_NATIVE_DOUBLE, stepZ);
   H5Fclose(file_id);
   clog << "Convergence data writte to " << fname << endl;
