@@ -13,10 +13,6 @@ from matplotlib import pyplot as plt
 from scipy import interpolate
 import transmission as trans
 
-def uidFromFilename( fname ):
-    uid = np.int( fname[-11:-5])
-    return uid
-
 def plot2D(data, stat):
     print ("Plotting the full matrix...")
     x = np.linspace(stat["xDiscretization"]["min"], stat["xDiscretization"]["max"], data.shape[0])
@@ -32,7 +28,7 @@ def plot2D(data, stat):
     plt.ylabel("$x$ (nm)")
     plt.gca().set_aspect( np.abs( (extent[1]-extent[0])/(extent[3]-extent[2]) ))
     plt.colorbar()
-    fname = "Figures/contourLinScale%d.jpeg"%(stat["uid"])
+    fname = "Figures/contourLinScale%d.jpeg"%(stat["UID"])
     plt.savefig(fname, bbox_inches="tight", dpi=800)
     print ("Figure written to %s"%(fname))
 
@@ -46,7 +42,7 @@ def plot2D(data, stat):
     plt.ylabel("$x$ (nm)")
     plt.colorbar()
     plt.gca().set_aspect( np.abs( (extent[1]-extent[0])/(extent[3]-extent[2]) ))
-    fname = "Figures/contourLogScale%d.jpeg"%(stat["uid"])
+    fname = "Figures/contourLogScale%d.jpeg"%(stat["UID"])
     plt.savefig(fname, bbox_inches="tight", dpi=800)
     print ("Figure written to %s"%(fname))
 
@@ -132,7 +128,6 @@ def main(argv):
     else:
         x0 = np.min(xInside)
     stat["x0"] = x0
-    stat["uid"] = uidFromFilename( fname )
 
     if ( stat["sparseSave"] ):
         plot2Dsparse( xVal, zVal, intensity, stat )
