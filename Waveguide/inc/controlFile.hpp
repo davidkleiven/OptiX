@@ -12,6 +12,7 @@ public:
   const Json::Value& get() const{ return *base; };
   Json::Value& get() { return *base; };
   std::string getFnameTemplate() const { return fname; };
+  unsigned int getUID() const { return uid; };
 private:
   std::string fname;
   Json::Value *base;

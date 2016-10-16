@@ -74,8 +74,14 @@ void CurvedWaveGuideFD::computeTransmission( double step )
   while ( z < zDisc->max )
   {
     double xWgStart = -0.5*z*z/R;
+    double xWgEnd = xWgStart+width;
     closestIndex( xWgStart, z, wgStart, zIndx );
-    closestIndex( xWgStart+width, z, wgEnd, zIndx );
+    closestIndex( xWgEnd, z, wgEnd, zIndx );
+
+    // Assertions for debugging (allow first and last point to be outside )
+    assert( isInsideGuide( xWgStart+1, z ) );
+    assert( isInsideGuide( xWgEnd-1, z) );
+
     double intensity = trapezoidalIntegrateIntensityZ( zIndx, wgStart, wgEnd );
     transmission.push_back( intensity/intensityAtZero );
     z += step;
