@@ -231,8 +231,7 @@ double WaveGuideFDSimulation::getIntensity( double x, double z ) const
 
 double WaveGuideFDSimulation::getIntensity( unsigned int ix, unsigned int iz ) const
 {
-  arma::cx_mat sol = solver->getSolution();
-  return pow( abs( sol(ix,iz) ), 2 );
+  return pow( abs( solver->getSolution()(ix,iz) ), 2 );
 }
 
 double WaveGuideFDSimulation::getZ( unsigned int iz ) const
