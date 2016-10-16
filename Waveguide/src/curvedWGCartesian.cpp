@@ -53,7 +53,8 @@ int main( int argc, char **argv )
   // Parameters for running a sweep over radii of curvature
   double LzOverR = 0.01; // max(z)/R << 1 is a requirement
   double xMarginAboveAndBelow = 0.5E3; // In nanometers = 0.5 um
-  unsigned int Nz = 5000;
+  unsigned int Nz = 5000; // Number of discretization points in x and z direction
+  unsigned int nPointsTransmission = 200;
 
   Cladding cladding;
   double delta = 4.49E-5;
@@ -97,7 +98,7 @@ int main( int argc, char **argv )
       wg.solve();
       clog << "done\n";
       clog << "Computing transmission... ";
-      wg.computeTransmission( 10E3 ); // Compute transmission every 10 um
+      wg.computeTransmission( (zmax-zmin)/static_cast<double>(nPointsTransmission) );
       clog << "done\n";
       clog << "Exporting results...\n";
       wg.save( ctl );
