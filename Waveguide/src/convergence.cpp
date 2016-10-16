@@ -16,7 +16,7 @@ vector<double> errorRatio( const vector<double> &solutionAtTest )
   vector<double> error;
   for ( unsigned int i=1;i<solutionAtTest.size()-1;i++ )
   {
-    error.push_back( ( solutionAtTest[i-1]-solutionAtTest[i] )/( solutionAtTest[i]- solutionAtTest[i+1] ) );
+    error.push_back( abs(( solutionAtTest[i-1]-solutionAtTest[i] )/( solutionAtTest[i] - solutionAtTest[i+1] )) );
   }
   return error;
 }
@@ -41,7 +41,7 @@ int main( int argc, char** argv )
 
   StraightWG2D wg1;
   double testZ = zmax/2.0;
-  double testX = (xmax-xmin)/2.0;
+  double testX = width/2.0;
   CrankNicholson solver;
   wg1.setWidth( width );
   wg1.setWaveLength( 0.1569 );
