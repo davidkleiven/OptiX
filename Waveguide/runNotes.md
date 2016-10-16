@@ -28,4 +28,4 @@
 628369 | Lx=5.0 um, Lz=500 um. dx=1nm, dz=100nm R=40mm, delta=4.14E-5 | Error with HDF5 and Armadillo |
 272786 | Lx=5.0 um, Lz=500 um. dx=1nm, dz=100nm R=40mm, delta=4.14E-5 | T=0.79. L=2.13 mm. Think T. Salditt uses delta=4.49E-5 |
 181476 | Lx=5.0 um, Lz=500 um. dx=1nm, dz=100nm R=40mm, delta=4.49E-5 | Not analysed |
-<font color:red>117646 | Lz/R=0.01 max(dx) =1.0, dz=calculated, delta=4.45E-5, R=10 mm | Looks Ok | </font>
+<font color="red">117646 | Lz/R=0.01 max(dx) =1.0, dz=calculated, delta=4.45E-5, R=10 mm | Looks Ok | </font>
