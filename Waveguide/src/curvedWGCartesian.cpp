@@ -16,10 +16,10 @@ typedef complex<double> cdouble;
 
 int main( int argc, char **argv )
 {
-  double R[9] = {10.0, 20.0, 30.0, 40.0, 60.0, 80.0, 100.0, 150.0, 200.0}; // In mm
+  double R[8] = {10.0, 20.0, 30.0, 40.0, 60.0, 80.0, 100.0, 150.0}; // In mm
   bool dumpUIDstoFile = true;
   unsigned int startRun = 0;
-  unsigned int endRun = 9;
+  unsigned int endRun = 8;
   /*********** PARSE COMMANDLINE ARGUMENTS ************************************/
   for ( unsigned int i=1;i<argc; i++ )
   {
@@ -76,6 +76,7 @@ int main( int argc, char **argv )
     double stepX = (xmax-xmin)/static_cast<double>(Nz);
     double stepZ = (zmax-zmin)/static_cast<double>(Nz);
     stepX = stepX > 1.0 ? 1.0:stepX;
+    stepZ = stepZ > 100.0 ? 100.0:stepZ;
 
     ControlFile ctl("data/singleCurvedWG"); // File for all parameters and settings
 
