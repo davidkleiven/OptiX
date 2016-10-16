@@ -19,6 +19,7 @@ void Solver2D::setGuide( const WaveGuideFDSimulation &wg )
   guide = &wg;
   unsigned int Nx = guide->nodeNumberTransverse();
   unsigned int Nz = guide->nodeNumberLongitudinal();
+  if ( solution != NULL ) delete solution;
   solution = new arma::cx_mat(Nx,Nz);
 }
 
