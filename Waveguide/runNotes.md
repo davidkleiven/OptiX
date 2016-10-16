@@ -38,3 +38,12 @@
 605795 | R = 100 mm | To large stepsize in z? |
 187870 | R = 150 mm | Too large stepsize in z? |
 109596 | R = 200 mm | Too large stepsize in z? |
+%%% | __Parameter sweep over R__ | %%% |
+248375 |  Lz/R=0.01 max(dx) = 1 nm, max(dz)=100.0 nm, delta=4.45E-5, R=10 mm | Looks Ok |
+55170 | R = 20 mm | Looks OK |
+493127 | R = 30 mm | Looks OK |
+253932 | R = 40 mm | Looks OK
+859966 | R = 60 mm | Looks OK |
+91570 | R = 80 mm | Looks OK |
+184063 | R = 100 mm | Looks OK |
+866239 | R = 150 mm | Looks OK |
