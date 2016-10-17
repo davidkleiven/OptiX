@@ -38,7 +38,7 @@ def main( argv ):
     ax = fig.add_subplot(1,1,1)
 
     indx = 0
-    markers = ["v", "^", 's']
+    markers = ["v", "s", "^"]
     minOfMaxZ = np.inf
     for entry in param["entries"]:
         ctlfile = param["basename"]+"%d.json"%(entry["uid"])
@@ -66,7 +66,7 @@ def main( argv ):
         if ( stat["Transmission"]["zEnd"] < minOfMaxZ ):
             minOfMaxZ = stat["Transmission"]["zEnd"]
             ymin = np.min(np.log(data))
-        ax.plot( z/1E6, np.log(data), marker=markers[indx], ms=4, color="black", linestyle="None", label=entry["label"])
+        ax.plot( z/1E6, np.log(data), marker=markers[indx], ms=2, color="black", fillstyle="none", linestyle="None", label=entry["label"])
         ax.plot( zFit/1E6, interscept+slope*zFit, lw=0.3, color="black" )
         indx += 1
 
