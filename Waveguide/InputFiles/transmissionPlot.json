@@ -14,6 +14,6 @@
     }
   ],
   "numberOfPoints":10,
-  "basename":"data/singleCuvedWG",
+  "basename":"data/singleCurvedWG",
   "figurename":"transmissionParamSweep_1017.pdf"
 }
