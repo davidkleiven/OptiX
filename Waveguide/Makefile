@@ -3,6 +3,7 @@ IDIR_HDF5=/usr/lib/x86_64-linux-gnu/hdf5/serial/include
 LDIR=/usr/lib/x86_64-linux-gnu/hdf5/serial/lib
 ARMA_PATH=/home/david/Documents/localLib/armadillo-7.400.4/
 ARMA_INC=/home/david/Documents/localLib/include
+APPDIR=Applications
 ODIR=obj
 SDIR=src
 OPT=-O2#-pg
@@ -39,6 +40,9 @@ convergence.out: $(filter-out obj/main.o, ${OBJECTS}) ${ODIR}/convergence.o
 ${ODIR}/%.o: ${SDIR}/%.cpp
 	g++ -std=c++11 -MMD ${OPT} -c $< -I ${IDIR} -I ${IDIR_HDF5} -I ${ARMA_INC} -o $@
 
+${ODIR}/%.o: ${APPDIR}/%.cpp
+	g++ -std=c++11 -MMD ${OPT} -c $< -I ${IDIR} -I ${IDIR_HDF5} -I ${ARMA_INC} -o $@
+	
 unittest/%.o: unittest/%.cpp
 	g++ -std=c++11 -MMD -c $< -I ${IDIR} -I ${IDIR_HDF5} -I ${ARMA_INC} -o $@
 
