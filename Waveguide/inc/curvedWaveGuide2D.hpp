@@ -3,6 +3,7 @@
 #include "waveGuideFDSimulation.hpp"
 #include <complex>
 #include <vector>
+#include <armadillo>
 
 class ControlFile;
 
@@ -20,6 +21,7 @@ public:
   cdouble transverseBC( double z ) const override final;
   void computeTransmission( double step );
   void saveTransmission( ControlFile &ctl ) const;
+  void getFieldInsideWG( arma::mat &matrix ) const;
 
   // Virtual functions
   virtual void fillInfo( Json::Value &obj ) const override;
@@ -28,6 +30,7 @@ public:
   // Extracts the field inside the waveguide at distance wcrd from the edge
   // Thus: wcrd = 0.0: along the lower wall. wcrd=width extracts along the upper wall
   virtual void extractField( double wcrd, std::vector<cdouble> &res ) const {};
+  //virtual void extractField( double wcrd, std::vector<double> &res ) const {} // real part of field
 protected:
   CurvedWaveGuideFD( const char *name): WaveGuideFDSimulation(name){};
   double R;

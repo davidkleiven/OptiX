@@ -124,3 +124,26 @@ void CurvedWaveGuideFD::init( const ControlFile &ctl )
   width = ctl.get()["waveguide"]["Width"].asDouble();
   R = ctl.get()["waveguide"]["RadiusOfCurvature"].asDouble();
 }
+
+void CurvedWaveGuideFD::getFieldInsideWG( arma::mat &matrix ) const
+{
+  unsigned int nNodesTransverseWG = width/xDisc->step;
+
+  // Note that this will contain the elements in transpose order
+  matrix.set_size( nodeNumberLongitudinal(), nNodesTransverseWG );
+  for ( unsigned int iz=0;iz<nodeNumberLongitudinal();iz++ )
+  {
+    double z = zDisc->min + zDisc->step;
+    double x0 = waveGuideStartX( z );
+    unsigned int ixStart, dummy;
+    closestIndex( x0, z, ixStart, dummy );
+    for ( unsigned int ix=0;ix<nNodesTransverseWG; ix++ )
+    {
+      x0 += xDisc->step;
+      unsigned int currentIx;
+      assert ( isInsideGuide(x0, z) );
+      closestIndex( x0, z, currentIx, dummy );
+      matrix(iz, ix) = solver->getSolution()(currentIx, iz).real();
+    }
+  }
+}
