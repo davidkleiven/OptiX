@@ -1,6 +1,8 @@
 #include "straightWG2D.hpp"
 #include "controlFile.hpp"
+#include "solver2D.hpp"
 
+using namespace std;
 bool StraightWG2D::isInsideGuide( double x, double z ) const
 {
   return ( x > 0.0 ) && ( x < width );
@@ -25,4 +27,16 @@ void StraightWG2D::init( const ControlFile &ctl )
 {
   WaveGuideFDSimulation::init(ctl);
   width = ctl.get()["Width"].asDouble();
+}
+
+void StraightWG2D::extractField( double wcrd, vector<cdouble> &res ) const
+{
+  double z0 = 0.0;
+  unsigned int ix, dummy;
+  res.clear(); // Make sure that the vector is empty
+  closestIndex( wcrd, z0, ix, dummy );
+  for ( unsigned int iz=0; iz<nodeNumberLongitudinal(); iz++ )
+  {
+    res.push_back( solver->getSolution()(ix, iz) );
+  }
 }

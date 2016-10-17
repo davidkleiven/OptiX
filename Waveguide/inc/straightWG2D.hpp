@@ -15,6 +15,7 @@ public:
   StraightWG2D(): CurvedWaveGuideFD("StraightWaveGuide"){};
   void fillInfo( Json::Value &obj ) const override final;
   void init( const ControlFile &ctl ) override final;
+  void extractField( double wcrd, std::vector<cdouble> &res ) const override final;
 protected:
   bool isInsideGuide( double x, double z ) const override final;
   double waveGuideStartX( double z ) const override final;
