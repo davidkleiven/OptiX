@@ -71,7 +71,7 @@ def main( argv ):
         indx += 1
 
     ax.set_xlabel("$z$ (mm)")
-    ax.set_xlim(right=minOfMaxZ/1E6)
+    #ax.set_xlim(right=minOfMaxZ/1E6)
     ax.set_ylim(bottom=ymin-0.05)
     ax.set_ylabel("$\ln$ (Transmission)")
     ax.legend(loc="upper right", frameon=False)
