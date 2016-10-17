@@ -36,7 +36,7 @@ def main( argv ):
     ax = fig.add_subplot(1,1,1)
 
     indx = 0
-    marksers = ["s", "^", '.']
+    markers = ["s", "^", '.']
     for entry in param["entries"]:
         ctlfile = param["basename"]+"%d.json"%(entry["uid"])
         try:
