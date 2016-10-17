@@ -46,6 +46,7 @@ def plot2D(data, stat):
     plt.savefig(fname, bbox_inches="tight", dpi=800)
     print ("Figure written to %s"%(fname))
 
+    plt.clf()
     plt.imshow(data.real, extent=extent, cmap="coolwarm", aspect=1.0, origin="lower")
     plt.xlabel("$z$ ($\mathrm{\mu m}$)")
     plt.ylabel("$x$ (nm)")
