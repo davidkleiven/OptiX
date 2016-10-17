@@ -57,7 +57,7 @@ def main( argv ):
         indx += 1
 
     ax.set_xlabel("$z$ (mm)")
-    ax.set_ylabel("\ln (Transmission)")
+    ax.set_ylabel("$\ln$ (Transmission)")
     ax.legend(loc="upper right", frameon=False)
     fname = "Figures/"+param["figurename"]
     fig.savefig(fname, bbox_inches="tight")
