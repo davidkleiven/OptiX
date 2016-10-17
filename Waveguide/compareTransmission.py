@@ -57,7 +57,7 @@ def main( argv ):
         fitStart = int( len(data)/2 )
         zFit = z[fitStart:]
         dataFit = data[fitStart:]
-        slope, interscept, rvalue, pvalue, stderr = stat.linregress(zFit,np.log(dataFit))
+        slope, interscept, rvalue, pvalue, stderr = stats.linregress(zFit,np.log(dataFit))
         if ( stat["Transmission"]["zEnd"] < minOfMaxZ ):
             minOfMaxZ = stat["Transmission"]["zEnd"]
             ymin = np.min(np.log(data))
