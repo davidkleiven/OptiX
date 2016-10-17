@@ -100,6 +100,7 @@ void WaveGuideFDSimulation::save( ControlFile &ctl, double intensityThreshold ) 
   bool useSparse = (intensityThreshold > 0.0);
   string fname = ctl.getFnameTemplate();
   string h5fname = fname+".h5";
+  string h5fieldfname = fname+"_field.h5";
   string jsonfname = fname+".json";
   string wgFname = fname+"_wg.h5";
 
@@ -112,6 +113,9 @@ void WaveGuideFDSimulation::save( ControlFile &ctl, double intensityThreshold ) 
   {
     arma::mat absSol = arma::abs(solver->getSolution());
     absSol.save(h5fname.c_str(), arma::hdf5_binary);
+
+    absSol = arma::real(solver->getSolution());
+    absSol.save(h5fieldfname.c_str(), arma::hdf5_binary);
   }
   clog << "Solution written to " << h5fname << endl;
 
