@@ -1,0 +1,19 @@
+{
+  "entries":[
+    {
+      "uid":702004,
+      "label":"Straight"
+    },
+    {
+      "uid":184063,
+      "label":"100 mm"
+    },
+    {
+      "uid":253932,
+      "label":"40 mm"
+    }
+  ],
+  "numberOfPoints":10,
+  "basename":"data/singleCuvedWG",
+  "figurename":"transmissionParamSweep_1017.pdf"
+}
