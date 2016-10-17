@@ -121,6 +121,6 @@ void CurvedWaveGuideFD::saveTransmission( ControlFile &ctl ) const
 void CurvedWaveGuideFD::init( const ControlFile &ctl )
 {
   WaveGuideFDSimulation::init(ctl);
-  width = ctl.get()["Width"].asDouble();
-  R = ctl.get()["RadiusOfCurvature"].asDouble();
+  width = ctl.get()["waveguide"]["Width"].asDouble();
+  R = ctl.get()["waveguide"]["RadiusOfCurvature"].asDouble();
 }

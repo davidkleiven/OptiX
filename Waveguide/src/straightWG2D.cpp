@@ -26,7 +26,7 @@ double StraightWG2D::waveGuideEndX( double z ) const
 void StraightWG2D::init( const ControlFile &ctl )
 {
   WaveGuideFDSimulation::init(ctl);
-  width = ctl.get()["Width"].asDouble();
+  width = ctl.get()["waveguide"]["Width"].asDouble();
 }
 
 void StraightWG2D::extractField( double wcrd, vector<cdouble> &res ) const
