@@ -54,20 +54,20 @@ def main( argv ):
         with h5.File(stat["Transmission"]["file"], 'r') as hf:
             data = np.array( hf.get( "transmission" ) )
 
+        # Reduce number of points in plot
+        data = data[::param["numberOfPoints"]]
         z = np.linspace(stat["Transmission"]["zStart"], stat["Transmission"]["zEnd"], len(data))
         fitStart = int( len(data)/2 )
         zFit = z[fitStart:]
         dataFit = data[fitStart:]
         slope, interscept, rvalue, pvalue, stderr = stats.linregress(zFit,np.log(dataFit))
 
-        # Reduce number of points in plot
-        data = data[::param["numberOfPoints"]]
-        z = np.linspace(stat["Transmission"]["zStart"], stat["Transmission"]["zEnd"], len(data))
+
         if ( stat["Transmission"]["zEnd"] < minOfMaxZ ):
             minOfMaxZ = stat["Transmission"]["zEnd"]
             ymin = np.min(np.log(data))
-        ax.plot( z/1E6, np.log(data), color=cs.COLORS[indx], marker='.', ms=4, linestyle="None", label=entry["label"])
-        ax.plot( z/1E6, interscept+slope*z, color="#C0C0C0" )
+        ax.plot( z/1E6, np.log(data), color=cs.COLORS[2*indx], marker='.', ms=4, linestyle="None", label=entry["label"])
+        ax.plot( z/1E6, interscept+slope*z, color="black" )
         indx += 1
 
     ax.set_xlabel("$z$ (mm)")
