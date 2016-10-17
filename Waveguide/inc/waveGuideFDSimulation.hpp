@@ -49,6 +49,7 @@ public:
   virtual void setBoundaryConditions() = 0; // This function should fill the boundary
   virtual void fillInfo( Json::Value &obj ) const {};
   virtual cdouble transverseBC( double z ) const{ return 0.0; };
+  virtual void init( const ControlFile &ctl );
 protected:
   Solver2D *solver{NULL};
   Disctretization *xDisc; // Transverse
@@ -59,6 +60,7 @@ protected:
 
   double* allocateSolutionMatrix() const;
   void deallocateSolutionMatrix( double *matrix ) const;
+  bool solverInitializedViaInit{false};
 
   void sparseSave( const std::string &fname, double intensityThreshold ) const;
   void closestIndex( double x, double z, unsigned int &ix, unsigned int &iz ) const;

@@ -1,4 +1,5 @@
 #include "straightWG2D.hpp"
+#include "controlFile.hpp"
 
 bool StraightWG2D::isInsideGuide( double x, double z ) const
 {
@@ -18,4 +19,10 @@ double StraightWG2D::waveGuideStartX( double z ) const
 double StraightWG2D::waveGuideEndX( double z ) const
 {
   return width;
+}
+
+void StraightWG2D::init( const ControlFile &ctl )
+{
+  WaveGuideFDSimulation::init(ctl);
+  width = ctl.get()["Width"].asDouble();
 }

@@ -75,3 +75,8 @@ void Solver2D::fillInfo( Json::Value &obj ) const
 {
   obj["name"] = name;
 }
+
+bool Solver2D::importHDF5( const string &fname )
+{
+  return solution->load( fname.c_str(), arma::hdf5_binary );
+}

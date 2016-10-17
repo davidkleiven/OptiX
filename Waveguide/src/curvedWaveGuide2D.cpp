@@ -117,3 +117,10 @@ void CurvedWaveGuideFD::saveTransmission( ControlFile &ctl ) const
   ctl.get()["Transmission"] = trans;
   clog << "Transmission is written to " << fname << endl;
 }
+
+void CurvedWaveGuideFD::init( const ControlFile &ctl )
+{
+  WaveGuideFDSimulation::init(ctl);
+  width = ctl.get()["Width"].asDouble();
+  R = ctl.get()["RadiusOfCurvature"].asDouble();
+}

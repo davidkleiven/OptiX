@@ -2,6 +2,7 @@
 #include "solver2D.hpp"
 #include "cladding.hpp"
 #include "controlFile.hpp"
+#include "crankNicholson.hpp"
 #include <H5Cpp.h>
 #include <hdf5_hl.h>
 #include <iostream>
@@ -32,6 +33,11 @@ WaveGuideFDSimulation::~WaveGuideFDSimulation()
 {
   delete xDisc;
   delete zDisc;
+
+  if ( solverInitializedViaInit )
+  {
+    delete solver;
+  }
 }
 
 void WaveGuideFDSimulation::setWaveLength( double lambda )
@@ -65,6 +71,11 @@ unsigned int WaveGuideFDSimulation::nodeNumberLongitudinal() const
 
 void WaveGuideFDSimulation::setSolver( Solver2D &solv )
 {
+  if ( solverInitializedViaInit )
+  {
+    throw ("You cannot set a new solver when it has been initialized via the init function");
+  }
+
   solver = &solv;
   solver->setGuide( *this );
 }
@@ -253,4 +264,31 @@ double WaveGuideFDSimulation::trapezoidalIntegrateIntensityZ( unsigned int iz, u
   }
   double dx = ( getX( ixEnd) - getX( ixStart ) )/static_cast<double>( ixEnd - ixStart );
   return integral*dx*0.5;
+}
+
+void WaveGuideFDSimulation::init( const ControlFile &ctl )
+{
+  // Initialize x-discretization
+  xDisc->min = ctl.get()["xDiscretization"]["min"].asDouble();
+  xDisc->max = ctl.get()["xDiscretization"]["max"].asDouble();
+  xDisc->step = ctl.get()["xDiscretization"]["step"].asDouble();
+
+  // Initialize zDiscretization
+  zDisc->min = ctl.get()["zDiscretization"]["min"].asDouble();
+  zDisc->max = ctl.get()["zDiscretization"]["max"].asDouble();
+  zDisc->step = ctl.get()["zDiscretization"]["step"].asDouble();
+
+  solverInitializedViaInit = true;
+
+  // Need to have a solver object to store the solution.
+  // The type should not matter since the solution is already computed.
+  // Thus, the solve function should not be called
+  solver = new CrankNicholson();
+  solver->setGuide( *this );
+
+  // Load the solution
+  if ( !solver->importHDF5( ctl.get()["datafile"].asString() ) )
+  {
+    throw (runtime_error("Error when opening datafile!"));
+  }
 }
