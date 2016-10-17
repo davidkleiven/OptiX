@@ -46,6 +46,15 @@ def plot2D(data, stat):
     plt.savefig(fname, bbox_inches="tight", dpi=800)
     print ("Figure written to %s"%(fname))
 
+    plt.imshow(data.real, extent=extent, cmap="coolwarm", aspect=1.0, origin="lower")
+    plt.xlabel("$z$ ($\mathrm{\mu m}$)")
+    plt.ylabel("$x$ (nm)")
+    plt.colorbar()
+    plt.gca().set_aspect( np.abs( (extent[1]-extent[0])/(extent[3]-extent[2]) ))
+    fname = "Figures/fieldLinScale%d.jpeg"%(stat["UID"])
+    plt.savefig(fname, bbox_inches="tight", dpi=800)
+    print ("Figure written to %s"%(fname))
+
 def plot2Dsparse( x, z, intensity, stat ):
     print ("Using sparse plotting by triangulation...")
     #trianulation = tri.Triangulation( z/1000.0, x )
