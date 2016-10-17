@@ -5,6 +5,7 @@
 #include <iostream>
 #include <sstream>
 #include <cmath>
+#include <jsoncpp/json/reader.h>
 
 using namespace std;
 
@@ -26,6 +27,8 @@ ControlFile::ControlFile( const char* name ):fname(name), base(new Json::Value),
   fname = ss.str();
 }
 
+ControlFile::ControlFile(): base(new Json::Value), uid(0), fname(""){};
+
 ControlFile::~ControlFile()
 {
   delete base;
@@ -44,4 +47,20 @@ void ControlFile::save() const
   Json::StyledWriter sw;
   out << sw.write(*base) << endl;
   out.close();
+}
+
+void ControlFile::load( const string &infname )
+{
+  ifstream infile(infname.c_str());
+  if ( !infile.good() )
+  {
+    throw (runtime_error("Could not open control file"));
+  }
+
+  Json::Reader reader;
+  reader.parse(infile, *base);
+  uid = (*base)["UID"].asInt();
+
+  // Remove ending which should be .json
+  fname = infname.substr(0, infname.size()-4);
 }

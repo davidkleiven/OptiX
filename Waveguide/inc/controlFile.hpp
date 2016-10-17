@@ -7,7 +7,9 @@ class ControlFile
 {
 public:
   explicit ControlFile( const char* name );
+  ControlFile(); // Use this if the control file should be loaded from another file
   ~ControlFile();
+  void load( const std::string &fname );
   void save() const;
   const Json::Value& get() const{ return *base; };
   Json::Value& get() { return *base; };
