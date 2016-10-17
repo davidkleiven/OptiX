@@ -54,7 +54,7 @@ def main( argv ):
 
         #data = data[::param["numberOfPoints"]]
         z = np.linspace(stat["Transmission"]["zStart"], stat["Transmission"]["zEnd"], len(data))
-        if ( stat["Transmission"]["zEnd"] < minOfMaxZ )
+        if ( stat["Transmission"]["zEnd"] < minOfMaxZ ):
             minOfMaxZ = stat["Transmission"]["zEnd"]
         ax.plot( z/1E6, np.log(data), color="black", marker=markers[indx], ms=3, linestyle="None", label=entry["label"])
         indx += 1
