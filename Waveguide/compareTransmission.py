@@ -1,5 +1,7 @@
 import sys
 sys.path.append("../FresnelFDTD")
+sys.path.append("../")
+import colorScheme as cs
 import mplLaTeX as ml
 import matplotlib as mpl
 mpl.rcParams.update(ml.params)
@@ -52,17 +54,20 @@ def main( argv ):
         with h5.File(stat["Transmission"]["file"], 'r') as hf:
             data = np.array( hf.get( "transmission" ) )
 
-        data = data[::param["numberOfPoints"]]
         z = np.linspace(stat["Transmission"]["zStart"], stat["Transmission"]["zEnd"], len(data))
         fitStart = int( len(data)/2 )
         zFit = z[fitStart:]
         dataFit = data[fitStart:]
         slope, interscept, rvalue, pvalue, stderr = stats.linregress(zFit,np.log(dataFit))
+
+        # Reduce number of points in plot
+        data = data[::param["numberOfPoints"]]
+        z = np.linspace(stat["Transmission"]["zStart"], stat["Transmission"]["zEnd"], len(data))
         if ( stat["Transmission"]["zEnd"] < minOfMaxZ ):
             minOfMaxZ = stat["Transmission"]["zEnd"]
             ymin = np.min(np.log(data))
-        ax.plot( z/1E6, np.log(data), color="black", marker=markers[indx], ms=2, linestyle="None", label=entry["label"])
-        ax.plot(z/1E6, interscept+slope*z/1E6, color="black", linestyle="--")
+        ax.plot( z/1E6, np.log(data), color=cs.COLORS[indx], marker='.', ms=2, linestyle="None", label=entry["label"])
+        ax.plot( z/1E6, interscept+slope*z/1E6, color="#696969" )
         indx += 1
 
     ax.set_xlabel("$z$ (mm)")
