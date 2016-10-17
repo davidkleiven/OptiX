@@ -63,11 +63,10 @@ def main( argv ):
         dataFit = data[fitStart:]
         slope, interscept, rvalue, pvalue, stderr = stats.linregress(zFit,np.log(dataFit))
 
-
         if ( stat["Transmission"]["zEnd"] < minOfMaxZ ):
             minOfMaxZ = stat["Transmission"]["zEnd"]
             ymin = np.min(np.log(data))
-        ax.plot( z/1E6, np.log(data), marker=markers[indx], ms=2, color="black", fillstyle=fs[i], linestyle="None", label=entry["label"])
+        ax.plot( z/1E6, np.log(data), marker=markers[indx], ms=2, color="black", fillstyle=fs[indx], linestyle="None", label=entry["label"])
         ax.plot( z/1E6, interscept+slope*z, lw=0.5, color="black" )
         indx += 1
 
