@@ -42,7 +42,7 @@
 248375 |  Lz/R=0.01 max(dx) = 1 nm, max(dz)=100.0 nm, delta=4.45E-5, R=10 mm | Looks Ok |
 55170 | R = 20 mm | Looks OK |
 493127 | R = 30 mm | Looks OK |
-253932 | R = 40 mm | Looks OK
+253932 | R = 40 mm | Looks OK |
 859966 | R = 60 mm | Looks OK |
 91570 | R = 80 mm | Looks OK |
 184063 | R = 100 mm | Looks OK |
@@ -51,3 +51,13 @@
 293663 | Lz/R=0.01 max(dx) =1.0, dz=calculated, delta=4.45E-5, Straight waveguide | L=5.35 mm, way too wide domain in the transverse direction |
 702004 | Lz/R=0.01 max(dx) =1.0, dz=calculated, delta=4.45E-5, Straight waveguide | L = 5.32 mm, looks good |
 966449 | Lz/R=0.01 max(dx) =1.0, dz=calculated, delta=4.45E-5, Straight waveguide, with real part | L = 5.32 mm, looks good |
+%%% | __Parameter sweep over R saving the real part of the solution in addition__ | %%% |
+694357 | Lz/R=0.01 max(dx) = 1 nm, max(dz)=100.0 nm, delta=4.45E-5, R=10 mm | Looks Ok |
+725810 | R = 20 mm | Looks OK |
+519089 | R = 30 mm | Looks OK |
+824320 | R = 40 mm | Looks OK |
+269826 | R = 60 mm | Looks OK |
+262354 | R = 80 mm | Looks OK |
+945091 | R = 100 mm | Looks OK |
+521840 | R = 150 mm | Looks OK |
+%%% | %%% | %%%
