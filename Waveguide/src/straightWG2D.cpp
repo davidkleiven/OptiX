@@ -37,6 +37,7 @@ void StraightWG2D::extractField( double wcrd, vector<cdouble> &res ) const
   closestIndex( wcrd, z0, ix, dummy );
   for ( unsigned int iz=0; iz<nodeNumberLongitudinal(); iz++ )
   {
-    res.push_back( abs(solver->getSolution()(ix, iz)) );
+    // The field is the real part of the complex solution
+    res.push_back( solver->getSolution()(ix,iz).real() );
   }
 }
