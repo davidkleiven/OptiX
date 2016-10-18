@@ -13,7 +13,7 @@ from matplotlib import pyplot as plt
 from scipy import interpolate
 import transmission as trans
 
-def plot2D(data, stat):
+def plot2D(data, stat, field=None):
     print ("Plotting the full matrix...")
     x = np.linspace(stat["xDiscretization"]["min"], stat["xDiscretization"]["max"], data.shape[0])
     x -= stat["x0"]
@@ -47,14 +47,15 @@ def plot2D(data, stat):
     print ("Figure written to %s"%(fname))
 
     plt.clf()
-    plt.imshow(data.real, extent=extent, cmap="coolwarm", aspect=1.0, origin="lower")
-    plt.xlabel("$z$ ($\mathrm{\mu m}$)")
-    plt.ylabel("$x$ (nm)")
-    plt.colorbar()
-    plt.gca().set_aspect( np.abs( (extent[1]-extent[0])/(extent[3]-extent[2]) ))
-    fname = "Figures/fieldLinScale%d.jpeg"%(stat["UID"])
-    plt.savefig(fname, bbox_inches="tight", dpi=800)
-    print ("Figure written to %s"%(fname))
+    if ( not field is None ):
+        plt.imshow(data.real, extent=extent, cmap="coolwarm", aspect=1.0, origin="lower")
+        plt.xlabel("$z$ ($\mathrm{\mu m}$)")
+        plt.ylabel("$x$ (nm)")
+        plt.colorbar()
+        plt.gca().set_aspect( np.abs( (extent[1]-extent[0])/(extent[3]-extent[2]) ))
+        fname = "Figures/fieldLinScale%d.jpeg"%(stat["UID"])
+        plt.savefig(fname, bbox_inches="tight", dpi=800)
+        print ("Figure written to %s"%(fname))
 
 def plot2Dsparse( x, z, intensity, stat ):
     print ("Using sparse plotting by triangulation...")
@@ -129,6 +130,13 @@ def main(argv):
         with h5.File(stat["datafile"], "r") as hf:
             data = np.array( hf.get("dataset") )
 
+    fieldData = None
+    try:
+        with h5.File(stat["fieldData"], 'r') as hf:
+            fieldData = np.array( hf.get("dataset") )
+    except:
+        fieldData = None
+
     with h5.File(stat["wgfile"], 'r') as hf:
         xInside = np.array( hf.get("xInside"))
         zInside = np.array( hf.get("zInside"))
@@ -143,7 +151,7 @@ def main(argv):
         plot2Dsparse( xVal, zVal, intensity, stat )
     else:
         data = data.T # Transpose the dataset
-        plot2D( data, stat )
+        plot2D( data, stat, field=fieldData )
     #plotWG( xInside-x0, zInside )
 
     # Plot transmission. Put in try catch as some of the simulaitons do not compute the transmission
