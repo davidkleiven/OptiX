@@ -108,16 +108,18 @@ void WaveGuideFDSimulation::save( ControlFile &ctl, double intensityThreshold ) 
   if ( useSparse )
   {
     sparseSave( h5fname, intensityThreshold );
+    clog << "Solution written to " << h5fname << endl;
   }
   else
   {
     arma::mat absSol = arma::abs(solver->getSolution());
     absSol.save(h5fname.c_str(), arma::hdf5_binary);
+    clog << "Amplitude written to " << h5fname << endl;
 
     absSol = arma::real(solver->getSolution());
     absSol.save(h5fieldfname.c_str(), arma::hdf5_binary);
+    clog << "Realpart written to " << h5fieldfname << endl;
   }
-  clog << "Solution written to " << h5fname << endl;
 
   saveWG( wgFname );
   clog << "Points inside waveguide written to " << wgFname << endl;
@@ -127,6 +129,7 @@ void WaveGuideFDSimulation::save( ControlFile &ctl, double intensityThreshold ) 
   wginfo["Cladding"]["delta"] = cladding->getDelta();
   wginfo["Cladding"]["beta"] = cladding->getBeta();
   ctl.get()["datafile"] = h5fname;
+  ctl.get()["fieldData"] = h5fieldfname;
   ctl.get()["wgfile"] = wgFname;
   ctl.get()["name"] = name;
   ctl.get()["sparseSave"] = useSparse;
@@ -290,9 +293,20 @@ void WaveGuideFDSimulation::init( const ControlFile &ctl )
   solver = new CrankNicholson();
   solver->setGuide( *this );
 
-  // Load the solution
-  if ( !solver->importHDF5( ctl.get()["datafile"].asString() ) )
+  // Check that the control file has an entry for the realpart (from early development not all of them do)
+  if ( ctl.get().isMember("fieldData") )
   {
-    throw (runtime_error("Error when opening datafile!"));
+    if ( !solver->importHDF5(ctl.get()["datafile"].asString(), ctl.get()["fieldData"].asString()) )
+    {
+      throw (runtime_error("Error when opening datafile!"));
+    }
+  }
+  else
+  {
+    // Load the solution
+    if ( !solver->importHDF5( ctl.get()["datafile"].asString() ) )
+    {
+      throw (runtime_error("Error when opening datafile!"));
+    }
   }
 }

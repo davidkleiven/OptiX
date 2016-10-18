@@ -50,3 +50,4 @@
 %%% | %%% | %%%
 293663 | Lz/R=0.01 max(dx) =1.0, dz=calculated, delta=4.45E-5, Straight waveguide | L=5.35 mm, way too wide domain in the transverse direction |
 702004 | Lz/R=0.01 max(dx) =1.0, dz=calculated, delta=4.45E-5, Straight waveguide | L = 5.32 mm, looks good |
+966449 | Lz/R=0.01 max(dx) =1.0, dz=calculated, delta=4.45E-5, Straight waveguide, with real part | L = 5.32 mm, looks good |

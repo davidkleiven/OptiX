@@ -80,3 +80,20 @@ bool Solver2D::importHDF5( const string &fname )
 {
   return solution->load( fname.c_str(), arma::hdf5_binary );
 }
+
+bool Solver2D::importHDF5( const string &realpart, const string &amplitude )
+{
+  // Load the real part
+  bool status = solution->load( realpart.c_str(), arma::hdf5_binary );
+  if ( !status ) return status;
+
+  arma::mat amp;
+  status = amp.load( amplitude.c_str(), arma::hdf5_binary);
+  if ( !status ) return status;
+
+  clog << "Warning: Currently there is a bug such that this function only populates the real part of the solution matrix!\n";
+  // The imaginary part can now have a sign error. Should not matter
+  // TODO: The next line fails. Why?
+  //solution->set_imag( arma::sqrt(arma::pow(amp,2) - arma::pow(arma::real(*solution),2)) );
+  return status;
+}

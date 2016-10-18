@@ -21,6 +21,7 @@ public:
   const arma::cx_mat& getSolution( unsigned int iz ) const { return *solution; }; // Depricated. iz is not used.
   const arma::cx_mat& getSolution() const { return *solution; };
   bool importHDF5( const std::string &fname );
+  bool importHDF5( const std::string &realpart, const std::string &amplitude );
   void realPart( double *realsolution ) const;
   void imagPart( double *imagsolution ) const;
 
