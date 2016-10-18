@@ -1,5 +1,6 @@
 import sys
 sys.path.append("../FresnelFDTD")
+sys.path.append("../")
 import mplLaTeX as ml
 import matplotlib as mpl
 #mpl.rcParams.update(ml.params)
@@ -12,6 +13,8 @@ import json
 from matplotlib import pyplot as plt
 from scipy import interpolate
 import transmission as trans
+import colorScheme as cs
+from scipy import signal
 
 def amplitudeView( hffile ):
     keys = hffile.keys()
@@ -43,6 +46,7 @@ def amplitudeView( hffile ):
         #freq = freq[np.abs(amp)>0.05*np.max(amp)]
         #amp = amp[np.abs(amp)>0.05*np.max(amp)]
 
+        freq = np.abs(freq)
         freq *= 1E6
         L = np.abs(1.0/decay)/1E6
         s = ax.scatter(freq, x, c=np.abs(amp), cmap="coolwarm", s=0.1, lw=0 )
@@ -98,6 +102,115 @@ def plot1D( hffile ):
     plt.plot(np.log(np.abs(data)), 'k')
     plt.show()
 
+def plot1DModes( hffile ):
+    keys = hffile.keys()
+    nkeys = int( len(keys)/5 )
+
+    print ("Collecting information of frequency range")
+    freqMax = -np.inf
+    freqMin = np.inf
+    for i in range(0, nkeys):
+        freqname = "freq%d"%(i)
+        freq = np.array( hffile.get(freqname) )
+        freq = np.abs(freq)
+        if ( np.max(freq) > freqMax ):
+            freqMax = np.max(freq)
+        if ( np.min(freq) < freqMin ):
+            freqMin = np.min(freq)
+
+    nFreq = 1000
+    count = np.zeros(nFreq)
+    amplitude = np.zeros((nkeys,nFreq))
+    decay = np.zeros((nkeys,nFreq))
+    bins = np.linspace(freqMin, freqMax, nFreq)
+    print ("Creating histograms")
+    for i in range(0,nkeys):
+        freqname = "freq%d"%(i)
+        decayname = "decay%d"%(i)
+        ampname = "amplitude%d"%(i)
+        currentAmp = np.array( hffile.get(ampname) )
+        currentFreq = np.array( hffile.get(freqname) )
+        currentL = 1.0/np.abs( np.array( hffile.get(decayname) ) )
+        currentFreq = np.abs(currentFreq)
+        localCounter = np.zeros(len(count))
+        df = (freqMax-freqMin)/(nFreq-1)
+        for j in range(0,len(currentFreq)):
+            indx = int( (currentFreq[j]-freqMin)/df )
+            count[indx] += 1
+            amplitude[i,indx] = localCounter[indx]*amplitude[i,indx]+currentAmp[j]
+            decay[i,indx] += localCounter[indx]*decay[i,indx]+currentL[j]
+            localCounter[indx] += 1
+            amplitude[i,indx] /= localCounter[indx]
+            decay[i,indx] /= localCounter[indx]
+            '''
+            if ( currentAmp[j] > amplitude[i,indx] ):
+                amplitude[i,indx] = currentAmp[j]
+
+            if ( currentL[j] > decay[i,j] ):
+                decay[i,indx] = currentL[j]
+            '''
+
+    #amplitude, decay = mergeTransverse( amplitude, decay, 2)
+    # Plot the 4 largest
+    print ("Creating plots")
+    nModes = 4
+    largestIndx = np.argsort(count)[::-1][:nModes]
+    largestIndx = np.sort(largestIndx)
+    fig = plt.figure()
+    ax = fig.add_subplot(1,1,1)
+    fig2 = plt.figure()
+    ax2 = fig2.add_subplot(1,1,1)
+    for i in range(0, nModes):
+        x = np.linspace(0.0, 100.0, len(amplitude[:,0]))
+        wLen = len(x)/5
+        if ( wLen%2 == 0 ):
+            wLen += 1
+        inverseWav = bins[largestIndx[i]]+0.5*df
+        ampSmooth = signal.savgol_filter( amplitude[:,largestIndx[i]], wLen, 3)
+        ax.plot( x, ampSmooth, label="%d mm$^{-1}$"%(bins[largestIndx[i]]*1E6), color=cs.COLORS[i])
+        decaySmooth = signal.savgol_filter( decay[:,largestIndx[i]], wLen, 3)
+        ax2.plot( x, decaySmooth/1E6, label="%d mm$^{-1}$"%(bins[largestIndx[i]]*1E6), color=cs.COLORS[i])
+    ax.set_xlabel("Transverse position (nm)")
+    ax.set_ylabel("Amplitude (a.u.)")
+    ax.set_yscale("log")
+    ymin, ymax = ax.get_ylim()
+    ax.set_ylim(top=10.0*ymax)
+    ax.legend(loc="upper center", frameon=False, ncol=2)
+    ax2.set_xlabel("Transverse position (nm)")
+    ax2.set_ylabel("Decay length (mm)")
+    ax2.set_yscale("log")
+    ymin, ymax = ax2.get_ylim()
+    ax2.set_ylim(top=10.0*ymax)
+    ax2.legend(loc="upper center", frameon=False, ncol=2)
+    fname = "Figures/harminvAmplitude1D.pdf"
+    fig.savefig(fname, bbox_inches="tight")
+    print ("Figure written to %s"%(fname))
+
+    fname = "Figures/harminvDecay1D.pdf"
+    fig2.savefig(fname, bbox_inches="tight")
+    print ("Figure written to %s"%(fname))
+
+    # Plot frequency distribution
+    fig = plt.figure()
+    ax = fig.add_subplot(1,1,1)
+    ax.plot((bins+0.5*df)*1E6, count, color="black", ls="steps")
+    ax.set_xlabel("Inverse wavelength (mm$^{-1}$)")
+    ax.set_xlim(left=-0.1*bins[-1]*1E6)
+    ax.set_ylabel("Counts")
+    fname = "Figures/freqDistribution.pdf"
+    fig.savefig(fname, bbox_inches="tight")
+    print ("Figure written to %s"%(fname))
+
+def mergeTransverse( amplitude, decay, nMerge ):
+    nrows = int( amplitude.shape[0]/nMerge )
+    ncol = amplitude.shape[1]
+    newAmplitude = np.zeros((nrows, ncol))
+    newDecay = np.zeros((nrows,ncol))
+    for i in range(0, nrows):
+        newAmplitude[i,:] = np.mean(amplitude[i:i+nMerge,:], axis=0)
+        newDecay[i,:] = np.mean(decay[i:i+nMerge,:], axis=0)
+    return newAmplitude, newDecay
+
 def main(argv):
     for arg in argv:
         if ( arg.find("--file=") != -1 ):
@@ -109,7 +222,8 @@ def main(argv):
     with h5.File(fname, 'r') as hf:
         #plot1D(hf)
         #amplitudeFFT(hf)
-        amplitudeView(hf)
+        #amplitudeView(hf)
+        plot1DModes(hf)
 
 if __name__ == "__main__":
     main( sys.argv[1:])
