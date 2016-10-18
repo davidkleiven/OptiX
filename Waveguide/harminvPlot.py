@@ -142,13 +142,6 @@ def plot1DModes( hffile ):
             localCounter[indx] += 1
             amplitude[i,indx] /= localCounter[indx]
             decay[i,indx] /= localCounter[indx]
-            '''
-            if ( currentAmp[j] > amplitude[i,indx] ):
-                amplitude[i,indx] = currentAmp[j]
-
-            if ( currentL[j] > decay[i,j] ):
-                decay[i,indx] = currentL[j]
-            '''
 
     #amplitude, decay = mergeTransverse( amplitude, decay, 2)
     # Plot the 4 largest
@@ -162,12 +155,16 @@ def plot1DModes( hffile ):
     ax2 = fig2.add_subplot(1,1,1)
     for i in range(0, nModes):
         x = np.linspace(0.0, 100.0, len(amplitude[:,0]))
-        wLen = len(x)/5
+        wLen = len(x)/10
         if ( wLen%2 == 0 ):
             wLen += 1
         inverseWav = bins[largestIndx[i]]+0.5*df
         ampSmooth = signal.savgol_filter( amplitude[:,largestIndx[i]], wLen, 3)
         ax.plot( x, ampSmooth, label="%d mm$^{-1}$"%(bins[largestIndx[i]]*1E6), color=cs.COLORS[i])
+
+        wLen = len(x)/8
+        if ( wLen%2 == 0 ):
+            wLen += 1
         decaySmooth = signal.savgol_filter( decay[:,largestIndx[i]], wLen, 3)
         ax2.plot( x, decaySmooth/1E6, label="%d mm$^{-1}$"%(bins[largestIndx[i]]*1E6), color=cs.COLORS[i])
     ax.set_xlabel("Transverse position (nm)")
