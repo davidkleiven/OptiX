@@ -1,4 +1,6 @@
 #include "curvedWaveGuide2D.hpp"
+#include "waveGuide.hpp"
+#include "solver1D.hpp"
 #include <cassert>
 #include <cmath>
 #include <vector>
@@ -6,8 +8,11 @@
 #include "solver2D.hpp"
 #include <cmath>
 #include "controlFile.hpp"
+#include "linearMap1D.hpp"
 #include <H5Cpp.h>
 #include <hdf5_hl.h>
+
+#define PROJECTION_DEBUG
 
 using namespace std;
 
@@ -145,4 +150,89 @@ void CurvedWaveGuideFD::getFieldInsideWG( arma::mat &matrix ) const
       matrix(ix, iz) = solver->getSolution()(currentIx, iz).real();
     }
   }
+}
+
+double CurvedWaveGuideFD::project( double z, const WaveGuide1DSimulation &eig, unsigned int eigenmode ) const
+{
+  // Use simple trapezoidal integration scheme with the accuracy of the FD simulation
+  double outsideWGReg = 0.5*width;
+  double xStart = waveGuideStartX( z );
+  double xEnd = waveGuideEndX( z );
+
+  // Define a linear map between the two coordinate systems
+  /**
+  * The conformal tranformation used maps the inner edge onto x = -width
+  * and the outer edge onto x = 0.0
+  */
+  LinearMap1D map;
+  CorrespondingPoints p1;
+  CorrespondingPoints p2;
+  p1.xFrom = xStart;
+  p1.xTo = -eig.getWidth();
+  p2.xFrom = xEnd;
+  p2.xTo = 0.0;
+  map.initialize( p1, p2 );
+
+  // Add some buffer to outside the wg
+  xStart -= outsideWGReg;
+  xEnd += outsideWGReg;
+
+  double dx = xDisc->step;
+  unsigned int N = (xEnd-xStart)/dx-1;
+  unsigned int xStartIndx, xEndIndx, iz;
+  closestIndex( xStart, z, xStartIndx, iz );
+  closestIndex( xEnd, z, xEndIndx, iz);
+  double fval = eig.getSolver()->getSolution(p1.xTo, eigenmode)*solver->getSolution()(xStartIndx, iz).real();
+  double integral = fval;
+  fval = eig.getSolver()->getSolution(p2.xTo, eigenmode)*solver->getSolution()(xEndIndx, iz).real();
+  integral += fval;
+
+  #ifdef PROJECTION_DEBUG
+    vector<double> eigfunc;
+    vector<double> fdsolution;
+    vector<double> product;
+    vector<double> transformedXVec;
+  #endif
+
+  for ( unsigned int ix=1;ix<N-1; ix++ )
+  {
+    double x = xStart + dx*ix;
+    double transformedX = map.get( x );
+    //cerr << x << " --> " << transformedX << " " <<  eig.getSolver()->getSolution(transformedX, eigenmode) << endl;
+    fval = 2.0*eig.getSolver()->getSolution(transformedX, eigenmode)*solver->getSolution()(ix,iz).real();
+    integral += fval;
+
+    #ifdef PROJECTION_DEBUG
+      eigfunc.push_back( eig.getSolver()->getSolution(transformedX, eigenmode) );
+      fdsolution.push_back( solver->getSolution()(ix,iz).real() );
+      product.push_back( eig.getSolver()->getSolution(transformedX, eigenmode)*solver->getSolution()(ix,iz).real() );
+      transformedXVec.push_back( transformedX );
+    #endif
+  }
+
+  #ifdef PROJECTION_DEBUG
+    int izToDump = 1500;
+    int modeToDump = 1;
+    if (( iz == izToDump ) && ( eigenmode == modeToDump ) )
+    {
+      string fname ("data/projectionDebug.h5");
+      hid_t file_id = H5Fcreate(fname.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT );
+      hsize_t dim = eigfunc.size();
+      H5LTmake_dataset( file_id, "eigenfunc", 1, &dim, H5T_NATIVE_DOUBLE, &eigfunc[0] );
+      H5LTmake_dataset( file_id, "fdsolution", 1, &dim, H5T_NATIVE_DOUBLE, &fdsolution[0] );
+      H5LTmake_dataset( file_id, "product", 1, &dim, H5T_NATIVE_DOUBLE, &product[0] );
+      H5LTmake_dataset( file_id, "transformedX", 1, &dim, H5T_NATIVE_DOUBLE, &transformedXVec[0] );
+
+      H5LTset_attribute_int( file_id, "eigenfunc", "iz", &izToDump, 1);
+      H5LTset_attribute_int( file_id, "fdsolution", "iz", &izToDump, 1);
+      H5LTset_attribute_int( file_id, "product", "iz", &izToDump, 1);
+      H5LTset_attribute_int( file_id, "product", "mode", &modeToDump, 1);
+      double returnIntegral = 0.5*integral*dx;
+      H5LTset_attribute_double( file_id, "product", "integral", &returnIntegral, 1);
+      H5Fclose(file_id);
+      clog << "Debug: Integrand written to " << fname << endl;
+    }
+  #endif
+
+  return integral*0.5*dx;
 }

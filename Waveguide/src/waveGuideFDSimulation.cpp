@@ -312,34 +312,3 @@ void WaveGuideFDSimulation::init( const ControlFile &ctl )
     }
   }
 }
-
-double WaveGuideFDSimulation::project( double z, const WaveGuide1DSimulation &eig, unsigned int eigenmode ) const
-{
-  // Use simple trapezoidal integration scheme with the accuracy of the FD simulation
-  double xStart = eig.getSolver()->getXmin();
-  double xEnd = eig.getSolver()->getXmax();
-  double dx = xDisc->step;
-  unsigned int N = (xEnd-xStart)/dx;
-  unsigned int xStartIndx, xEndIndx, iz;
-  closestIndex( xStart, z, xStartIndx, iz );
-  closestIndex( xEnd, z, xEndIndx, iz);
-  double fval = eig.getSolver()->getSolution(xStart, eigenmode)*solver->getSolution()(xStartIndx, iz).real();
-  double integralPos = 0.0;
-  double integralNeg = 0.0;
-
-  if ( fval > 0.0) integralPos += fval;
-  else integralNeg -= fval;
-
-  fval = eig.getSolver()->getSolution(xEnd, eigenmode)*solver->getSolution()(xEndIndx, iz).real();
-  if ( fval > 0.0 ) integralPos += fval;
-  else integralNeg -= fval;
-
-  for ( unsigned int ix=1;ix<N; ix++ )
-  {
-    double x = xStart + dx*ix;
-    fval = 2.0*eig.getSolver()->getSolution(x, eigenmode)*solver->getSolution()(ix,iz).real();
-    if ( fval > 0.0 ) integralPos += fval;
-    else integralNeg -= fval;
-  }
-  return (integralPos-integralNeg)*0.5*dx;
-}

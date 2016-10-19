@@ -44,7 +44,6 @@ public:
   void saveWG( const std::string &fname ) const;
   double getIntensity( double x, double z ) const; // Using linear interpolation
   double getIntensity( unsigned int ix, unsigned int iz ) const; // Returns value in matrix at (ix,iz)
-  double project( double z, const WaveGuide1DSimulation &eig, unsigned int eigenmode ) const;
 
   // Virtual methods
   // Refractive index: n = 1 - delta + i*beta

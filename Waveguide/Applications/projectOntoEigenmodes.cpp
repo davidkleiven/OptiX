@@ -38,7 +38,7 @@ int main( int argc, char** argv )
     {
       fnameFdCtl = arg.substr(8);
     }
-    else if ( arg.find("--ctlEig=") != string::npos )
+    else if ( arg.find("--ctleig=") != string::npos )
     {
       fnameEigCtl = arg.substr(9);
     }
@@ -79,36 +79,57 @@ int main( int argc, char** argv )
 
   CurvedWaveGuideFD wg;
   WaveGuideLargeCurvature wg1D;
-  wg.init( fdctl );
-  wg1D.load( eigctl );
 
-  double zmax = wg.longitudinalDiscretization().max;
-  double stepZ = wg.longitudinalDiscretization().step;
-  double zmin = wg.longitudinalDiscretization().min;
-  unsigned int Nz = (zmax-zmin)/stepZ;
-  arma::mat coeff(Nz, wg1D.getSolver()->getNmodes());
-  for ( unsigned int mode=0; mode < wg1D.getSolver()->getNmodes(); mode++ )
+  try
   {
-    for ( unsigned int iz=0; iz<Nz; iz++)
-    {
-      double z = zmin + iz*stepZ;
-      coeff(iz,mode) = wg.project( z, wg1D, mode );
-    }
-  }
+    clog << "Loading results...\n";
+    wg.init( fdctl );
+    wg1D.load( eigctl );
+    clog << "done\n";
 
-  stringstream fname;
-  fname << "data/projectionCoeff_FDUID" << fdctl.get()["UID"].asInt() << "_eigUID" << eigctl.get()["UID"].asInt() << ".h5";
-  hid_t file_id = H5Fcreate(fname.str().c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT );
-  hsize_t dims[2] = {coeff.n_rows, coeff.n_cols};
-  H5LTmake_dataset( file_id, "coefficients", 2, dims, H5T_NATIVE_DOUBLE, coeff.colptr(0));
-  int fduid = fdctl.get()["UID"].asInt();
-  int eiguid = eigctl.get()["UID"].asInt();
-  H5LTset_attribute_int( file_id, "coefficients", "FDuid", &fduid, 1);
-  H5LTset_attribute_int( file_id, "coefficients", "EIGuid", &eiguid, 1);
-  H5LTset_attribute_double( file_id, "coefficients", "z0", &zmin, 1);
-  H5LTset_attribute_double( file_id, "coefficients", "z1", &zmax, 1);
-  H5Fclose(file_id);
-  clog << "Projection coefficients written to " << fname.str() << endl;
+    double zmax = wg.longitudinalDiscretization().max;
+    double stepZ = wg.longitudinalDiscretization().step;
+    double zmin = wg.longitudinalDiscretization().min;
+    unsigned int Nz = (zmax-zmin)/stepZ - 1;
+    arma::mat coeff(Nz, wg1D.getSolver()->getNmodes());
+    for ( unsigned int mode=0; mode < wg1D.getSolver()->getNmodes(); mode++ )
+    {
+      cout << mode << ": " << wg1D.getSolver()->normEigenvec( mode ) << endl;
+      double norm = wg1D.getSolver()->normEigenvec( mode );
+      clog << "Solving for coefficient " << mode+1 << " of " << wg1D.getSolver()->getNmodes() << endl;
+      for ( unsigned int iz=0; iz<Nz; iz++)
+      {
+        double z = zmin + iz*stepZ;
+        coeff(iz,mode) = wg.project( z, wg1D, mode )/norm;
+      }
+    }
+
+    stringstream fname;
+    fname << "data/projectionCoeff_FDUID" << fdctl.get()["UID"].asInt() << "_eigUID" << eigctl.get()["UID"].asInt() << ".h5";
+    hid_t file_id = H5Fcreate(fname.str().c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT );
+    hsize_t dims[2] = {coeff.n_rows, coeff.n_cols};
+    H5LTmake_dataset( file_id, "coefficients", 2, dims, H5T_NATIVE_DOUBLE, coeff.colptr(0));
+    int fduid = fdctl.get()["UID"].asInt();
+    int eiguid = eigctl.get()["UID"].asInt();
+    H5LTset_attribute_int( file_id, "coefficients", "FDuid", &fduid, 1);
+    H5LTset_attribute_int( file_id, "coefficients", "EIGuid", &eiguid, 1);
+    H5LTset_attribute_double( file_id, "coefficients", "z0", &zmin, 1);
+    H5LTset_attribute_double( file_id, "coefficients", "z1", &zmax, 1);
+    H5Fclose(file_id);
+    clog << "Projection coefficients written to " << fname.str() << endl;
+
+    // Implement the harmonic inversion of the resulting signal
+  }
+  catch ( exception &exc )
+  {
+    cout << exc.what() << endl;
+    return 1;
+  }
+  catch (...)
+  {
+    cout << "An un recognized exception occured...\n";
+    return 1;
+  }
   return 0;
 }
 
@@ -132,7 +153,7 @@ bool compareCtlFiles( ControlFile &ctlEig, ControlFile &ctlFD )
   }
   */
 
-  double widthDiff = ctlEig.get()["width"].asDouble() - ctlFD.get()["waveguide"]["width"].asDouble();
+  double widthDiff = ctlEig.get()["width"].asDouble() - ctlFD.get()["waveguide"]["Width"].asDouble();
   if ( abs(widthDiff) > zero )
   {
     cout << "The width of the waveguides does not match. Difference: " << widthDiff << endl;

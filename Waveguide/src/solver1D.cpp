@@ -1,6 +1,7 @@
 #include "solver1D.hpp"
 #include <cassert>
 #include <stdexcept>
+#include <cmath>
 
 using namespace std;
 
@@ -22,23 +23,23 @@ void Solver1D::fillJsonObj( Json::Value &obj ) const
 
 unsigned int Solver1D::closestIndx( double x ) const
 {
-  assert ( x >= x1 );
+  assert ( x > x1 );
   assert ( x < x2 );
-  unsigned int N = getEigenVectorSize();
-  return N*( x- x1 )/( x2-x1 );
+  unsigned int N = getEigenVectorSize()-1;
+  return N*( x - x1 )/( x2-x1 );
 }
 
 double Solver1D::getSolution( double x, unsigned int eigenmode ) const
 {
-  if (( x < x1) || ( x > x2 ))
+  if (( x <= x1) || ( x >= x2 ))
   {
     return 0.0;
   }
   unsigned int indx = closestIndx(x);
   double dx = (x2-x1)/static_cast<double>(getEigenVectorSize());
   double x_low = x1+dx*indx;
-  double x_high = x1+dx;
-  return ((x-x_low)*getSolution()(indx,eigenmode) + (x_high-x)*getSolution()(indx+1,eigenmode))/dx;
+  double x_high = x_low+dx;
+  return ((x-x_low)*getSolution()(indx+1,eigenmode) + (x_high-x)*getSolution()(indx,eigenmode))/dx;
 }
 
 void Solver1D::addEigenmode( double eigenvalue, double eigvec[], unsigned int size )
@@ -66,6 +67,33 @@ void Solver1D::addEigenmode( double eigenvalue, double eigvec[], unsigned int si
 
 void Solver1D::loadingFinished()
 {
-  unsigned int ncol = solution->n_cols;
-  solution->resize(ncol, nModes);
+  unsigned int nrows = solution->n_rows;
+  solution->resize(nrows, nModes);
+}
+
+void Solver1D::printMode( unsigned int mode ) const
+{
+  unsigned int lineshiftEvery = 10;
+  for ( unsigned int i=0;i<solution->n_rows;i++ )
+  {
+    cout << (*solution)(i,mode) << " ";
+    if ( i%lineshiftEvery == 0 )
+    {
+      cout << "\n";
+    }
+  }
+  cout << endl;
+}
+
+double Solver1D::normEigenvec( unsigned int mode ) const
+{
+  double norm = 0.0;
+  // Trapezoidal integration
+  norm += pow( (*solution)(0,mode), 2);
+  norm += pow( (*solution)(solution->n_rows-1, mode), 2);
+  for ( unsigned int i=1;i<solution->n_rows-1;i++ )
+  {
+    norm += 2.0*pow( (*solution)(i,mode), 2 );
+  }
+  return 0.5*norm*(x2-x1)/static_cast<double>(solution->n_rows);
 }

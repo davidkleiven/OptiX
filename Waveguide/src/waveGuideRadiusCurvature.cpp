@@ -13,3 +13,9 @@ double WaveGuideLargeCurvature::potential( double x ) const
   }
   return -2.0*wavenumber*wavenumber*x/outerRadius;
 }
+
+void WaveGuideLargeCurvature::load( ControlFile &ctl )
+{
+  WaveGuide1DSimulation::load(ctl);
+  outerRadius = ctl.get()["RadiusOfCurvature"].asDouble();
+}

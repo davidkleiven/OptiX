@@ -15,6 +15,7 @@ public:
   void setCladding( const Cladding &cladding );
   const Cladding& getCladding() const { return *cladding; };
   void setWidth( double newwidth ){ width = newwidth; };
+  double getWidth() const { return width; };
   void setSolver( Solver1D &solv );
   void setWavenumber( double k ){ wavenumber = k; };
   void setWaveLength( double lambda ){ wavenumber = 2.0*PI/lambda; };
@@ -22,7 +23,7 @@ public:
   double getWavenumber() const { return wavenumber; };
   void solve();
   void save( ControlFile &ctl ) const;
-  void load( ControlFile &ctl );
+  virtual void load( ControlFile &ctl );
   const Solver1D* getSolver() const { return solver; };
 protected:
   double width;

@@ -10,7 +10,7 @@ OPT=-O2#-pg
 
 SOURCES:= main.cpp cladding.cpp waveGuide.cpp waveGuideRadiusCurvature.cpp numerovSolver.cpp solver1D.cpp waveGuideStraight.cpp \
 	        stdFDsolver.cpp crancNicholson.cpp waveGuideFDSimulation.cpp solver2D.cpp curvedWaveGuide2D.cpp controlFile.cpp \
-					straightWG2D.cpp
+					straightWG2D.cpp linearMap1D.cpp
 OBJECTS := ${SOURCES:.cpp=.o}
 SOURCES := $(addprefix ${SDIR}/, ${SOURCES})
 OBJECTS := $(addprefix ${ODIR}/, ${OBJECTS})

@@ -124,6 +124,7 @@ void WaveGuide1DSimulation::load( ControlFile &ctl )
     double x1 = ctl.get()["solver"]["xmin"].asDouble();
     double x2 = ctl.get()["solver"]["xmax"].asDouble();
     solver->setLimits( x1, x2 );
+    setWidth( ctl.get()["width"].asDouble() );
     hid_t file_id = H5Fopen(ctl.get()["solutionfile"].asString().c_str(), H5F_ACC_RDONLY, H5P_DEFAULT );
     if ( file_id < 0 )
     {
@@ -132,13 +133,22 @@ void WaveGuide1DSimulation::load( ControlFile &ctl )
 
     hsize_t dim;
     // Assuming the datasets are named mode1, mode2 ... and has an attribute eigenvalue
-    unsigned indx = 0;
     bool dimensionsOfMatrixIsSet = false;
     unsigned int maxIter = 10000;
     for ( unsigned int iter=0;iter<maxIter;iter++ )
     {
       stringstream name;
-      name << "mode" << indx;
+      name << "mode" << iter;
+      herr_t exists = H5LTfind_dataset(file_id, name.str().c_str() );
+
+      if ( exists == 0 )
+      {
+        clog << "Read " << iter << " datasets from the HDF5 file\n";
+        H5Fclose(file_id);
+        solver->loadingFinished();
+        return;
+      }
+
       herr_t infostatus = H5LTget_dataset_info(file_id, name.str().c_str(), &dim, NULL, NULL );
       if ( infostatus < 0 )
       {
@@ -149,14 +159,6 @@ void WaveGuide1DSimulation::load( ControlFile &ctl )
 
       double buffer[dim];
       herr_t readstatus = H5LTread_dataset_double(file_id, name.str().c_str(), buffer );
-
-      if ( readstatus < 0 )
-      {
-        clog << "Read " << indx << " datasets from the HDF5 file\n";
-        H5Fclose(file_id);
-        solver->loadingFinished();
-        return;
-      }
 
       double eigval;
       herr_t attrreadstatus = H5LTget_attribute_double(file_id, name.str().c_str(), "eigenvalue", &eigval);

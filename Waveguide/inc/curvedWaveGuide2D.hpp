@@ -22,6 +22,7 @@ public:
   void computeTransmission( double step );
   void saveTransmission( ControlFile &ctl ) const;
   void getFieldInsideWG( arma::mat &matrix ) const;
+  double project( double z, const WaveGuide1DSimulation &eig, unsigned int eigenmode ) const;
 
   // Virtual functions
   virtual void fillInfo( Json::Value &obj ) const override;

@@ -26,6 +26,8 @@ class Solver1D
     arma::mat& getSolution() { return *solution; };
     double getSolution( double x, unsigned int eigenmode ) const;
     void setNumberOfModesToStore( unsigned int modes ) { nModes=modes;};
+    void printMode( unsigned int mode ) const; // For debugging
+    double normEigenvec( unsigned int mode ) const;
     virtual void fillJsonObj( Json::Value &obj ) const;
   protected:
     double x1, x2; // x1: lower limit of domain, x2: upper limit of domain
