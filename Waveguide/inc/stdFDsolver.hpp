@@ -11,7 +11,6 @@ public:
   void setStepsize( double newstep ){ stepsize = newstep; };
   void fillJsonObj( Json::Value &obj ) const override final;
 private:
-  double x1, x2;
   double stepsize;
 };
 #endif

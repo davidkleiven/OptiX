@@ -13,9 +13,20 @@ using namespace std;
 
 const double WaveGuide1DSimulation::PI = acos(-1.0);
 
+// Local enum for handling the loading of HDF5 files
+enum class LoadStatus_t { CONTINUE, FINISHED };
+
 void WaveGuide1DSimulation::setCladding( const Cladding &newCladding )
 {
   cladding = &newCladding;
+}
+
+WaveGuide1DSimulation::~WaveGuide1DSimulation()
+{
+  if ( solverInitializedFromLoad )
+  {
+    delete solver;
+  }
 }
 
 void WaveGuide1DSimulation::setSolver( Solver1D &solv )
@@ -100,4 +111,78 @@ void WaveGuide1DSimulation::writePotentialToFile( const string &fname, double xm
   H5LTmake_dataset( file_id, "potential", rank, &dims, H5T_NATIVE_DOUBLE, &pot[0]);
 
   H5Fclose(file_id);
+}
+
+void WaveGuide1DSimulation::load( ControlFile &ctl )
+{
+    hid_t file_id = H5Fopen(ctl.get()["solutionfile"].asString().c_str(), H5F_ACC_RDONLY, H5P_DEFAULT );
+    if ( file_id < 0 )
+    {
+      throw (runtime_error("Errorn when loading HDF5 file"));
+    }
+
+    hsize_t dim;
+    // Assuming the datasets are named mode1, mode2 ... and has an attribute eigenvalue
+    unsigned indx = 0;
+    bool dimensionsOfMatrixIsSet = false;
+    unsigned int maxNumberOfColumns = 100;
+    while ( indx < maxNumberOfColumns )
+    {
+      stringstream name;
+      name << "mode" << indx;
+      herr_t infostatus = H5LTget_dataset_info(file_id, name.str().c_str(), &dim, NULL, NULL );
+      if ( infostatus < 0 )
+      {
+        string msg("Error when searching for info in dataset ");
+        msg += name.str();
+        throw (runtime_error(msg.c_str()));
+      }
+
+      double buffer[dim];
+      herr_t readstatus = H5LTread_dataset_double(file_id, name.str().c_str(), buffer );
+
+      if ( readstatus < 0 )
+      {
+        clog << "Read " << indx << " datasets from the HDF5 file\n";
+        H5Fclose(file_id);
+        unsigned int ncols = solver->getSolution().n_cols;
+        solver->getSolution().resize(ncols, indx);
+        return;
+      }
+
+      if ( !dimensionsOfMatrixIsSet )
+      {
+        solver->getSolution().set_size(dim, maxNumberOfColumns );
+        dimensionsOfMatrixIsSet = true;
+      }
+      else if ( dim != solver->getSolution().n_cols )
+      {
+        string msg("Dimensions of dataset ");
+        msg += name.str();
+        msg += " does not correspond to the number of rows in the solution matrix";
+        throw (runtime_error(msg.c_str()));
+      }
+
+      // Copy the buffer into the matrix
+      for ( unsigned int i=0;i<dim;i++ )
+      {
+        solver->getSolution()(i,indx) = buffer[i];
+      }
+
+      double eigval;
+      herr_t attrreadstatus = H5LTget_attribute_double(file_id, name.str().c_str(), "eigenvalue", &eigval);
+
+      if ( attrreadstatus < 0 )
+      {
+        string msg("Error when reading attribute from dataset ");
+        msg += name.str();
+        throw (runtime_error(msg.c_str()));
+      }
+      solver->addEigenvalue( eigval );
+      indx++;
+      if ( indx == maxNumberOfColumns )
+      {
+        throw (runtime_error("Max number of columns reached"));
+      }
+    }
 }

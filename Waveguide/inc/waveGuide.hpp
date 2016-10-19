@@ -11,6 +11,7 @@ class WaveGuide1DSimulation
 {
 public:
   WaveGuide1DSimulation(const char* name):name(name){};
+  virtual ~WaveGuide1DSimulation();
   void setCladding( const Cladding &cladding );
   const Cladding& getCladding() const { return *cladding; };
   void setWidth( double newwidth ){ width = newwidth; };
@@ -21,6 +22,7 @@ public:
   double getWavenumber() const { return wavenumber; };
   void solve();
   void save( ControlFile &ctl ) const;
+  void load( ControlFile &ctl );
 protected:
   double width;
   double innerRadius;
@@ -31,5 +33,8 @@ protected:
   static const double PI;
   std::string name;
   void writePotentialToFile( const std::string &fname, double xmin, double xmax ) const;
+
+private:
+    bool solverInitializedFromLoad{false};
 };
 #endif
