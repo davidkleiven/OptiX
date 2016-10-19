@@ -61,4 +61,8 @@
 945091 | R = 100 mm | Looks OK |
 521840 | R = 150 mm | Looks OK |
 %%% | %%% | %%%
-281636 | 1D eigenmode run. R=40mm. delta=4.49E-5 | Not analysed | 
+281636 | 1D eigenmode run. R=40mm. delta=4.49E-5 | Not analysed |
+754680 | Coupled. R=80mm. delta=4.49E-5, sep=50 nm, couplerStart=1um | Difficult to see the second wg on log scale |
+363907 | Coupled. R=80mm. delta=4.49E-5, sep=150 nm, couplerStart=1um | Good, need to close the upper for a longer time |
+305415 | Coupled. R=80mm. delta=4.49E-5, sep=150 nm, couplerStart=50um | Ok, difficult to see |
+379863 | Coupled. R=80mm, R2=2R1. delta=4.49E-5, sep=150 nm, couplerStart=50um | Running |

@@ -44,6 +44,11 @@ wgHarmInv.out: $(filter-out obj/main.o, ${OBJECTS}) ${ODIR}/wgHarmonicInversion.
 eigenProject.out: $(filter-out obj/main.o, ${OBJECTS}) ${ODIR}/projectOntoEigenmodes.o
 	g++ -std=c++11 -o $@ $^ -L ${LDIR} -L ${ARMA_PATH} -lcblas -lgsl -llapack -ljsoncpp -lz -lhdf5_serial -lhdf5_serial_hl -lhdf5_cpp \
 	-lhdf5_hl_cpp -larmadillo -lharminv
+
+coupledWG.out: $(filter-out obj/main.o, ${OBJECTS}) ${ODIR}/coupledWaveGuideSimulation.o
+	g++ -std=c++11 -o $@ $^ -L ${LDIR} -L ${ARMA_PATH} -lcblas -lgsl -llapack -ljsoncpp -lz -lhdf5_serial -lhdf5_serial_hl -lhdf5_cpp \
+	-lhdf5_hl_cpp -larmadillo -lharminv
+	
 ${ODIR}/%.o: ${SDIR}/%.cpp
 	g++ -std=c++11 -MMD ${OPT} -c $< -I ${IDIR} -I ${IDIR_HDF5} -I ${ARMA_INC} -o $@
 
