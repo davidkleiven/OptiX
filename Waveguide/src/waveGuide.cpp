@@ -125,8 +125,8 @@ void WaveGuide1DSimulation::load( ControlFile &ctl )
     // Assuming the datasets are named mode1, mode2 ... and has an attribute eigenvalue
     unsigned indx = 0;
     bool dimensionsOfMatrixIsSet = false;
-    unsigned int maxNumberOfColumns = 100;
-    while ( indx < maxNumberOfColumns )
+    unsigned int maxIter = 10000;
+    for ( unsigned int iter=0;iter<maxIter;iter++ )
     {
       stringstream name;
       name << "mode" << indx;
@@ -145,28 +145,8 @@ void WaveGuide1DSimulation::load( ControlFile &ctl )
       {
         clog << "Read " << indx << " datasets from the HDF5 file\n";
         H5Fclose(file_id);
-        unsigned int ncols = solver->getSolution().n_cols;
-        solver->getSolution().resize(ncols, indx);
+        solver->loadingFinished();
         return;
-      }
-
-      if ( !dimensionsOfMatrixIsSet )
-      {
-        solver->getSolution().set_size(dim, maxNumberOfColumns );
-        dimensionsOfMatrixIsSet = true;
-      }
-      else if ( dim != solver->getSolution().n_cols )
-      {
-        string msg("Dimensions of dataset ");
-        msg += name.str();
-        msg += " does not correspond to the number of rows in the solution matrix";
-        throw (runtime_error(msg.c_str()));
-      }
-
-      // Copy the buffer into the matrix
-      for ( unsigned int i=0;i<dim;i++ )
-      {
-        solver->getSolution()(i,indx) = buffer[i];
       }
 
       double eigval;
@@ -178,11 +158,8 @@ void WaveGuide1DSimulation::load( ControlFile &ctl )
         msg += name.str();
         throw (runtime_error(msg.c_str()));
       }
-      solver->addEigenvalue( eigval );
-      indx++;
-      if ( indx == maxNumberOfColumns )
-      {
-        throw (runtime_error("Max number of columns reached"));
-      }
+      solver->addEigenmode( eigval, buffer, dim );
     }
+    clog << "Warning: Max number of datasets reaced\n";
+    H5Fclose(file_id);
 }
