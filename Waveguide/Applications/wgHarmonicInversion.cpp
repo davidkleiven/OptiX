@@ -32,26 +32,63 @@ struct HarmInvRes
 int main( int argc, char** argv )
 {
   string ctlfname("data/singleCurvedWG966449.json");
+  string HELP_MSG("Usage: ./wgHarminv.out --ctl=<ctrl filename> [--help]\n");
+  HELP_MSG += "help: Print this message\n";
+  HELP_MSG += "ctl: Name of the control file. (Has extension .json)\n";
+  /******************* PARSE COMMAND LINE ARGUMENTS ***************************/
+  for ( unsigned int i=1; i<argc ; i++)
+  {
+    string arg(argv[i]);
+    if ( arg.find("--ctl=") != string::npos )
+    {
+      ctlfname = arg.substr(6);
+    }
+    else if ( arg.find("--help") != string::npos )
+    {
+      cout << HELP_MSG << endl;
+      return 0;
+    }
+    else
+    {
+      cout << "Unknown argument " << arg << endl;
+      return 0;
+    }
+  }
+  /************* FINISHED PARSING COMMAND LINE ARGUMENTS **********************/
+
   unsigned int nFreq = 10;
   double freqMin = 1E-6;
-  double freqMax = 0.005; // Nyquist
+  double freqMax = 0.005;
   bool useFFT = false;
 
+  CurvedWaveGuideFD *wg = NULL;
   try
   {
     ControlFile ctl;
     ctl.load(ctlfname);
+    if ( ctl.get()["name"].asString() == "StraightWaveGuide" )
+    {
+      wg = new StraightWG2D();
+    }
+    else if ( ctl.get()["name"].asString() == "CurvedWaveGuide2D")
+    {
+      wg = new CurvedWaveGuideFD();
+    }
+    else
+    {
+      cout << "Unknown waveguide type " << ctl.get()["name"].asString() << endl;
+      return 0;
+    }
 
-    StraightWG2D wg;
     clog << "Loading solution... ";
-    wg.init( ctl ); // Initialize the simulation
+    wg->init( ctl ); // Initialize the simulation
     clog << "done\n";
 
     if ( useFFT )
     {
       arma::mat matrix;
       clog << "Evaluating field inside waveguide... ";
-      wg.getFieldInsideWG( matrix );
+      wg->getFieldInsideWG( matrix );
       clog << "done\n";
 
       clog << "Computing FFT... ";
@@ -67,9 +104,9 @@ int main( int argc, char** argv )
     else
     {
       double x0 = 0.0;
-      double stepX = wg.transverseDiscretization().step;
-      double stepZ = wg.longitudinalDiscretization().step;
-      double width = wg.getWidth();
+      double stepX = wg->transverseDiscretization().step;
+      double stepZ = wg->longitudinalDiscretization().step;
+      double width = wg->getWidth();
       double x = x0;
 
       vector<HarmInvRes> allRes;
@@ -77,7 +114,7 @@ int main( int argc, char** argv )
 
       // TODO: Now a copy of the real part of the solution is stored int the fieldInside matrix.
       //       This is not memory efficient. Optimize? (Think it can be done using Armadillos subview feature)
-      wg.getFieldInsideWG( fieldInside );
+      wg->getFieldInsideWG( fieldInside );
       for ( unsigned int k=0;k<fieldInside.n_rows;k++ )
       {
         clog << "Current x: " << x << " . Ends at: " << x0+width << endl;
@@ -149,10 +186,18 @@ int main( int argc, char** argv )
       H5Fclose(file_id);
       clog << "Data written to " << fname.str() << endl;
     }
+    delete wg;
   }
   catch ( exception &exc )
   {
     cout << exc.what() << endl;
+    delete wg;
+    return 1;
+  }
+  catch (...)
+  {
+    cout << "An unknown excepiton occured...\n";
+    delete wg;
     return 1;
   }
   return 0;
