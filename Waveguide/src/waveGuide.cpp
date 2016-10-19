@@ -1,6 +1,7 @@
 #include "waveGuide.hpp"
 #include "cladding.hpp"
 #include "solver1D.hpp"
+#include "stdFDsolver.hpp"
 #include <stdexcept>
 #include <jsoncpp/json/writer.h>
 #include <H5Cpp.h>
@@ -86,6 +87,8 @@ void WaveGuide1DSimulation::save( ControlFile &ctl ) const
   ctl.get()["innerRadius"] = innerRadius;
   ctl.get()["outerRadius"] = outerRadius;
   ctl.get()["width"] = width;
+  ctl.get()["delta"] = cladding->getDelta();
+  ctl.get()["beta"] = cladding->getBeta();
   ctl.get()["wavenumber"] = wavenumber;
   ctl.get()["potentialXmin"] = potXmin;
   ctl.get()["potentialXmax"] = potXmax;
@@ -115,6 +118,12 @@ void WaveGuide1DSimulation::writePotentialToFile( const string &fname, double xm
 
 void WaveGuide1DSimulation::load( ControlFile &ctl )
 {
+    solver = new StandardFD();
+    solverInitializedFromLoad = true;
+
+    double x1 = ctl.get()["solver"]["xmin"].asDouble();
+    double x2 = ctl.get()["solver"]["xmax"].asDouble();
+    solver->setLimits( x1, x2 );
     hid_t file_id = H5Fopen(ctl.get()["solutionfile"].asString().c_str(), H5F_ACC_RDONLY, H5P_DEFAULT );
     if ( file_id < 0 )
     {

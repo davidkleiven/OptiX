@@ -7,12 +7,6 @@ using namespace std;
 // Define the Lapack routine
 extern "C" void dsteqr_( char *compz, int *N, double diag[], double subdiag[], double *Z,  int *LDZ, double *wrk, int *info);
 
-void StandardFD::setLimits( double xlow, double xhigh )
-{
-  x1 = xlow;
-  x2 = xhigh;
-}
-
 void StandardFD::fillJsonObj( Json::Value &obj ) const
 {
   Solver1D::fillJsonObj( obj );

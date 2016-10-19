@@ -1,6 +1,7 @@
 #ifndef CLADDING_MATERIAL_H
 #define CLADDING_MATERIAL_H
 #include <complex>
+#include <vector>
 
 typedef std::complex<double> cdouble;
 

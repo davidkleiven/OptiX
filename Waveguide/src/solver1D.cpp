@@ -9,6 +9,12 @@ Solver1D::~Solver1D()
   delete solution;
 }
 
+void Solver1D::setLimits( double xlow, double xhigh )
+{
+  x1 = xlow;
+  x2 = xhigh;
+}
+
 void Solver1D::fillJsonObj( Json::Value &obj ) const
 {
   obj["name"] = name;

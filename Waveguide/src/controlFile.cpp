@@ -65,3 +65,20 @@ void ControlFile::load( const string &infname )
   // Remove ending which should be .json
   fname = infname.substr(0, infname.size()-4);
 }
+
+void ControlFile::addRequiredField( const char* reqField )
+{
+  requiredFields.push_back(reqField);
+}
+
+bool ControlFile::isValid() const
+{
+  for ( unsigned int i=0;i<requiredFields.size();i++ )
+  {
+    if ( !base->isMember(requiredFields[i]) )
+    {
+      return false;
+    }
+  }
+  return true;
+}

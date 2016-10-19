@@ -12,7 +12,10 @@ class Solver1D
     Solver1D( const char* name ): name(name), solution(new arma::mat()){};
     virtual ~Solver1D();
     virtual void solve() = 0;
+    void setLimits( double x0, double x2 );
     double getEigenvalue( unsigned int i ) const { return eigenvalues[i]; };
+    double getXmin() const { return x1; };
+    double getXmax() const { return x2; };
     void addEigenmode( double eigenvalue, double eigvec[], unsigned int size ); // Intended for use when loading
     void loadingFinished(); // Call this after loading is finished
     unsigned int getNmodes() const { return nModes; };

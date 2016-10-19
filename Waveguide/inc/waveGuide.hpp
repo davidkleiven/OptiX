@@ -23,6 +23,7 @@ public:
   void solve();
   void save( ControlFile &ctl ) const;
   void load( ControlFile &ctl );
+  const Solver1D* getSolver() const { return solver; };
 protected:
   double width;
   double innerRadius;
