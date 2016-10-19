@@ -75,28 +75,29 @@ int main( int argc, char** argv )
 
       vector<HarmInvRes> allRes;
       arma::mat fieldInside;
+
+      // TODO: Now a copy of the real part of the solution is stored int the fieldInside matrix.
+      //       This is not memory efficient. Optimize?
       wg.getFieldInsideWG( fieldInside );
       //while ( x < x0+width )
       for ( unsigned int k=0;k<fieldInside.n_rows;k++ )
       {
         clog << "Current x: " << x << " . Ends at: " << x0+width << endl;
         HarmInvRes results;
-        //vector<cdouble> res;
+        vector<cdouble> res;
         vector<double> realRes;
-        // Harminv library requires a complex array. If real the complex part should be set to zero
-        arma::rowvec imagPart(fieldInside.n_cols, 0.0);
-        arma::cx_rowvec field( fieldInside.row(k),  imagPart);
-        results.wcrd = x;
-        //wg.extractField( x, res );
 
-        // Put the imaginary part to zero (this is how harminv handles real signals)
-        for ( unsigned int i=0;i<field.size();i++ )
+        results.wcrd = x;
+
+        // The harminv library requires a complex array. If real the complex part should be set to zero
+        // Thus, copy the real field onto a complex array
+        for ( unsigned int i=0;i<fieldInside.n_cols;i++ )
         {
-          //res[i].imag(0.0);
-          results.data.push_back(field[i].real());
+          res.push_back(fieldInside(k,i));
+          results.data.push_back(res[i].real());
         }
 
-        harminv_data data = harminv_data_create( field.size(), field.memptr(), freqMin, freqMax, nFreq );
+        harminv_data data = harminv_data_create( res.size(), &res[0], freqMin, freqMax, nFreq );
 
         harminv_solve( data );
         int foundFreq = harminv_get_num_freqs( data );
