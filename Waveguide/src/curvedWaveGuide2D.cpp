@@ -129,8 +129,7 @@ void CurvedWaveGuideFD::getFieldInsideWG( arma::mat &matrix ) const
 {
   unsigned int nNodesTransverseWG = width/xDisc->step;
 
-  // Note that this will contain the elements in transpose order
-  matrix.set_size( nodeNumberLongitudinal(), nNodesTransverseWG );
+  matrix.set_size( nNodesTransverseWG, nodeNumberLongitudinal() );
   for ( unsigned int iz=0;iz<nodeNumberLongitudinal();iz++ )
   {
     double z = zDisc->min + zDisc->step;
@@ -143,7 +142,7 @@ void CurvedWaveGuideFD::getFieldInsideWG( arma::mat &matrix ) const
       unsigned int currentIx;
       assert ( isInsideGuide(x0, z) );
       closestIndex( x0, z, currentIx, dummy );
-      matrix(iz, ix) = solver->getSolution()(currentIx, iz).real();
+      matrix(ix, iz) = solver->getSolution()(currentIx, iz).real();
     }
   }
 }
