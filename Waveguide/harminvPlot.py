@@ -219,7 +219,7 @@ def main(argv):
     with h5.File(fname, 'r') as hf:
         #plot1D(hf)
         #amplitudeFFT(hf)
-        #amplitudeView(hf)
+        amplitudeView(hf)
         plot1DModes(hf)
 
 if __name__ == "__main__":
