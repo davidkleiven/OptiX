@@ -61,3 +61,4 @@
 945091 | R = 100 mm | Looks OK |
 521840 | R = 150 mm | Looks OK |
 %%% | %%% | %%%
+281636 | 1D eigenmode run. R=40mmd delta=4.45E-5 | Not analysed | 

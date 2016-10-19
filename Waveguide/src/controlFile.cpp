@@ -47,6 +47,7 @@ void ControlFile::save() const
   Json::StyledWriter sw;
   out << sw.write(*base) << endl;
   out.close();
+  clog << "Control file written to " << ofname << endl;
 }
 
 void ControlFile::load( const string &infname )
