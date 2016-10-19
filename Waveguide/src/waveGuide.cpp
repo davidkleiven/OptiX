@@ -7,6 +7,7 @@
 #include <hdf5_hl.h>
 #include <fstream>
 #include <cmath>
+#include "controlFile.hpp"
 
 using namespace std;
 
@@ -36,19 +37,27 @@ void WaveGuide1DSimulation::solve()
   solver->solve();
 }
 
-void WaveGuide1DSimulation::save( const string &fname ) const
+void WaveGuide1DSimulation::save( ControlFile &ctl ) const
 {
+  string fname = ctl.getFnameTemplate();
   string h5fname = fname+".h5";
-  string jsonfname = fname +".json";
-  string h5dataname = "solution";
   string potfname = fname+"_potential.h5";
 
   hid_t file_id;
-  hsize_t dims = solver->getSolution().size();
+  hsize_t dims = solver->getEigenVectorSize();
   unsigned int rank = 1;
   file_id = H5Fcreate(h5fname.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT );
 
-  H5LTmake_dataset( file_id, h5dataname.c_str(), rank, &dims, H5T_NATIVE_DOUBLE, &solver->getSolution()[0]);
+  for ( unsigned int i=0;i<solver->getNmodes();i++ )
+  {
+    stringstream dataname;
+    dataname << "mode"<<i;
+    double eigval = solver->getEigenvalue(i);
+
+    // Armadillo stores column major in buffer
+    H5LTmake_dataset( file_id, dataname.str().c_str(), rank, &dims, H5T_NATIVE_DOUBLE, solver->getSolution().colptr(i));
+    H5LTset_attribute_double( file_id, dataname.str().c_str(), "eigenvalue", &eigval, 1);
+  }
 
   H5Fclose(file_id);
   double potXmin = -2.0*width;
@@ -56,36 +65,22 @@ void WaveGuide1DSimulation::save( const string &fname ) const
   writePotentialToFile( potfname, potXmin, potXmax );
 
   // Write information to a json file
-  Json::Value base;
   Json::Value solverParameters;
   solver->fillJsonObj(solverParameters);
-  base["solver"] = solverParameters;
-  base["solutionfile"] = h5fname;
-  base["datasetname"] = h5dataname;
-  base["name"] = name;
-  base["potentialFname"] = potfname;
-  base["potentialLabel"] = "potential";
-  base["innerRadius"] = innerRadius;
-  base["outerRadius"] = outerRadius;
-  base["width"] = width;
-  base["wavenumber"] = wavenumber;
-  base["potentialXmin"] = potXmin;
-  base["potentialXmax"] = potXmax;
+  ctl.get()["solver"] = solverParameters;
+  ctl.get()["solutionfile"] = h5fname;
+  ctl.get()["name"] = name;
+  ctl.get()["potentialFname"] = potfname;
+  ctl.get()["potentialLabel"] = "potential";
+  ctl.get()["innerRadius"] = innerRadius;
+  ctl.get()["outerRadius"] = outerRadius;
+  ctl.get()["width"] = width;
+  ctl.get()["wavenumber"] = wavenumber;
+  ctl.get()["potentialXmin"] = potXmin;
+  ctl.get()["potentialXmax"] = potXmax;
 
-  Json::StyledWriter sw;
-
-  ofstream out(jsonfname.c_str());
-
-  if ( !out.good() )
-  {
-    cout << "Could not open " << jsonfname << endl;
-    return;
-  }
-  out << sw.write(base);
-  out.close();
   cout << "Data written to " << h5fname << endl;
   cout << "Waveguide potential written to " << potfname << endl;
-  cout << "Statistics and information written to " << jsonfname << endl;
 }
 
 void WaveGuide1DSimulation::writePotentialToFile( const string &fname, double xmin, double xmax ) const

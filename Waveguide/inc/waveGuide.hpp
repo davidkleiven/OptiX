@@ -5,6 +5,7 @@
 
 class Cladding;
 class Solver1D;
+class ControlFile;
 
 class WaveGuide1DSimulation
 {
@@ -19,7 +20,7 @@ public:
   virtual double potential( double x ) const = 0;
   double getWavenumber() const { return wavenumber; };
   void solve();
-  void save( const std::string &fname ) const;
+  void save( ControlFile &ctl ) const;
 protected:
   double width;
   double innerRadius;

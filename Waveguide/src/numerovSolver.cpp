@@ -72,7 +72,7 @@ double Numerov::effectivePotential( double x ) const
   double k = waveguide->getWavenumber();
   //return -(waveguide->potential(x) + eigenvalue*eigenvalue - k*k);
   //cout << "Potential(:" << waveguide->potential(x) - eigenvalue << ") ";
-  return -(waveguide->potential(x) - eigenvalue);
+  return -(waveguide->potential(x) - currentEigval);
 }
 
 double Numerov::alpha_np1( double x ) const
@@ -107,7 +107,7 @@ void Numerov::iterateAll()
 double Numerov::rootSolverFunction( double beta, void *params )
 {
   Numerov* self = static_cast<Numerov*>(params);
-  self->eigenvalue = beta;
+  self->currentEigval = beta;
   self->iterateAll();
   unsigned int N = self->solution->size();
   unsigned int middle = N/2;
@@ -154,7 +154,7 @@ void Numerov::solve()
   {
     //cout << "\n=================== ITER " << iter << " =====================================\n";
     iter++;
-    eigenvalue = gsl_root_fsolver_root(s);
+    currentEigval = gsl_root_fsolver_root(s);
     beta_min = gsl_root_fsolver_x_lower(s);
     beta_max = gsl_root_fsolver_x_upper(s);
     status = gsl_root_test_interval(beta_min, beta_max, 0.0, 0.00001);

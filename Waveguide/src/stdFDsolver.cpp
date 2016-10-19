@@ -59,10 +59,15 @@ void StandardFD::solve()
     cerr << "Convergence problem. Return code " << info << endl;
   }
 
-  // Copy the lowest eigenvalue
-  eigenvalue = diag[0];
-  for ( unsigned int i=0;i<N;i++ )
+  // Copy the solution
+  solution->set_size(N,nModes);
+  eigenvalues.clear();
+  for ( unsigned int i=0;i<nModes;i++ )
   {
-    solution->push_back(eigvec[i]);
+    eigenvalues.push_back(diag[i]);
+    for ( unsigned int j=0;j<N;j++ )
+    {
+      (*solution)(j,i) = eigvec[i*N+j];
+    }
   }
 }

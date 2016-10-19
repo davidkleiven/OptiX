@@ -7,6 +7,7 @@
 #include <stdexcept>
 #include <gsl/gsl_errno.h>
 #include "stdFDsolver.hpp"
+#include "controlFile.hpp"
 
 using namespace std;
 
@@ -37,14 +38,16 @@ int main( int argc, char** argv )
   StandardFD solver;
   solver.setLimits( -150.0, 50.0 );
   solver.setStepsize(1.0);
+  solver.setNumberOfModesToStore( 10 );
 
   wg.setSolver( solver );
+  ControlFile ctl;
   try
   {
     //solver.setPropgationWavenumberLimits( 0.0, 0.5*cladding.getPotential() );
     wg.solve();
-    string fname("data/waveguide");
-    wg.save(fname);
+    wg.save(ctl);
+    ctl.save();
   }
   catch ( exception &exc )
   {
