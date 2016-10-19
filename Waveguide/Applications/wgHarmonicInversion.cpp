@@ -40,7 +40,6 @@ int main( int argc, char** argv )
   try
   {
     ControlFile ctl;
-
     ctl.load(ctlfname);
 
     StraightWG2D wg;
@@ -77,9 +76,8 @@ int main( int argc, char** argv )
       arma::mat fieldInside;
 
       // TODO: Now a copy of the real part of the solution is stored int the fieldInside matrix.
-      //       This is not memory efficient. Optimize?
+      //       This is not memory efficient. Optimize? (Think it can be done using Armadillos subview feature)
       wg.getFieldInsideWG( fieldInside );
-      //while ( x < x0+width )
       for ( unsigned int k=0;k<fieldInside.n_rows;k++ )
       {
         clog << "Current x: " << x << " . Ends at: " << x0+width << endl;
