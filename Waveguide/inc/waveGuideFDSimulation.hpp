@@ -44,10 +44,11 @@ public:
   void saveWG( const std::string &fname ) const;
   double getIntensity( double x, double z ) const; // Using linear interpolation
   double getIntensity( unsigned int ix, unsigned int iz ) const; // Returns value in matrix at (ix,iz)
+  
+  // Refractive index: n = 1 - delta + i*beta
+  void getXrayMatProp( double x, double z, double &delta, double &beta ) const;
 
   // Virtual methods
-  // Refractive index: n = 1 - delta + i*beta
-  virtual void getXrayMatProp( double x, double z, double &delta, double &beta ) const = 0;
   virtual void setBoundaryConditions() = 0; // This function should fill the boundary
   virtual void fillInfo( Json::Value &obj ) const {};
   virtual cdouble transverseBC( double z ) const{ return 0.0; };

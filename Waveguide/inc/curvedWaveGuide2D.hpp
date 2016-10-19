@@ -13,7 +13,6 @@ class CurvedWaveGuideFD: public WaveGuideFDSimulation
 {
 public:
   CurvedWaveGuideFD(): WaveGuideFDSimulation("CurvedWaveGuide2D"){};
-  void getXrayMatProp( double x, double z, double &delta, double &beta ) const override final;
   void setBoundaryConditions() override final;
   void setRadiusOfCurvature( double newR ) { R = newR; };
   void setWidth( double newWidth ) { width = newWidth; };
@@ -27,6 +26,7 @@ public:
   // Virtual functions
   virtual void fillInfo( Json::Value &obj ) const override;
   virtual void init( const ControlFile &ctl ) override;
+  virtual bool isInsideGuide( double x, double z ) const override;
 
   // Extracts the field inside the waveguide at distance wcrd from the edge
   // Thus: wcrd = 0.0: along the lower wall. wcrd=width extracts along the upper wall
@@ -36,7 +36,6 @@ protected:
   CurvedWaveGuideFD( const char *name): WaveGuideFDSimulation(name){};
   double R;
   double width;
-  virtual bool isInsideGuide( double x, double z ) const override;
   virtual double waveGuideStartX( double z ) const;
   virtual double waveGuideEndX( double z ) const;
   std::vector<double> transmission;

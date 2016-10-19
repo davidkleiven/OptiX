@@ -312,3 +312,21 @@ void WaveGuideFDSimulation::init( const ControlFile &ctl )
     }
   }
 }
+
+void WaveGuideFDSimulation::getXrayMatProp( double x, double z, double &delta, double &beta) const
+{
+  // Some assertions for debugging
+  assert( cladding != NULL );
+  assert ( x >= xDisc->min );
+  assert ( x <= xDisc->max );
+  assert ( z >= zDisc->min );
+  assert ( z <= zDisc->max );
+  if ( isInsideGuide( x, z) )
+  {
+    beta = 0.0;
+    delta = 0.0;
+    return;
+  }
+  delta = cladding->getDelta();
+  beta = cladding->getBeta();
+}
