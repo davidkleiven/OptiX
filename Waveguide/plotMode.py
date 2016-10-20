@@ -1,5 +1,6 @@
 import sys
 sys.path.append("../FresnelFDTD")
+sys.path.append("../")
 import mplLaTeX as ml
 import matplotlib as mpl
 mpl.rcParams.update(ml.params)
@@ -7,6 +8,7 @@ import numpy as np
 import json
 import h5py as h5
 from matplotlib import pyplot as plt
+import colorScheme as cs
 DELTA = 4.14E-5 # Salditt et al
 BETA = 3.45E-6 # Salditt et al
 
@@ -87,18 +89,21 @@ def main(argv):
     stat = json.load(infile)
     infile.close()
 
-    with h5.File(stat["solutionfile"], "r") as hf:
-        data = np.array( hf.get(stat["datasetname"]) )
-
-    u = np.linspace( stat["solver"]["xmin"], stat["solver"]["xmax"], len(data))
-
+    nModes = 3
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
-    ax.plot( u, data**2, 'k')
+    with h5.File(stat["solutionfile"], "r") as hf:
+        for i in range(0,nModes):
+            data = np.array( hf.get("mode%d"%(i)) )
+            u = np.linspace( stat["solver"]["xmin"], stat["solver"]["xmax"], len(data))
+            ax.plot( u, data, color=cs.COLORS[i], label="%d"%(i+1))
+
+
     ymin, ymax = ax.get_ylim()
     ax = addShadedBkg( ax, -stat["width"], 0.0)
     ax.set_xlabel("$u$ (nm)")
     ax.set_ylabel("Intensity (a.u.)")
+    ax.legend(loc="upper right", frameon=False)
     figname = "Figures/profile.pdf"
     fig.savefig(figname, bbox_inches="tight")
     print ("Figure written to %s"%(figname))
@@ -117,8 +122,9 @@ def main(argv):
     fig.savefig( fname, bbox_inches="tight")
     print ("Figure written to %s"%(fname))
 
-    longitudinal, transverse, energy = plot2DInRealCrd(u, data, stat )
-    absorb = computeEffectiveFieldAbsorption( u, data, -stat["width"], 0.0)
-    print "Absorption %.2E"%(absorb)
+    # TODO: Adapt these functions to the new json files
+    #longitudinal, transverse, energy = plot2DInRealCrd(u, data, stat )
+    #absorb = computeEffectiveFieldAbsorption( u, data, -stat["width"], 0.0)
+    #print "Absorption %.2E"%(absorb)
 if __name__ == "__main__":
     main(sys.argv[1:])

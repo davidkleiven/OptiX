@@ -13,13 +13,14 @@
 #include <ctime>
 #include <cmath>
 #include <sstream>
-#include <harminv.h>
+#include "harmonicInversion.hpp"
 #include <jsoncpp/json/writer.h>
 #include <H5Cpp.h>
 #include <hdf5_hl.h>
 #include <armadillo>
 
 using namespace std;
+typedef complex<double> cdouble;
 
 bool compareCtlFiles( ControlFile &ctlEig, ControlFile &ctlFD ); // Compares that the controlfiles comes from the same system
 int main( int argc, char** argv )
@@ -66,6 +67,12 @@ int main( int argc, char** argv )
   }
   /************** FINISHED PARSING COMMAND LINE ARGUMENTS *********************/
 
+  // Parameters used for harmonic inversion
+  unsigned int nFreq = 10;
+  double freqMin = 1E-6;
+  double freqMax = 0.005;
+  //
+
   ControlFile fdctl;
   ControlFile eigctl;
   fdctl.load( fnameFdCtl );
@@ -107,8 +114,8 @@ int main( int argc, char** argv )
     stringstream fname;
     fname << "data/projectionCoeff_FDUID" << fdctl.get()["UID"].asInt() << "_eigUID" << eigctl.get()["UID"].asInt() << ".h5";
     hid_t file_id = H5Fcreate(fname.str().c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT );
-    hsize_t dims[2] = {coeff.n_rows, coeff.n_cols};
-    H5LTmake_dataset( file_id, "coefficients", 2, dims, H5T_NATIVE_DOUBLE, coeff.colptr(0));
+    hsize_t dims[2] = {coeff.n_cols, coeff.n_rows};
+    H5LTmake_dataset( file_id, "coefficients", 2, dims, H5T_NATIVE_DOUBLE, coeff.memptr());
     int fduid = fdctl.get()["UID"].asInt();
     int eiguid = eigctl.get()["UID"].asInt();
     H5LTset_attribute_int( file_id, "coefficients", "FDuid", &fduid, 1);
@@ -119,6 +126,22 @@ int main( int argc, char** argv )
     clog << "Projection coefficients written to " << fname.str() << endl;
 
     // Implement the harmonic inversion of the resulting signal
+    HarmonicInversion harm;
+    harm.setFreq( freqMin, freqMax, nFreq );
+    for ( unsigned int mode=0;mode<wg1D.getSolver()->getNmodes(); mode++ )
+    {
+      vector<cdouble> complxData;
+      for ( unsigned int i=0;i<coeff.n_rows; i++ )
+      {
+        complxData.push_back( coeff(i, mode) );
+      }
+
+      harm.solve( complxData );
+      harm.addAttribute( "spacing", stepZ, mode );
+    }
+    stringstream harmfname;
+    harmfname << "data/projectionHarminv_FDUID" << fdctl.get()["UID"].asInt() << "_eigUID" << eigctl.get()["UID"].asInt() << ".h5";
+    harm.save( harmfname.str().c_str() );
   }
   catch ( exception &exc )
   {

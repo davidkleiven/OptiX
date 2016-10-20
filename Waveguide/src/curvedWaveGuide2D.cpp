@@ -137,7 +137,7 @@ void CurvedWaveGuideFD::getFieldInsideWG( arma::mat &matrix ) const
 double CurvedWaveGuideFD::project( double z, const WaveGuide1DSimulation &eig, unsigned int eigenmode ) const
 {
   // Use simple trapezoidal integration scheme with the accuracy of the FD simulation
-  double outsideWGReg = 0.5*width;
+  double outsideWGReg = 0.2*width;
   double xStart = waveGuideStartX( z );
   double xEnd = waveGuideEndX( z );
 
@@ -164,9 +164,11 @@ double CurvedWaveGuideFD::project( double z, const WaveGuide1DSimulation &eig, u
   unsigned int xStartIndx, xEndIndx, iz;
   closestIndex( xStart, z, xStartIndx, iz );
   closestIndex( xEnd, z, xEndIndx, iz);
-  double fval = eig.getSolver()->getSolution(p1.xTo, eigenmode)*solver->getSolution()(xStartIndx, iz).real();
+  double transXStart = map.get( xStart );
+  double transXend = map.get( xEnd );
+  double fval = eig.getSolver()->getSolution(transXStart, eigenmode)*solver->getSolution()(xStartIndx, iz).real();
   double integral = fval;
-  fval = eig.getSolver()->getSolution(p2.xTo, eigenmode)*solver->getSolution()(xEndIndx, iz).real();
+  fval = eig.getSolver()->getSolution(transXend, eigenmode)*solver->getSolution()(xEndIndx, iz).real();
   integral += fval;
 
   #ifdef PROJECTION_DEBUG
