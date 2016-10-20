@@ -58,7 +58,7 @@ def main( argv ):
         # Reduce number of points in plot
         data = data[::param["numberOfPoints"]]
         z = np.linspace(stat["Transmission"]["zStart"], stat["Transmission"]["zEnd"], len(data))
-        fitStart = np.argmin( np.abs(z/1E6 - 0.2) )
+        fitStart = np.argmin( np.abs(z/1E6 - 0.3) )
         zFit = z[fitStart:]
         dataFit = data[fitStart:]
         slope, interscept, rvalue, pvalue, stderr = stats.linregress(zFit,np.log(dataFit))
