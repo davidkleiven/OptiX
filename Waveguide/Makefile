@@ -23,19 +23,19 @@ TEST_OBJECTS := $(addprefix unittest/, ${TEST_OBJECTS})
 
 waveguide.out: ${OBJECTS}
 	g++ -std=c++11 ${OPT} -o $@ $^ -L ${LDIR} -L ${ARMA_PATH} -lcblas -llapack -lgsl -ljsoncpp -lz -lhdf5_serial -lhdf5_serial_hl \
-	-lhdf5_cpp -lhdf5_hl_cpp -larmadillo
+	-lhdf5_cpp -lhdf5_hl_cpp -larmadillo -lharminv
 
 unittest.out: ${TEST_OBJECTS} $(filter-out obj/main.o, ${OBJECTS})
 	g++ -std=c++11 -o $@ $^ -L ${LDIR} -L ${ARMA_PATH} -lcblas -lgsl -llapack -ljsoncpp -lz -lhdf5_serial -lhdf5_serial_hl \
-	-lhdf5_cpp -lhdf5_hl_cpp -lboost_program_options -lboost_unit_test_framework
+	-lhdf5_cpp -lhdf5_hl_cpp -lboost_program_options -lboost_unit_test_framework -lharminv
 
 curvedWG2D.out: $(filter-out obj/main.o, ${OBJECTS}) ${ODIR}/curvedWGCartesian.o
 	g++ -std=c++11 -o $@ $^ -L ${LDIR} -L ${ARMA_PATH} -lcblas -lgsl -llapack -ljsoncpp -lz -lhdf5_serial -lhdf5_serial_hl -lhdf5_cpp \
-	-lhdf5_hl_cpp -larmadillo
+	-lhdf5_hl_cpp -larmadillo -lharminv
 
 convergence.out: $(filter-out obj/main.o, ${OBJECTS}) ${ODIR}/convergence.o
 	g++ -std=c++11 -o $@ $^ -L ${LDIR} -L ${ARMA_PATH} -lcblas -lgsl -llapack -ljsoncpp -lz -lhdf5_serial -lhdf5_serial_hl -lhdf5_cpp \
-	-lhdf5_hl_cpp -larmadillo
+	-lhdf5_hl_cpp -larmadillo -lharminv
 
 wgHarmInv.out: $(filter-out obj/main.o, ${OBJECTS}) ${ODIR}/wgHarmonicInversion.o
 	g++ -std=c++11 -o $@ $^ -L ${LDIR} -L ${ARMA_PATH} -lcblas -lgsl -llapack -ljsoncpp -lz -lhdf5_serial -lhdf5_serial_hl -lhdf5_cpp \

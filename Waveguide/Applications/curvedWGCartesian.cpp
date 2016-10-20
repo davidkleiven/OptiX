@@ -20,6 +20,7 @@ int main( int argc, char **argv )
   double R[8] = {10.0, 20.0, 30.0, 40.0, 60.0, 80.0, 100.0, 150.0}; // In mm
   bool dumpUIDstoFile = true;
   bool useStraight = false;
+  bool computeFarField = true;
   unsigned int startRun = 0;
   unsigned int endRun = 8;
   /*********** PARSE COMMANDLINE ARGUMENTS ************************************/
@@ -88,7 +89,7 @@ int main( int argc, char **argv )
       xmin = -xMarginAboveAndBelow;
       xmax = width + xMarginAboveAndBelow;
     }
-    
+
     double stepX = (xmax-xmin)/static_cast<double>(Nz);
     double stepZ = (zmax-zmin)/static_cast<double>(Nz);
     stepX = stepX > 1.0 ? 1.0:stepX;
@@ -125,6 +126,13 @@ int main( int argc, char **argv )
       clog << "Computing transmission... ";
       wg->computeTransmission( (zmax-zmin)/static_cast<double>(nPointsTransmission) );
       clog << "done\n";
+
+      if ( computeFarField )
+      {
+        clog << "Computing far fields... ";
+        wg->computeFarField();
+        clog << "done\n";
+      }
       clog << "Exporting results...\n";
       wg->save( ctl );
       wg->saveTransmission( ctl );

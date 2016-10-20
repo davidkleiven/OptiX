@@ -4,6 +4,7 @@
 #include <complex>
 #include <string>
 #include <jsoncpp/json/writer.h>
+#include <armadillo>
 class Solver2D;
 
 struct Disctretization
@@ -31,6 +32,7 @@ public:
   unsigned int nodeNumberLongitudinal() const;
   const Disctretization& transverseDiscretization() const{ return *xDisc; };
   const Disctretization& longitudinalDiscretization() const { return *zDisc; };
+  void computeFarField();
   double getWavenumber() const{ return wavenumber; };
   void setWavenumber( double k ){ wavenumber = k; };
   void setWaveLength( double lambda );
@@ -44,7 +46,7 @@ public:
   void saveWG( const std::string &fname ) const;
   double getIntensity( double x, double z ) const; // Using linear interpolation
   double getIntensity( unsigned int ix, unsigned int iz ) const; // Returns value in matrix at (ix,iz)
-  
+
   // Refractive index: n = 1 - delta + i*beta
   void getXrayMatProp( double x, double z, double &delta, double &beta ) const;
 
@@ -60,6 +62,7 @@ protected:
   double wavenumber;
   std::string name;
   const Cladding *cladding{NULL};
+  arma::vec *farFieldModulus{NULL};
 
   double* allocateSolutionMatrix() const;
   void deallocateSolutionMatrix( double *matrix ) const;
@@ -70,6 +73,8 @@ protected:
   double getZ( unsigned int iz ) const;
   double getX ( unsigned int ix ) const;
   double trapezoidalIntegrateIntensityZ( unsigned int iz, unsigned int ixStart, unsigned int ixEnd ) const;
+  void getExitField( arma::vec &vec ) const;
+  void saveFarField( const std::string &fname, unsigned int uid ) const;
 
   // Virtual funcitons
   virtual bool isInsideGuide( double x, double z ) const { return true; };

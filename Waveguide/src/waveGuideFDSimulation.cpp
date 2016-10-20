@@ -40,6 +40,8 @@ WaveGuideFDSimulation::~WaveGuideFDSimulation()
   {
     delete solver;
   }
+
+  if ( farFieldModulus != NULL ) delete farFieldModulus;
 }
 
 void WaveGuideFDSimulation::setWaveLength( double lambda )
@@ -105,6 +107,7 @@ void WaveGuideFDSimulation::save( ControlFile &ctl, double intensityThreshold ) 
   string h5fieldfname = fname+"_field.h5";
   string jsonfname = fname+".json";
   string wgFname = fname+"_wg.h5";
+  string farFieldFname = fname+"_farField.h5";
 
   //arma::abs(solver->getSolution()).save(h5fname.c_str(), arma::hdf5_binary);
   if ( useSparse )
@@ -147,6 +150,12 @@ void WaveGuideFDSimulation::save( ControlFile &ctl, double intensityThreshold ) 
   //solver->fillInfo( solverInfo );
   ctl.get()["solver"] = solverInfo;
   ctl.get()["waveguide"] = wginfo;
+
+  if ( farFieldModulus != NULL )
+  {
+    ctl.get()["farFieldFile"] = farFieldFname;
+    saveFarField( farFieldFname, ctl.getUID() );
+  }
 }
 
 double* WaveGuideFDSimulation::allocateSolutionMatrix() const
@@ -329,4 +338,41 @@ void WaveGuideFDSimulation::getXrayMatProp( double x, double z, double &delta, d
   }
   delta = cladding->getDelta();
   beta = cladding->getBeta();
+}
+
+void WaveGuideFDSimulation::getExitField( arma::vec &vec ) const
+{
+  vec.set_size( solver->getSolution().n_rows );
+  unsigned int extractCol = solver->getSolution().n_cols-1;
+  for ( unsigned int i=0;i<vec.n_elem; i++ )
+  {
+    vec(i) = solver->getSolution()(i,extractCol).real();
+  }
+}
+
+void WaveGuideFDSimulation::computeFarField()
+{
+  // Extract the last column of the solution matrix
+  arma::vec exitField;
+  getExitField( exitField );
+  arma::cx_vec ft = arma::fft( exitField );
+  farFieldModulus = new arma::vec( arma::abs(ft) );
+}
+
+void WaveGuideFDSimulation::saveFarField( const string &fname, unsigned int uid ) const
+{
+  arma::vec exitField;
+  getExitField( exitField );
+  hid_t file_id = H5Fcreate(fname.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT );
+  hsize_t dim = farFieldModulus->size();
+  H5LTmake_dataset( file_id, "exitField", 1, &dim, H5T_NATIVE_DOUBLE, exitField.memptr());
+  H5LTmake_dataset( file_id, "farField", 1, &dim, H5T_NATIVE_DOUBLE, farFieldModulus->memptr());
+  H5LTset_attribute_double( file_id, "farField", "wavenumber", &wavenumber, 1);
+  H5LTset_attribute_double( file_id, "farField", "gridspacing", &xDisc->step, 1);
+  H5LTset_attribute_double( file_id, "exitField", "xmin", &xDisc->min, 1);
+  H5LTset_attribute_double( file_id, "exitField", "xmax", &xDisc->max, 1);
+  int intUID = uid;
+  H5LTset_attribute_int( file_id, "farField", "uid", &intUID, 1);
+  H5Fclose(file_id);
+  clog << "Far field written to " << fname << endl;
 }
