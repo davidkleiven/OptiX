@@ -63,7 +63,7 @@ def main( argv ):
         dataFit = data[fitStart:]
         slope, interscept, rvalue, pvalue, stderr = stats.linregress(zFit,np.log(dataFit))
 
-        print ("Damping length: %.2E"%(-1.0/(slope*1E6))
+        print ("Damping length: %.2E"%(-1.0/(slope*1E6)))
         if ( stat["Transmission"]["zEnd"] < minOfMaxZ ):
             minOfMaxZ = stat["Transmission"]["zEnd"]
             ymin = np.min(np.log(data))
