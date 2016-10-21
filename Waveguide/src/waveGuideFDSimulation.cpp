@@ -48,6 +48,7 @@ WaveGuideFDSimulation::~WaveGuideFDSimulation()
   }
 
   if ( farFieldModulus != NULL ) delete farFieldModulus;
+  if ( wgborder != NULL ) delete wgborder;
 }
 
 void WaveGuideFDSimulation::setWaveLength( double lambda )
@@ -136,8 +137,33 @@ void WaveGuideFDSimulation::save( ControlFile &ctl, double intensityThreshold ) 
     clog << "Realpart written to " << h5fieldfname << endl;
   }
 
-  saveWG( wgFname );
-  clog << "Points inside waveguide written to " << wgFname << endl;
+  hid_t file_id = H5Fcreate(fname.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT );
+  if ( wgborder != NULL )
+  {
+    unsigned int indx = 0;
+    for ( auto iter=wgborder->begin(); iter != wgborder->end(); ++iter )
+    {
+      stringstream uxname, uzname, bxname, bzname;
+      uxname << "upperBorderX" << indx;
+      uzname << "upperBorderZ" << indx;
+      bxname << "lowerBorderX" << indx;
+      bzname << "lowerBorderZ" << indx;
+      indx++;
+      hsize_t dim = iter->x1.size();
+      const double *ptr = &iter->x1[0];
+      unsigned int rank = 1;
+      H5LTmake_dataset( file_id, bxname.str().c_str(), rank, &dim, H5T_NATIVE_DOUBLE, ptr);
+      ptr = &iter->z1[0];
+      H5LTmake_dataset( file_id, bzname.str().c_str(), rank, &dim, H5T_NATIVE_DOUBLE, ptr);
+      ptr = &iter->x2[0];
+      H5LTmake_dataset( file_id, uxname.str().c_str(), rank, &dim, H5T_NATIVE_DOUBLE, ptr);
+      ptr = &iter->z2[0];
+      H5LTmake_dataset( file_id, uzname.str().c_str(), rank, &dim, H5T_NATIVE_DOUBLE, ptr);
+    }
+    H5Fclose(file_id);
+    ctl.get()["wgfile"] = wgFname;
+    clog << "Waveguide borders written to " << wgFname << endl;
+  }
 
   Json::Value wginfo;
   Json::Value solverInfo;
@@ -147,7 +173,6 @@ void WaveGuideFDSimulation::save( ControlFile &ctl, double intensityThreshold ) 
   wginfo["Cladding"]["beta"] = cladding->getBeta();
   ctl.get()["datafile"] = h5fname;
   ctl.get()["fieldData"] = h5fieldfname;
-  ctl.get()["wgfile"] = wgFname;
   ctl.get()["name"] = name;
   ctl.get()["sparseSave"] = useSparse;
   ctl.get()["sparseThreshold"] = intensityThreshold;
@@ -208,6 +233,62 @@ void WaveGuideFDSimulation::saveWG( const string &fname ) const
   H5LTmake_dataset( file_id, "xInside", rank, &dim, H5T_NATIVE_DOUBLE, &xInside[0]);
   H5LTmake_dataset( file_id, "zInside", rank, &dim, H5T_NATIVE_DOUBLE, &zInside[0]);
   H5Fclose(file_id);
+}
+
+void WaveGuideFDSimulation::extractWGBorders()
+{
+  wgborder = new vector<WaveGuideBorder>();
+  for ( unsigned int iz=0;iz<nodeNumberLongitudinal(); iz++ )
+  {
+    unsigned int wgNumber = 0;
+    bool isInWG = false;
+    double z = zDisc->min + iz*zDisc->step;
+    for ( unsigned int ix=0;ix<nodeNumberTransverse(); ix++ )
+    {
+      double x = xDisc->min + ix*xDisc->step;
+      if ( isInsideGuide( x, z) )
+      {
+        if ( !isInWG )
+        {
+          if ( wgNumber == wgborder->size() )
+          {
+            WaveGuideBorder border;
+            border.x1.push_back(x);
+            border.z1.push_back(z);
+            wgborder->push_back(border);
+          }
+          else
+          {
+            (*wgborder)[wgNumber].x1.push_back(x);
+            (*wgborder)[wgNumber].z1.push_back(z);
+          }
+          isInWG = true;
+        }
+      }
+      else
+      {
+        if ( isInWG )
+        {
+          (*wgborder)[wgNumber].x2.push_back(x);
+          (*wgborder)[wgNumber].z2.push_back(z);
+          isInWG = false;
+          wgNumber++;
+        }
+      }
+    }
+  }
+
+  // Debugging
+  for ( auto iter=wgborder->begin(); iter != wgborder->end(); ++iter )
+  {
+    unsigned int Nx1 = iter->x1.size();
+    unsigned int Nz1 = iter->z1.size();
+    unsigned int Nx2 = iter->x2.size();
+    unsigned int Nz2 = iter->z2.size();
+    assert( Nx1 == Nz1 );
+    assert( Nx1 == Nx2 );
+    assert( Nx1 == Nz2);
+  }
 }
 
 void WaveGuideFDSimulation::sparseSave( const string &fname, double intensityThreshold ) const

@@ -5,6 +5,7 @@
 #include <string>
 #include <jsoncpp/json/writer.h>
 #include <armadillo>
+#include "waveGuideBorder.hpp"
 class Solver2D;
 
 struct Disctretization
@@ -46,6 +47,7 @@ public:
   void save( ControlFile &ctl ) const;
   void save( ControlFile &ctl, double intensityThreshold ) const;
   void saveWG( const std::string &fname ) const;
+  void extractWGBorders();
   double getIntensity( double x, double z ) const; // Using linear interpolation
   double getIntensity( unsigned int ix, unsigned int iz ) const; // Returns value in matrix at (ix,iz)
   // Refractive index: n = 1 - delta + i*beta
@@ -77,6 +79,7 @@ protected:
   void getExitField( arma::vec &vec ) const;
   void saveFarField( const std::string &fname, unsigned int uid ) const;
   const ParaxialSource* src{NULL};
+  std::vector<WaveGuideBorder> *wgborder{NULL};
 
   // Virtual funcitons
   virtual bool isInsideGuide( double x, double z ) const { return true; };
