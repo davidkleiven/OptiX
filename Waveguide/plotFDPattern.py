@@ -40,7 +40,7 @@ def plot2D(data, stat, borders, field=None):
     plt.clf()
     minval = 1E-8
     maxval = np.max(np.abs(data)**2)
-    maxval = 1E-3 # T. Salditt et. al maxwav
+    #maxval = 1E-3 # T. Salditt et. al maxwav
 
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
