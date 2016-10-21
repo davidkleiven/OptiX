@@ -40,3 +40,10 @@ double GaussianBeam::beamDivergence() const
 {
   return getWavelength()/(PI*waist);
 }
+
+void GaussianBeam::info( Json::Value &obj ) const
+{
+  ParaxialSource::info( obj );
+  obj["waist"] = waist;
+  obj["divergenceDeg"] = beamDivergence()*180.0/PI;
+}

@@ -4,7 +4,7 @@
 #include "crankNicholson.hpp"
 #include "controlFile.hpp"
 #include "straightWG2D.hpp"
-#include "source.hpp"
+#include "paraxialSource.hpp"
 #include "planeWave.hpp"
 #include "gaussianBeam.hpp"
 #include <complex>
@@ -18,6 +18,7 @@ using namespace std;
 
 typedef complex<double> cdouble;
 
+enum class Source_t {PLANE, GAUSSIAN};
 int main( int argc, char **argv )
 {
   double R[8] = {10.0, 20.0, 30.0, 40.0, 60.0, 80.0, 100.0, 150.0}; // In mm
@@ -26,19 +27,21 @@ int main( int argc, char **argv )
   bool computeFarField = true;
   unsigned int startRun = 0;
   unsigned int endRun = 8;
+  Source_t source = Source_t::PLANE;
   /*********** PARSE COMMANDLINE ARGUMENTS ************************************/
   for ( unsigned int i=1;i<argc; i++ )
   {
     string arg(argv[i]);
     if ( arg.find("--help") != string::npos )
     {
-      cout << "Usage: ./curvedWG.out [--help, --run=<run number> --straight]\n";
+      cout << "Usage: ./curvedWG.out [--help, --run=<run number> --straight --source=<sourcetype>]\n";
       cout << "help: Print this message\n";
       for ( unsigned int j=0;j<8;j++ )
       {
         cout << j << " Radius of curvature: " << R[j] << " mm\n";
       }
       cout << "straight: Run with a straight wave guide\n";
+      cout << "source: plane or gaussian. Plane is default\n";
       return 0;
     }
     else if ( arg.find("--run=") != string::npos )
@@ -54,6 +57,23 @@ int main( int argc, char **argv )
       useStraight = true;
       endRun = 1;
       dumpUIDstoFile = false;
+    }
+    else if ( arg.find("--source=") != string::npos )
+    {
+      string sourceStr(arg.substr(9));
+      if ( sourceStr == "gaussian" )
+      {
+        source = Source_t::GAUSSIAN;
+      }
+      else if ( sourceStr == "plane" )
+      {
+        source = Source_t::PLANE;
+      }
+      else
+      {
+        cout << "Unknown source type " << sourceStr << endl;
+        return 0;
+      }
     }
     else
     {
@@ -101,6 +121,7 @@ int main( int argc, char **argv )
     ControlFile ctl("data/singleCurvedWG"); // File for all parameters and settings
 
     CurvedWaveGuideFD *wg = NULL;
+    ParaxialSource *src = NULL;
     try
     {
       clog << "Initializing simulation...";
@@ -113,17 +134,33 @@ int main( int argc, char **argv )
         wg = new CurvedWaveGuideFD();
       }
 
-      PlaneWave src;
+      double wavelength = 0.1569;
+      switch ( source )
+      {
+        case Source_t::PLANE:
+          clog << "Using plane wave source\n";
+          src = new PlaneWave();
+          break;
+        case Source_t::GAUSSIAN:
+          clog << "Using gaussian source\n";
+          GaussianBeam *gsrc = new GaussianBeam();
+          gsrc->setWaist( 10.0 ); // Waist is 10 nm with a wavelength of 0.1569 nm this gives beamdivergence of 0.3 deg
+          gsrc->setOrigin( -100.0 ); // Origin at -100.0 nm
+          src = gsrc;
+          break;
+      }
+
+      src->setWavelength( wavelength );
 
       wg->setRadiusOfCurvature( Rcurv );
       wg->setWidth( width );
-      wg->setWaveLength( 0.1569 );
+      wg->setWaveLength( wavelength );
       wg->setCladding( cladding );
       wg->setTransverseDiscretization(xmin,xmax,stepX);
       wg->setLongitudinalDiscretization(zmin,zmax,stepZ);
       CrankNicholson solver;
       wg->setSolver(solver);
-      wg->setBoundaryConditions( src );
+      wg->setBoundaryConditions( *src );
       clog << " done\n";
       clog << "Solving linear system... ";
       wg->solve();
@@ -144,16 +181,19 @@ int main( int argc, char **argv )
       ctl.save();
       clog << "Finished exporting\n";
       delete wg;
+      delete src;
     }
     catch ( exception &exc )
     {
       cerr << exc.what() << endl;
       delete wg;
+      delete src;
       return 1;
     }
     catch (...)
     {
       cerr << "An unrecognized exception occured!\n";
+      delete src;
       delete wg;
       return 1;
     }

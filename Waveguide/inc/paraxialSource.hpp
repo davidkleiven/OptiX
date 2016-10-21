@@ -2,6 +2,7 @@
 #define SOURCE_H
 #include <complex>
 #include <string>
+#include <jsoncpp/json/writer.h>
 
 typedef std::complex<double> cdouble;
 class ParaxialSource
@@ -16,10 +17,11 @@ public:
   std::string getName() const { return name; };
 
   double getWavelength() const;
+  virtual void info( Json::Value &obj ) const;
 protected:
-    double wavenumber{0.0};
-    double z0{0.0};
-    double amplitude{1.0};
+  double wavenumber{0.0};
+  double z0{0.0};
+  double amplitude{1.0};
 private:
   std::string name;
 };

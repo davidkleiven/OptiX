@@ -12,3 +12,11 @@ double ParaxialSource::getWavelength() const
 {
   return 2.0*PI/wavenumber;
 }
+
+void ParaxialSource::info( Json::Value &obj ) const
+{
+  obj["name"] = name;
+  obj["wavelength"] = getWavelength();
+  obj["amplitude"] = amplitude;
+  obj["z0"] = z0;
+}

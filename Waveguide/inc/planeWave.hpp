@@ -1,6 +1,6 @@
 #ifndef PLANE_WAVE_SOURCE_H
 #define PLANE_WAVE_SOURCE_H
-#include "source.hpp"
+#include "paraxialSource.hpp"
 
 class PlaneWave: public ParaxialSource
 {

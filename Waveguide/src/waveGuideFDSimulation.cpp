@@ -29,6 +29,11 @@ void WaveGuideFDSimulation::solve()
   {
     throw ( runtime_error("No solver specified!"));
   }
+
+  if ( src == NULL )
+  {
+    throw ( runtime_error("No source specified!"));
+  }
   solver->solve();
 }
 
@@ -102,6 +107,10 @@ void WaveGuideFDSimulation::save( ControlFile &ctl, double intensityThreshold ) 
     throw ( runtime_error("No solver specified!\n"));
   }
 
+  if ( src == NULL )
+  {
+    throw ( runtime_error("No source specified!\n") );
+  }
   bool useSparse = (intensityThreshold > 0.0);
   string fname = ctl.getFnameTemplate();
   string h5fname = fname+".h5";
@@ -132,6 +141,8 @@ void WaveGuideFDSimulation::save( ControlFile &ctl, double intensityThreshold ) 
 
   Json::Value wginfo;
   Json::Value solverInfo;
+  Json::Value sourceInfo;
+  src->info( sourceInfo );
   wginfo["Cladding"]["delta"] = cladding->getDelta();
   wginfo["Cladding"]["beta"] = cladding->getBeta();
   ctl.get()["datafile"] = h5fname;
@@ -146,6 +157,7 @@ void WaveGuideFDSimulation::save( ControlFile &ctl, double intensityThreshold ) 
   ctl.get()["zDiscretization"]["min"] = zDisc->min;
   ctl.get()["zDiscretization"]["max"] = zDisc->max;
   ctl.get()["zDiscretization"]["step"] = zDisc->step;
+  ctl.get()["source"] = sourceInfo;
   fillInfo( wginfo );
   // TODO: For some reason the next line gives a segmentation fault
   //solver->fillInfo( solverInfo );
