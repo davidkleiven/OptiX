@@ -105,7 +105,7 @@ def readBorders( hf ):
     borders = wgb.WaveGuideBorders()
     indx = 0
     while True:
-        uxname = "upperBorderX%d"&(indx)
+        uxname = "upperBorderX%d"%(indx)
         uzname = "upperBorderZ%d"%(indx)
         bxname = "lowerBorderX%d"%(indx)
         bzname = "lowerBorderZ%d"%(indx)
