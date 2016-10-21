@@ -11,7 +11,7 @@
 #include "linearMap1D.hpp"
 #include <H5Cpp.h>
 #include <hdf5_hl.h>
-#include "source.hpp"
+//#include "source.hpp"
 #include "gaussianBeam.hpp"
 #include "planeWave.hpp"
 
@@ -45,9 +45,11 @@ void CurvedWaveGuideFD::computeTransmission( double step )
   double intensityAtZero = trapezoidalIntegrateIntensityZ( zIndx, wgStart, wgEnd );
 
   // Just simple trapezoidal rule for integrating in z-direction
-  double z = step;
-  while ( z < zDisc->max-step )
+  //double z = step;
+  //while ( z < zDisc->max-step )
+  for ( unsigned int iz=0;iz<nodeNumberLongitudinal();iz++ )
   {
+    double z = zDisc->min +iz*zDisc->step;
     double xWgStart = waveGuideStartX( z );
     double xWgEnd = waveGuideEndX( z );
     closestIndex( xWgStart, z, wgStart, zIndx );

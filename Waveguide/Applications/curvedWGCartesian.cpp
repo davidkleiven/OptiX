@@ -145,7 +145,7 @@ int main( int argc, char **argv )
           clog << "Using gaussian source\n";
           GaussianBeam *gsrc = new GaussianBeam();
           gsrc->setWaist( 10.0 ); // Waist is 10 nm with a wavelength of 0.1569 nm this gives beamdivergence of 0.3 deg
-          gsrc->setOrigin( -100.0 ); // Origin at -100.0 nm
+          gsrc->setOrigin( width/2.0, -1E4 ); // Origin at -100.0 nm
           src = gsrc;
           break;
       }
@@ -175,6 +175,7 @@ int main( int argc, char **argv )
         wg->computeFarField();
         clog << "done\n";
       }
+      wg->extractWGBorders();
       clog << "Exporting results...\n";
       wg->save( ctl );
       wg->saveTransmission( ctl );

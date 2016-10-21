@@ -70,3 +70,4 @@
 747532 | Lz/R=0.01 max(dx) =1.0, dz=calculated, delta=4.45E-5, R=80mm, with far field | Ok. Some useful attributes where misisn. Files deleted. |
 805696 | Lz/R=0.01 max(dx) =1.0, dz=calculated, delta=4.45E-5, R=80mm, with far field | Running |
 255950 | 1D eigenmode run. R=40mm. delta=4.49E-5, 20 modes | Lookds good|
+192712 | R=40mm. delta=4.49E-5 Gaussian beam. z0=-0.um, x0=0.0 | Looks OK |

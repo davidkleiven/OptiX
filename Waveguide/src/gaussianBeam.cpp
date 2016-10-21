@@ -31,7 +31,7 @@ cdouble GaussianBeam::get( double x, double z ) const
   cdouble im(0.0,1.0);
   double waistRatio = waist/spotSize( z-z0 );
   double gaussianFactor = exp(-pow(x/spotSize(z-z0),2) );
-  cdouble phaseFactor = exp(-im*wavenumber*z0 + 0.5*im*wavenumber*x*x*inverseRadiusOfCurvature(z-z0) \
+  cdouble phaseFactor = exp(-im*wavenumber*z0 + 0.5*im*wavenumber*(x-x0)*(x-x0)*inverseRadiusOfCurvature(z-z0) \
                           -im*guoyPhase(z-z0));
   return amplitude*waistRatio*gaussianFactor*phaseFactor;
 }

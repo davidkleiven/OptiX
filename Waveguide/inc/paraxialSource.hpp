@@ -12,7 +12,7 @@ public:
   virtual cdouble get( double x, double z ) const = 0;
   void setWavenumber( double k ){ wavenumber = k; };
   void setWavelength( double lambda );
-  void setOrigin( double zOrig ){z0=zOrig;};
+  void setOrigin( double xOrig, double zOrig ){z0=zOrig;};
   void setAmplitude( double amp ){ amplitude = amp; };
   std::string getName() const { return name; };
 
@@ -21,6 +21,7 @@ public:
 protected:
   double wavenumber{0.0};
   double z0{0.0};
+  double x0{0.0};
   double amplitude{1.0};
 private:
   std::string name;

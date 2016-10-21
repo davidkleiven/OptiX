@@ -12,8 +12,9 @@ import json
 from matplotlib import pyplot as plt
 from scipy import interpolate
 import transmission as trans
+import waveguideBorder as wgb
 
-def plot2D(data, stat, field=None):
+def plot2D(data, stat, borders, field=None):
     print ("Plotting the full matrix...")
     x = np.linspace(stat["xDiscretization"]["min"], stat["xDiscretization"]["max"], data.shape[0])
     x -= stat["x0"]
@@ -23,11 +24,15 @@ def plot2D(data, stat, field=None):
                  stat["xDiscretization"]["min"], stat["xDiscretization"]["max"]]
 
     k = 2.0*np.pi/0.1569
-    plt.imshow(np.abs(data)**2, extent=extent, cmap="coolwarm", aspect=1.0, origin ="lower")
-    plt.xlabel("$z$ ($\mathrm{\mu m}$)")
-    plt.ylabel("$x$ (nm)")
-    plt.gca().set_aspect( np.abs( (extent[1]-extent[0])/(extent[3]-extent[2]) ))
-    plt.colorbar()
+    fig = plt.figure()
+    ax = fig.add_subplot(1,1,1)
+    im = ax.imshow(np.abs(data)**2, extent=extent, cmap="coolwarm", aspect=1.0, origin ="lower")
+    ax.set_xlabel("$z$ ($\mathrm{\mu m}$)")
+    ax.set_ylabel("$x$ (nm)")
+    ax.set_aspect( np.abs( (extent[1]-extent[0])/(extent[3]-extent[2]) ))
+    fig.colorbar( im )
+    if ( not bordres is None ):
+        borders.visualize( ax )
     fname = "Figures/contourLinScale%d.jpeg"%(stat["UID"])
     plt.savefig(fname, bbox_inches="tight", dpi=800)
     print ("Figure written to %s"%(fname))
@@ -96,6 +101,25 @@ def plotWG( x, z ):
     fig.savefig(fname, bbox_inches="tight", dpi=800)
     print ("Figure written to %s"%(fname))
 
+def readBorders( hf ):
+    borders = wgb.WabveGuideBorders()
+    indx = 0
+    while True:
+        uxname = "upperBorderX%d"&(indx)
+        uzname = "upperBorderZ%d"%(indx)
+        bxname = "lowerBorderX%d"%(indx)
+        bzname = "lowerBorderZ%d"%(indx)
+        x1 = hf.get(bxname)
+        z1 = hf.get(bzname)
+        x2 = hf.get(uxname)
+        z2 = hf.get(uzname)
+        if ( x1 is None ) or ( z1 is None ) or ( x2 is None ) or ( z2 is None ):
+            print ("Read %d waveguide borders"%(indx))
+            return borders
+
+        borders.addBorder(np.array(x1), np.array(z1), np.array(x2), np.array(z2))
+    return borders
+
 def main(argv):
     fname = ""
     for arg in argv:
@@ -137,9 +161,9 @@ def main(argv):
     except:
         fieldData = None
 
+    borders = None
     with h5.File(stat["wgfile"], 'r') as hf:
-        xInside = np.array( hf.get("xInside"))
-        zInside = np.array( hf.get("zInside"))
+        borders = readBorders( hf )
 
     if ( np.min(xInside) > stat["xDiscretization"]["min"]):
         x0 = stat["xDiscretization"]["min"]
@@ -152,7 +176,7 @@ def main(argv):
     else:
         data = data.T # Transpose the dataset
         fieldData = fieldData.T
-        plot2D( data, stat, field=fieldData )
+        plot2D( data, stat, borders, field=fieldData )
     #plotWG( xInside-x0, zInside )
 
     # Plot transmission. Put in try catch as some of the simulaitons do not compute the transmission
