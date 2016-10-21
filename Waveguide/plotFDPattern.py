@@ -172,6 +172,7 @@ def main(argv):
         x0 = np.min(xInside)
     stat["x0"] = x0
     '''
+    stat["x0"] = stat["xDiscretization"]["min"]
 
     if ( stat["sparseSave"] ):
         plot2Dsparse( xVal, zVal, intensity, stat )
