@@ -104,7 +104,7 @@ def plotWG( x, z ):
 def readBorders( hf ):
     borders = wgb.WaveGuideBorders()
     mxBorders = 10
-    for i in range(0, mxBorder):
+    for i in range(0, mxBorders):
         uxname = "upperBorderX%d"%(i)
         uzname = "upperBorderZ%d"%(i)
         bxname = "lowerBorderX%d"%(i)
