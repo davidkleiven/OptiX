@@ -22,5 +22,5 @@ class WaveGuideBorders:
 
     def visualize(self, ax):
         for border in self.borders:
-            ax.plot( border.z1, border.x1, color="black", lw=self.lw )
-            ax.plot( border.z2, border.x2, color="black", lw=self.lw )
+            ax.plot( border.z1/1E3, border.x1, color="black", lw=self.lw )
+            ax.plot( border.z2/1E3, border.x2, color="black", lw=self.lw )
