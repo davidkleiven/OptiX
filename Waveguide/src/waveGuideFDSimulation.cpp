@@ -137,7 +137,7 @@ void WaveGuideFDSimulation::save( ControlFile &ctl, double intensityThreshold ) 
     clog << "Realpart written to " << h5fieldfname << endl;
   }
 
-  hid_t file_id = H5Fcreate(fname.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT );
+  hid_t file_id = H5Fcreate(wgFname.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT );
   if ( wgborder != NULL )
   {
     unsigned int indx = 0;
