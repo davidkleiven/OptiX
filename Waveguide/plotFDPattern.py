@@ -48,7 +48,7 @@ def plot2D(data, stat, field=None):
 
     plt.clf()
     if ( not field is None ):
-        plt.imshow(data.real, extent=extent, cmap="coolwarm", aspect=1.0, origin="lower")
+        plt.imshow(field, extent=extent, cmap="coolwarm", aspect=1.0, origin="lower")
         plt.xlabel("$z$ ($\mathrm{\mu m}$)")
         plt.ylabel("$x$ (nm)")
         plt.colorbar()
@@ -151,6 +151,7 @@ def main(argv):
         plot2Dsparse( xVal, zVal, intensity, stat )
     else:
         data = data.T # Transpose the dataset
+        fieldData = fieldData.T
         plot2D( data, stat, field=fieldData )
     #plotWG( xInside-x0, zInside )
 
