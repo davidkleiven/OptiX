@@ -103,12 +103,12 @@ def plotWG( x, z ):
 
 def readBorders( hf ):
     borders = wgb.WaveGuideBorders()
-    indx = 0
-    while True:
-        uxname = "upperBorderX%d"%(indx)
-        uzname = "upperBorderZ%d"%(indx)
-        bxname = "lowerBorderX%d"%(indx)
-        bzname = "lowerBorderZ%d"%(indx)
+    mxBorders = 10
+    for i in range(0, mxBorder):
+        uxname = "upperBorderX%d"%(i)
+        uzname = "upperBorderZ%d"%(i)
+        bxname = "lowerBorderX%d"%(i)
+        bzname = "lowerBorderZ%d"%(i)
         x1 = hf.get(bxname)
         z1 = hf.get(bzname)
         x2 = hf.get(uxname)
