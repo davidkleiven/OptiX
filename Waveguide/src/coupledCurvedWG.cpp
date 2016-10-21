@@ -4,6 +4,9 @@
 #include "controlFile.hpp"
 #include <vector>
 #include "solver2D.hpp"
+#include "source.hpp"
+#include "gaussianBeam.hpp"
+#include "planeWave.hpp"
 
 using namespace std;
 
@@ -26,21 +29,6 @@ bool CoupledCurvedWG::isInsideGuide( double x, double z ) const
      inWg2 = wg2->isInsideGuide( x-separation, z );
    }
    return inWg1 || inWg2;
- }
-
- void CoupledCurvedWG::setBoundaryConditions()
- {
-   unsigned int Nx = nodeNumberTransverse();
-   vector<cdouble> values(Nx, 1.0);
-   solver->setLeftBC(&values[0]);
- }
-
- cdouble CoupledCurvedWG::transverseBC( double z ) const
- {
-   double delta = cladding->getDelta();
-   double beta = cladding->getBeta();
-   cdouble im(0.0,1.0);
-   return exp(-beta*wavenumber*z)*exp(-im*delta*wavenumber*z);
  }
 
  void CoupledCurvedWG::fillInfo( Json::Value &obj ) const

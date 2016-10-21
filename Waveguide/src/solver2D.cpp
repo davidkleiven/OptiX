@@ -36,6 +36,21 @@ void Solver2D::setLeftBC( const cdouble values[] )
   }
 }
 
+void Solver2D::setXBC( const cdouble valuesTop[], const cdouble valuesBottom[] )
+{
+  if ( solution == NULL )
+  {
+    throw (runtime_error("A solver must be given before setting the boundary conditions!"));
+  }
+
+  unsigned int row = solution->n_rows-1;
+  for ( unsigned int i=0;i<guide->nodeNumberLongitudinal();i++ )
+  {
+    (*solution)(row,i) = valuesTop[i];
+    (*solution)(0,i) = valuesBottom[i];
+  }
+}
+
 void Solver2D::realPart( double *realsol ) const
 {
   realOrImagPart(realsol, Comp_t::REAL);

@@ -19,10 +19,12 @@ typedef std::complex<double> cdouble;
 class Cladding;
 class ControlFile;
 class WaveGuide1DSimulation;
+class ParaxialSource;
 
 class WaveGuideFDSimulation
 {
 public:
+  enum class Boundary_t {TOP, BOTTOM, LEFT, RIGHT};
   WaveGuideFDSimulation();
   WaveGuideFDSimulation(const char *name);
   ~WaveGuideFDSimulation();
@@ -46,14 +48,13 @@ public:
   void saveWG( const std::string &fname ) const;
   double getIntensity( double x, double z ) const; // Using linear interpolation
   double getIntensity( unsigned int ix, unsigned int iz ) const; // Returns value in matrix at (ix,iz)
-
   // Refractive index: n = 1 - delta + i*beta
   void getXrayMatProp( double x, double z, double &delta, double &beta ) const;
+  cdouble transverseBC( double z, Boundary_t bnd ) const;
 
   // Virtual methods
-  virtual void setBoundaryConditions() = 0; // This function should fill the boundary
+  virtual void setBoundaryConditions( const ParaxialSource& src ); // This function should fill the boundary
   virtual void fillInfo( Json::Value &obj ) const {};
-  virtual cdouble transverseBC( double z ) const{ return 0.0; };
   virtual void init( const ControlFile &ctl );
 protected:
   Solver2D *solver{NULL};
@@ -75,6 +76,7 @@ protected:
   double trapezoidalIntegrateIntensityZ( unsigned int iz, unsigned int ixStart, unsigned int ixEnd ) const;
   void getExitField( arma::vec &vec ) const;
   void saveFarField( const std::string &fname, unsigned int uid ) const;
+  const ParaxialSource* src{NULL};
 
   // Virtual funcitons
   virtual bool isInsideGuide( double x, double z ) const { return true; };

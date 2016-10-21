@@ -22,8 +22,6 @@ public:
   CurvedWaveGuideFD& getWg2() { return *wg2; };
 
   // Overrides
-  void setBoundaryConditions() override;
-  cdouble transverseBC( double z ) const override;
   void fillInfo( Json::Value &obj ) const override;
   void init( const ControlFile &ctl ) override;
 protected:

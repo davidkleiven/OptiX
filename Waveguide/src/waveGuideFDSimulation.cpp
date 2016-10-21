@@ -11,6 +11,7 @@
 #include <fstream>
 #include <cassert>
 #include <cmath>
+#include "paraxialSource.hpp"
 
 const double PI = acos(-1.0);
 
@@ -375,4 +376,38 @@ void WaveGuideFDSimulation::saveFarField( const string &fname, unsigned int uid 
   H5LTset_attribute_int( file_id, "farField", "uid", &intUID, 1);
   H5Fclose(file_id);
   clog << "Far field written to " << fname << endl;
+}
+
+cdouble WaveGuideFDSimulation::transverseBC( double z, Boundary_t bnd ) const
+{
+  double delta = cladding->getDelta();
+  double beta = cladding->getBeta();
+  cdouble im(0.0,1.0);
+  double x = 0.0;
+  if ( bnd == Boundary_t::TOP )
+  {
+    x = xDisc->max;
+  }
+  else if ( bnd == Boundary_t::BOTTOM )
+  {
+    x = xDisc->min;
+  }
+  else
+  {
+    throw (runtime_error("Boundary has to be either TOP or BOTTOM!"));
+  }
+  return src->get(x,0.0)*exp(-beta*wavenumber*z)*exp(-im*delta*wavenumber*z);
+}
+
+void WaveGuideFDSimulation::setBoundaryConditions( const ParaxialSource &source )
+{
+  src = &source;
+  unsigned int Nx = nodeNumberTransverse();
+  vector<cdouble> values(Nx, 1.0);
+  for ( unsigned int i=0;i<Nx;i++ )
+  {
+    double x = xDisc->min + i*xDisc->step;
+    values[i] = src->get( x, 0.0 );
+  }
+  solver->setLeftBC(&values[0]);
 }

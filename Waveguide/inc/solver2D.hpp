@@ -27,6 +27,7 @@ public:
 
   // Set boundary condition at z=0
   void setLeftBC( const cdouble values[] );
+  void setXBC( const cdouble valuesTop[], const cdouble valuesBottom[] ); // BC at top (x=xmax) and bottom (x=xmin)
 
   // Virtual functions
   virtual void solve() = 0;

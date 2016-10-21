@@ -13,11 +13,9 @@ class CurvedWaveGuideFD: public WaveGuideFDSimulation
 {
 public:
   CurvedWaveGuideFD(): WaveGuideFDSimulation("CurvedWaveGuide2D"){};
-  void setBoundaryConditions() override final;
   void setRadiusOfCurvature( double newR ) { R = newR; };
   void setWidth( double newWidth ) { width = newWidth; };
   double getWidth() const { return width; };
-  cdouble transverseBC( double z ) const override final;
   void computeTransmission( double step );
   void saveTransmission( ControlFile &ctl ) const;
   void getFieldInsideWG( arma::mat &matrix ) const;

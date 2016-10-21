@@ -4,6 +4,9 @@
 #include "crankNicholson.hpp"
 #include "controlFile.hpp"
 #include "straightWG2D.hpp"
+#include "source.hpp"
+#include "planeWave.hpp"
+#include "gaussianBeam.hpp"
 #include <complex>
 #include <stdexcept>
 #include <cstdlib>
@@ -110,6 +113,8 @@ int main( int argc, char **argv )
         wg = new CurvedWaveGuideFD();
       }
 
+      PlaneWave src;
+
       wg->setRadiusOfCurvature( Rcurv );
       wg->setWidth( width );
       wg->setWaveLength( 0.1569 );
@@ -118,7 +123,7 @@ int main( int argc, char **argv )
       wg->setLongitudinalDiscretization(zmin,zmax,stepZ);
       CrankNicholson solver;
       wg->setSolver(solver);
-      wg->setBoundaryConditions();
+      wg->setBoundaryConditions( src );
       clog << " done\n";
       clog << "Solving linear system... ";
       wg->solve();

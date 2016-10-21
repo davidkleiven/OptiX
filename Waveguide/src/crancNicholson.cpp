@@ -68,7 +68,7 @@ void CrankNicholson::solveCurrent( unsigned int iz )
     }
     else
     {
-      rhs[ix] = 2.0*guide->transverseBC(z); // Make sure that it is not a random value
+      rhs[ix] = 2.0*guide->transverseBC(z, WaveGuideFDSimulation::Boundary_t::BOTTOM); // Make sure that it is not a random value
     }
 
     if ( ix < Nx-1 )
@@ -77,7 +77,7 @@ void CrankNicholson::solveCurrent( unsigned int iz )
     }
     else
     {
-      rhs[ix] += 2.0*guide->transverseBC(z);
+      rhs[ix] += 2.0*guide->transverseBC(z, WaveGuideFDSimulation::Boundary_t::TOP);
     }
 
     rhs[ix] *=  (0.25*IMAG_UNIT*rho);

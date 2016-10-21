@@ -89,15 +89,21 @@ def main(argv):
     stat = json.load(infile)
     infile.close()
 
-    nModes = 3
+    modeStart = 12
+    modeEnd = 14
+    nModes = 20
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
+    mxColors = len(cs.COLORS)
+    absorption = np.zeros(nModes)
     with h5.File(stat["solutionfile"], "r") as hf:
-        for i in range(0,nModes):
+        for i in range(0, nModes):
             data = np.array( hf.get("mode%d"%(i)) )
             u = np.linspace( stat["solver"]["xmin"], stat["solver"]["xmax"], len(data))
-            ax.plot( u, data, color=cs.COLORS[i], label="%d"%(i+1))
-
+            absorption[i] = computeEffectiveFieldAbsorption( u, data, -stat["width"], 0.0)
+            print "Absorption mode %d: %.2E"%(i+1,absorption[i])
+            if ( i >= modeStart ) and ( i < modeEnd ):
+                ax.plot( u, data, color=cs.COLORS[i%mxColors], label="%d"%(i+1))
 
     ymin, ymax = ax.get_ylim()
     ax = addShadedBkg( ax, -stat["width"], 0.0)
@@ -122,9 +128,16 @@ def main(argv):
     fig.savefig( fname, bbox_inches="tight")
     print ("Figure written to %s"%(fname))
 
+    fig = plt.figure()
+    ax = fig.add_subplot(1,1,1)
+    ax.plot(absorption, ls="steps", color="black")
+    ax.set_xlabel("Mode number")
+    ax.set_ylabel("Effective absoroption coefficient")
+    fname = "Figures/absorption.pdf"
+    fig.savefig(fname, bbox_inches="tight")
+    print ("Absorption written to %s"%(fname))
+
     # TODO: Adapt these functions to the new json files
     #longitudinal, transverse, energy = plot2DInRealCrd(u, data, stat )
-    #absorb = computeEffectiveFieldAbsorption( u, data, -stat["width"], 0.0)
-    #print "Absorption %.2E"%(absorb)
 if __name__ == "__main__":
     main(sys.argv[1:])
