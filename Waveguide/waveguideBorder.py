@@ -10,7 +10,7 @@ class Border:
 class WaveGuideBorders:
     def __init__(self):
         self.borders = []
-        self.lw = 0.5
+        self.lw = 0.2
 
     def addBorder( self, x1, z1, x2, z2 ):
         border = Border()
