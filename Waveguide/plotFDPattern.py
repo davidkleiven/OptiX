@@ -114,7 +114,7 @@ def readBorders( hf ):
         x2 = hf.get(uxname)
         z2 = hf.get(uzname)
         if ( x1 is None ) or ( z1 is None ) or ( x2 is None ) or ( z2 is None ):
-            print ("Read %d waveguide borders"%(indx))
+            print ("Read %d waveguide borders"%(i))
             return borders
 
         borders.addBorder(np.array(x1), np.array(z1), np.array(x2), np.array(z2))
