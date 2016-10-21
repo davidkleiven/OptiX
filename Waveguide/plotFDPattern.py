@@ -165,11 +165,13 @@ def main(argv):
     with h5.File(stat["wgfile"], 'r') as hf:
         borders = readBorders( hf )
 
+    '''
     if ( np.min(xInside) > stat["xDiscretization"]["min"]):
         x0 = stat["xDiscretization"]["min"]
     else:
         x0 = np.min(xInside)
     stat["x0"] = x0
+    '''
 
     if ( stat["sparseSave"] ):
         plot2Dsparse( xVal, zVal, intensity, stat )
