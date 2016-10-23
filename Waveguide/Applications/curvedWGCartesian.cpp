@@ -196,7 +196,7 @@ int main( int argc, char **argv )
       wg->solve();
       clog << "done\n";
       clog << "Computing transmission... ";
-      //wg->computeTransmission( (zmax-zmin)/static_cast<double>(nPointsTransmission) );
+      wg->computeTransmission( (zmax-zmin)/static_cast<double>(nPointsTransmission) );
       clog << "done\n";
 
       if ( computeFarField )

@@ -16,19 +16,36 @@ import waveguideBorder as wgb
 
 def plot2D(data, stat, borders, field=None):
     print ("Plotting the full matrix...")
+    '''
     x = np.linspace(stat["xDiscretization"]["min"], stat["xDiscretization"]["max"], data.shape[0])
     x -= stat["x0"]
     z = np.linspace(stat["zDiscretization"]["min"], stat["zDiscretization"]["max"], data.shape[1])
     Z,X = np.meshgrid(z,x)
-    extent = [stat["zDiscretization"]["min"]/1000.0, stat["zDiscretization"]["max"]/1000.0,
-                 stat["xDiscretization"]["min"], stat["xDiscretization"]["max"]]
+    '''
 
+    try:
+        crd = stat["waveguide"]["crd"]
+    except:
+        crd="cartesian"
+
+    if ( crd == "cylindrical" ):
+        zmin = stat["zDiscretization"]["min"]*180.0/np.pi
+        zmax = stat["zDiscretization"]["max"]*180.0/np.pi
+        zlabel = "$\\theta$ (deg)"
+        xlabel = "$r$ (nm)"
+    else:
+        zmin = stat["zDiscretization"]["min"]/1000.0
+        zmax = stat["zDiscretization"]["max"]/100.0
+        zlabel = "$z$ ($\micro$m)"
+        xlabel = "$x$ (nm)"
+
+    extent = [zmin, zmax, stat["xDiscretization"]["min"], stat["xDiscretization"]["max"]]
     k = 2.0*np.pi/0.1569
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
     im = ax.imshow(np.abs(data)**2, extent=extent, cmap="coolwarm", aspect=1.0, origin ="lower")
-    ax.set_xlabel("$z$ ($\mathrm{\mu m}$)")
-    ax.set_ylabel("$x$ (nm)")
+    ax.set_xlabel(zlabel)
+    ax.set_ylabel(xlabel
     ax.set_aspect( np.abs( (extent[1]-extent[0])/(extent[3]-extent[2]) ))
     fig.colorbar( im )
     if ( not borders is None ):
@@ -45,8 +62,8 @@ def plot2D(data, stat, borders, field=None):
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
     im = ax.imshow(np.abs(data)**2, extent=extent, cmap="coolwarm", aspect=1.0, origin="lower", norm=mpl.colors.LogNorm(minval, maxval))
-    ax.set_xlabel("$z$ ($\mathrm{\mu m}$)")
-    ax.set_ylabel("$x$ (nm)")
+    ax.set_xlabel(zlabel)
+    ax.set_ylabel(xlabel)
     fig.colorbar(im)
     if ( not borders is None ):
         borders.visualize( ax )
@@ -60,8 +77,8 @@ def plot2D(data, stat, borders, field=None):
         fig = plt.figure()
         ax = fig.add_subplot(1,1,1)
         im = ax.imshow(field, extent=extent, cmap="coolwarm", aspect=1.0, origin="lower")
-        ax.set_xlabel("$z$ ($\mathrm{\mu m}$)")
-        ax.set_ylabel("$x$ (nm)")
+        ax.set_xlabel(zlabel)
+        ax.set_ylabel(xlabel)
         fig.colorbar( im )
         if ( not borders is None ):
             borders.visualize( ax )
