@@ -126,18 +126,22 @@ def plotWG( x, z ):
     fig.savefig(fname, bbox_inches="tight", dpi=800)
     print ("Figure written to %s"%(fname))
 
-def readBorders( hf ):
+def readBorders( hf, crdsyst ):
     borders = wgb.WaveGuideBorders()
     mxBorders = 10
+    if ( crdsyst == "cylindrical" ):
+        factor = 180.0/np.pi
+    else:
+        factor = 1E-3
     for i in range(0, mxBorders):
         uxname = "upperBorderX%d"%(i)
         uzname = "upperBorderZ%d"%(i)
         bxname = "lowerBorderX%d"%(i)
         bzname = "lowerBorderZ%d"%(i)
         x1 = hf.get(bxname)
-        z1 = hf.get(bzname)
+        z1 = hf.get(bzname)*factor
         x2 = hf.get(uxname)
-        z2 = hf.get(uzname)
+        z2 = hf.get(uzname)*factor
         if ( x1 is None ) or ( z1 is None ) or ( x2 is None ) or ( z2 is None ):
             print ("Read %d waveguide borders"%(i))
             return borders
@@ -187,8 +191,12 @@ def main(argv):
         fieldData = None
 
     borders = None
+    try:
+        crdsyst = stat["crd"]
+    except:
+        crdsyst = "cartesian"
     with h5.File(stat["wgfile"], 'r') as hf:
-        borders = readBorders( hf )
+        borders = readBorders( hf, crdsyst )
 
     '''
     if ( np.min(xInside) > stat["xDiscretization"]["min"]):
