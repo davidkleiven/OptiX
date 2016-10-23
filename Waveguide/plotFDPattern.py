@@ -57,6 +57,7 @@ def plot2D(data, stat, borders, field=None):
     plt.clf()
     minval = 1E-8
     maxval = np.max(np.abs(data)**2)
+    minval = 1E-5*maxval
     #maxval = 1E-3 # T. Salditt et. al maxwav
 
     fig = plt.figure()
