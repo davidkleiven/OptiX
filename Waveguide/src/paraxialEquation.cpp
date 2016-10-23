@@ -14,3 +14,8 @@ double ParaxialEquation::H( double x, double z ) const
 {
   return 1.0;
 }
+
+double ParaxialEquation::J( double x, double z ) const
+{
+  return 0.0;
+}

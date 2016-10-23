@@ -28,6 +28,11 @@ void CrankNicholson::initValuesFromWaveGuide()
 }
 void CrankNicholson::solve()
 {
+  if ( eq == NULL )
+  {
+    throw ( runtime_error("No paraxial equation object given!") );
+  }
+
   initValuesFromWaveGuide();
   for ( unsigned int iz=1;iz<Nz;iz++ )
   {
@@ -59,13 +64,16 @@ void CrankNicholson::solveCurrent( unsigned int iz )
     double Hminus = eq->H(x-0.5*x,z);
     double gval = eq->G(x,z);
     double fval = eq->F(x,z);
+    double jval = eq->J(x,z);
+    double jvalPrev = eq->J(x,z-stepZ);
+    delta -= jval;
+    deltaPrev -= jvalPrev;
 
     diag[ix] = fval*1.0 + 0.25*( Hpluss+Hminus )*gval*IMAG_UNIT*rho + 0.5*(beta*r + IMAG_UNIT*delta*r);
 
     if ( ix < Nx-1 )
     {
       subdiag[ix] = -0.25*IMAG_UNIT*rho*Hminus*gval;
-      //supdiag[ix] = -0.25*IMAG_UNIT*rho*eq->H(x-0.5*stepX, z)*eq->G(x,z); // Verify that it is -0.5*stepX and not +stepX
     }
 
     double HplussPrev = eq->H(x+0.5*x,z-stepZ);

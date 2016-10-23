@@ -6,7 +6,10 @@
 #include "straightWG2D.hpp"
 #include "paraxialSource.hpp"
 #include "planeWave.hpp"
+#include "paraxialEquation.hpp"
 #include "gaussianBeam.hpp"
+#include "cylindricalParaxialEquation.hpp"
+#include "curvedWGCylCrd.hpp"
 #include <complex>
 #include <stdexcept>
 #include <cstdlib>
@@ -25,6 +28,7 @@ int main( int argc, char **argv )
   bool dumpUIDstoFile = true;
   bool useStraight = false;
   bool computeFarField = true;
+  bool useCylCrd = true;
   unsigned int startRun = 0;
   unsigned int endRun = 8;
   Source_t source = Source_t::PLANE;
@@ -113,6 +117,15 @@ int main( int argc, char **argv )
       xmax = width + xMarginAboveAndBelow;
     }
 
+    if ( useCylCrd )
+    {
+      xmin = -2.0*width;
+      xmax = 2.0*width;
+      // Note now z refers to the azimutal angle theta and x to the radius
+      zmin = 0.0;
+      zmax = 0.01;
+    }
+
     double stepX = (xmax-xmin)/static_cast<double>(Nz);
     double stepZ = (zmax-zmin)/static_cast<double>(Nz);
     stepX = stepX > 1.0 ? 1.0:stepX;
@@ -122,12 +135,17 @@ int main( int argc, char **argv )
 
     CurvedWaveGuideFD *wg = NULL;
     ParaxialSource *src = NULL;
+    ParaxialEquation *eq = NULL; // Cartesian coordinates
     try
     {
       clog << "Initializing simulation...";
       if ( useStraight )
       {
         wg = new StraightWG2D();
+      }
+      else if ( useCylCrd )
+      {
+        wg = new CurvedWGCylCrd();
       }
       else
       {
@@ -159,6 +177,18 @@ int main( int argc, char **argv )
       wg->setTransverseDiscretization(xmin,xmax,stepX);
       wg->setLongitudinalDiscretization(zmin,zmax,stepZ);
       CrankNicholson solver;
+      if ( useCylCrd )
+      {
+        CylindricalParaxialEquation *ceq = new CylindricalParaxialEquation();
+        ceq->setRadiusOfCurvature( Rcurv );
+        eq = ceq;
+      }
+      else
+      {
+        eq = new ParaxialEquation();
+      }
+
+      solver.setEquation( *eq );
       wg->setSolver(solver);
       wg->setBoundaryConditions( *src );
       clog << " done\n";
@@ -166,7 +196,7 @@ int main( int argc, char **argv )
       wg->solve();
       clog << "done\n";
       clog << "Computing transmission... ";
-      wg->computeTransmission( (zmax-zmin)/static_cast<double>(nPointsTransmission) );
+      //wg->computeTransmission( (zmax-zmin)/static_cast<double>(nPointsTransmission) );
       clog << "done\n";
 
       if ( computeFarField )
@@ -183,12 +213,14 @@ int main( int argc, char **argv )
       clog << "Finished exporting\n";
       delete wg;
       delete src;
+      delete eq;
     }
     catch ( exception &exc )
     {
       cerr << exc.what() << endl;
       delete wg;
       delete src;
+      delete eq;
       return 1;
     }
     catch (...)
@@ -196,6 +228,7 @@ int main( int argc, char **argv )
       cerr << "An unrecognized exception occured!\n";
       delete src;
       delete wg;
+      delete eq;
       return 1;
     }
 
