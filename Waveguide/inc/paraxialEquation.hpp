@@ -14,8 +14,8 @@ class ParaxialEquation
 {
 public:
   ParaxialEquation(){};
-  virtual cdouble F( double x, double z ) const;
-  virtual cdouble G( double x, double z ) const;
-  virtual cdouble H( double x, double z ) const;
+  virtual double F( double x, double z ) const;
+  virtual double G( double x, double z ) const;
+  virtual double H( double x, double z ) const;
 };
 #endif

@@ -3,6 +3,7 @@
 #include <cassert>
 #include <iostream>
 #include <stdexcept>
+#include "paraxialEquation.hpp"
 
 using namespace std;
 
@@ -54,35 +55,46 @@ void CrankNicholson::solveCurrent( unsigned int iz )
     guide->getXrayMatProp( x, z, delta, beta );
     guide->getXrayMatProp( x, z-stepZ, deltaPrev, betaPrev);
 
-    diag[ix] = 1.0 + 0.5*IMAG_UNIT*rho + 0.5*(beta*r + IMAG_UNIT*delta*r);
+    double Hpluss = eq->H(x+0.5*x,z);
+    double Hminus = eq->H(x-0.5*x,z);
+    double gval = eq->G(x,z);
+    double fval = eq->F(x,z);
+
+    diag[ix] = fval*1.0 + 0.25*( Hpluss+Hminus )*gval*IMAG_UNIT*rho + 0.5*(beta*r + IMAG_UNIT*delta*r);
 
     if ( ix < Nx-1 )
     {
-      subdiag[ix] = -0.25*IMAG_UNIT*rho;
+      subdiag[ix] = -0.25*IMAG_UNIT*rho*Hminus*gval;
+      //supdiag[ix] = -0.25*IMAG_UNIT*rho*eq->H(x-0.5*stepX, z)*eq->G(x,z); // Verify that it is -0.5*stepX and not +stepX
     }
+
+    double HplussPrev = eq->H(x+0.5*x,z-stepZ);
+    double HminusPrev = eq->H(x-0.5*x,z-stepZ);
+    double gvalPrev = eq->G(x,z-stepZ);
+    double fvalPrev = eq->F(x,z-stepZ);
 
     // Fill right hand side
     if ( ix > 0 )
     {
-      rhs[ix] = (*solution)(ix-1,iz-1);
+      rhs[ix] = (*solution)(ix-1,iz-1)*Hminus*gval;
     }
     else
     {
-      rhs[ix] = 2.0*guide->transverseBC(z, WaveGuideFDSimulation::Boundary_t::BOTTOM); // Make sure that it is not a random value
+      rhs[ix] = guide->transverseBC(z, WaveGuideFDSimulation::Boundary_t::BOTTOM)*(Hminus*gval+HminusPrev*gvalPrev); // Make sure that it is not a random value
     }
 
     if ( ix < Nx-1 )
     {
-      rhs[ix] += (*solution)(ix+1,iz-1);
+      rhs[ix] += (*solution)(ix+1,iz-1)*HplussPrev*gvalPrev;
     }
     else
     {
-      rhs[ix] += 2.0*guide->transverseBC(z, WaveGuideFDSimulation::Boundary_t::TOP);
+      rhs[ix] += guide->transverseBC(z, WaveGuideFDSimulation::Boundary_t::TOP)*(Hpluss*gval + HplussPrev*gvalPrev);
     }
 
     rhs[ix] *=  (0.25*IMAG_UNIT*rho);
-    rhs[ix] -= 0.5*(*solution)(ix,iz-1)*IMAG_UNIT*rho;
-    rhs[ix] += (1.0 - 0.5*(betaPrev*r + IMAG_UNIT*deltaPrev*r) )*(*solution)(ix,iz-1);
+    rhs[ix] -= 0.25*(*solution)(ix,iz-1)*IMAG_UNIT*rho*(HplussPrev+HminusPrev)*gval;
+    rhs[ix] += (1.0*fvalPrev - 0.5*(betaPrev*r + IMAG_UNIT*deltaPrev*r) )*(*solution)(ix,iz-1);
   }
 
   // Solve the tridiagonal system

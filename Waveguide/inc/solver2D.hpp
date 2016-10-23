@@ -6,6 +6,7 @@
 #include <armadillo>
 
 class WaveGuideFDSimulation;
+class ParaxialEquation;
 
 typedef std::complex<double> cdouble;
 
@@ -18,6 +19,7 @@ public:
   virtual ~Solver2D();
   std::string getName() const { return name; };
   void setGuide( const WaveGuideFDSimulation &guide );
+  void setEquation( const ParaxialEquation &equation ){ eq = &equation; };
   const arma::cx_mat& getSolution( unsigned int iz ) const { return *solution; }; // Depricated. iz is not used.
   const arma::cx_mat& getSolution() const { return *solution; };
   bool importHDF5( const std::string &fname );
@@ -35,6 +37,7 @@ public:
 protected:
   std::string name;
   const WaveGuideFDSimulation *guide;
+  const ParaxialEquation *eq{NULL};
   arma::cx_mat *solution{NULL};
 
   arma::cx_mat& getSolution( unsigned int iz ) { return *solution; };

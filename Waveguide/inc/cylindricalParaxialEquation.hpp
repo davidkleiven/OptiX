@@ -6,9 +6,9 @@ class CylindricalParaxialEquation: public ParaxialEquation
 {
 public:
   CylindricalParaxialEquation(){};
-  cdouble F( double r, double theta ) const override final;
-  cdouble G( double r, double theta ) const override final;
-  cdouble H( double r, double theta ) const override final;
+  double F( double r, double theta ) const override final;
+  double G( double r, double theta ) const override final;
+  double H( double r, double theta ) const override final;
 };
 
 #endif
