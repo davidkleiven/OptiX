@@ -139,14 +139,14 @@ def readBorders( hf, crdsyst ):
         bxname = "lowerBorderX%d"%(i)
         bzname = "lowerBorderZ%d"%(i)
         x1 = hf.get(bxname)
-        z1 = hf.get(bzname)*factor
+        z1 = hf.get(bzname)
         x2 = hf.get(uxname)
-        z2 = hf.get(uzname)*factor
+        z2 = hf.get(uzname)
         if ( x1 is None ) or ( z1 is None ) or ( x2 is None ) or ( z2 is None ):
             print ("Read %d waveguide borders"%(i))
             return borders
 
-        borders.addBorder(np.array(x1), np.array(z1), np.array(x2), np.array(z2))
+        borders.addBorder(np.array(x1), np.array(z1)*factor, np.array(x2), np.array(z2)*factor)
     return borders
 
 def main(argv):
