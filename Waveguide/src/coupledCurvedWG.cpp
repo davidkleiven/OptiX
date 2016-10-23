@@ -1,5 +1,6 @@
 #include "coupledCurvedWG.hpp"
 #include "curvedWaveGuide2D.hpp"
+#include "curvedWGCylCrd.hpp"
 #include "cladding.hpp"
 #include "controlFile.hpp"
 #include <vector>
@@ -10,8 +11,20 @@
 
 using namespace std;
 
-CoupledCurvedWG::CoupledCurvedWG():WaveGuideFDSimulation("TwoCoupledWG2D"), wg1(new CurvedWaveGuideFD()), \
- wg2(new CurvedWaveGuideFD()){};
+CoupledCurvedWG::CoupledCurvedWG(Coordinate_t crdsyst):WaveGuideFDSimulation("TwoCoupledWG2D"), crd(crdsyst)
+{
+  switch ( crd )
+  {
+    case Coordinate_t::CARTESIAN:
+      wg1 = new CurvedWaveGuideFD();
+      wg2 = new CurvedWaveGuideFD();
+      break;
+    case Coordinate_t::CYLINDRICAL:
+      wg1 = new CurvedWGCylCrd();
+      wg2 = new CurvedWGCylCrd();
+      break;
+   }
+};
 
  CoupledCurvedWG::~CoupledCurvedWG()
  {
@@ -50,4 +63,13 @@ void CoupledCurvedWG::init( const ControlFile &ctl )
     wg2->init( ctl );
     separation = ctl.get()["separation"].asDouble();
     startCoupler = ctl.get()["couplerStart"].asDouble();
+}
+
+cdouble CoupledCurvedWG::transverseBC( double z, WaveGuideFDSimulation::Boundary_t bnd ) const
+{
+  if ( crd == Coordinate_t::CYLINDRICAL )
+  {
+    return WaveGuideFDSimulation::transverseBC( wg1->getRadiusOfCurvature()*z, bnd );
+  }
+  return WaveGuideFDSimulation::transverseBC( z, bnd );
 }
