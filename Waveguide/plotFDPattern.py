@@ -45,7 +45,7 @@ def plot2D(data, stat, borders, field=None):
     ax = fig.add_subplot(1,1,1)
     im = ax.imshow(np.abs(data)**2, extent=extent, cmap="coolwarm", aspect=1.0, origin ="lower")
     ax.set_xlabel(zlabel)
-    ax.set_ylabel(xlabel
+    ax.set_ylabel(xlabel)
     ax.set_aspect( np.abs( (extent[1]-extent[0])/(extent[3]-extent[2]) ))
     fig.colorbar( im )
     if ( not borders is None ):
