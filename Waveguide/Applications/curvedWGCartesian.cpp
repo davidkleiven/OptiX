@@ -124,7 +124,8 @@ int main( int argc, char **argv )
       xmax = 2.0*width;
       // Note now z refers to the azimutal angle theta and x to the radius
       zmin = 0.0;
-      zmax = 0.01;
+      double wgDistance = 500E3; // Simulate 500 um
+      zmax = wgDistance/Rcurv;
     }
 
     double stepX = (xmax-xmin)/static_cast<double>(Nz);
