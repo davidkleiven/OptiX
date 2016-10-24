@@ -16,19 +16,36 @@ import waveguideBorder as wgb
 
 def plot2D(data, stat, borders, field=None):
     print ("Plotting the full matrix...")
+    '''
     x = np.linspace(stat["xDiscretization"]["min"], stat["xDiscretization"]["max"], data.shape[0])
     x -= stat["x0"]
     z = np.linspace(stat["zDiscretization"]["min"], stat["zDiscretization"]["max"], data.shape[1])
     Z,X = np.meshgrid(z,x)
-    extent = [stat["zDiscretization"]["min"]/1000.0, stat["zDiscretization"]["max"]/1000.0,
-                 stat["xDiscretization"]["min"], stat["xDiscretization"]["max"]]
+    '''
 
+    try:
+        crd = stat["waveguide"]["crd"]
+    except:
+        crd="cartesian"
+
+    if ( crd == "cylindrical" ):
+        zmin = stat["zDiscretization"]["min"]*180.0/np.pi
+        zmax = stat["zDiscretization"]["max"]*180.0/np.pi
+        zlabel = "$\\theta$ (deg)"
+        xlabel = "$r$ (nm)"
+    else:
+        zmin = stat["zDiscretization"]["min"]/1000.0
+        zmax = stat["zDiscretization"]["max"]/100.0
+        zlabel = "$z$ ($\micro$m)"
+        xlabel = "$x$ (nm)"
+
+    extent = [zmin, zmax, stat["xDiscretization"]["min"], stat["xDiscretization"]["max"]]
     k = 2.0*np.pi/0.1569
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
     im = ax.imshow(np.abs(data)**2, extent=extent, cmap="coolwarm", aspect=1.0, origin ="lower")
-    ax.set_xlabel("$z$ ($\mathrm{\mu m}$)")
-    ax.set_ylabel("$x$ (nm)")
+    ax.set_xlabel(zlabel)
+    ax.set_ylabel(xlabel)
     ax.set_aspect( np.abs( (extent[1]-extent[0])/(extent[3]-extent[2]) ))
     fig.colorbar( im )
     if ( not borders is None ):
@@ -46,8 +63,8 @@ def plot2D(data, stat, borders, field=None):
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
     im = ax.imshow(np.abs(data)**2, extent=extent, cmap="coolwarm", aspect=1.0, origin="lower", norm=mpl.colors.LogNorm(minval, maxval))
-    ax.set_xlabel("$z$ ($\mathrm{\mu m}$)")
-    ax.set_ylabel("$x$ (nm)")
+    ax.set_xlabel(zlabel)
+    ax.set_ylabel(xlabel)
     fig.colorbar(im)
     if ( not borders is None ):
         borders.visualize( ax )
@@ -61,8 +78,8 @@ def plot2D(data, stat, borders, field=None):
         fig = plt.figure()
         ax = fig.add_subplot(1,1,1)
         im = ax.imshow(field, extent=extent, cmap="coolwarm", aspect=1.0, origin="lower")
-        ax.set_xlabel("$z$ ($\mathrm{\mu m}$)")
-        ax.set_ylabel("$x$ (nm)")
+        ax.set_xlabel(zlabel)
+        ax.set_ylabel(xlabel)
         fig.colorbar( im )
         if ( not borders is None ):
             borders.visualize( ax )
@@ -110,9 +127,13 @@ def plotWG( x, z ):
     fig.savefig(fname, bbox_inches="tight", dpi=800)
     print ("Figure written to %s"%(fname))
 
-def readBorders( hf ):
+def readBorders( hf, crdsyst ):
     borders = wgb.WaveGuideBorders()
     mxBorders = 10
+    if ( crdsyst == "cylindrical" ):
+        factor = 180.0/np.pi
+    else:
+        factor = 1E-3
     for i in range(0, mxBorders):
         uxname = "upperBorderX%d"%(i)
         uzname = "upperBorderZ%d"%(i)
@@ -126,7 +147,7 @@ def readBorders( hf ):
             print ("Read %d waveguide borders"%(i))
             return borders
 
-        borders.addBorder(np.array(x1), np.array(z1), np.array(x2), np.array(z2))
+        borders.addBorder(np.array(x1), np.array(z1)*factor, np.array(x2), np.array(z2)*factor)
     return borders
 
 def main(argv):
@@ -171,8 +192,12 @@ def main(argv):
         fieldData = None
 
     borders = None
+    try:
+        crdsyst = stat["crd"]
+    except:
+        crdsyst = "cartesian"
     with h5.File(stat["wgfile"], 'r') as hf:
-        borders = readBorders( hf )
+        borders = readBorders( hf, crdsyst )
 
     '''
     if ( np.min(xInside) > stat["xDiscretization"]["min"]):

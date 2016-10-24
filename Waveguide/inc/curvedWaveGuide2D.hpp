@@ -16,6 +16,7 @@ public:
   void setRadiusOfCurvature( double newR ) { R = newR; };
   void setWidth( double newWidth ) { width = newWidth; };
   double getWidth() const { return width; };
+  double getRadiusOfCurvature() const { return R; };
   void computeTransmission( double step );
   void saveTransmission( ControlFile &ctl ) const;
   void getFieldInsideWG( arma::mat &matrix ) const;

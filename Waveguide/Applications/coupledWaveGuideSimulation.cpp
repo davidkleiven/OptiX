@@ -5,6 +5,9 @@
 #include "controlFile.hpp"
 #include "straightWG2D.hpp"
 #include "coupledCurvedWG.hpp"
+#include "curvedWGCylCrd.hpp"
+#include "cylindricalParaxialEquation.hpp"
+#include "planeWave.hpp"
 #include <complex>
 #include <stdexcept>
 #include <cstdlib>
@@ -18,6 +21,7 @@ typedef complex<double> cdouble;
 
 int main( int argc, char **argv )
 {
+  bool useCyl = true;
   double R = 80.0;
 
   // Parameters for running a sweep over radii of curvature
@@ -40,36 +44,51 @@ int main( int argc, char **argv )
   double xmax = width+xMarginAboveAndBelow;
   double xmin = -0.5*zmax*LzOverR-xMarginAboveAndBelow;
 
+  if ( useCyl )
+  {
+    zmin = 0.0;
+    zmax = 0.01;
+    xmin = -2.0*width;
+    xmax = 6.0*width;
+  }
+
   double stepX = (xmax-xmin)/static_cast<double>(Nz);
   double stepZ = (zmax-zmin)/static_cast<double>(Nz);
   stepX = stepX > 1.0 ? 1.0:stepX;
   stepZ = stepZ > 100.0 ? 100.0:stepZ;
 
   ControlFile ctl("data/coupledCurvedWG"); // File for all parameters and settings
-  CoupledCurvedWG wg;
+  CoupledCurvedWG wg(CoupledCurvedWG::Coordinate_t::CYLINDRICAL);
   try
   {
     clog << "Initializing simulation...";
 
     wg.getWg1().setRadiusOfCurvature( Rcurv );
-    wg.getWg2().setRadiusOfCurvature( Rcurv*2.0 );
+    wg.getWg2().setRadiusOfCurvature( Rcurv );
     wg.getWg1().setWidth( width );
     wg.getWg2().setWidth( width );
 
-    wg.setWaveLength( 0.1569 );
+    double wavelength = 0.1569;
+    wg.setWaveLength( wavelength );
     wg.setCladding( cladding );
     wg.setTransverseDiscretization(xmin,xmax,stepX);
     wg.setLongitudinalDiscretization(zmin,zmax,stepZ);
-    wg.setSeparation( 150.0 );
-    wg.setStartCoupler( 50E3 );
+    wg.setSeparation( 1.0 );
+    wg.setStartCoupler( 50E3/Rcurv );
 
     CrankNicholson solver;
+    CylindricalParaxialEquation eq;
+    PlaneWave pw;
+    pw.setWavelength( wavelength );
+    eq.setRadiusOfCurvature( Rcurv );
+    solver.setEquation( eq );
     wg.setSolver(solver);
-    wg.setBoundaryConditions();
+    wg.setBoundaryConditions( pw );
     clog << " done\n";
     clog << "Solving linear system... ";
     wg.solve();
     clog << "done\n";
+    wg.extractWGBorders();
     /*
     clog << "Computing transmission... ";
     wg->computeTransmission( (zmax-zmin)/static_cast<double>(nPointsTransmission) );

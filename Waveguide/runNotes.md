@@ -74,3 +74,6 @@
 254910 | R=40mm. delta=4.49E-5 Gaussian beam. z0=-0.um, x0=50nm, w0=10nm | Looks OK |
 360525 | R=40mm. delta=4.49E-5 Plane wave. AngleZ=0.2 | Looks OK |
 384176 | R=40mm. delta=4.49E-5 Gaussian beam. z0=-0.um, x0=50nm, w0=1 nm | Looks OK |
+384533 | R=40mm. delta=4.49E-5 Plane cylindrical coordinates z0=-0.um, x0=0.0 | Looks very good OK |
+416996 | R=40mm. delta=4.49E-5 Plane cylindrical coordinates z0=-0.um, x0=0.0, proper axis labels | Looks very good OK |
+968548 | R=10mm. delta=4.49E-5 Plane cylindrical coordinates z0=-0.um, x0=0.0 | Looks very good OK |

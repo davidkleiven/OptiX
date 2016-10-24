@@ -31,6 +31,7 @@ void CurvedWaveGuideFD::fillInfo( Json::Value &obj ) const
 {
   obj["RadiusOfCurvature"] = R;
   obj["Width"] = width;
+  obj["crd"] = "cartesian";
 }
 
 void CurvedWaveGuideFD::computeTransmission( double step )
