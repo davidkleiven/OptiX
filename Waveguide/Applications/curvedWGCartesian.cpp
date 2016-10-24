@@ -27,6 +27,7 @@ int main( int argc, char **argv )
   bool computeFarField = true;
   unsigned int startRun = 0;
   unsigned int endRun = 8;
+  double planeWaveAngleDeg = 0.2;
   Source_t source = Source_t::PLANE;
   /*********** PARSE COMMANDLINE ARGUMENTS ************************************/
   for ( unsigned int i=1;i<argc; i++ )
@@ -138,13 +139,17 @@ int main( int argc, char **argv )
       switch ( source )
       {
         case Source_t::PLANE:
+        {
           clog << "Using plane wave source\n";
-          src = new PlaneWave();
+          PlaneWave *psrc = new PlaneWave();
+          psrc->setAngleDeg( planeWaveAngleDeg );
+          src = psrc;
           break;
+        }
         case Source_t::GAUSSIAN:
           clog << "Using gaussian source\n";
           GaussianBeam *gsrc = new GaussianBeam();
-          gsrc->setWaist( 10.0 ); // Waist is 10 nm with a wavelength of 0.1569 nm this gives beamdivergence of 0.3 deg
+          gsrc->setWaist( 1.0 ); // Waist is 10 nm with a wavelength of 0.1569 nm this gives beamdivergence of 0.3 deg
           gsrc->setOrigin( width/2.0, -1E4 ); // Origin at -100.0 nm
           src = gsrc;
           break;
