@@ -28,7 +28,7 @@ int main( int argc, char **argv )
   bool dumpUIDstoFile = true;
   bool useStraight = false;
   bool computeFarField = true;
-  bool useCylCrd = true;
+  bool useCylCrd = false;
   unsigned int startRun = 0;
   unsigned int endRun = 8;
   double planeWaveAngleDeg = 0.2;
