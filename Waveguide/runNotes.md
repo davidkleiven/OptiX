@@ -77,3 +77,14 @@
 384533 | R=40mm. delta=4.49E-5 Plane cylindrical coordinates z0=-0.um, x0=0.0 | Looks very good OK |
 416996 | R=40mm. delta=4.49E-5 Plane cylindrical coordinates z0=-0.um, x0=0.0, proper axis labels | Looks very good OK |
 968548 | R=10mm. delta=4.49E-5 Plane cylindrical coordinates z0=-0.um, x0=0.0 | Looks very good OK |
+649695 | R=40mm. delta=4.49E-5 Plane cartesian coordinates z0=-0.um, x0=0.0, simple averagins | Still hairs, simple averaging has no effect |
+%%% | __Parameter sweep over R saving the real part of the solution in addition (Cylindrical crd)__ | %%% |
+241802 | Lz=500 um max(dx) = 1 nm, max(dz)=100.0 nm, delta=4.45E-5, R=10 mm | Looks Ok |
+929539 | R = 20 mm | Looks OK |
+735044 | R = 30 mm | Looks OK |
+873746 | R = 40 mm | Looks OK |
+510399 | R = 60 mm | Looks OK |
+668643 | R = 80 mm | Looks OK |
+729962 | R = 100 mm | Looks OK |
+788708 | R = 150 mm | Looks OK |
+%%% | %%% | %%%

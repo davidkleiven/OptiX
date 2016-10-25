@@ -424,10 +424,22 @@ void WaveGuideFDSimulation::getXrayMatProp( double x, double z, double &delta, d
   assert ( x <= xDisc->max );
   assert ( z >= zDisc->min );
   assert ( z <= zDisc->max );
-  if ( isInsideGuide( x, z) )
+  double dx = xDisc->step;
+  double dz = zDisc->step;
+  bool isInside = isInsideGuide( x, z );
+  bool neighboursAreInside = isInsideGuide(x+dx,z) && isInsideGuide(x-dx,z) && isInsideGuide(x,z+dz) && \
+                             isInsideGuide(x,z-dz);
+  if ( isInside && neighboursAreInside )
   {
     beta = 0.0;
     delta = 0.0;
+    return;
+  }
+  else if ( isInside && !neighboursAreInside )
+  {
+    // Average the material properties
+    delta = 0.5*cladding->getDelta();
+    beta =  0.5*cladding->getBeta();
     return;
   }
   delta = cladding->getDelta();

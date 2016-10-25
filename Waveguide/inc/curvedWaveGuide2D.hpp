@@ -21,11 +21,13 @@ public:
   void saveTransmission( ControlFile &ctl ) const;
   void getFieldInsideWG( arma::mat &matrix ) const;
   double project( double z, const WaveGuide1DSimulation &eig, unsigned int eigenmode ) const;
+  double smoothedWG( double x, double z ) const;
 
   // Virtual functions
   virtual void fillInfo( Json::Value &obj ) const override;
   virtual void init( const ControlFile &ctl ) override;
   virtual bool isInsideGuide( double x, double z ) const override;
+  virtual void getXrayMatProp( double x, double z, double &delta, double &beta ) const override;
 
   // Extracts the field inside the waveguide at distance wcrd from the edge
   // Thus: wcrd = 0.0: along the lower wall. wcrd=width extracts along the upper wall

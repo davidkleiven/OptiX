@@ -211,3 +211,25 @@ double CurvedWaveGuideFD::project( double z, const WaveGuide1DSimulation &eig, u
 
   return integral*0.5*dx;
 }
+double CurvedWaveGuideFD::smoothedWG( double x, double z ) const
+{
+  static bool indicationWritten = false;
+  if ( !indicationWritten )
+  {
+    clog << "\nUsing smoothed WG\n";
+    indicationWritten = true;
+  }
+
+  double w = 0.1*width;
+  double d = 2.0*R*x + z*z;
+  double f1 = 1.0/( 1.0 + exp(-d/w) );
+
+  double f2 = 1.0/( 1.0 + exp( (2*R*width-d)/w) );
+  return 1.0 - (f1 - f2);
+}
+
+void CurvedWaveGuideFD::getXrayMatProp( double x, double z, double &delta, double &beta ) const
+{
+  delta = cladding->getDelta()*smoothedWG(x,z);
+  beta = cladding->getBeta()*smoothedWG(x,z);
+}

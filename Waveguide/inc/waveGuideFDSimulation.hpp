@@ -50,14 +50,14 @@ public:
   void extractWGBorders();
   double getIntensity( double x, double z ) const; // Using linear interpolation
   double getIntensity( unsigned int ix, unsigned int iz ) const; // Returns value in matrix at (ix,iz)
-  // Refractive index: n = 1 - delta + i*beta
-  void getXrayMatProp( double x, double z, double &delta, double &beta ) const;
 
   // Virtual methods
   virtual void setBoundaryConditions( const ParaxialSource& src ); // This function should fill the boundary
   virtual void fillInfo( Json::Value &obj ) const {};
   virtual void init( const ControlFile &ctl );
   virtual cdouble transverseBC( double z, Boundary_t bnd ) const;
+  // Refractive index: n = 1 - delta + i*beta
+  virtual void getXrayMatProp( double x, double z, double &delta, double &beta ) const;
 protected:
   Solver2D *solver{NULL};
   Disctretization *xDisc; // Transverse
