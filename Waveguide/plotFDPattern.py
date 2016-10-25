@@ -208,7 +208,7 @@ def main(argv):
     phaseData = None
     try:
         with h5.File(stat["phase"], 'r') as hf:
-            fieldData = np.array( hf.get("dataset") )
+            phaseData = np.array( hf.get("dataset") )
     except:
         phaseData = None
 
