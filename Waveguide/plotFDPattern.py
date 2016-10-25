@@ -35,7 +35,7 @@ def plot2D(data, stat, borders, field=None):
         xlabel = "$r$ (nm)"
     else:
         zmin = stat["zDiscretization"]["min"]/1000.0
-        zmax = stat["zDiscretization"]["max"]/100.0
+        zmax = stat["zDiscretization"]["max"]/1000.0
         zlabel = "$z$ ($\micro$m)"
         xlabel = "$x$ (nm)"
 
