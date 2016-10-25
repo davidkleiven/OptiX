@@ -209,7 +209,8 @@ def main(argv):
     try:
         with h5.File(stat["phase"], 'r') as hf:
             phaseData = np.array( hf.get("dataset") )
-    except:
+    except Exception as exc:
+        print str(exc)
         phaseData = None
 
     borders = None
