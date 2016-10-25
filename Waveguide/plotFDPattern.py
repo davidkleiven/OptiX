@@ -235,6 +235,7 @@ def main(argv):
     else:
         data = data.T # Transpose the dataset
         fieldData = fieldData.T
+        phaseData = phaseData.T
         plot2D( data, stat, borders, field=fieldData, phase=phaseData )
     #plotWG( xInside-x0, zInside )
 
