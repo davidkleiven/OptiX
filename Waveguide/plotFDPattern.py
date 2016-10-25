@@ -89,6 +89,7 @@ def plot2D(data, stat, borders, field=None, phase=None):
         print ("Figure written to %s"%(fname))
 
     if ( not phase is None ):
+        phase[np.abs(data)**2 < 1E-7] = np.NaN
         fig = plt.figure()
         ax = fig.add_subplot(1,1,1)
         im = ax.imshow(phase, extent=extent, cmap="hsv", aspect=1.0, origin="lower")
