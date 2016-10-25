@@ -55,7 +55,7 @@ def plot2D(data, stat, borders, field=None):
     print ("Figure written to %s"%(fname))
 
     plt.clf()
-    frac = 1E-5
+    frac = 1E-8
     maxval = np.max(np.abs(data)**2)
     minval = frac*maxval
     #maxval = 1E-3 # T. Salditt et. al maxwav
