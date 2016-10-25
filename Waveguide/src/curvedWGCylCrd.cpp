@@ -2,7 +2,12 @@
 
 bool CurvedWGCylCrd::isInsideGuide( double r, double theta ) const
 {
-  return (r > 0) && (r < width);
+  return ((r > 0) && (r < width));
+}
+
+bool CurvedWGCylCrd::waveguideEnded( double r, double theta ) const
+{
+  return WaveGuideFDSimulation::waveguideEnded( r, R*theta );
 }
 
 cdouble CurvedWGCylCrd::transverseBC( double theta, WaveGuideFDSimulation::Boundary_t bnd ) const

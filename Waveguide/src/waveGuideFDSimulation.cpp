@@ -12,6 +12,7 @@
 #include <cassert>
 #include <cmath>
 #include "paraxialSource.hpp"
+//#define DEBUG_BOUNDARY_EXTRACTOR
 
 const double PI = acos(-1.0);
 
@@ -119,6 +120,7 @@ void WaveGuideFDSimulation::save( ControlFile &ctl, double intensityThreshold ) 
   string jsonfname = fname+".json";
   string wgFname = fname+"_wg.h5";
   string farFieldFname = fname+"_farField.h5";
+  string phaseName = fname+"_phase.h5";
 
   //arma::abs(solver->getSolution()).save(h5fname.c_str(), arma::hdf5_binary);
   if ( useSparse )
@@ -132,9 +134,13 @@ void WaveGuideFDSimulation::save( ControlFile &ctl, double intensityThreshold ) 
     absSol.save(h5fname.c_str(), arma::hdf5_binary);
     clog << "Amplitude written to " << h5fname << endl;
 
-    absSol = arma::real(solver->getSolution());
+    solver->getField( absSol );
     absSol.save(h5fieldfname.c_str(), arma::hdf5_binary);
     clog << "Realpart written to " << h5fieldfname << endl;
+
+    solver->getPhase( absSol );
+    absSol.save(phaseName.c_str(), arma::hdf5_binary);
+    clog << "Phase written to " << phaseName << endl;
   }
 
   hid_t file_id = H5Fcreate(wgFname.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT );
@@ -171,8 +177,10 @@ void WaveGuideFDSimulation::save( ControlFile &ctl, double intensityThreshold ) 
   src->info( sourceInfo );
   wginfo["Cladding"]["delta"] = cladding->getDelta();
   wginfo["Cladding"]["beta"] = cladding->getBeta();
+  wginfo["length"] = wglength;
   ctl.get()["datafile"] = h5fname;
   ctl.get()["fieldData"] = h5fieldfname;
+  ctl.get()["phase"] = phaseName;
   ctl.get()["name"] = name;
   ctl.get()["sparseSave"] = useSparse;
   ctl.get()["sparseThreshold"] = intensityThreshold;
@@ -243,6 +251,10 @@ void WaveGuideFDSimulation::extractWGBorders()
     unsigned int wgNumber = 0;
     bool isInWG = false;
     double z = zDisc->min + iz*zDisc->step;
+    if ( waveguideEnded(0.0,z) )
+    {
+      break;
+    }
     for ( unsigned int ix=0;ix<nodeNumberTransverse(); ix++ )
     {
       double x = xDisc->min + ix*xDisc->step;
@@ -279,16 +291,18 @@ void WaveGuideFDSimulation::extractWGBorders()
   }
 
   // Debugging
-  for ( auto iter=wgborder->begin(); iter != wgborder->end(); ++iter )
-  {
-    unsigned int Nx1 = iter->x1.size();
-    unsigned int Nz1 = iter->z1.size();
-    unsigned int Nx2 = iter->x2.size();
-    unsigned int Nz2 = iter->z2.size();
-    assert( Nx1 == Nz1 );
-    assert( Nx1 == Nx2 );
-    assert( Nx1 == Nz2);
-  }
+  #ifdef DEBUG_BOUNDARY_EXTRACTOR
+    for ( auto iter=wgborder->begin(); iter != wgborder->end(); ++iter )
+    {
+      unsigned int Nx1 = iter->x1.size();
+      unsigned int Nz1 = iter->z1.size();
+      unsigned int Nx2 = iter->x2.size();
+      unsigned int Nz2 = iter->z2.size();
+      assert( Nx1 == Nz1 );
+      assert( Nx1 == Nx2 );
+      assert( Nx1 == Nz2);
+    }
+  #endif
 }
 
 void WaveGuideFDSimulation::sparseSave( const string &fname, double intensityThreshold ) const
@@ -426,6 +440,14 @@ void WaveGuideFDSimulation::getXrayMatProp( double x, double z, double &delta, d
   assert ( z <= zDisc->max );
   double dx = xDisc->step;
   double dz = zDisc->step;
+
+  if ( waveguideEnded(x,z) )
+  {
+    beta = 0.0;
+    delta = 0.0;
+    return;
+  }
+
   bool isInside = isInsideGuide( x, z );
   bool neighboursAreInside = isInsideGuide(x+dx,z) && isInsideGuide(x-dx,z) && isInsideGuide(x,z+dz) && \
                              isInsideGuide(x,z-dz);

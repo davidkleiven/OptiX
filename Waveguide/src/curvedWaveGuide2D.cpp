@@ -56,9 +56,15 @@ void CurvedWaveGuideFD::computeTransmission( double step )
     closestIndex( xWgStart, z, wgStart, zIndx );
     closestIndex( xWgEnd, z, wgEnd, zIndx );
 
+    if ( waveguideEnded(0.0,z) )
+    {
+      clog << "Computed transmission at " << iz << " points.\n";
+      break;
+    }
+
     // Assertions for debugging (allow first and last point to be outside )
     assert( isInsideGuide( xWgStart+1, z ) );
-    assert( isInsideGuide( xWgEnd-1, z) );
+    assert( isInsideGuide( xWgEnd-1, z ) );
 
     double intensity = trapezoidalIntegrateIntensityZ( zIndx, wgStart, wgEnd );
     transmission.push_back( intensity/intensityAtZero );
@@ -230,6 +236,11 @@ double CurvedWaveGuideFD::smoothedWG( double x, double z ) const
 
 void CurvedWaveGuideFD::getXrayMatProp( double x, double z, double &delta, double &beta ) const
 {
+  if ( !useSmoothed )
+  {
+    WaveGuideFDSimulation::getXrayMatProp(x,z,delta,beta);
+    return;
+  }
   delta = cladding->getDelta()*smoothedWG(x,z);
   beta = cladding->getBeta()*smoothedWG(x,z);
 }

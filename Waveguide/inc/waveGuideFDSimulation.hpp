@@ -40,6 +40,7 @@ public:
   void setWavenumber( double k ){ wavenumber = k; };
   void setWaveLength( double lambda );
   void setSolver( Solver2D &solv );
+  void setWaveguideLength( double wgl ){ wglength = wgl; };
   std::string getName() const { return name; };
   void setCladding( const Cladding &clad );
   const Cladding& getCladding() const { return *cladding; };
@@ -50,6 +51,8 @@ public:
   void extractWGBorders();
   double getIntensity( double x, double z ) const; // Using linear interpolation
   double getIntensity( unsigned int ix, unsigned int iz ) const; // Returns value in matrix at (ix,iz)
+  double getZ( unsigned int iz ) const;
+  double getX ( unsigned int ix ) const;
 
   // Virtual methods
   virtual void setBoundaryConditions( const ParaxialSource& src ); // This function should fill the boundary
@@ -63,6 +66,7 @@ protected:
   Disctretization *xDisc; // Transverse
   Disctretization *zDisc; // Along optical axis
   double wavenumber;
+  double wglength{1E10};
   std::string name;
   const Cladding *cladding{NULL};
   arma::vec *farFieldModulus{NULL};
@@ -73,8 +77,6 @@ protected:
 
   void sparseSave( const std::string &fname, double intensityThreshold ) const;
   void closestIndex( double x, double z, unsigned int &ix, unsigned int &iz ) const;
-  double getZ( unsigned int iz ) const;
-  double getX ( unsigned int ix ) const;
   double trapezoidalIntegrateIntensityZ( unsigned int iz, unsigned int ixStart, unsigned int ixEnd ) const;
   void getExitField( arma::vec &vec ) const;
   void saveFarField( const std::string &fname, unsigned int uid ) const;
@@ -83,5 +85,6 @@ protected:
 
   // Virtual funcitons
   virtual bool isInsideGuide( double x, double z ) const { return true; };
+  virtual bool waveguideEnded( double x, double z ) const { return z > wglength; };
 };
 #endif

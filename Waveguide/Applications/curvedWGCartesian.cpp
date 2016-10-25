@@ -28,7 +28,7 @@ int main( int argc, char **argv )
   bool dumpUIDstoFile = true;
   bool useStraight = false;
   bool computeFarField = true;
-  bool useCylCrd = false;
+  bool useCylCrd = true;
   unsigned int startRun = 0;
   unsigned int endRun = 8;
   double planeWaveAngleDeg = 0.2;
@@ -110,6 +110,7 @@ int main( int argc, char **argv )
     double zmax = Rcurv*LzOverR;
     double xmax = width+xMarginAboveAndBelow;
     double xmin = -0.5*zmax*LzOverR-xMarginAboveAndBelow;
+    double wglength = 0.9*zmax;
 
     if ( useStraight )
     {
@@ -177,6 +178,7 @@ int main( int argc, char **argv )
       src->setWavelength( wavelength );
 
       wg->setRadiusOfCurvature( Rcurv );
+      wg->setWaveguideLength( wglength );
       wg->setWidth( width );
       wg->setWaveLength( wavelength );
       wg->setCladding( cladding );

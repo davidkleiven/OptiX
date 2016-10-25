@@ -11,7 +11,8 @@ OPT=-O2#-pg
 SOURCES:= main.cpp cladding.cpp waveGuide.cpp waveGuideRadiusCurvature.cpp numerovSolver.cpp solver1D.cpp waveGuideStraight.cpp \
 	        stdFDsolver.cpp crancNicholson.cpp waveGuideFDSimulation.cpp solver2D.cpp curvedWaveGuide2D.cpp controlFile.cpp \
 					straightWG2D.cpp linearMap1D.cpp coupledCurvedWG.cpp harmonicInversion.cpp paraxialSource.cpp planeWave.cpp \
-					gaussianBeam.cpp paraxialEquation.cpp cylindricalParaxialEquation.cpp curvedWGCylCrd.cpp
+					gaussianBeam.cpp paraxialEquation.cpp cylindricalParaxialEquation.cpp curvedWGCylCrd.cpp \
+					beamSplitter.cpp
 OBJECTS := ${SOURCES:.cpp=.o}
 SOURCES := $(addprefix ${SDIR}/, ${SOURCES})
 OBJECTS := $(addprefix ${ODIR}/, ${OBJECTS})
@@ -47,6 +48,10 @@ eigenProject.out: $(filter-out obj/main.o, ${OBJECTS}) ${ODIR}/projectOntoEigenm
 	-lhdf5_hl_cpp -larmadillo -lharminv
 
 coupledWG.out: $(filter-out obj/main.o, ${OBJECTS}) ${ODIR}/coupledWaveGuideSimulation.o
+	g++ -std=c++11 -o $@ $^ -L ${LDIR} -L ${ARMA_PATH} -lcblas -lgsl -llapack -ljsoncpp -lz -lhdf5_serial -lhdf5_serial_hl -lhdf5_cpp \
+	-lhdf5_hl_cpp -larmadillo -lharminv
+
+beamSplitSim.out: $(filter-out obj/main.o, ${OBJECTS}) ${ODIR}/beamSplitSim.o
 	g++ -std=c++11 -o $@ $^ -L ${LDIR} -L ${ARMA_PATH} -lcblas -lgsl -llapack -ljsoncpp -lz -lhdf5_serial -lhdf5_serial_hl -lhdf5_cpp \
 	-lhdf5_hl_cpp -larmadillo -lharminv
 

@@ -60,8 +60,8 @@ void CrankNicholson::solveCurrent( unsigned int iz )
     guide->getXrayMatProp( x, z, delta, beta );
     guide->getXrayMatProp( x, z-stepZ, deltaPrev, betaPrev);
 
-    double Hpluss = eq->H(x+0.5*x,z);
-    double Hminus = eq->H(x-0.5*x,z);
+    double Hpluss = eq->H(x+0.5*stepX,z);
+    double Hminus = eq->H(x-0.5*stepX,z);
     double gval = eq->G(x,z);
     double fval = eq->F(x,z);
     double jval = eq->J(x,z);
@@ -76,8 +76,8 @@ void CrankNicholson::solveCurrent( unsigned int iz )
       subdiag[ix] = -0.25*IMAG_UNIT*rho*Hminus*gval;
     }
 
-    double HplussPrev = eq->H(x+0.5*x,z-stepZ);
-    double HminusPrev = eq->H(x-0.5*x,z-stepZ);
+    double HplussPrev = eq->H(x+0.5*stepX,z-stepZ);
+    double HminusPrev = eq->H(x-0.5*stepX,z-stepZ);
     double gvalPrev = eq->G(x,z-stepZ);
     double fvalPrev = eq->F(x,z-stepZ);
 
@@ -88,7 +88,8 @@ void CrankNicholson::solveCurrent( unsigned int iz )
     }
     else
     {
-      rhs[ix] = guide->transverseBC(z, WaveGuideFDSimulation::Boundary_t::BOTTOM)*(Hminus*gval+HminusPrev*gvalPrev); // Make sure that it is not a random value
+      rhs[ix] = guide->transverseBC(z, WaveGuideFDSimulation::Boundary_t::BOTTOM)*Hminus*gval +\
+      guide->transverseBC(z-stepZ, WaveGuideFDSimulation::Boundary_t::BOTTOM)*HminusPrev*gvalPrev; // Make sure that it is not a random value
     }
 
     if ( ix < Nx-1 )
@@ -97,7 +98,8 @@ void CrankNicholson::solveCurrent( unsigned int iz )
     }
     else
     {
-      rhs[ix] += guide->transverseBC(z, WaveGuideFDSimulation::Boundary_t::TOP)*(Hpluss*gval + HplussPrev*gvalPrev);
+      rhs[ix] += ( guide->transverseBC(z, WaveGuideFDSimulation::Boundary_t::TOP)*Hpluss*gval + \
+      guide->transverseBC(z-stepZ, WaveGuideFDSimulation::Boundary_t::TOP)*HplussPrev*gvalPrev );
     }
 
     rhs[ix] *=  (0.25*IMAG_UNIT*rho);

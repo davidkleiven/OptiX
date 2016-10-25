@@ -1,5 +1,6 @@
 #include "solver2D.hpp"
 #include "waveGuideFDSimulation.hpp"
+#include "paraxialEquation.hpp"
 #include <complex>
 #include <stdexcept>
 #include <iostream>
@@ -111,4 +112,29 @@ bool Solver2D::importHDF5( const string &realpart, const string &amplitude )
   // TODO: The next line fails. Why?
   //solution->set_imag( arma::sqrt(arma::pow(amp,2) - arma::pow(arma::real(*solution),2)) );
   return status;
+}
+
+void Solver2D::getField(arma::mat &field ) const
+{
+  field.set_size( solution->n_rows, solution->n_cols );
+  double k = guide->getWavenumber();
+  for ( unsigned int iz=0;iz<guide->nodeNumberLongitudinal();iz++ )
+  {
+    for ( unsigned int ix=0;ix<guide->nodeNumberTransverse();ix++ )
+    {
+      field(ix,iz) = ( (*solution)(ix,iz)*eq->phaseFactor(k, guide->getZ(iz)) ).real();
+    }
+  }
+}
+
+void Solver2D::getPhase( arma::mat &phase ) const
+{
+  phase.set_size( solution->n_rows, solution->n_cols );
+  for ( unsigned int iz=0;iz<guide->nodeNumberLongitudinal(); iz++ )
+  {
+    for ( unsigned int ix=0;ix<guide->nodeNumberTransverse(); ix++ )
+    {
+      phase(ix,iz) = arg( (*solution)(ix,iz) );
+    }
+  }
 }

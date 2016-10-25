@@ -21,5 +21,6 @@ public:
   virtual double G( double x, double z ) const;
   virtual double H( double x, double z ) const;
   virtual double J( double x, double z ) const;
+  virtual cdouble phaseFactor( double k, double z ) const;
 };
 #endif

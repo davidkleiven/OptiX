@@ -23,3 +23,8 @@ double CylindricalParaxialEquation::J( double r, double theta ) const
 {
   return r/R;
 }
+
+cdouble CylindricalParaxialEquation::phaseFactor( double k, double theta ) const
+{
+  return ParaxialEquation::phaseFactor( k, R*theta );
+}

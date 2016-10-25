@@ -14,5 +14,6 @@ public:
   virtual void fillInfo( Json::Value &obj ) const override;
 protected:
   bool isInsideGuide( double r, double theta ) const override;
+  bool waveguideEnded( double r, double theta ) const override;
 };
 #endif

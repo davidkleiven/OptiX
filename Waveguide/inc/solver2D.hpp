@@ -26,6 +26,8 @@ public:
   bool importHDF5( const std::string &realpart, const std::string &amplitude );
   void realPart( double *realsolution ) const;
   void imagPart( double *imagsolution ) const;
+  void getField( arma::mat &field ) const;
+  void getPhase( arma::mat &phase ) const;
 
   // Set boundary condition at z=0
   void setLeftBC( const cdouble values[] );

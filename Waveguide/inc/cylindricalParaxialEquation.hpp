@@ -11,6 +11,7 @@ public:
   double H( double r, double theta ) const override final;
   double J( double r, double theta ) const override final;
   void setRadiusOfCurvature( double Rcurv ){ R = Rcurv; };
+  virtual cdouble phaseFactor( double k, double theta ) const override;
 private:
     double R{1.0};
 };
