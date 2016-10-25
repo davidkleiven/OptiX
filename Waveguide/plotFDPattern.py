@@ -14,7 +14,7 @@ from scipy import interpolate
 import transmission as trans
 import waveguideBorder as wgb
 
-def plot2D(data, stat, borders, field=None):
+def plot2D(data, stat, borders, field=None, phase=None):
     print ("Plotting the full matrix...")
     '''
     x = np.linspace(stat["xDiscretization"]["min"], stat["xDiscretization"]["max"], data.shape[0])
@@ -85,6 +85,20 @@ def plot2D(data, stat, borders, field=None):
             borders.visualize( ax )
         ax.set_aspect( np.abs( (extent[1]-extent[0])/(extent[3]-extent[2]) ))
         fname = "Figures/fieldLinScale%d.jpeg"%(stat["UID"])
+        plt.savefig(fname, bbox_inches="tight", dpi=800)
+        print ("Figure written to %s"%(fname))
+
+    if ( not phase is None ):
+        fig = plt.figure()
+        ax = fig.add_subplot(1,1,1)
+        im = ax.imshow(phase, extent=extent, cmap="coolwarm", aspect=1.0, origin="lower")
+        ax.set_xlabel(zlabel)
+        ax.set_ylabel(xlabel)
+        fig.colorbar( im )
+        if ( not borders is None ):
+            borders.visualize( ax )
+        ax.set_aspect( np.abs( (extent[1]-extent[0])/(extent[3]-extent[2]) ))
+        fname = "Figures/phase%d.jpeg"%(stat["UID"])
         plt.savefig(fname, bbox_inches="tight", dpi=800)
         print ("Figure written to %s"%(fname))
 
@@ -191,6 +205,13 @@ def main(argv):
     except:
         fieldData = None
 
+    phaseData = None
+    try:
+        with h5.File(stat["phase"], 'r') as hf:
+            fieldData = np.array( hf.get("dataset") )
+    except:
+        phaseData = None
+
     borders = None
     try:
         crdsyst = stat["crd"]
@@ -213,7 +234,7 @@ def main(argv):
     else:
         data = data.T # Transpose the dataset
         fieldData = fieldData.T
-        plot2D( data, stat, borders, field=fieldData )
+        plot2D( data, stat, borders, field=fieldData, phase=phaseData )
     #plotWG( xInside-x0, zInside )
 
     # Plot transmission. Put in try catch as some of the simulaitons do not compute the transmission
