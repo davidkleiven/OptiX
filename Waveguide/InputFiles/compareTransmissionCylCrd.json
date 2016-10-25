@@ -1,0 +1,19 @@
+{
+  "entries":[
+    {
+      "uid":702004,
+      "label":"Straight"
+    },
+    {
+      "uid":729962,
+      "label":"100 mm"
+    },
+    {
+      "uid":873746,
+      "label":"40 mm"
+    }
+  ],
+  "numberOfPoints":4,
+  "basename":"data/singleCurvedWG",
+  "figurename":"transmissionParamSweepCylCrd.pdf"
+}
