@@ -64,7 +64,7 @@ def main( argv ):
         data = data[::param["numberOfPoints"]]
         z = np.linspace(stat["Transmission"]["zStart"], stat["Transmission"]["zEnd"], len(data))
         if ( crd == "cylindrical" ):
-            z*= stat["waveguide"]["RadiusOfCurvature"]/1E6
+            z*= stat["waveguide"]["RadiusOfCurvature"]
         fitStart = np.argmin( np.abs(z/1E6 - 0.3) )
         zFit = z[fitStart:]
         dataFit = data[fitStart:]
