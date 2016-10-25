@@ -74,7 +74,7 @@ def main( argv ):
     # Plot the exit field
     indx = np.argmax(np.abs(exitField))
     x = np.linspace(xmin, xmax, len(exitField))
-    delta = int( 0.15*len(exitField) )
+    delta = int( 0.3*len(exitField) )
     minIndx = indx-delta
     maxIndx = indx+delta
     if ( minIndx < 0 ):
