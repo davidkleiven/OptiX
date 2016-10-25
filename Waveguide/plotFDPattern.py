@@ -91,7 +91,7 @@ def plot2D(data, stat, borders, field=None, phase=None):
     if ( not phase is None ):
         fig = plt.figure()
         ax = fig.add_subplot(1,1,1)
-        im = ax.imshow(phase, extent=extent, cmap="coolwarm", aspect=1.0, origin="lower")
+        im = ax.imshow(phase, extent=extent, cmap="hsv", aspect=1.0, origin="lower")
         ax.set_xlabel(zlabel)
         ax.set_ylabel(xlabel)
         fig.colorbar( im )
