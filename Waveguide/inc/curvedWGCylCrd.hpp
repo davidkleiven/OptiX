@@ -15,5 +15,7 @@ public:
 protected:
   bool isInsideGuide( double r, double theta ) const override;
   bool waveguideEnded( double r, double theta ) const override;
+  double waveGuideStartX( double z ) const override;
+  double waveGuideEndX( double z ) const override;
 };
 #endif

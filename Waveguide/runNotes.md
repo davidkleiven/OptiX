@@ -88,3 +88,5 @@
 729962 | R = 100 mm | Looks OK |
 788708 | R = 150 mm | Looks OK |
 %%% | %%% | %%%
+550454 | Beam split angle 0.015 | Looks OK |
+918592 | Beam split angle 0.015, delta=1E-5, beta=1E-7 | Looks OK |

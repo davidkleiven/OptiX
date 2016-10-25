@@ -22,6 +22,7 @@ public:
   void getFieldInsideWG( arma::mat &matrix ) const;
   double project( double z, const WaveGuide1DSimulation &eig, unsigned int eigenmode ) const;
   double smoothedWG( double x, double z ) const;
+  void useSmoothedWG(){ useSmoothed=true; };
 
   // Virtual functions
   virtual void fillInfo( Json::Value &obj ) const override;
@@ -41,5 +42,6 @@ protected:
   virtual double waveGuideEndX( double z ) const;
   std::vector<double> transmission;
   double stepWhenComputingTransmission{0.0};
+  bool useSmoothed{false};
 };
 #endif

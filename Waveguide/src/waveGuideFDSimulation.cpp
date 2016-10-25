@@ -386,6 +386,7 @@ double WaveGuideFDSimulation::trapezoidalIntegrateIntensityZ( unsigned int iz, u
   double integral = getIntensity( ixStart, iz ) + getIntensity( ixEnd, iz );
   for ( unsigned int ix=ixStart+1; ix <= ixEnd-1; ix ++ )
   {
+    double x = getX(ix);
     integral += 2.0*getIntensity( ix, iz );
   }
   double dx = ( getX( ixEnd) - getX( ixStart ) )/static_cast<double>( ixEnd - ixStart );

@@ -20,3 +20,13 @@ void CurvedWGCylCrd::fillInfo( Json::Value &obj ) const
   CurvedWaveGuideFD::fillInfo(obj);
   obj["crd"]="cylindrical";
 }
+
+double CurvedWGCylCrd::waveGuideStartX( double z ) const
+{
+  return 0.0;
+}
+
+double CurvedWGCylCrd::waveGuideEndX( double z ) const
+{
+  return width;
+}
