@@ -10,6 +10,8 @@
 #include "gaussianBeam.hpp"
 #include "cylindricalParaxialEquation.hpp"
 #include "curvedWGCylCrd.hpp"
+#include "gaussianWG.hpp"
+#include "linearRampWG.hpp"
 #include <complex>
 #include <stdexcept>
 #include <cstdlib>
@@ -22,17 +24,22 @@ using namespace std;
 typedef complex<double> cdouble;
 
 enum class Source_t {PLANE, GAUSSIAN};
+enum class WGProfile_t {STEP, GAUSSIAN, LINEAR_RAMP};
+
 int main( int argc, char **argv )
 {
   double R[8] = {10.0, 20.0, 30.0, 40.0, 60.0, 80.0, 100.0, 150.0}; // In mm
   bool dumpUIDstoFile = true;
   bool useStraight = false;
   bool computeFarField = true;
-  bool useCylCrd = true;
+  bool useCylCrd = false;
   unsigned int startRun = 0;
   unsigned int endRun = 8;
-  double planeWaveAngleDeg = 0.2;
+  double planeWaveAngleDeg = 0.0;//0.2;
+  double linearRampWidthFraction = 5.0; // Only relevant of profile = LINEAR_RAMP
   Source_t source = Source_t::PLANE;
+  WGProfile_t profile = WGProfile_t::STEP;
+
   /*********** PARSE COMMANDLINE ARGUMENTS ************************************/
   for ( unsigned int i=1;i<argc; i++ )
   {
@@ -89,9 +96,10 @@ int main( int argc, char **argv )
   /****************** END COMMANDLINE ARGUMENTS *******************************/
 
   // Parameters for running a sweep over radii of curvature
-  double LzOverR = 0.01; // max(z)/R << 1 is a requirement
-  double xMarginAboveAndBelow = 0.5E3; // In nanometers = 0.5 um
-  unsigned int Nz = 5000; // Number of discretization points in x and z direction
+  double LzOverR = 0.005; // max(z)/R << 1 is a requirement
+  double xMarginAboveAndBelow = 0.01E3; // In nanometers = 0.5 um
+  unsigned int Nz = 3000; // Number of discretization points in x and z direction
+  unsigned int Nx = 200;
   unsigned int nPointsTransmission = 200;
 
   Cladding cladding;
@@ -110,7 +118,7 @@ int main( int argc, char **argv )
     double zmax = Rcurv*LzOverR;
     double xmax = width+xMarginAboveAndBelow;
     double xmin = -0.5*zmax*LzOverR-xMarginAboveAndBelow;
-    double wglength = 0.9*zmax;
+    double wglength = 1.5*zmax;
 
     if ( useStraight )
     {
@@ -129,10 +137,10 @@ int main( int argc, char **argv )
       zmax = wgDistance/Rcurv;
     }
 
-    double stepX = (xmax-xmin)/static_cast<double>(Nz);
+    double stepX = (xmax-xmin)/static_cast<double>(Nx);
     double stepZ = (zmax-zmin)/static_cast<double>(Nz);
-    stepX = stepX > 1.0 ? 1.0:stepX;
-    stepZ = stepZ > 100.0 ? 100.0:stepZ;
+    //stepX = stepX > 1.0 ? 1.0:stepX;
+    //stepZ = stepZ > 100.0 ? 100.0:stepZ;
 
     ControlFile ctl("data/singleCurvedWG"); // File for all parameters and settings
 
@@ -149,6 +157,16 @@ int main( int argc, char **argv )
       else if ( useCylCrd )
       {
         wg = new CurvedWGCylCrd();
+      }
+      else if ( profile == WGProfile_t::GAUSSIAN )
+      {
+        wg = new GaussianWG();
+      }
+      else if ( profile == WGProfile_t::LINEAR_RAMP )
+      {
+        LinearRampWG* linWG = new LinearRampWG();
+        linWG->setWidthFraction( linearRampWidthFraction );
+        wg = linWG;
       }
       else
       {

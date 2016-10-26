@@ -79,7 +79,7 @@
 968548 | R=10mm. delta=4.49E-5 Plane cylindrical coordinates z0=-0.um, x0=0.0 | Looks very good OK |
 649695 | R=40mm. delta=4.49E-5 Plane cartesian coordinates z0=-0.um, x0=0.0, simple averagins | Still hairs, simple averaging has no effect |
 %%% | __Parameter sweep over R saving the real part of the solution in addition (Cylindrical crd)__ | %%% |
-241802 | Lz=500 um max(dx) = 1 nm, max(dz)=100.0 nm, delta=4.45E-5, R=10 mm | Looks Ok |
+241802 | Lz=500 um max(dx) = 1 nm, max(dz)=100.0 nm, delta=4.45E-5, R=10 mm, inc angle=0.2 deg | Looks Ok |
 929539 | R = 20 mm | Looks OK |
 735044 | R = 30 mm | Looks OK |
 873746 | R = 40 mm | Looks OK |
@@ -90,3 +90,16 @@
 %%% | %%% | %%%
 550454 | Beam split angle 0.015 | Looks OK |
 918592 | Beam split angle 0.015, delta=1E-5, beta=1E-7 | Looks OK |
+609003 | R=40mm delta=4.45E-5, beta=3.45E-6 gaussian WG| No hairs |
+237703 | R=40mm delta=4.45E-5, beta=3.45E-6 linear ramp WG, f=1.0 | 3 hairs |
+158240 | R=40mm delta=4.45E-5, beta=3.45E-6 linear ramp WG, f=2.0 | 3 hairs |
+118543 | R=40mm delta=4.45E-5, beta=3.45E-6 linear ramp WG, f=5.0 | 3 hairs |
+440622 | R=40mm delta=4.45E-5, beta=3.45E-6 step, w=5nm | No hairs |
+577660 | R=40mm delta=4.45E-5, beta=3.45E-6 step, w=100nm, nz=nx=1000 | Hairy |
+645627 | R=40mm delta=4.45E-5, beta=3.45E-6 step, w=100nm, nz=nx=100 | Smoothed out |
+462501 | R=40mm delta=4.45E-5, beta=3.45E-6 step, w=100nm, nz=nx=500 | Hairs |
+476450 | R=40mm delta=4.45E-5, beta=3.45E-6 step, w=100nm, nz=nx=2000 | Hairs |
+869908 | R=40mm delta=4.45E-5, beta=3.45E-6 step, w=100nm, nz=nx=3000 | Hairs |
+558362 | R=40mm delta=4.45E-5, beta=3.45E-6 step, w=100nm, nz=3000 nx=100 | Some interesting staircase |
+558362 | R=40mm delta=4.45E-5, beta=3.45E-6 step, w=100nm, nz=3000 nx=50 | Too smeared |
+272786 | R=40mm delta=4.45E-5, beta=3.45E-6 step, w=100nm, nz=3000 nx=200 | Interasting staircase features |
