@@ -3,7 +3,7 @@ sys.path.append("../FresnelFDTD")
 import mplLaTeX as ml
 import matplotlib as mpl
 #mpl.rcParams.update(ml.params)
-CALL_OVER_SSH = True
+CALL_OVER_SSH = False
 if ( CALL_OVER_SSH ):
     mpl.use("Agg")
 import numpy as np
@@ -58,7 +58,9 @@ def plot2D(data, stat, borders, field=None, phase=None):
     plt.clf()
     frac = 1E-8
     maxval = np.max(np.abs(data)**2)
+    maxval=1E-1
     minval = frac*maxval
+    minval=1E-6
     #maxval = 1E-3 # T. Salditt et. al maxwav
 
     fig = plt.figure()
@@ -71,6 +73,7 @@ def plot2D(data, stat, borders, field=None, phase=None):
         borders.visualize( ax )
     ax.set_aspect( np.abs( (extent[1]-extent[0])/(extent[3]-extent[2]) ))
     fname = "Figures/contourLogScale%d.jpeg"%(stat["UID"])
+    plt.show()
     plt.savefig(fname, bbox_inches="tight", dpi=800)
     print ("Figure written to %s"%(fname))
 
@@ -237,7 +240,8 @@ def main(argv):
     else:
         data = data.T # Transpose the dataset
         fieldData = fieldData.T
-        phaseData = phaseData.T
+        if ( not phaseData is None ):
+            phaseData = phaseData.T
         plot2D( data, stat, borders, field=fieldData, phase=phaseData )
     #plotWG( xInside-x0, zInside )
 
