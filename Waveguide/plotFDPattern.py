@@ -15,6 +15,7 @@ import transmission as trans
 import waveguideBorder as wgb
 
 def plot2D(data, stat, borders, field=None, phase=None):
+    colormap="viridis"
     print ("Plotting the full matrix...")
     '''
     x = np.linspace(stat["xDiscretization"]["min"], stat["xDiscretization"]["max"], data.shape[0])
@@ -43,7 +44,7 @@ def plot2D(data, stat, borders, field=None, phase=None):
     k = 2.0*np.pi/0.1569
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
-    im = ax.imshow(np.abs(data)**2, extent=extent, cmap="coolwarm", aspect=1.0, origin ="lower")
+    im = ax.imshow(np.abs(data)**2, extent=extent, cmap=colormap, aspect=1.0, origin ="lower")
     ax.set_xlabel(zlabel)
     ax.set_ylabel(xlabel)
     ax.set_aspect( np.abs( (extent[1]-extent[0])/(extent[3]-extent[2]) ))
@@ -62,7 +63,7 @@ def plot2D(data, stat, borders, field=None, phase=None):
 
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
-    im = ax.imshow(np.abs(data)**2, extent=extent, cmap="coolwarm", aspect=1.0, origin="lower", norm=mpl.colors.LogNorm(minval, maxval))
+    im = ax.imshow(np.abs(data)**2, extent=extent, cmap=colormap, aspect=1.0, origin="lower", norm=mpl.colors.LogNorm(minval, maxval))
     ax.set_xlabel(zlabel)
     ax.set_ylabel(xlabel)
     fig.colorbar(im)
@@ -77,7 +78,7 @@ def plot2D(data, stat, borders, field=None, phase=None):
     if ( not field is None ):
         fig = plt.figure()
         ax = fig.add_subplot(1,1,1)
-        im = ax.imshow(field, extent=extent, cmap="coolwarm", aspect=1.0, origin="lower")
+        im = ax.imshow(field, extent=extent, cmap=colormap, aspect=1.0, origin="lower")
         ax.set_xlabel(zlabel)
         ax.set_ylabel(xlabel)
         fig.colorbar( im )
