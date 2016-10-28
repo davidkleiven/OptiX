@@ -32,7 +32,7 @@ int main( int argc, char **argv )
   bool dumpUIDstoFile = true;
   bool useStraight = false;
   bool computeFarField = true;
-  bool useCylCrd = false;
+  bool useCylCrd = true;
   unsigned int startRun = 0;
   unsigned int endRun = 8;
   double planeWaveAngleDeg = 0.0;//0.2;
@@ -99,7 +99,7 @@ int main( int argc, char **argv )
   double LzOverR = 0.005; // max(z)/R << 1 is a requirement
   double xMarginAboveAndBelow = 0.01E3; // In nanometers = 0.5 um
   unsigned int Nz = 3000; // Number of discretization points in x and z direction
-  unsigned int Nx = 200;
+  unsigned int Nx = 1000;
   unsigned int nPointsTransmission = 200;
 
   Cladding cladding;
@@ -135,6 +135,7 @@ int main( int argc, char **argv )
       zmin = 0.0;
       double wgDistance = 500E3; // Simulate 500 um
       zmax = wgDistance/Rcurv;
+      wglength = 1.1*wgDistance;
     }
 
     double stepX = (xmax-xmin)/static_cast<double>(Nx);
