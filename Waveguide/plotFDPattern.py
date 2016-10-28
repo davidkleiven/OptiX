@@ -52,7 +52,7 @@ def plot2D(data, stat, borders, field=None, phase=None):
     if ( not borders is None ):
         borders.visualize( ax )
     fname = "Figures/contourLinScale%d.jpeg"%(stat["UID"])
-    plt.savefig(fname, bbox_inches="tight", dpi=800)
+    fig.savefig(fname, bbox_inches="tight", dpi=800)
     print ("Figure written to %s"%(fname))
 
     plt.clf()
@@ -74,7 +74,7 @@ def plot2D(data, stat, borders, field=None, phase=None):
     ax.set_aspect( np.abs( (extent[1]-extent[0])/(extent[3]-extent[2]) ))
     fname = "Figures/contourLogScale%d.jpeg"%(stat["UID"])
     plt.show()
-    plt.savefig(fname, bbox_inches="tight", dpi=800)
+    fig.savefig(fname, bbox_inches="tight", dpi=800)
     print ("Figure written to %s"%(fname))
 
     plt.clf()
@@ -89,7 +89,7 @@ def plot2D(data, stat, borders, field=None, phase=None):
             borders.visualize( ax )
         ax.set_aspect( np.abs( (extent[1]-extent[0])/(extent[3]-extent[2]) ))
         fname = "Figures/fieldLinScale%d.jpeg"%(stat["UID"])
-        plt.savefig(fname, bbox_inches="tight", dpi=800)
+        fig.savefig(fname, bbox_inches="tight", dpi=800)
         print ("Figure written to %s"%(fname))
 
     if ( not phase is None ):
@@ -122,7 +122,7 @@ def plot2Dsparse( x, z, intensity, stat ):
     plt.ylabel("$x$ (nm)")
     plt.colorbar()
     fname = "Figures/contourLinScale.jpeg"
-    plt.savefig(fname, bbox_inches="tight", dpi=800)
+    fig.savefig(fname, bbox_inches="tight", dpi=800)
     print ("Figure written to %s"%(fname))
 
     '''
