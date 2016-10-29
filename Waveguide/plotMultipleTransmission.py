@@ -22,6 +22,7 @@ def main( argv ):
         entries = json.load(infile)
         infile.close()
     except Exception as exc:
+        print ("Error when opening compare json file!")
         print str(exc)
 
     tPlot = trans.Transmission()
@@ -29,7 +30,7 @@ def main( argv ):
     for entry in entries["entries"]:
         try:
             # Load json control file
-            infile = open(entries["ctlfile"], 'r')
+            infile = open(entry["ctlfile"], 'r')
             stat = json.load(infile)
             infile.close()
 
@@ -47,6 +48,7 @@ def main( argv ):
                 z *= stat["waveguide"]["RadiusOfCurvature"]
             tPlot.addSet( z, data, entry["label"])
         except Exception as exc:
+            print ("Error when reading data!")
             print str(exc)
     tPlot.plot()
 
