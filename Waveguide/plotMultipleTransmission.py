@@ -47,7 +47,7 @@ def main( argv ):
 
             if ( crd == "cylindrical" ):
                 z *= stat["waveguide"]["RadiusOfCurvature"]
-            tPlot.addSet( z, data, entry["label"])
+            tPlot.addData( z, data, entry["label"])
         except Exception as exc:
             print ("Error when reading data!")
             print str(exc)
