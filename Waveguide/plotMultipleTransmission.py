@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import sys
 import transmission as trans
 import json
@@ -24,6 +25,7 @@ def main( argv ):
         print str(exc)
 
     tPlot = trans.Transmission()
+    tPlot.figname = entries["figname"]
     for entry in entries["entries"]:
         try:
             # Load json control file

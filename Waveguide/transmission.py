@@ -9,7 +9,7 @@ import h5py as h5
 import json
 from matplotlib import pyplot as plt
 from scipy import stats
-import colorSchemes as cs
+import colorScheme as cs
 
 class Dataset:
     def __init__(self):

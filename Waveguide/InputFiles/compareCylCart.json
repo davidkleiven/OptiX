@@ -8,5 +8,6 @@
       "ctlfile":"data/singleCurvedWG133595.json",
       "label":"Cylindrical"
     }
-  ]
+  ],
+  "figname":"Figures/cartesianCylindrical_R40mm.pdf"
 }
