@@ -68,7 +68,7 @@
 379863 | Coupled. R=80mm, R2=2R1. delta=4.49E-5, sep=150 nm, couplerStart=50um | Some signals are catched |
 %%% | %%% | %%%
 747532 | Lz/R=0.01 max(dx) =1.0, dz=calculated, delta=4.45E-5, R=80mm, with far field | Ok. Some useful attributes where misisn. Files deleted. |
-805696 | Lz/R=0.01 max(dx) =1.0, dz=calculated, delta=4.45E-5, R=80mm, with far field | Running |
+805696 | Lz/R=0.01 max(dx) =1.0, dz=calculated, delta=4.45E-5, R=80mm, with far field | Not analysed |
 255950 | 1D eigenmode run. R=40mm. delta=4.49E-5, 20 modes | Lookds good|
 192712 | R=40mm. delta=4.49E-5 Gaussian beam. z0=-0.um, x0=0.0, w0=10nm | Looks OK |
 254910 | R=40mm. delta=4.49E-5 Gaussian beam. z0=-0.um, x0=50nm, w0=10nm | Looks OK |
@@ -77,7 +77,7 @@
 384533 | R=40mm. delta=4.49E-5 Plane cylindrical coordinates z0=-0.um, x0=0.0 | Looks very good OK |
 416996 | R=40mm. delta=4.49E-5 Plane cylindrical coordinates z0=-0.um, x0=0.0, proper axis labels | Looks very good OK |
 968548 | R=10mm. delta=4.49E-5 Plane cylindrical coordinates z0=-0.um, x0=0.0 | Looks very good OK |
-649695 | R=40mm. delta=4.49E-5 Plane cartesian coordinates z0=-0.um, x0=0.0, simple averagins | Still hairs, simple averaging has no effect |
+649695 | R=40mm. delta=4.49E-5 Plane cartesian coordinates z0=-0.um, x0=0.0, simple averagins | Still hairs, simple averaging has no effect, error with transmission |
 %%% | __Parameter sweep over R saving the real part of the solution in addition (Cylindrical crd)__ | %%% |
 241802 | Lz=500 um max(dx) = 1 nm, max(dz)=100.0 nm, delta=4.45E-5, R=10 mm, inc angle=0.2 deg | Looks Ok |
 929539 | R = 20 mm | Looks OK |
@@ -104,3 +104,4 @@
 558362 | R=40mm delta=4.45E-5, beta=3.45E-6 step, w=100nm, nz=3000 nx=50 | Too smeared |
 272786 | R=40mm delta=4.45E-5, beta=3.45E-6 step, w=100nm, nz=3000 nx=200 | Interasting staircase features |
 133595 | R=40mm delta=4.45E-5, beta=3.45E-6 step, w=100nm, nz=3000 nx=200, cylindrical, proper transmission | Looks OK |
+352671 | R=40mm delta=4.45E-5, beta=3.45E-6 step, w=100nm, nz=1000 nx=1000, cartesian | Looks OK |

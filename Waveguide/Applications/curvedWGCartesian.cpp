@@ -32,7 +32,7 @@ int main( int argc, char **argv )
   bool dumpUIDstoFile = true;
   bool useStraight = false;
   bool computeFarField = true;
-  bool useCylCrd = true;
+  bool useCylCrd = false;
   unsigned int startRun = 0;
   unsigned int endRun = 8;
   double planeWaveAngleDeg = 0.0;//0.2;
@@ -96,10 +96,10 @@ int main( int argc, char **argv )
   /****************** END COMMANDLINE ARGUMENTS *******************************/
 
   // Parameters for running a sweep over radii of curvature
-  double LzOverR = 0.005; // max(z)/R << 1 is a requirement
+  double LzOverR = 0.01; // max(z)/R << 1 is a requirement
   double xMarginAboveAndBelow = 0.01E3; // In nanometers = 0.5 um
-  unsigned int Nz = 3000; // Number of discretization points in x and z direction
-  unsigned int Nx = 1000;
+  unsigned int Nz = 5000; // Number of discretization points in x and z direction
+  unsigned int Nx = 5000;
   unsigned int nPointsTransmission = 200;
 
   Cladding cladding;
