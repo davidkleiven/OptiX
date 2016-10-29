@@ -1,4 +1,4 @@
 source server.sh
 echo ${IP}
 
-ssh davidkl@${IP}
+ssh -X davidkl@${IP}

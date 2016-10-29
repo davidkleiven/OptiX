@@ -1,0 +1,12 @@
+{
+  "entries":[
+    {
+      "ctlfile":"data/singleCurvedWG649695.json",
+      "label":"Cartesian"
+    },
+    {
+      "ctlfile":"data/singleCurvedWG133595.json",
+      "label":"Cylindrical"
+    }
+  ]
+}

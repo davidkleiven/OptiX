@@ -1,5 +1,6 @@
 import sys
 sys.path.append("../FresnelFDTD")
+sys.path.append("../")
 import mplLaTeX as ml
 import matplotlib as mpl
 mpl.rcParams.update(ml.params)
@@ -8,6 +9,39 @@ import h5py as h5
 import json
 from matplotlib import pyplot as plt
 from scipy import stats
+import colorSchemes as cs
+
+class Dataset:
+    def __init__(self):
+        self.z = None
+        self.transmission = None
+        self.label = ""
+
+class Transmission:
+    def __init__(self):
+        self.datasets = []
+        self.figname = "defaultfigure.pdf"
+
+    def addData( self, z, trans, label ):
+        dset = Dataset()
+        dset.z = z
+        dset.transmission = trans
+        dset.label = label
+        self.datasets.append(dset)
+
+    def plot(self):
+        fig = plt.figure()
+        ax = fig.add_subplot(1,1,1)
+        mxColor = len(cs.COLORS)
+        indx = 1
+        for dset in self.datasets:
+            ax.plot( dset.z, np.ln(dset.transmission), label=dset.label, color=cs.COLORS[indx%mxColor])
+            indx += 1
+        ax.set_xlabel("$z (\SI{}{\milli\meter}$)")
+        ax.set_ylabel("$\ln T$")
+        ax.legend(loc="upper right", frameon=False)
+        fig.savefig(self.figname, bbox_inches="tight")
+        print ("Figure written to %s"%(self.figname))
 
 def plotTransmission( data, stat ):
     z = np.linspace( stat["Transmission"]["zStart"], stat["Transmission"]["zEnd"], len(data))
