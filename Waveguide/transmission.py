@@ -61,7 +61,7 @@ class ExitFields(ComparePlots):
             maxPos = np.argmax( np.abs(dset.data) )
             N = len( dset.data )
             upperLimit = int(maxPos+self.widthFraction*N)
-            lowerLimit = int(maxPos+self.widthFraction*N)
+            lowerLimit = int(maxPos-self.widthFraction*N)
             if ( lowerLimit < 0 ):
                 lowerLimit = 0
             if ( upperLimit > N ):
