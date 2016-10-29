@@ -3,6 +3,7 @@ import sys
 import transmission as trans
 import json
 import h5py as h5
+import numpy as np
 
 def main( argv ):
     inpFile = ""
