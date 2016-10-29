@@ -9,5 +9,6 @@
       "label":"Cylindrical"
     }
   ],
-  "figname":"Figures/cartesianCylindrical_R40mm.pdf"
+  "figname":"Figures/cartesianCylindrical_R40mm.pdf",
+  "exitfigname":"Figures/cartesianCylindricalExit_R40mm.pdf"
 }

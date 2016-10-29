@@ -28,6 +28,9 @@ def main( argv ):
 
     tPlot = trans.Transmission()
     tPlot.figname = entries["figname"]
+
+    exitPlot = trans.ExitFields()
+    exitPlot.figname = entries["exitfigname"]
     for entry in entries["entries"]:
         try:
             # Load json control file
@@ -48,10 +51,21 @@ def main( argv ):
             if ( crd == "cylindrical" ):
                 z *= stat["waveguide"]["RadiusOfCurvature"]
             tPlot.addData( z, data, entry["label"])
+
+            # Load the far fields
+            with h5.File(stat["farFieldFile"], 'r') as hf:
+                dset = hf.get( "exitField" )
+                xmin = dset.attrs.get("xmin")
+                xmax = dset.attrs.get("xmax")
+                data = np.array( dset )
+            x = np.linspace(xmin, xmax, len(data))
+            exitPlot.addData( x, data, entry["label"])
         except Exception as exc:
             print ("Error when reading data!")
             print str(exc)
     tPlot.plot()
+    exitPlot.cutData()
+    exitPlot.plot()
 
 if __name__ == "__main__":
     main(sys.argv[1:])
