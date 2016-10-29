@@ -79,7 +79,7 @@ class ExitFields(ComparePlots):
         indx = 0
         for dset in self.datasets:
             indx += 1
-            ax.plot( dset.z, dset.data, label=dset.label, color=cs.COLORD[indx%mxColor])
+            ax.plot( dset.z, dset.data, label=dset.label, color=cs.COLORS[indx%mxColor])
         ax.set_xlabel("x (nm)")
         ax.set_ylabel("Amplitude (a.u.)")
         ax.legend(loc="upper right", frameon=False)
