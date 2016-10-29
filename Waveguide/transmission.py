@@ -33,13 +33,13 @@ class Transmission:
         if ( len(self.datasets) == 0 ):
             print ("No datasets.")
             return
-            
+
         fig = plt.figure()
         ax = fig.add_subplot(1,1,1)
         mxColor = len(cs.COLORS)
         indx = 1
         for dset in self.datasets:
-            ax.plot( dset.z/1E6, np.ln(dset.transmission), label=dset.label, color=cs.COLORS[indx%mxColor])
+            ax.plot( dset.z/1E6, np.log(dset.transmission), label=dset.label, color=cs.COLORS[indx%mxColor])
             indx += 1
         ax.set_xlabel("$z (\SI{}{\milli\meter}$)")
         ax.set_ylabel("$\ln T$")
