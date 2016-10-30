@@ -107,3 +107,5 @@
 352671 | R=40mm delta=4.45E-5, beta=3.45E-6 step, w=100nm, nz=1000 nx=1000, cartesian | Too high losses |
 558175 | R=40mm delta=4.45E-5, beta=3.45E-6 step, w=100nm, nz=5000 nx=5000, cartesian | Looks good |
 460643 | R=40mm delta=4.45E-5, beta=3.45E-6 step, w=100nm, nz=5000 nx=5000, cartesian, proper real part | Looks good |
+121216 | R=40mm delta=4.45E-5, beta=3.45E-6 step, w=100nm, nz=5000 nx=5000, cylindrical, proper far field | Looks good |
+268220 | R=40mm delta=4.45E-5, beta=3.45E-6 step, w=100nm, nz=5000 nx=5000, cartesian, proper far field | Looks good |

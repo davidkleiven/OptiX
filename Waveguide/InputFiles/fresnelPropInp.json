@@ -2,7 +2,7 @@
   "rundemo":0,
   "xmin":0.0,
   "xmax":200.0,
-  "phase":"data/phase189672.h5",
+  "phase":"data/phase.h5",
   "amplitude":"data/singleCurvedWG189762.h5",
   "wavelength":0.1569,
   "dz":100.0,

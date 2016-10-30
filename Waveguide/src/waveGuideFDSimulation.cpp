@@ -496,20 +496,43 @@ void WaveGuideFDSimulation::computeFarField()
   getExitField( exitField );
   arma::cx_vec ft = arma::fft( exitField );
   farFieldModulus = new arma::vec( arma::abs(ft) );
+
+  // Shift the FFT
+  unsigned int N = farFieldModulus->n_elem;
+  for ( unsigned int i=0;i<N/2;i++ )
+  {
+    double copy = (*farFieldModulus)(i);
+    (*farFieldModulus)(i) = (*farFieldModulus)(i+N/2);
+    (*farFieldModulus)(i+N/2) = copy;
+  }
 }
 
 void WaveGuideFDSimulation::saveFarField( const string &fname, unsigned int uid ) const
 {
   arma::vec exitField;
   getExitField( exitField );
+  arma::cx_vec exitFieldCmpl;
+  getExitField( exitFieldCmpl );
+  arma::vec exitAmpl = arma::abs( exitFieldCmpl );
+  arma::vec exitPhase;
+  exitPhase.set_size(exitAmpl.n_elem);
+  for ( unsigned int i=0;i<exitAmpl.n_elem;i++ )
+  {
+    exitPhase(i) = arg( exitFieldCmpl(i) );
+  }
+  
   hid_t file_id = H5Fcreate(fname.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT );
   hsize_t dim = farFieldModulus->size();
   H5LTmake_dataset( file_id, "exitField", 1, &dim, H5T_NATIVE_DOUBLE, exitField.memptr());
   H5LTmake_dataset( file_id, "farField", 1, &dim, H5T_NATIVE_DOUBLE, farFieldModulus->memptr());
+  H5LTmake_dataset( file_id, "exitIntensity", 1, &dim, H5T_NATIVE_DOUBLE, exitAmpl.memptr() );
+  H5LTmake_dataset( file_id, "exitPhase", 1, &dim, H5T_NATIVE_DOUBLE, exitPhase.memptr() );
   H5LTset_attribute_double( file_id, "farField", "wavenumber", &wavenumber, 1);
   H5LTset_attribute_double( file_id, "farField", "gridspacing", &xDisc->step, 1);
   H5LTset_attribute_double( file_id, "exitField", "xmin", &xDisc->min, 1);
   H5LTset_attribute_double( file_id, "exitField", "xmax", &xDisc->max, 1);
+  H5LTset_attribute_double( file_id, "exitIntensity", "xmin", &xDisc->min, 1);
+  H5LTset_attribute_double( file_id, "exitIntensity", "xmax", &xDisc->max, 1);
   int intUID = uid;
   H5LTset_attribute_int( file_id, "farField", "uid", &intUID, 1);
   H5Fclose(file_id);
