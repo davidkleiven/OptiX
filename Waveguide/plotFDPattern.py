@@ -89,6 +89,7 @@ def plot2D(data, stat, borders, field=None, phase=None):
             borders.visualize( ax )
         ax.set_aspect( np.abs( (extent[1]-extent[0])/(extent[3]-extent[2]) ))
         fname = "Figures/fieldLinScale%d.jpeg"%(stat["UID"])
+        plt.show()
         fig.savefig(fname, bbox_inches="tight", dpi=800)
         print ("Figure written to %s"%(fname))
 
