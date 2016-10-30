@@ -122,7 +122,7 @@ void Solver2D::getField(arma::mat &field ) const
   {
     for ( unsigned int ix=0;ix<guide->nodeNumberTransverse();ix++ )
     {
-      field(ix,iz) = ( (*solution)(ix,iz)*eq->phaseFactor(k, guide->getZ(iz)) ).real();
+      field(ix,iz) = (*solution)(ix,iz).real();//*eq->phaseFactor(k, guide->getZ(iz)) ).real();
     }
   }
 }

@@ -104,4 +104,6 @@
 558362 | R=40mm delta=4.45E-5, beta=3.45E-6 step, w=100nm, nz=3000 nx=50 | Too smeared |
 272786 | R=40mm delta=4.45E-5, beta=3.45E-6 step, w=100nm, nz=3000 nx=200 | Interasting staircase features |
 133595 | R=40mm delta=4.45E-5, beta=3.45E-6 step, w=100nm, nz=3000 nx=200, cylindrical, proper transmission | Looks OK |
-352671 | R=40mm delta=4.45E-5, beta=3.45E-6 step, w=100nm, nz=1000 nx=1000, cartesian | Looks OK |
+352671 | R=40mm delta=4.45E-5, beta=3.45E-6 step, w=100nm, nz=1000 nx=1000, cartesian | Too high losses |
+558175 | R=40mm delta=4.45E-5, beta=3.45E-6 step, w=100nm, nz=5000 nx=5000, cartesian | Looks good |
+460643 | R=40mm delta=4.45E-5, beta=3.45E-6 step, w=100nm, nz=5000 nx=5000, cartesian, proper real part | Looks good |

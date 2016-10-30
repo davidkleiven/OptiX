@@ -54,6 +54,7 @@ int main( int argc, char **argv )
       }
       cout << "straight: Run with a straight wave guide\n";
       cout << "source: plane or gaussian. Plane is default\n";
+      cout << "cyl: use cylindrical coordiantes\n";
       return 0;
     }
     else if ( arg.find("--run=") != string::npos )
@@ -86,6 +87,10 @@ int main( int argc, char **argv )
         cout << "Unknown source type " << sourceStr << endl;
         return 0;
       }
+    }
+    else if ( arg.find("--cyl") != string::npos )
+    {
+      useCylCrd = true;
     }
     else
     {
