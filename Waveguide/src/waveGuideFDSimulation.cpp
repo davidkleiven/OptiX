@@ -479,10 +479,20 @@ void WaveGuideFDSimulation::getExitField( arma::vec &vec ) const
   }
 }
 
+void WaveGuideFDSimulation::getExitField( arma::cx_vec &vec ) const
+{
+  vec.set_size( solver->getSolution().n_rows );
+  unsigned int extractCol = solver->getSolution().n_cols-1;
+  for ( unsigned int i=0;i<vec.n_elem; i++ )
+  {
+    vec(i) = solver->getSolution()(i,extractCol);
+  }
+}
+
 void WaveGuideFDSimulation::computeFarField()
 {
   // Extract the last column of the solution matrix
-  arma::vec exitField;
+  arma::cx_vec exitField;
   getExitField( exitField );
   arma::cx_vec ft = arma::fft( exitField );
   farFieldModulus = new arma::vec( arma::abs(ft) );

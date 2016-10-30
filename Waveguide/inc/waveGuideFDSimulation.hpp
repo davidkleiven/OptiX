@@ -79,6 +79,7 @@ protected:
   void closestIndex( double x, double z, unsigned int &ix, unsigned int &iz ) const;
   double trapezoidalIntegrateIntensityZ( unsigned int iz, unsigned int ixStart, unsigned int ixEnd ) const;
   void getExitField( arma::vec &vec ) const;
+  void getExitField( arma::cx_vec &vec ) const;
   void saveFarField( const std::string &fname, unsigned int uid ) const;
   const ParaxialSource* src{NULL};
   std::vector<WaveGuideBorder> *wgborder{NULL};
