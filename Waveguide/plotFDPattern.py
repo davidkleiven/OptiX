@@ -97,7 +97,7 @@ def plot2D(data, stat, borders, field=None, phase=None):
         #phase[np.abs(data)**2 < 1E-7] = np.NaN
         fig = plt.figure()
         ax = fig.add_subplot(1,1,1)
-        im = ax.imshow(phase, extent=extent, cmap="hsv", aspect=1.0, origin="lower")
+        im = ax.imshow(phase, extent=extent, cmap="viridis", aspect=1.0, origin="lower")
         ax.set_xlabel(zlabel)
         ax.set_ylabel(xlabel)
         fig.colorbar( im )
