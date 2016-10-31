@@ -54,8 +54,8 @@ def main( argv ):
     im = ax.pcolor( phi, theta, intensity, cmap=cmap, norm=mpl.colors.LogNorm() )
 
     #ax.set_aspect( np.abs( (extent[1]-extent[0])/(extent[3]-extent[2]) ))
-    ax.set_xlabel("Exit angle wrt waveguide (deg)")
-    ax.set_ylabel("Incident angle wrt waveguide (deg)")
+    ax.set_xlabel("Exit angle (deg)")
+    ax.set_ylabel("Incident angle (deg)")
     fig.colorbar( im )
     fname = "Figures/incAngleSweep.jpeg"
     fig.savefig(fname, bbox_inches="tight", dpi=800)
