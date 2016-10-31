@@ -53,6 +53,7 @@ public:
   double getIntensity( unsigned int ix, unsigned int iz ) const; // Returns value in matrix at (ix,iz)
   double getZ( unsigned int iz ) const;
   double getX ( unsigned int ix ) const;
+  const arma::vec& getFarField() const { return *farField; };
 
   // Virtual methods
   virtual void setBoundaryConditions( const ParaxialSource& src ); // This function should fill the boundary

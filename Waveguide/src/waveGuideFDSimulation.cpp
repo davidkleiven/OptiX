@@ -495,7 +495,15 @@ void WaveGuideFDSimulation::computeFarField()
   arma::cx_vec exitField;
   getExitField( exitField );
   arma::cx_vec ft = arma::fft( exitField );
-  farFieldModulus = new arma::vec( arma::abs(ft) );
+
+  if ( farFieldModulus == NULL )
+  {
+    farFieldModulus = new arma::vec( arma::abs(ft) );
+  }
+  else
+  {
+    *farFieldModulus = arma::vec( arma::abs(ft) );
+  }
 
   // Shift the FFT
   unsigned int N = farFieldModulus->n_elem;
@@ -520,7 +528,7 @@ void WaveGuideFDSimulation::saveFarField( const string &fname, unsigned int uid 
   {
     exitPhase(i) = arg( exitFieldCmpl(i) );
   }
-  
+
   hid_t file_id = H5Fcreate(fname.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT );
   hsize_t dim = farFieldModulus->size();
   H5LTmake_dataset( file_id, "exitField", 1, &dim, H5T_NATIVE_DOUBLE, exitField.memptr());
