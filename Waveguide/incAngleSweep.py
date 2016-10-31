@@ -50,7 +50,7 @@ def main( argv ):
     end = np.argmin( np.abs( phi-thetaMax) )
     phi = phi[start:end]
     intensity = intensity[:,start:end]
-    im = ax.pcolor( phi, theta, intensity, cmap=cmap )
+    im = ax.pcolor( phi, theta, intensity, cmap=cmap, norm=mpl.Colors.LogNorm() )
 
     #ax.set_aspect( np.abs( (extent[1]-extent[0])/(extent[3]-extent[2]) ))
     ax.set_xlabel("Exit angle wrt waveguide (deg)")
