@@ -50,6 +50,7 @@ def main( argv ):
     end = np.argmin( np.abs( phi-thetaMax) )
     phi = phi[start:end]
     intensity = intensity[:,start:end]
+    intensity = intensity.T
     im = ax.pcolor( phi, theta, intensity, cmap=cmap, norm=mpl.colors.LogNorm() )
 
     #ax.set_aspect( np.abs( (extent[1]-extent[0])/(extent[3]-extent[2]) ))
