@@ -109,3 +109,5 @@
 460643 | R=40mm delta=4.45E-5, beta=3.45E-6 step, w=100nm, nz=5000 nx=5000, cartesian, proper real part | Looks good |
 121216 | R=40mm delta=4.45E-5, beta=3.45E-6 step, w=100nm, nz=5000 nx=5000, cylindrical, proper far field | Looks good |
 268220 | R=40mm delta=4.45E-5, beta=3.45E-6 step, w=100nm, nz=5000 nx=5000, cartesian, proper far field | Looks good |
+450776 | Inc angle sweep Nz=10000, Nx=1000 Lz=5mm | Looks very good |
+772477 | Inc angle sweep Nz=10000, Nx=1000 Lz=5mm with alcohol | Looks very good |

@@ -15,7 +15,7 @@
 class IncidentAngleSweep
 {
 public:
-  IncidentAngleSweep(){};
+  IncidentAngleSweep();
   void setWidth( double w );
   void setWavelength( double wl );
   void setLength( double L );
@@ -25,12 +25,15 @@ public:
   void setTransverseDisc( double xmin, double xmax, unsigned int Nx );
   void setLongitudinalDisc( double zmin, double zmax, unsigned int Nz );
   void setCladdingSilicon();
+  void setAlcoholInside();
   void saveIndx( unsigned int indx );
+  void setFFTSignalLength( unsigned int length){fftSignalLength=length;};
 private:
   double getAngle( unsigned int indx ) const;
   StraightWG2D wg;
   PlaneWave pw;
   Cladding cladding;
+  Cladding inside;
   ParaxialEquation eq;
   CrankNicholson solver;
   arma::mat farField;
@@ -38,5 +41,7 @@ private:
   double thetaMax{0.0};
   unsigned int nTheta{1};
   std::set<unsigned int> indxToSave;
+  unsigned int uid{0};
+  unsigned int fftSignalLength{65536};
 };
 #endif

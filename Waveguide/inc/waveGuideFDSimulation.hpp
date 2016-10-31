@@ -36,6 +36,7 @@ public:
   const Disctretization& transverseDiscretization() const{ return *xDisc; };
   const Disctretization& longitudinalDiscretization() const { return *zDisc; };
   void computeFarField();
+  void computeFarField( unsigned int signalLength ); // With padding to increase low freq resolution
   double getWavenumber() const{ return wavenumber; };
   void setWavenumber( double k ){ wavenumber = k; };
   void setWaveLength( double lambda );
@@ -71,7 +72,7 @@ protected:
   double wglength{1E10};
   std::string name;
   const Cladding *cladding{NULL};
-  const Cladding *inside{NULL};
+  const Cladding *insideMaterial{NULL};
   arma::vec *farFieldModulus{NULL};
 
   double* allocateSolutionMatrix() const;

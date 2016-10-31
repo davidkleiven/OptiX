@@ -99,7 +99,7 @@ void WaveGuideFDSimulation::setCladding( const Cladding &clad )
 
 void WaveGuideFDSimulation::setInsideMaterial( const Cladding &clad )
 {
-  inside = &clad;
+  insideMaterial = &clad;
 }
 
 void WaveGuideFDSimulation::save( ControlFile &ctl ) const
@@ -460,12 +460,13 @@ void WaveGuideFDSimulation::getXrayMatProp( double x, double z, double &delta, d
 
   double betaInside = 0.0;
   double deltaInside = 0.0;
-  if ( inside != NULL )
+
+  if ( insideMaterial != NULL )
   {
-    betaInside = inside->getBeta();
-    deltaInside = inside->getDelta();
+    betaInside = insideMaterial->getBeta();
+    deltaInside = insideMaterial->getDelta();
   }
-  
+
   if ( isInside && neighboursAreInside )
   {
     beta = betaInside;
@@ -503,12 +504,29 @@ void WaveGuideFDSimulation::getExitField( arma::cx_vec &vec ) const
   }
 }
 
-void WaveGuideFDSimulation::computeFarField()
+void WaveGuideFDSimulation::computeFarField( unsigned int signalLength )
 {
   // Extract the last column of the solution matrix
   arma::cx_vec exitField;
+  arma::cx_vec paddedSignal;
   getExitField( exitField );
-  arma::cx_vec ft = arma::fft( exitField );
+  if ( signalLength < exitField.n_elem )
+  {
+    paddedSignal = exitField;
+  }
+  else
+  {
+    paddedSignal.set_size(signalLength);
+    paddedSignal.fill(0.0);
+    // Fill in the signal on the center
+    unsigned int start = signalLength/2 - exitField.n_elem/2;
+    for ( unsigned int i=0;i<exitField.n_elem;i++ )
+    {
+      paddedSignal(start+i) = exitField(i);
+    }
+  }
+
+  arma::cx_vec ft = arma::fft( paddedSignal );
 
   if ( farFieldModulus == NULL )
   {
@@ -527,6 +545,11 @@ void WaveGuideFDSimulation::computeFarField()
     (*farFieldModulus)(i) = (*farFieldModulus)(i+N/2);
     (*farFieldModulus)(i+N/2) = copy;
   }
+}
+
+void WaveGuideFDSimulation::computeFarField()
+{
+  computeFarField(0);
 }
 
 void WaveGuideFDSimulation::saveFarField( const string &fname, unsigned int uid ) const

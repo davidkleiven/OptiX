@@ -1,9 +1,19 @@
 #include "incidentAngleSweep.hpp"
 #include "controlFile.hpp"
+#include <iostream>
 #include <H5Cpp.h>
 #include <hdf5_hl.h>
+#include <cstdlib>
+#include <ctime>
+#include <sstream>
 
 using namespace std;
+IncidentAngleSweep::IncidentAngleSweep()
+{
+  srand( time(0) );
+  uid = rand()%1000000;
+}
+
 double IncidentAngleSweep::getAngle( unsigned int indx ) const
 {
   double step = (thetaMax-thetaMin)/nTheta;
@@ -46,6 +56,12 @@ void IncidentAngleSweep::saveIndx( unsigned int indx )
   indxToSave.insert(indx);
 }
 
+void IncidentAngleSweep::setIncAngles( double min, double max, unsigned int N )
+{
+  thetaMin = min;
+  thetaMax = max;
+  nTheta = N;
+}
 void IncidentAngleSweep::solve()
 {
   solver.setEquation( eq );
@@ -54,11 +70,12 @@ void IncidentAngleSweep::solve()
   auto endIter = indxToSave.end();
   for ( unsigned int i=0;i<nTheta;i++ )
   {
+    clog << "Running "<< i+1 << " of " << nTheta << endl;
     double theta = getAngle( i );
     pw.setAngleDeg(theta);
     wg.setBoundaryConditions( pw );
     wg.solve();
-    wg.computeFarField();
+    wg.computeFarField(fftSignalLength);
 
     if ( i == 0 )
     {
@@ -73,6 +90,7 @@ void IncidentAngleSweep::solve()
     if ( ( saveIter != endIter ) && ( i == *saveIter ) )
     {
       ControlFile ctl("data/incidentAngleSweep");
+      wg.extractWGBorders();
       wg.save( ctl );
       ctl.save();
       ++saveIter;
@@ -82,13 +100,15 @@ void IncidentAngleSweep::solve()
 
 void IncidentAngleSweep::save( const string &fname ) const
 {
+    stringstream ss;
+    ss << fname << uid << ".h5";
     const double PI = acos(-1.0);
     double qMax = PI/wg.transverseDiscretization().step;
     double phiMax = qMax/wg.getWavenumber();
     phiMax *= 180.0/PI;
     double phiMin = -phiMax;
 
-    hid_t file_id = H5Fcreate( fname.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+    hid_t file_id = H5Fcreate( ss.str().c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
     hsize_t dim[2] = {farField.n_cols, farField.n_rows};
     H5LTmake_dataset( file_id, "intensity", 2, dim, H5T_NATIVE_DOUBLE, farField.memptr());
     H5LTset_attribute_double( file_id, "intensity", "thetaMin", &thetaMin, 1);
@@ -96,5 +116,12 @@ void IncidentAngleSweep::save( const string &fname ) const
     H5LTset_attribute_double( file_id, "intensity", "phiMin", &phiMin, 1);
     H5LTset_attribute_double( file_id, "intensity", "phiMax", &phiMax, 1);
     H5Fclose( file_id );
-    clog << "Results written to " << fname << endl;
+    clog << "Results written to " << ss.str() << endl;
   }
+
+void IncidentAngleSweep::setAlcoholInside()
+{
+  double delta = 4.08E-6; // For 7.9 keV (0.1569 nm)
+  inside.setRefractiveIndex(delta, 0.0);
+  wg.setInsideMaterial(inside);
+}
