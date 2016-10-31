@@ -43,6 +43,7 @@ public:
   void setWaveguideLength( double wgl ){ wglength = wgl; };
   std::string getName() const { return name; };
   void setCladding( const Cladding &clad );
+  void setInsideMaterial( const Cladding &mat );
   const Cladding& getCladding() const { return *cladding; };
   void solve();
   void save( ControlFile &ctl ) const;
@@ -70,6 +71,7 @@ protected:
   double wglength{1E10};
   std::string name;
   const Cladding *cladding{NULL};
+  const Cladding *inside{NULL};
   arma::vec *farFieldModulus{NULL};
 
   double* allocateSolutionMatrix() const;

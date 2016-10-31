@@ -97,6 +97,11 @@ void WaveGuideFDSimulation::setCladding( const Cladding &clad )
   cladding = &clad;
 }
 
+void WaveGuideFDSimulation::setInsideMaterial( const Cladding &clad )
+{
+  inside = &clad;
+}
+
 void WaveGuideFDSimulation::save( ControlFile &ctl ) const
 {
   save(ctl, -1.0);
@@ -452,17 +457,26 @@ void WaveGuideFDSimulation::getXrayMatProp( double x, double z, double &delta, d
   bool isInside = isInsideGuide( x, z );
   bool neighboursAreInside = isInsideGuide(x+dx,z) && isInsideGuide(x-dx,z) && isInsideGuide(x,z+dz) && \
                              isInsideGuide(x,z-dz);
+
+  double betaInside = 0.0;
+  double deltaInside = 0.0;
+  if ( inside != NULL )
+  {
+    betaInside = inside->getBeta();
+    deltaInside = inside->getDelta();
+  }
+  
   if ( isInside && neighboursAreInside )
   {
-    beta = 0.0;
-    delta = 0.0;
+    beta = betaInside;
+    delta = deltaInside;
     return;
   }
   else if ( isInside && !neighboursAreInside )
   {
     // Average the material properties
-    delta = 0.5*cladding->getDelta();
-    beta =  0.5*cladding->getBeta();
+    delta = 0.5*( cladding->getDelta() + deltaInside );
+    beta =  0.5*( cladding->getBeta() + betaInside );
     return;
   }
   delta = cladding->getDelta();
