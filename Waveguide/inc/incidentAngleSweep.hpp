@@ -7,6 +7,7 @@
 #include "crankNicholson.hpp"
 #include <armadillo>
 #include <set>
+#include <string>
 
 /**
 * Class for running a sweep over incident angle and saving the farfields
@@ -18,7 +19,7 @@ public:
   void setWidth( double w );
   void setWavelength( double wl );
   void setLength( double L );
-  void setIncAngles( double min, double max, Nangles );
+  void setIncAngles( double min, double max, unsigned int Nangles );
   void save( const std::string &fname ) const;
   void solve();
   void setTransverseDisc( double xmin, double xmax, unsigned int Nx );
@@ -26,15 +27,15 @@ public:
   void setCladdingSilicon();
   void saveIndx( unsigned int indx );
 private:
-  double getAngle( indx ) const;
-  StraightWG wg;
+  double getAngle( unsigned int indx ) const;
+  StraightWG2D wg;
   PlaneWave pw;
   Cladding cladding;
   ParaxialEquation eq;
   CrankNicholson solver;
   arma::mat farField;
-  double theta_min{0.0};
-  double theta_max{0.0};
+  double thetaMin{0.0};
+  double thetaMax{0.0};
   unsigned int nTheta{1};
   std::set<unsigned int> indxToSave;
 };

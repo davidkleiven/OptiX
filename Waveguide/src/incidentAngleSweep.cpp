@@ -1,14 +1,18 @@
 #include "incidentAngleSweep.hpp"
+#include "controlFile.hpp"
+#include <H5Cpp.h>
+#include <hdf5_hl.h>
 
-double IncidentAngleSweep::getTheta( unsigned int indx ) const
+using namespace std;
+double IncidentAngleSweep::getAngle( unsigned int indx ) const
 {
-  double step = (theta_max-theta_min)/nTheta;
-  return theta_min + step*indx;
+  double step = (thetaMax-thetaMin)/nTheta;
+  return thetaMin + step*indx;
 }
 
 void IncidentAngleSweep::setWavelength( double wl )
 {
-  wg.setWavelength( wl );
+  wg.setWaveLength( wl );
   pw.setWavelength( wl );
 }
 
@@ -50,7 +54,7 @@ void IncidentAngleSweep::solve()
   auto endIter = indxToSave.end();
   for ( unsigned int i=0;i<nTheta;i++ )
   {
-    double theta = getTheta( i );
+    double theta = getAngle( i );
     pw.setAngleDeg(theta);
     wg.setBoundaryConditions( pw );
     wg.solve();
@@ -58,7 +62,7 @@ void IncidentAngleSweep::solve()
 
     if ( i == 0 )
     {
-      farField.setSize( wg.getFarField().n_elem, nTheta );
+      farField.set_size( wg.getFarField().n_elem, nTheta );
     }
 
     for ( unsigned int j=0; j<farField.n_rows;j++ )
@@ -75,3 +79,22 @@ void IncidentAngleSweep::solve()
     }
   }
 }
+
+void IncidentAngleSweep::save( const string &fname ) const
+{
+    const double PI = acos(-1.0);
+    double qMax = PI/wg.transverseDiscretization().step;
+    double phiMax = qMax/wg.getWavenumber();
+    phiMax *= 180.0/PI;
+    double phiMin = -phiMax;
+
+    hid_t file_id = H5Fcreate( fname.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+    hsize_t dim[2] = {farField.n_cols, farField.n_rows};
+    H5LTmake_dataset( file_id, "intensity", 2, dim, H5T_NATIVE_DOUBLE, farField.memptr());
+    H5LTset_attribute_double( file_id, "intensity", "thetaMin", &thetaMin, 1);
+    H5LTset_attribute_double( file_id, "intensity", "thetaMax", &thetaMax, 1);
+    H5LTset_attribute_double( file_id, "intensity", "phiMin", &phiMin, 1);
+    H5LTset_attribute_double( file_id, "intensity", "phiMax", &phiMax, 1);
+    H5Fclose( file_id );
+    clog << "Results written to " << fname << endl;
+  }
