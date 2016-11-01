@@ -22,7 +22,7 @@ def main( argv ):
         if ( arg.find("--file=") != -1 ):
             fname = arg.split("--file=")[1]
         elif ( arg.find("--help") != -1 ):
-            print MSG
+            print (MSG)
             return
         else:
             print ("Unknown argument %s"%(arg))
