@@ -1,14 +1,14 @@
 # *-* coding: utf-8 *-*
-from __future__ import unicode_literals
+#from __future__ import unicode_literals
 ONE_COLUMN = False
-LATEX_PREAMBLE = r"\usepackage{gensymb}"
-LATEX_PREAMBLE += r"\IfFileExists{siunitx.sty}{\usepackage{siunitx}}{}"
+LATEX_PREAMBLE = u"\usepackage{gensymb}"
+LATEX_PREAMBLE += u"\IfFileExists{siunitx.sty}{\usepackage{siunitx}}{}"
 
 # Provide an SI command and macros if the siunitx-package is not found
-LATEX_PREAMBLE += r"\providecommand{\SI}[2]{{#1} \; {#2}}"
-LATEX_PREAMBLE += r"\providecommand{\micro}{\ensuremath{\mathrm{\mu}}}"
-LATEX_PREAMBLE += r"\providecommand{\milli}{\ensuremath{\mathrm{m}}}"
-LATEX_PREAMBLE += r"\providecommand{\meter}{\ensuremath{\mathrm{m}}}"
+LATEX_PREAMBLE += u"\providecommand{\SI}[2]{{#1} \; {#2}}"
+LATEX_PREAMBLE += u"\providecommand{\micro}{\ensuremath{\mathrm{\mu}}}"
+LATEX_PREAMBLE += u"\providecommand{\milli}{\ensuremath{\mathrm{m}}}"
+LATEX_PREAMBLE += u"\providecommand{\meter}{\ensuremath{\mathrm{m}}}"
 
 if ( ONE_COLUMN ):
     figsize = [6.0, 4.5]
