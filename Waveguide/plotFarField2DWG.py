@@ -60,12 +60,23 @@ def main( argv ):
     fmin = -np.pi
     fmax = np.pi
     q = np.linspace(fmin,fmax,len(farField))/dx
+    angle = q/wavenumber
+    angle *= 180.0/np.pi
+    dAngle = 1.0
+
+    maxpos = np.argmax(farField**2)
+    angleCenter = angle[maxpos]
+    start = np.argmin( np.abs( angle -angleCenter +dAngle) )
+    end = np.argmin( np.abs( angle-angleCenter -dAngle) )
+    farField = farField[start:end]
+    angle = angle[start:end]
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
-    ax.plot(q, farField**2, color="black")
+    ax.plot(angle, farField**2, color="black")
     #ax.plot(freq, np.abs(pfft)**2, color="red")
     ax.set_yscale("log")
-    ax.set_xlabel("q (nm$^{-1}$)")
+    #ax.set_xlabel("q (nm$^{-1}$)")
+    ax.set_xlabel("Exit angle (deg)")
     ax.set_ylabel("Intensity (a.u.)")
     fname = "Figures/farField%d.pdf"%(uid)
     fig.savefig(fname, bbox_inches="tight")

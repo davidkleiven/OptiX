@@ -234,7 +234,7 @@ int main( int argc, char **argv )
       if ( computeFarField )
       {
         clog << "Computing far fields... ";
-        wg->computeFarField();
+        wg->computeFarField( 32768 );
         clog << "done\n";
       }
       wg->extractWGBorders();

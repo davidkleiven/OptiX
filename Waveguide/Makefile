@@ -37,7 +37,7 @@ unittest.out: ${TEST_OBJECTS} $(filter-out obj/main.o, ${OBJECTS})
 	g++ -std=c++11 -o $@ $^ -L ${LDIR} -L ${ARMA_PATH} ${LIBS} -lboost_program_options -lboost_unit_test_framework
 
 curvedWG2D.out: $(filter-out obj/main.o, ${OBJECTS}) ${ODIR}/curvedWGCartesian.o
-	g++ -std=c++11 -o $@ $^ -L ${LDIR} -L ${ARMA_PATH} ${LIBS}
+	g++ -std=c++11 -o $@ $^ -L ${LDIR} -L ${ARMA_PATH} ${LIBS} ${GRAPHLIBS}
 
 convergence.out: $(filter-out obj/main.o, ${OBJECTS}) ${ODIR}/convergence.o
 	g++ -std=c++11 -o $@ $^ -L ${LDIR} -L ${ARMA_PATH} ${LIBS}
