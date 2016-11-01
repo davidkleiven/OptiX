@@ -8,7 +8,7 @@
 #include <sstream>
 
 using namespace std;
-IncidentAngleSweep::IncidentAngleSweep()
+IncidentAngleSweep::IncidentAngleSweep():picDir("")
 {
   srand( time(0) );
   uid = rand()%1000000;
@@ -100,6 +100,14 @@ void IncidentAngleSweep::solve()
     {
       vis->fillVertexArray( arma::abs( wg.getSolver().getSolution() ) );
       vis->display();
+
+      if ( picDir != "" )
+      {
+        auto image = vis->capture();
+        stringstream ss;
+        ss << picDir << "/img" << i << ".png";
+        image.saveToFile(ss.str().c_str());
+      }
     }
   }
   vis->close();
@@ -131,4 +139,9 @@ void IncidentAngleSweep::setAlcoholInside()
   double delta = 4.08E-6; // For 7.9 keV (0.1569 nm)
   inside.setRefractiveIndex(delta, 0.0);
   wg.setInsideMaterial(inside);
+}
+
+void IncidentAngleSweep::savePic( const char *dir )
+{
+  picDir = dir;
 }

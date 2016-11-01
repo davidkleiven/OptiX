@@ -30,6 +30,7 @@ public:
   void saveIndx( unsigned int indx );
   void setFFTSignalLength( unsigned int length){fftSignalLength=length;};
   void setVisualizer( Visualizer &newvis ){ vis = &newvis; };
+  void savePic( const char *dir );
 private:
   double getAngle( unsigned int indx ) const;
   StraightWG2D wg;
@@ -46,5 +47,7 @@ private:
   unsigned int uid{0};
   unsigned int fftSignalLength{65536};
   Visualizer *vis{NULL};
+  std::string picDir;
+  bool saveImages{false};
 };
 #endif

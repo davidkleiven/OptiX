@@ -5,7 +5,8 @@ using namespace std;
 int main( int argc, char** argv )
 {
   bool useAlcohol = false;
-  bool realTimeVisualize = true;
+  bool realTimeVisualize = false;
+  bool saveVisualizations = false;
   for ( unsigned int i=1;i<argc;i++ )
   {
     string arg(argv[i]);
@@ -13,11 +14,21 @@ int main( int argc, char** argv )
     {
       useAlcohol = true;
     }
+    else if ( arg.find("--visualize") != string::npos )
+    {
+      realTimeVisualize = true;
+    }
+    else if ( arg.find("--saveVis") != string::npos )
+    {
+      saveVisualizations = true;
+    }
     else if ( arg.find("--help") != string::npos )
     {
       cout << "Usage: ./incidentAngleSweep.out [--useAlc --help]\n";
       cout << "help: Print this message\n";
       cout << "usealc: Use alcohol inside. Refractive indices is set for wavelength (1.57 A)\n";
+      cout << "visualize: Run with real time visualization\n";
+      cout << "saveVis: Save screenshot to files\n";
       return 0;
     }
     else
@@ -44,9 +55,13 @@ int main( int argc, char** argv )
 
   if ( realTimeVisualize )
   {
-    vis.setColorMax( 10.0 );
+    vis.setColorMax( 2.0 );
     vis.init();
     simulation.setVisualizer( vis );
+    if ( saveVisualizations )
+    {
+      simulation.savePic("Movie");
+    }
   }
 
   simulation.solve();

@@ -3,10 +3,12 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Window.hpp>
 #include <armadillo>
+#include "colormaps.hpp"
 
 class Visualizer
 {
 public:
+  enum class Colormap_t {GREYSCALE, VIRIDIS};
   Visualizer();
   ~Visualizer();
   void init();
@@ -17,6 +19,9 @@ public:
   void display(){ window->display(); };
   void clear(){ window->clear(sf::Color::Black); };
   void setColorMax( double max ){ colorMax = max; };
+  void setCmap( Colormap_t cm ){ cmap = cm; };
+  static double average( const arma::mat &mat );
+  sf::Image capture(){ return window->capture(); };
 private:
   sf::RenderWindow *window{NULL};
   sf::View *view{NULL};
@@ -28,5 +33,8 @@ private:
   double colorMin{0.0};
   unsigned int vArrayNrow{0};
   unsigned int vArrayNcol{0};
+  Colormap_t cmap{Colormap_t::VIRIDIS};
+  Colormaps cmaps;
+  void setColor( double value, sf::Color &color ) const;
 };
 #endif

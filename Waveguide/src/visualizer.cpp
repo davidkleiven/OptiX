@@ -3,6 +3,7 @@
 //#include <SFML/Color.hpp>
 
 using namespace std;
+
 Visualizer::Visualizer(){};
 
 Visualizer::~Visualizer()
@@ -54,18 +55,10 @@ void Visualizer::fillVertexArray( const arma::mat &values )
     {
       (*vArray)[row*vArrayNrow+col].position = sf::Vector2f(row,col);
       sf::Color color;
-      int value = 255.0*(values(row*rowStep,col*colStep)-colorMin)/(colorMax-colorMin);
-      if ( value > 255 )
-      {
-        value = 255;
-      }
-      else if ( value < 0 )
-      {
-        value = 0;
-      }
-      color.r = value;
-      color.g = value;
-      color.b = value;
+      unsigned int rStart = row*rowStep;
+      unsigned int colStart = col*colStep;
+      double avgValue = average( values.submat(rStart, colStart, rStart+rowStep, colStart+colStep) );
+      setColor( avgValue, color);
       (*vArray)[row*vArrayNrow+col].color = color;
     }
   }
@@ -90,4 +83,38 @@ bool Visualizer::pollEvent( sf::Event &event ) const
     return window->pollEvent( event );
   }
   return false;
+}
+
+double Visualizer::average( const arma::mat &mat )
+{
+  double avg = 0.0;
+  for ( unsigned int i=0;i<mat.n_rows;i++ )
+  {
+    for ( unsigned int j=0;j<mat.n_cols;j++ )
+    {
+      avg += mat(i,j);
+    }
+  }
+  return avg/(mat.n_rows*mat.n_cols);
+}
+
+void Visualizer::setColor( double value, sf::Color &color ) const
+{
+  int indx = 255*(value-colorMin)/(colorMax-colorMin);
+  indx  = indx > 255 ? 255:indx;
+  indx = indx < 0 ? 0:indx;
+
+  switch ( cmap )
+  {
+    case Colormap_t::VIRIDIS:
+      color.r = 255.0*cmaps.viridis[indx][0];
+      color.g = 255.0*cmaps.viridis[indx][1];
+      color.b = 255.0*cmaps.viridis[indx][2];
+      break;
+    case Colormap_t::GREYSCALE:
+      color.r = indx;
+      color.g = indx;
+      color.b = indx;
+      break;
+  }
 }
