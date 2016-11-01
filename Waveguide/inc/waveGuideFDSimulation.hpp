@@ -56,6 +56,7 @@ public:
   double getZ( unsigned int iz ) const;
   double getX ( unsigned int ix ) const;
   const arma::vec& getFarField() const { return *farFieldModulus; };
+  const Solver2D& getSolver() const { return *solver; };
 
   // Virtual methods
   virtual void setBoundaryConditions( const ParaxialSource& src ); // This function should fill the boundary

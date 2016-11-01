@@ -95,7 +95,14 @@ void IncidentAngleSweep::solve()
       ctl.save();
       ++saveIter;
     }
+
+    if ( vis != NULL )
+    {
+      vis->fillVertexArray( arma::abs( wg.getSolver().getSolution() ) );
+      vis->display();
+    }
   }
+  vis->close();
 }
 
 void IncidentAngleSweep::save( const string &fname ) const

@@ -58,7 +58,7 @@ fresnelProp.out: $(filter-out obj/main.o, ${OBJECTS}) ${ODIR}/fresnelProp.o
 	g++ -std=c++11 -o $@ $^ -L ${LDIR} -L ${ARMA_PATH} ${LIBS}
 
 incidentAngleSweep.out: $(filter-out obj/main.o, ${OBJECTS}) ${ODIR}/straightGuideSweepAngle.o
-	g++ -std=c++11 -o $@ $^ -L ${LDIR} -L ${ARMA_PATH} ${LIBS}
+	g++ -std=c++11 -o $@ $^ -L ${LDIR} -L ${ARMA_PATH} ${LIBS} ${GRAPHLIBS}
 
 testVisualizer.out: $(filter-out obj/main.o, ${OBJECTS}) ${ODIR}/testVisualizer.o
 	g++ -std=c++11 -o $@ $^ -L ${LDIR} -L ${ARMA_PATH} -L ${SFML_PATH} ${LIBS} ${GRAPHLIBS}

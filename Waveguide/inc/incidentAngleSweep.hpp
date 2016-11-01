@@ -5,6 +5,7 @@
 #include "cladding.hpp"
 #include "paraxialEquation.hpp"
 #include "crankNicholson.hpp"
+#include "visualizer.hpp"
 #include <armadillo>
 #include <set>
 #include <string>
@@ -28,6 +29,7 @@ public:
   void setAlcoholInside();
   void saveIndx( unsigned int indx );
   void setFFTSignalLength( unsigned int length){fftSignalLength=length;};
+  void setVisualizer( Visualizer &newvis ){ vis = &newvis; };
 private:
   double getAngle( unsigned int indx ) const;
   StraightWG2D wg;
@@ -43,5 +45,6 @@ private:
   std::set<unsigned int> indxToSave;
   unsigned int uid{0};
   unsigned int fftSignalLength{65536};
+  Visualizer *vis{NULL};
 };
 #endif

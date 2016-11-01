@@ -11,11 +11,12 @@ public:
   ~Visualizer();
   void init();
   void fillVertexArray( const arma::mat &values );
-  bool isOpen() const { return window->isOpen(); };
-  bool pollEvent( sf::Event &event ) const { return window->pollEvent(event); };
+  bool isOpen() const;
+  bool pollEvent( sf::Event &event ) const;
   void close(){ window->close(); };
   void display(){ window->display(); };
   void clear(){ window->clear(sf::Color::Black); };
+  void setColorMax( double max ){ colorMax = max; };
 private:
   sf::RenderWindow *window{NULL};
   sf::View *view{NULL};

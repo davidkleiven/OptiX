@@ -5,6 +5,7 @@ using namespace std;
 int main( int argc, char** argv )
 {
   bool useAlcohol = false;
+  bool realTimeVisualize = true;
   for ( unsigned int i=1;i<argc;i++ )
   {
     string arg(argv[i]);
@@ -26,6 +27,7 @@ int main( int argc, char** argv )
     }
   }
   IncidentAngleSweep simulation;
+  Visualizer vis;
   double width = 100.0;
   simulation.setWavelength( 0.1569 );
   simulation.setCladdingSilicon();
@@ -38,8 +40,18 @@ int main( int argc, char** argv )
   simulation.setLongitudinalDisc( 0.0, 5E6, 10000 );
   simulation.setIncAngles( -0.2, 0.2, 100 );
   simulation.setFFTSignalLength(32768);
-  simulation.saveIndx( 50 );
+  //simulation.saveIndx( 50 );
+
+  if ( realTimeVisualize )
+  {
+    vis.setColorMax( 10.0 );
+    vis.init();
+    simulation.setVisualizer( vis );
+  }
+
   simulation.solve();
+
+
   string fname("data/angleSweep");
   simulation.save( fname );
   return 0;

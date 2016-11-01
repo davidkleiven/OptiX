@@ -17,6 +17,7 @@ void Visualizer::init()
 {
   window = new sf::RenderWindow(sf::VideoMode(width, height), "Waveguide");
   window->setKeyRepeatEnabled(false);
+  window->clear( sf::Color::Black );
 
   // Define view
   //view = new sf::View( sf::FloatRect(width/2, height/2, width, height) );
@@ -71,4 +72,22 @@ void Visualizer::fillVertexArray( const arma::mat &values )
 
   // Draw onto screen
   window->draw( *vArray );
+}
+
+bool Visualizer::isOpen() const
+{
+  if ( window != NULL )
+  {
+    return window->isOpen();
+  }
+  return false;
+}
+
+bool Visualizer::pollEvent( sf::Event &event ) const
+{
+  if ( window != NULL )
+  {
+    return window->pollEvent( event );
+  }
+  return false;
 }
