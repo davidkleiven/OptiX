@@ -138,7 +138,7 @@ int main( int argc, char **argv )
       xmax = 2.0*width;
       // Note now z refers to the azimutal angle theta and x to the radius
       zmin = 0.0;
-      double wgDistance = 500E3; // Simulate 500 um
+      double wgDistance = 400E3; // Simulate 400 um
       zmax = wgDistance/Rcurv;
       wglength = 1.1*wgDistance;
     }
