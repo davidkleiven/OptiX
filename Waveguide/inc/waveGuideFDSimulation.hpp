@@ -56,6 +56,7 @@ public:
   double getZ( unsigned int iz ) const;
   double getX ( unsigned int ix ) const;
   const arma::vec& getFarField() const { return *farFieldModulus; };
+  void getExitField( arma::vec &vec ) const;
   const Solver2D& getSolver() const { return *solver; };
 
   // Virtual methods
@@ -83,7 +84,7 @@ protected:
   void sparseSave( const std::string &fname, double intensityThreshold ) const;
   void closestIndex( double x, double z, unsigned int &ix, unsigned int &iz ) const;
   double trapezoidalIntegrateIntensityZ( unsigned int iz, unsigned int ixStart, unsigned int ixEnd ) const;
-  void getExitField( arma::vec &vec ) const;
+
   void getExitField( arma::cx_vec &vec ) const;
   void saveFarField( const std::string &fname, unsigned int uid ) const;
   const ParaxialSource* src{NULL};

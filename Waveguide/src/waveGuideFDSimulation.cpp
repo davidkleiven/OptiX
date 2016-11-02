@@ -534,7 +534,7 @@ void WaveGuideFDSimulation::computeFarField( unsigned int signalLength )
   }
   else
   {
-    *farFieldModulus = arma::vec( arma::abs(ft) );
+    *farFieldModulus = arma::vec( arma::abs(ft)/sqrt(ft.n_elem) );
   }
 
   // Shift the FFT

@@ -14,15 +14,20 @@ Visualizer::~Visualizer()
   if ( vArray != NULL ) delete vArray;
 }
 
-void Visualizer::init()
+void Visualizer::init( const char *windowName )
 {
-  window = new sf::RenderWindow(sf::VideoMode(width, height), "Waveguide");
+  window = new sf::RenderWindow(sf::VideoMode(width, height), windowName);
   window->setKeyRepeatEnabled(false);
   window->clear( sf::Color::Black );
 
   // Define view
   //view = new sf::View( sf::FloatRect(width/2, height/2, width, height) );
   //window->setView(*view);
+}
+
+void Visualizer::init()
+{
+  init("Default Window");
 }
 
 void Visualizer::fillVertexArray( const arma::mat &values )
@@ -36,6 +41,7 @@ void Visualizer::fillVertexArray( const arma::mat &values )
     }
     else
     {
+      return; // This case is not yet implemented
       vArrayNrow = values.n_rows;
       vArrayNcol = values.n_cols;
     }

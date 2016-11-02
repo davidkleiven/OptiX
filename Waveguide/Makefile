@@ -18,7 +18,7 @@ SOURCES:= main.cpp cladding.cpp waveGuide.cpp waveGuideRadiusCurvature.cpp numer
 					straightWG2D.cpp linearMap1D.cpp coupledCurvedWG.cpp harmonicInversion.cpp paraxialSource.cpp planeWave.cpp \
 					gaussianBeam.cpp paraxialEquation.cpp cylindricalParaxialEquation.cpp curvedWGCylCrd.cpp \
 					beamSplitter.cpp gaussianWG.cpp linearRampWG.cpp fresnelPropagator.cpp exitFieldSource.cpp \
-					incidentAngleSweep.cpp visualizer.cpp colormaps.cpp
+					incidentAngleSweep.cpp visualizer.cpp colormaps.cpp visualizer1D.cpp
 
 OBJECTS := ${SOURCES:.cpp=.o}
 SOURCES := $(addprefix ${SDIR}/, ${SOURCES})
@@ -63,6 +63,9 @@ incidentAngleSweep.out: $(filter-out obj/main.o, ${OBJECTS}) ${ODIR}/straightGui
 testVisualizer.out: $(filter-out obj/main.o, ${OBJECTS}) ${ODIR}/testVisualizer.o
 	g++ -std=c++11 -o $@ $^ -L ${LDIR} -L ${ARMA_PATH} -L ${SFML_PATH} ${LIBS} ${GRAPHLIBS}
 
+farFieldConvergence.out: $(filter-out obj/main.o, ${OBJECTS}) ${ODIR}/farFieldConvergence.o
+	g++ -std=c++11 -o $@ $^ -L ${LDIR} -L ${ARMA_PATH} -L ${SFML_PATH} ${LIBS} ${GRAPHLIBS}
+	
 ${ODIR}/%.o: ${SDIR}/%.cpp
 	g++ -std=c++11 -MMD ${OPT} -c $< -I ${IDIR} -I ${IDIR_HDF5} -I ${ARMA_INC} -o $@
 

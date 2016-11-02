@@ -11,6 +11,7 @@ public:
   enum class Colormap_t {GREYSCALE, VIRIDIS};
   Visualizer();
   ~Visualizer();
+  void init( const char *windowName );
   void init();
   void fillVertexArray( const arma::mat &values );
   bool isOpen() const;
@@ -22,7 +23,7 @@ public:
   void setCmap( Colormap_t cm ){ cmap = cm; };
   static double average( const arma::mat &mat );
   sf::Image capture(){ return window->capture(); };
-private:
+protected:
   sf::RenderWindow *window{NULL};
   sf::View *view{NULL};
   sf::VertexArray *vArray{NULL};
