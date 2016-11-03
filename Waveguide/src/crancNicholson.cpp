@@ -54,6 +54,12 @@ void CrankNicholson::solveCurrent( unsigned int iz )
 
   double z = zmin + static_cast<double>(iz)*stepZ;
   BorderTracker* bTr = guide->getBorderTracker();
+
+  if ( bTr != NULL )
+  {
+    bTr->locateBorder( z );
+  }
+
   for ( unsigned int ix=0; ix<Nx; ix++ )
   {
     double x = xmin + static_cast<double>(ix)*stepX; // Initial X
@@ -61,9 +67,8 @@ void CrankNicholson::solveCurrent( unsigned int iz )
     double xShifted = x;
     if ( bTr != NULL )
     {
-      xPrevShifted = bTr->getShiftedX(ix);
-      bTr->locateBorder( z );
-      xShifted = bTr->getShiftedX(ix);
+      xPrevShifted = bTr->getShiftedX(x, iz-1);
+      xShifted = bTr->getShiftedX(x, iz);
     }
 
     double delta, beta;
@@ -96,7 +101,7 @@ void CrankNicholson::solveCurrent( unsigned int iz )
     cdouble left, center, right;
     if ( bTr != NULL )
     {
-      bTr->threePointStencil( ix, z-stepZ, left, center, right);
+      bTr->threePointStencil( ix, iz, left, center, right);
     }
     else
     {

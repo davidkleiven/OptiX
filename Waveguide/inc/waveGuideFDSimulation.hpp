@@ -55,7 +55,7 @@ public:
   double getIntensity( double x, double z ) const; // Using linear interpolation
   double getIntensity( unsigned int ix, unsigned int iz ) const; // Returns value in matrix at (ix,iz)
   double getZ( unsigned int iz ) const;
-  double getX ( unsigned int ix ) const;
+  double getX ( int ix ) const;
   const arma::vec& getFarField() const { return *farFieldModulus; };
   void getExitField( arma::vec &vec ) const;
   const Solver2D& getSolver() const { return *solver; };

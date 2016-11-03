@@ -383,7 +383,7 @@ double WaveGuideFDSimulation::getZ( unsigned int iz ) const
   return zDisc->min + iz*zDisc->step;
 }
 
-double WaveGuideFDSimulation::getX( unsigned int ix ) const
+double WaveGuideFDSimulation::getX( int ix ) const
 {
   return xDisc->min + ix*xDisc->step;
 }
@@ -442,10 +442,10 @@ void WaveGuideFDSimulation::getXrayMatProp( double x, double z, double &delta, d
 {
   // Some assertions for debugging
   assert( cladding != NULL );
-  assert ( x >= xDisc->min );
-  assert ( x <= xDisc->max );
-  assert ( z >= zDisc->min );
-  assert ( z <= zDisc->max );
+  //assert ( x >= xDisc->min );
+  //assert ( x <= xDisc->max );
+  //assert ( z >= zDisc->min );
+  //assert ( z <= zDisc->max );
   double dx = xDisc->step;
   double dz = zDisc->step;
 
@@ -627,6 +627,8 @@ void WaveGuideFDSimulation::setBoundaryConditions( const ParaxialSource &source 
 
 void WaveGuideFDSimulation::useBorderTracker()
 {
+  if ( bTracker != NULL ) delete bTracker;
+  
   bTracker = new BorderTracker();
   bTracker->setWG(*this);
   bTracker->init();

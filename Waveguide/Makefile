@@ -66,6 +66,9 @@ testVisualizer.out: $(filter-out obj/main.o, ${OBJECTS}) ${ODIR}/testVisualizer.
 farFieldConvergence.out: $(filter-out obj/main.o, ${OBJECTS}) ${ODIR}/farFieldConvergence.o
 	g++ -std=c++11 -o $@ $^ -L ${LDIR} -L ${ARMA_PATH} -L ${SFML_PATH} ${LIBS} ${GRAPHLIBS}
 
+borderDemo.out: $(filter-out obj/main.o, ${OBJECTS}) ${ODIR}/borderDemo.o
+	g++ -std=c++11 -o $@ $^ -L ${LDIR} -L ${ARMA_PATH} -L ${SFML_PATH} ${LIBS} ${GRAPHLIBS}
+
 ${ODIR}/%.o: ${SDIR}/%.cpp
 	g++ -std=c++11 -MMD ${OPT} -c $< -I ${IDIR} -I ${IDIR_HDF5} -I ${ARMA_INC} -o $@
 
