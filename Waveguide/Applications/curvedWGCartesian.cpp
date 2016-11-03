@@ -33,6 +33,7 @@ int main( int argc, char **argv )
   bool useStraight = false;
   bool computeFarField = true;
   bool useCylCrd = false;
+  bool useBorderTracker = false;
   unsigned int startRun = 0;
   unsigned int endRun = 8;
   double planeWaveAngleDeg = 0.0;//0.2;
@@ -55,6 +56,7 @@ int main( int argc, char **argv )
       cout << "straight: Run with a straight wave guide\n";
       cout << "source: plane or gaussian. Plane is default\n";
       cout << "cyl: use cylindrical coordiantes\n";
+      cout << "brdtrack: Use the border tracker. Only have effect if using cartesian coordinates\n";
       return 0;
     }
     else if ( arg.find("--run=") != string::npos )
@@ -92,6 +94,10 @@ int main( int argc, char **argv )
     {
       useCylCrd = true;
     }
+    else if ( arg.find("--brdtrack") != string::npos )
+    {
+      useBorderTracker = true;
+    }
     else
     {
       cout << "Unknown argument " << arg << endl;
@@ -101,7 +107,7 @@ int main( int argc, char **argv )
   /****************** END COMMANDLINE ARGUMENTS *******************************/
 
   // Parameters for running a sweep over radii of curvature
-  double LzOverR = 0.005; // max(z)/R << 1 is a requirement
+  double LzOverR = 0.01; // max(z)/R << 1 is a requirement
   double xMarginAboveAndBelow = 0.01E3; // In nanometers = 0.5 um
   unsigned int Nz = 5000; // Number of discretization points in x and z direction
   unsigned int Nx = 5000;
@@ -113,6 +119,7 @@ int main( int argc, char **argv )
   cladding.setRefractiveIndex(delta, beta);
   double width = 100.0; // Width of the waveguide in nm
   vector<unsigned int> allUIDs;
+  bool allowUseOfBorderTracker = false; // Internally handled, do not change this
 
   // Start sweep
   for ( unsigned int i=startRun;i<endRun;i++ )
@@ -143,8 +150,6 @@ int main( int argc, char **argv )
       wglength = 1.1*wgDistance;
     }
 
-    double stepX = (xmax-xmin)/static_cast<double>(Nx);
-    double stepZ = (zmax-zmin)/static_cast<double>(Nz);
     //stepX = stepX > 1.0 ? 1.0:stepX;
     //stepZ = stepZ > 100.0 ? 100.0:stepZ;
 
@@ -177,7 +182,17 @@ int main( int argc, char **argv )
       else
       {
         wg = new CurvedWaveGuideFD();
+        allowUseOfBorderTracker = true;
       }
+
+      if ( useBorderTracker && allowUseOfBorderTracker )
+      {
+        xmin = -width;
+        xmax = 2.0*width;
+      }
+
+      double stepX = (xmax-xmin)/static_cast<double>(Nx);
+      double stepZ = (zmax-zmin)/static_cast<double>(Nz);
 
       double wavelength = 0.1569;
       switch ( source )
@@ -227,9 +242,14 @@ int main( int argc, char **argv )
       clog << "Solving linear system... ";
       wg->solve();
       clog << "done\n";
-      clog << "Computing transmission... ";
-      wg->computeTransmission( (zmax-zmin)/static_cast<double>(nPointsTransmission) );
-      clog << "done\n";
+
+      if ( !useBorderTracker )
+      {
+        // TODO: This does not currently work if the boundary trackre is used
+        clog << "Computing transmission... ";
+        wg->computeTransmission( (zmax-zmin)/static_cast<double>(nPointsTransmission) );
+        clog << "done\n";
+      }
 
       if ( computeFarField )
       {
