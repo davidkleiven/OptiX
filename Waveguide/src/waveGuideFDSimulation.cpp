@@ -12,6 +12,7 @@
 #include <cassert>
 #include <cmath>
 #include "paraxialSource.hpp"
+#include "borderTracker.hpp"
 //#define DEBUG_BOUNDARY_EXTRACTOR
 
 const double PI = acos(-1.0);
@@ -50,6 +51,7 @@ WaveGuideFDSimulation::~WaveGuideFDSimulation()
 
   if ( farFieldModulus != NULL ) delete farFieldModulus;
   if ( wgborder != NULL ) delete wgborder;
+  if ( bTracker != NULL ) delete bTracker;
 }
 
 void WaveGuideFDSimulation::setWaveLength( double lambda )
@@ -605,6 +607,11 @@ cdouble WaveGuideFDSimulation::transverseBC( double z, Boundary_t bnd ) const
   return src->get(x,0.0)*exp(-beta*wavenumber*z)*exp(-im*delta*wavenumber*z);
 }
 
+cdouble WaveGuideFDSimulation::transverseBC( double z ) const
+{
+  return this->transverseBC( z, WaveGuideFDSimulation::Boundary_t::BOTTOM );
+}
+
 void WaveGuideFDSimulation::setBoundaryConditions( const ParaxialSource &source )
 {
   src = &source;
@@ -616,4 +623,11 @@ void WaveGuideFDSimulation::setBoundaryConditions( const ParaxialSource &source 
     values[i] = src->get( x, 0.0 );
   }
   solver->setLeftBC(&values[0]);
+}
+
+void WaveGuideFDSimulation::useBorderTracker()
+{
+  bTracker = new BorderTracker();
+  bTracker->setWG(*this);
+  bTracker->init();
 }
