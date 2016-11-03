@@ -101,10 +101,10 @@ int main( int argc, char **argv )
   /****************** END COMMANDLINE ARGUMENTS *******************************/
 
   // Parameters for running a sweep over radii of curvature
-  double LzOverR = 0.005; // max(z)/R << 1 is a requirement
+  double LzOverR = 0.01; // max(z)/R << 1 is a requirement
   double xMarginAboveAndBelow = 0.01E3; // In nanometers = 0.5 um
-  unsigned int Nz = 5000; // Number of discretization points in x and z direction
-  unsigned int Nx = 5000;
+  unsigned int Nz = 500; // Number of discretization points in x and z direction
+  unsigned int Nx = 250;
   unsigned int nPointsTransmission = 200;
 
   Cladding cladding;
