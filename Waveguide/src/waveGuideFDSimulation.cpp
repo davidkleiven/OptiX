@@ -198,6 +198,7 @@ void WaveGuideFDSimulation::save( ControlFile &ctl, double intensityThreshold ) 
   ctl.get()["zDiscretization"]["max"] = zDisc->max;
   ctl.get()["zDiscretization"]["step"] = zDisc->step;
   ctl.get()["source"] = sourceInfo;
+  ctl.get()["borderTracker"] = (bTracker != NULL );
   fillInfo( wginfo );
   // TODO: For some reason the next line gives a segmentation fault
   //solver->fillInfo( solverInfo );
@@ -556,6 +557,11 @@ void WaveGuideFDSimulation::computeFarField()
 
 void WaveGuideFDSimulation::saveFarField( const string &fname, unsigned int uid ) const
 {
+  if ( farFieldModulus == NULL )
+  {
+    return;
+  }
+
   arma::vec exitField;
   getExitField( exitField );
   arma::cx_vec exitFieldCmpl;
@@ -570,8 +576,9 @@ void WaveGuideFDSimulation::saveFarField( const string &fname, unsigned int uid 
 
   hid_t file_id = H5Fcreate(fname.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT );
   hsize_t dim = farFieldModulus->size();
-  H5LTmake_dataset( file_id, "exitField", 1, &dim, H5T_NATIVE_DOUBLE, exitField.memptr());
   H5LTmake_dataset( file_id, "farField", 1, &dim, H5T_NATIVE_DOUBLE, farFieldModulus->memptr());
+  dim = exitField.n_elem;
+  H5LTmake_dataset( file_id, "exitField", 1, &dim, H5T_NATIVE_DOUBLE, exitField.memptr());
   H5LTmake_dataset( file_id, "exitIntensity", 1, &dim, H5T_NATIVE_DOUBLE, exitAmpl.memptr() );
   H5LTmake_dataset( file_id, "exitPhase", 1, &dim, H5T_NATIVE_DOUBLE, exitPhase.memptr() );
   H5LTset_attribute_double( file_id, "farField", "wavenumber", &wavenumber, 1);
@@ -628,7 +635,7 @@ void WaveGuideFDSimulation::setBoundaryConditions( const ParaxialSource &source 
 void WaveGuideFDSimulation::useBorderTracker()
 {
   if ( bTracker != NULL ) delete bTracker;
-  
+
   bTracker = new BorderTracker();
   bTracker->setWG(*this);
   bTracker->init();

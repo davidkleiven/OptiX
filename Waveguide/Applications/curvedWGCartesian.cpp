@@ -109,8 +109,8 @@ int main( int argc, char **argv )
   // Parameters for running a sweep over radii of curvature
   double LzOverR = 0.01; // max(z)/R << 1 is a requirement
   double xMarginAboveAndBelow = 0.01E3; // In nanometers = 0.5 um
-  unsigned int Nz = 5000; // Number of discretization points in x and z direction
-  unsigned int Nx = 5000;
+  unsigned int Nz = 10000; // Number of discretization points in x and z direction
+  unsigned int Nx = 2000;
   unsigned int nPointsTransmission = 200;
 
   Cladding cladding;
@@ -187,7 +187,7 @@ int main( int argc, char **argv )
 
       if ( useBorderTracker && allowUseOfBorderTracker )
       {
-        xmin = -width;
+        xmin = -1.0*width;
         xmax = 2.0*width;
       }
 
@@ -238,6 +238,10 @@ int main( int argc, char **argv )
       solver.setEquation( *eq );
       wg->setSolver(solver);
       wg->setBoundaryConditions( *src );
+      if ( useBorderTracker )
+      {
+        wg->useBorderTracker();
+      }
       clog << " done\n";
       clog << "Solving linear system... ";
       wg->solve();
@@ -257,7 +261,12 @@ int main( int argc, char **argv )
         wg->computeFarField( 65536 );
         clog << "done\n";
       }
-      wg->extractWGBorders();
+
+      if ( !useBorderTracker )
+      {
+        wg->extractWGBorders();
+      }
+
       clog << "Exporting results...\n";
       wg->save( ctl );
       wg->saveTransmission( ctl );
