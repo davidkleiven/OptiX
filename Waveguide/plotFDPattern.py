@@ -224,8 +224,11 @@ def main(argv):
         crdsyst = stat["crd"]
     except:
         crdsyst = "cartesian"
-    with h5.File(stat["wgfile"], 'r') as hf:
-        borders = readBorders( hf, crdsyst )
+    try:
+        with h5.File(stat["wgfile"], 'r') as hf:
+            borders = readBorders( hf, crdsyst )
+    except:
+        print ("Borders were not found!")
 
     '''
     if ( np.min(xInside) > stat["xDiscretization"]["min"]):
