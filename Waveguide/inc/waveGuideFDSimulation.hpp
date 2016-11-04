@@ -6,6 +6,7 @@
 #include <jsoncpp/json/writer.h>
 #include <armadillo>
 #include "waveGuideBorder.hpp"
+#include "borderTracker.hpp"
 class Solver2D;
 
 struct Disctretization
@@ -54,16 +55,20 @@ public:
   double getIntensity( double x, double z ) const; // Using linear interpolation
   double getIntensity( unsigned int ix, unsigned int iz ) const; // Returns value in matrix at (ix,iz)
   double getZ( unsigned int iz ) const;
-  double getX ( unsigned int ix ) const;
+  double getX ( int ix ) const;
   const arma::vec& getFarField() const { return *farFieldModulus; };
   void getExitField( arma::vec &vec ) const;
   const Solver2D& getSolver() const { return *solver; };
+  void useBorderTracker();
+  BorderTracker* getBorderTracker(){ return bTracker; };
 
   // Virtual methods
   virtual void setBoundaryConditions( const ParaxialSource& src ); // This function should fill the boundary
   virtual void fillInfo( Json::Value &obj ) const {};
   virtual void init( const ControlFile &ctl );
   virtual cdouble transverseBC( double z, Boundary_t bnd ) const;
+  virtual cdouble transverseBC( double z ) const;
+  virtual bool isInsideGuide( double x, double z ) const { return true; };
   // Refractive index: n = 1 - delta + i*beta
   virtual void getXrayMatProp( double x, double z, double &delta, double &beta ) const;
 protected:
@@ -76,6 +81,7 @@ protected:
   const Cladding *cladding{NULL};
   const Cladding *insideMaterial{NULL};
   arma::vec *farFieldModulus{NULL};
+  BorderTracker *bTracker{NULL};
 
   double* allocateSolutionMatrix() const;
   void deallocateSolutionMatrix( double *matrix ) const;
@@ -91,7 +97,6 @@ protected:
   std::vector<WaveGuideBorder> *wgborder{NULL};
 
   // Virtual funcitons
-  virtual bool isInsideGuide( double x, double z ) const { return true; };
   virtual bool waveguideEnded( double x, double z ) const { return z > wglength; };
 };
 #endif

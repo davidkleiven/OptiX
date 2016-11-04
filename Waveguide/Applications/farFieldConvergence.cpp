@@ -21,6 +21,7 @@ using namespace std;
 int main( int argc, char **argv )
 {
   bool cylindrical = false;
+  bool useBorderTracker = true; // Does not seem to work properly yet
   for ( unsigned int i=1;i<argc;i++ )
   {
     string arg(argv[i]);
@@ -69,6 +70,11 @@ int main( int argc, char **argv )
   {
     wg = new CurvedWaveGuideFD();
     eq = new ParaxialEquation();
+    if ( useBorderTracker )
+    {
+      xmin = -2.0*width;
+      xmax = 3.0*width;
+    }
   }
 
   Visualizer1D vis;
@@ -105,6 +111,11 @@ int main( int argc, char **argv )
       wg->setBoundaryConditions( pw );
       wg->solve();
       wg->computeFarField( 65536 );
+      if ( useBorderTracker )
+      {
+        wg->useBorderTracker();
+      }
+
       arma::vec logFT = arma::log( wg->getFarField() );
       if ( iz == 0 )
       {

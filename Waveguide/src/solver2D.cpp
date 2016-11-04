@@ -15,7 +15,7 @@ Solver2D::~Solver2D()
   }
 }
 
-void Solver2D::setGuide( const WaveGuideFDSimulation &wg )
+void Solver2D::setGuide( WaveGuideFDSimulation &wg )
 {
   guide = &wg;
   unsigned int Nx = guide->nodeNumberTransverse();

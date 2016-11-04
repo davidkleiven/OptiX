@@ -18,7 +18,7 @@ public:
   Solver2D( const char* name ):name(name){};
   virtual ~Solver2D();
   std::string getName() const { return name; };
-  void setGuide( const WaveGuideFDSimulation &guide );
+  void setGuide( WaveGuideFDSimulation &guide );
   void setEquation( const ParaxialEquation &equation ){ eq = &equation; };
   const arma::cx_mat& getSolution( unsigned int iz ) const { return *solution; }; // Depricated. iz is not used.
   const arma::cx_mat& getSolution() const { return *solution; };
@@ -38,7 +38,7 @@ public:
   virtual void fillInfo( Json::Value &obj ) const;
 protected:
   std::string name;
-  const WaveGuideFDSimulation *guide;
+  WaveGuideFDSimulation *guide;
   const ParaxialEquation *eq{NULL};
   arma::cx_mat *solution{NULL};
 

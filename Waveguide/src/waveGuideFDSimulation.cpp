@@ -12,6 +12,7 @@
 #include <cassert>
 #include <cmath>
 #include "paraxialSource.hpp"
+#include "borderTracker.hpp"
 //#define DEBUG_BOUNDARY_EXTRACTOR
 
 const double PI = acos(-1.0);
@@ -50,6 +51,7 @@ WaveGuideFDSimulation::~WaveGuideFDSimulation()
 
   if ( farFieldModulus != NULL ) delete farFieldModulus;
   if ( wgborder != NULL ) delete wgborder;
+  if ( bTracker != NULL ) delete bTracker;
 }
 
 void WaveGuideFDSimulation::setWaveLength( double lambda )
@@ -196,6 +198,7 @@ void WaveGuideFDSimulation::save( ControlFile &ctl, double intensityThreshold ) 
   ctl.get()["zDiscretization"]["max"] = zDisc->max;
   ctl.get()["zDiscretization"]["step"] = zDisc->step;
   ctl.get()["source"] = sourceInfo;
+  ctl.get()["borderTracker"] = (bTracker != NULL );
   fillInfo( wginfo );
   // TODO: For some reason the next line gives a segmentation fault
   //solver->fillInfo( solverInfo );
@@ -381,7 +384,7 @@ double WaveGuideFDSimulation::getZ( unsigned int iz ) const
   return zDisc->min + iz*zDisc->step;
 }
 
-double WaveGuideFDSimulation::getX( unsigned int ix ) const
+double WaveGuideFDSimulation::getX( int ix ) const
 {
   return xDisc->min + ix*xDisc->step;
 }
@@ -440,10 +443,10 @@ void WaveGuideFDSimulation::getXrayMatProp( double x, double z, double &delta, d
 {
   // Some assertions for debugging
   assert( cladding != NULL );
-  assert ( x >= xDisc->min );
-  assert ( x <= xDisc->max );
-  assert ( z >= zDisc->min );
-  assert ( z <= zDisc->max );
+  //assert ( x >= xDisc->min );
+  //assert ( x <= xDisc->max );
+  //assert ( z >= zDisc->min );
+  //assert ( z <= zDisc->max );
   double dx = xDisc->step;
   double dz = zDisc->step;
 
@@ -554,6 +557,11 @@ void WaveGuideFDSimulation::computeFarField()
 
 void WaveGuideFDSimulation::saveFarField( const string &fname, unsigned int uid ) const
 {
+  if ( farFieldModulus == NULL )
+  {
+    return;
+  }
+
   arma::vec exitField;
   getExitField( exitField );
   arma::cx_vec exitFieldCmpl;
@@ -568,8 +576,9 @@ void WaveGuideFDSimulation::saveFarField( const string &fname, unsigned int uid 
 
   hid_t file_id = H5Fcreate(fname.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT );
   hsize_t dim = farFieldModulus->size();
-  H5LTmake_dataset( file_id, "exitField", 1, &dim, H5T_NATIVE_DOUBLE, exitField.memptr());
   H5LTmake_dataset( file_id, "farField", 1, &dim, H5T_NATIVE_DOUBLE, farFieldModulus->memptr());
+  dim = exitField.n_elem;
+  H5LTmake_dataset( file_id, "exitField", 1, &dim, H5T_NATIVE_DOUBLE, exitField.memptr());
   H5LTmake_dataset( file_id, "exitIntensity", 1, &dim, H5T_NATIVE_DOUBLE, exitAmpl.memptr() );
   H5LTmake_dataset( file_id, "exitPhase", 1, &dim, H5T_NATIVE_DOUBLE, exitPhase.memptr() );
   H5LTset_attribute_double( file_id, "farField", "wavenumber", &wavenumber, 1);
@@ -605,6 +614,11 @@ cdouble WaveGuideFDSimulation::transverseBC( double z, Boundary_t bnd ) const
   return src->get(x,0.0)*exp(-beta*wavenumber*z)*exp(-im*delta*wavenumber*z);
 }
 
+cdouble WaveGuideFDSimulation::transverseBC( double z ) const
+{
+  return this->transverseBC( z, WaveGuideFDSimulation::Boundary_t::BOTTOM );
+}
+
 void WaveGuideFDSimulation::setBoundaryConditions( const ParaxialSource &source )
 {
   src = &source;
@@ -616,4 +630,13 @@ void WaveGuideFDSimulation::setBoundaryConditions( const ParaxialSource &source 
     values[i] = src->get( x, 0.0 );
   }
   solver->setLeftBC(&values[0]);
+}
+
+void WaveGuideFDSimulation::useBorderTracker()
+{
+  if ( bTracker != NULL ) delete bTracker;
+
+  bTracker = new BorderTracker();
+  bTracker->setWG(*this);
+  bTracker->init();
 }

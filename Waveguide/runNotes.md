@@ -114,3 +114,5 @@
 509750 | Cylindrical proper far field Lz=500 um | Looks OK |
 722020 | Cartesian proper far field Lz=400 um | Looks OK |
 459397 | Cylindrical proper far field Lz=400 um | Looks OK |
+682477 | Cartesian with b-track Lz=400 um | Looks OK, more equal to the other cartesian |
+768375 | Cartesiann Nz=10000, Nx=2000, Lz=400um | Far field looks very good |

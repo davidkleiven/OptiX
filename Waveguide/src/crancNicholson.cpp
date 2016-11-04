@@ -4,6 +4,7 @@
 #include <iostream>
 #include <stdexcept>
 #include "paraxialEquation.hpp"
+#include "borderTracker.hpp"
 
 using namespace std;
 
@@ -52,20 +53,35 @@ void CrankNicholson::solveCurrent( unsigned int iz )
   double r = wavenumber*stepZ;
 
   double z = zmin + static_cast<double>(iz)*stepZ;
+  BorderTracker* bTr = guide->getBorderTracker();
+
+  if ( bTr != NULL )
+  {
+    bTr->locateBorder( z );
+  }
+
   for ( unsigned int ix=0; ix<Nx; ix++ )
   {
-    double x = xmin + static_cast<double>(ix)*stepX;
+    double x = xmin + static_cast<double>(ix)*stepX; // Initial X
+    double xPrevShifted = x;
+    double xShifted = x;
+    if ( bTr != NULL )
+    {
+      xPrevShifted = bTr->getShiftedX(x, iz-1);
+      xShifted = bTr->getShiftedX(x, iz);
+    }
+
     double delta, beta;
     double deltaPrev, betaPrev;
-    guide->getXrayMatProp( x, z, delta, beta );
-    guide->getXrayMatProp( x, z-stepZ, deltaPrev, betaPrev);
+    guide->getXrayMatProp( xShifted, z, delta, beta );
+    guide->getXrayMatProp( xPrevShifted, z-stepZ, deltaPrev, betaPrev);
 
-    double Hpluss = eq->H(x+0.5*stepX,z);
-    double Hminus = eq->H(x-0.5*stepX,z);
-    double gval = eq->G(x,z);
-    double fval = eq->F(x,z);
-    double jval = eq->J(x,z);
-    double jvalPrev = eq->J(x,z-stepZ);
+    double Hpluss = eq->H(xShifted+0.5*stepX,z);
+    double Hminus = eq->H(xShifted-0.5*stepX,z);
+    double gval = eq->G(xShifted,z);
+    double fval = eq->F(xShifted,z);
+    double jval = eq->J(xShifted,z);
+    double jvalPrev = eq->J(xPrevShifted,z-stepZ);
     delta -= jval;
     deltaPrev -= jvalPrev;
 
@@ -76,35 +92,55 @@ void CrankNicholson::solveCurrent( unsigned int iz )
       subdiag[ix] = -0.25*IMAG_UNIT*rho*Hminus*gval;
     }
 
-    double HplussPrev = eq->H(x+0.5*stepX,z-stepZ);
-    double HminusPrev = eq->H(x-0.5*stepX,z-stepZ);
-    double gvalPrev = eq->G(x,z-stepZ);
-    double fvalPrev = eq->F(x,z-stepZ);
+    double HplussPrev = eq->H(xPrevShifted+0.5*stepX,z-stepZ);
+    double HminusPrev = eq->H(xPrevShifted-0.5*stepX,z-stepZ);
+    double gvalPrev = eq->G(xPrevShifted,z-stepZ);
+    double fvalPrev = eq->F(xPrevShifted,z-stepZ);
 
     // Fill right hand side
-    if ( ix > 0 )
+    cdouble left, center, right;
+    if ( bTr != NULL )
     {
-      rhs[ix] = (*solution)(ix-1,iz-1)*Hminus*gval;
+      bTr->threePointStencil( ix, iz, left, center, right);
     }
     else
     {
-      rhs[ix] = guide->transverseBC(z, WaveGuideFDSimulation::Boundary_t::BOTTOM)*Hminus*gval +\
+      left = ix > 0 ? (*solution)(ix-1,iz-1):guide->transverseBC(z-stepZ, WaveGuideFDSimulation::Boundary_t::BOTTOM);
+      center = (*solution)(ix, iz-1);
+      right = ix < Nx-1 ? (*solution)(ix+1,iz-1):guide->transverseBC(z-stepZ, WaveGuideFDSimulation::Boundary_t::TOP);
+    }
+
+    if ( ix > 0 )
+    {
+      //rhs[ix] = (*solution)(ix-1,iz-1)*Hminus*gval;
+      rhs[ix] = left*Hminus*gval;
+    }
+    else
+    {
+      //rhs[ix] = guide->transverseBC(z, WaveGuideFDSimulation::Boundary_t::BOTTOM)*Hminus*gval +\
       guide->transverseBC(z-stepZ, WaveGuideFDSimulation::Boundary_t::BOTTOM)*HminusPrev*gvalPrev; // Make sure that it is not a random value
+      rhs[ix] = guide->transverseBC(z, WaveGuideFDSimulation::Boundary_t::BOTTOM)*Hminus*gval +\
+      left*HminusPrev*gvalPrev; // Make sure that it is not a random value
     }
 
     if ( ix < Nx-1 )
     {
-      rhs[ix] += (*solution)(ix+1,iz-1)*HplussPrev*gvalPrev;
+      //rhs[ix] += (*solution)(ix+1,iz-1)*HplussPrev*gvalPrev;
+      rhs[ix] += right*HplussPrev*gvalPrev;
     }
     else
     {
-      rhs[ix] += ( guide->transverseBC(z, WaveGuideFDSimulation::Boundary_t::TOP)*Hpluss*gval + \
+      //rhs[ix] += ( guide->transverseBC(z, WaveGuideFDSimulation::Boundary_t::TOP)*Hpluss*gval + \
       guide->transverseBC(z-stepZ, WaveGuideFDSimulation::Boundary_t::TOP)*HplussPrev*gvalPrev );
+      rhs[ix] += ( guide->transverseBC(z, WaveGuideFDSimulation::Boundary_t::TOP)*Hpluss*gval + \
+      right*HplussPrev*gvalPrev );
     }
 
     rhs[ix] *=  (0.25*IMAG_UNIT*rho);
-    rhs[ix] -= 0.25*(*solution)(ix,iz-1)*IMAG_UNIT*rho*(HplussPrev+HminusPrev)*gval;
-    rhs[ix] += (1.0*fvalPrev - 0.5*(betaPrev*r + IMAG_UNIT*deltaPrev*r) )*(*solution)(ix,iz-1);
+    //rhs[ix] -= 0.25*(*solution)(ix,iz-1)*IMAG_UNIT*rho*(HplussPrev+HminusPrev)*gval;
+    rhs[ix] -= 0.25*center*IMAG_UNIT*rho*(HplussPrev+HminusPrev)*gval;
+    //rhs[ix] += (1.0*fvalPrev - 0.5*(betaPrev*r + IMAG_UNIT*deltaPrev*r) )*(*solution)(ix,iz-1);
+    rhs[ix] += (1.0*fvalPrev - 0.5*(betaPrev*r + IMAG_UNIT*deltaPrev*r) )*center;
   }
 
   // Solve the tridiagonal system
