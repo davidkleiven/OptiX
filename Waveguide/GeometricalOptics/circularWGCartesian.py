@@ -2,7 +2,7 @@ import numpy as np
 import circularWG as cwg
 
 class CurvedWGCartesian:
-    def __self__(self):
+    def __init__(self):
         self.x = []
         self.z = []
         self.R = 1.0
