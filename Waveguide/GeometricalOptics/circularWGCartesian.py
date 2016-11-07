@@ -33,7 +33,7 @@ class CurvedWGCartesian:
         x = x0
         dx = (xmax-xmin)/N
         dz = (zmax-zmin)/N
-        while ( z < zmax and x < xmax and x > xmin and < > zmin):
+        while ( z < zmax and x < xmax and x > xmin and z > zmin):
             x += direction[0]*dx
             z += direction[1]*dz
             if ( not isInsideGuide(x,z) ):
