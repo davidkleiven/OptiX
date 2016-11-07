@@ -56,13 +56,13 @@ def main(argv):
     with h5.File(stat["wgfile"], 'r') as hf:
         borders = pfdp.readBorders( hf, "cartesian" )
 
-    extent = [stat["zDiscretization"]["min"], stat["zDiscretization"]["max"], stat["xDiscretization"]["min"], stat["xDiscretization"]["max"]]
+    extent = [stat["zDiscretization"]["min"]/1E6, stat["zDiscretization"]["max"]/1E6, stat["xDiscretization"]["min"], stat["xDiscretization"]["max"]]
     k = 2.0*np.pi/0.1569
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
     im = ax.imshow(np.abs(fieldData)**2, extent=extent, cmap=colormap, origin ="lower")
-    ax.set_xlabel(zlabel)
-    ax.set_ylabel(xlabel)
+    ax.set_xlabel( "$z$ (mm)")
+    ax.set_ylabel( "$x$ (nm)")
     ax.set_aspect( np.abs( (extent[1]-extent[0])/(extent[3]-extent[2]) ))
     fig.colorbar( im )
 
