@@ -3,7 +3,6 @@ import circularWG as cwg
 
 class CurvedWGCartesian:
     def __self__(self):
-        cwg.CurvedWaveguide.__init__(self)
         self.x = []
         self.z = []
         self.R = 1.0
