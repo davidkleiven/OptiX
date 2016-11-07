@@ -55,7 +55,7 @@ def main(argv):
     with h5.File(stat["wgfile"], 'r') as hf:
         borders = pfdp.readBorders( hf, "cartesian" )
 
-    extent = [zmin, zmax, stat["xDiscretization"]["min"], stat["xDiscretization"]["max"]]
+    extent = [stat["zDiscretization"]["min"], stat["zDiscretization"]["max"], stat["xDiscretization"]["min"], stat["xDiscretization"]["max"]]
     k = 2.0*np.pi/0.1569
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
