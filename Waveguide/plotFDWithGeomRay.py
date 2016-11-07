@@ -46,7 +46,7 @@ def main(argv):
     try:
         geom = cwgc.CurvedWGCartesian()
         geom.R = stat["waveguide"]["RadiusOfCurvature"]
-        geom.width = stat["waveguide"]["width"]
+        geom.width = stat["waveguide"]["Width"]
     except:
         print ("Error when reading wavguide parameters")
         return 1
