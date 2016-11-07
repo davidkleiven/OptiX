@@ -26,12 +26,14 @@ class CurvedWGCartesian:
         tangComponent = direction - normalComponent
         return tangComponent - normalComponent
 
-    def solve( self, x0, z0, dir, xmax, zmax, dx, dz ):
+    def solve( self, x0, z0, dir, xmin, xmax, zmin, zmax, N ):
         self.x.append(x0)
         self.z.append(z0)
         z = z0
         x = x0
-        while ( z < zmax and x < xmax ):
+        dx = (xmax-xmin)/N
+        dz = (zmax-zmin)/N
+        while ( z < zmax and x < xmax and x > xmin and < > zmin):
             x += direction[0]*dx
             z += direction[1]*dz
             if ( not isInsideGuide(x,z) ):

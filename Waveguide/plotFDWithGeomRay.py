@@ -56,7 +56,12 @@ def main(argv):
     with h5.File(stat["wgfile"], 'r') as hf:
         borders = pfdp.readBorders( hf, "cartesian" )
 
-    extent = [stat["zDiscretization"]["min"]/1E6, stat["zDiscretization"]["max"]/1E6, stat["xDiscretization"]["min"], stat["xDiscretization"]["max"]]
+    zmin = stat["zDiscretization"]["min"]
+    zmax = stat["zDiscretization"]["max"]
+    xmin = stat["xDiscretization"]["min"]
+    xmax = stat["xDiscretization"]["max"]
+    extent = [zmin]/1E6, zmax/1E6, xmin, xmax]
+
     k = 2.0*np.pi/0.1569
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
@@ -67,7 +72,7 @@ def main(argv):
     fig.colorbar( im )
 
     borders.visualize( ax )
-    geom.solve( 50.0, 0.0, [0.0,1.0])
+    geom.solve( 50.0, 0.0, [0.0,1.0], xmin, xmax, zmin, zmax, 1000)
     geom.plot( ax )
     fname = "Figures/contourLinScaleWithGeomRay%d.jpeg"%(stat["UID"])
     fig.savefig(fname, bbox_inches="tight", dpi=800)
