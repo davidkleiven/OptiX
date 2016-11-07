@@ -37,7 +37,7 @@ def main(argv):
 
     fieldData = None
     try:
-        with h5.File(stat["fieldData"], 'r') as hf:
+        with h5.File(stat["datafile"], 'r') as hf:
             fieldData = np.array( hf.get("dataset") )
     except:
         fieldData = None
@@ -60,19 +60,20 @@ def main(argv):
     zmax = stat["zDiscretization"]["max"]
     xmin = stat["xDiscretization"]["min"]
     xmax = stat["xDiscretization"]["max"]
-    extent = [zmin/1E6, zmax/1E6, xmin, xmax]
+    extent = [zmin/1E3, zmax/1E3, xmin, xmax]
 
     k = 2.0*np.pi/0.1569
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
-    im = ax.imshow(np.abs(fieldData)**2, extent=extent, cmap=colormap, origin ="lower")
+    fieldData = fieldData.T
+    im = ax.imshow(np.abs(fieldData)**2, extent=extent, aspect=1.0, cmap=colormap, origin ="lower")
     ax.set_xlabel( "$z$ (mm)")
     ax.set_ylabel( "$x$ (nm)")
     ax.set_aspect( np.abs( (extent[1]-extent[0])/(extent[3]-extent[2]) ))
     fig.colorbar( im )
 
     borders.visualize( ax )
-    geom.solve( 50.0, 0.0, [0.0,1.0], xmin, xmax, zmin, zmax, 1000)
+    geom.solve( 50.0, 0.0, [0.0,1.0], xmin, xmax, zmin, zmax, 1E3)
     geom.plot( ax )
     fname = "Figures/contourLinScaleWithGeomRay%d.jpeg"%(stat["UID"])
     fig.savefig(fname, bbox_inches="tight", dpi=800)
