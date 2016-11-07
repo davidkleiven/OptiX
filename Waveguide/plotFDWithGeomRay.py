@@ -16,6 +16,7 @@ import plotFDPattern as pfdp
 
 def main(argv):
     fname = ""
+    colormap = "viridis"
     for arg in argv:
         if ( arg.find("--file=") != -1 ):
             fname = arg.split("--file=")[1]
