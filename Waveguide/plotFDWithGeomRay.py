@@ -60,7 +60,7 @@ def main(argv):
     zmax = stat["zDiscretization"]["max"]
     xmin = stat["xDiscretization"]["min"]
     xmax = stat["xDiscretization"]["max"]
-    extent = [zmin]/1E6, zmax/1E6, xmin, xmax]
+    extent = [zmin/1E6, zmax/1E6, xmin, xmax]
 
     k = 2.0*np.pi/0.1569
     fig = plt.figure()
