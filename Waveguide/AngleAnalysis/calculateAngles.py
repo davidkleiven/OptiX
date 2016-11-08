@@ -40,6 +40,9 @@ def main( argv ):
     angC = ac.AngleComputer()
     angC.wpd = wpdEx
     angC.plotView()
+    angC.plotWGSlope()
+    angC.computeAngles()
+    angC.plotAngles()
 
 if __name__ == "__main__":
     main(sys.argv[1:])
