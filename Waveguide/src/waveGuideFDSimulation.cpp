@@ -365,12 +365,11 @@ double WaveGuideFDSimulation::getIntensity( double x, double z ) const
   double x2 = x1 + xDisc->step;
   double z1 = zDisc->min + iz*zDisc->step;
   double z2 = z1 + iz*zDisc->step;
-  arma::cx_mat sol = solver->getSolution();
 
-  double intensity = pow( abs(sol(ix,iz)),2 )*(x2 - x)*(z2-z);
-  intensity += pow( abs(sol(ix+1,iz)), 2 )*(x-x1)*(z2-z);
-  intensity += pow( abs(sol(ix,iz+1)), 2 )*(z-z1)*(x2-x);
-  intensity += pow( abs(sol(ix+1,iz+1)), 2 )*(z2-z)*(x-x1);
+  double intensity = pow( abs(solver->getSolution()(ix,iz)),2 )*(x2 - x)*(z2-z);
+  intensity += pow( abs(solver->getSolution()(ix+1,iz)), 2 )*(x-x1)*(z2-z);
+  intensity += pow( abs(solver->getSolution()(ix,iz+1)), 2 )*(z-z1)*(x2-x);
+  intensity += pow( abs(solver->getSolution()(ix+1,iz+1)), 2 )*(z2-z)*(x-x1);
   return intensity/( (x2-x1)*(z2-z1) );
 }
 
