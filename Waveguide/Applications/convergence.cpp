@@ -6,13 +6,14 @@
 #include "straightWG2D.hpp"
 #include "paraxialEquation.hpp"
 #include "planeWave.hpp"
+#include "visualizer.hpp"
 #include <vector>
 #include <H5Cpp.h>
 #include <hdf5_hl.h>
 #include <string>
 
 using namespace std;
-
+enum class ErrorNorm_t{L1, L2};
 vector<double> errorRatio( const vector<double> &solutionAtTest )
 {
   vector<double> error;
@@ -23,15 +24,15 @@ vector<double> errorRatio( const vector<double> &solutionAtTest )
   return error;
 }
 
-double compare( const WaveGuideFDSimulation &poorDisc, const WaveGuideFDSimulation &goodDisc )
+double compare( const WaveGuideFDSimulation &poorDisc, const WaveGuideFDSimulation &goodDisc, ErrorNorm_t norm )
 {
   // Loop over the matrix with fewest entries
   unsigned int Nr = poorDisc.nodeNumberTransverse();
   unsigned int Nc = poorDisc.nodeNumberLongitudinal();
-  double err1Sq = 0.0;
+  double error = 0.0;
   double err2Sq = 0.0;
   double crossTerm = 0.0;
-  cout << Nc << " " << Nr << endl;
+
   for ( unsigned int ic=0;ic<Nc-1;ic++ )
   {
     for ( unsigned int ir=0;ir<Nr-1;ir++ )
@@ -39,20 +40,39 @@ double compare( const WaveGuideFDSimulation &poorDisc, const WaveGuideFDSimulati
       double err1 = abs( poorDisc.getSolver().getSolution()(ir,ic) );
       double x = poorDisc.getX(ir);
       double z = poorDisc.getZ(ic);
-      double err2 = sqrt( goodDisc.getIntensity(x,z) );
-      err1Sq += err1*err1;
-      err1Sq += err2*err2;
-      crossTerm += 2.0*err1*err2;
+      unsigned int ix, iz;
+      goodDisc.closestIndex( x, z, ix, iz);
+      double err2 = abs( goodDisc.getSolver().getSolution()(ix,iz) );
+
+      switch ( norm )
+      {
+        case ErrorNorm_t::L1:
+          error += abs(err1-err2);
+          break;
+        case ErrorNorm_t::L2:
+          error += pow(err1-err2, 2);
+          break;
+      }
     }
   }
-  return sqrt( err1Sq+err2Sq - crossTerm);
+
+  switch ( norm )
+  {
+    case ErrorNorm_t::L1:
+      return error/static_cast<double>(Nr*Nc);
+    case ErrorNorm_t::L2:
+      return sqrt( error/static_cast<double>(Nr*Nc) );
+  }
 }
 
 int main( int argc, char** argv )
 {
+  bool visualizeResults = false;
+  ErrorNorm_t norm = ErrorNorm_t::L1;
   Cladding cladding1;
   double delta = 4.49E-5;
   double beta = 3.45E-6;
+
   cladding1.setRefractiveIndex(delta, beta);
   double width = 100.0; // Width of the waveguide in nm
 
@@ -66,6 +86,15 @@ int main( int argc, char** argv )
 
   StraightWG2D wg1;
   StraightWG2D wg2;
+  Visualizer vis1;
+  Visualizer vis2;
+
+  if ( visualizeResults )
+  {
+    vis1.init( "Active window" );
+    vis2.init( "Passive window (no event loop)" );
+  }
+
   double testZ = zmax/2.0;
   double testX = width/2.0;
   ParaxialEquation eq1;
@@ -101,6 +130,12 @@ int main( int argc, char** argv )
       wg1.setSolver(solver); // Need to set the solver to ensure after changing the discretization
       wg1.setBoundaryConditions(pw1);
       wg1.solve();
+
+      if ( visualizeResults )
+      {
+        vis1.fillVertexArray( arma::abs( wg1.getSolver().getSolution() ) );
+        vis1.display();
+      }
     }
 
     if (( i == 0 ) || (i%2 == 0))
@@ -114,18 +149,54 @@ int main( int argc, char** argv )
       wg2.setSolver(solver2);
       wg2.setBoundaryConditions(pw2);
       wg2.solve();
+
+      if ( visualizeResults )
+      {
+        vis2.fillVertexArray( arma::abs( wg2.getSolver().getSolution() ) );
+      }
     }
 
     if (( i== 0 ) || (i%2 == 0))
     {
       clog << "Comparing using wg2 finer than wg1\n";
-      error.push_back( compare(wg1, wg2) );
+      error.push_back( compare(wg1, wg2, norm) );
     }
     else if ( i%2 == 1 )
     {
       clog << "Comparing using that wg1 finer than wg2\n";
-      error.push_back( compare(wg2, wg1) );
+      error.push_back( compare(wg2, wg1, norm) );
     }
+
+    if ( visualizeResults )
+    {
+      clog << "Press any key to continue to next interation\n";
+      bool goToNextIteration = false;
+      while ( !goToNextIteration && vis1.isOpen() )
+      {
+        sf::Event event;
+        while ( vis1.pollEvent(event) )
+        {
+          if ( event.type == sf::Event::Closed )
+          {
+            vis1.close();
+            vis2.close();
+          }
+          else if ( event.type == sf::Event::KeyPressed )
+          {
+            goToNextIteration = true;
+          }
+        }
+        vis1.display();
+        vis2.display();
+      }
+
+    }
+  }
+
+  if ( visualizeResults )
+  {
+    vis1.close();
+    vis2.close();
   }
 
   string fname("data/convergence.h5");

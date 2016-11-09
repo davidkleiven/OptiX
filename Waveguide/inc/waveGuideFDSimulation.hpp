@@ -61,6 +61,7 @@ public:
   const Solver2D& getSolver() const { return *solver; };
   void useBorderTracker();
   BorderTracker* getBorderTracker(){ return bTracker; };
+  void closestIndex( double x, double z, unsigned int &ix, unsigned int &iz ) const;
 
   // Virtual methods
   virtual void setBoundaryConditions( const ParaxialSource& src ); // This function should fill the boundary
@@ -88,7 +89,6 @@ protected:
   bool solverInitializedViaInit{false};
 
   void sparseSave( const std::string &fname, double intensityThreshold ) const;
-  void closestIndex( double x, double z, unsigned int &ix, unsigned int &iz ) const;
   double trapezoidalIntegrateIntensityZ( unsigned int iz, unsigned int ixStart, unsigned int ixEnd ) const;
 
   void getExitField( arma::cx_vec &vec ) const;
