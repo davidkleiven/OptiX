@@ -31,9 +31,10 @@ double compare( const WaveGuideFDSimulation &poorDisc, const WaveGuideFDSimulati
   double err1Sq = 0.0;
   double err2Sq = 0.0;
   double crossTerm = 0.0;
-  for ( unsigned int ic=0;ic<Nc;ic++ )
+  cout << Nc << " " << Nr << endl;
+  for ( unsigned int ic=0;ic<Nc-1;ic++ )
   {
-    for ( unsigned int ir=0;ir<Nr;ir++ )
+    for ( unsigned int ir=0;ir<Nr-1;ir++ )
     {
       double err1 = abs( poorDisc.getSolver().getSolution()(ir,ic) );
       double x = poorDisc.getX(ir);
@@ -90,22 +91,41 @@ int main( int argc, char** argv )
   for ( unsigned int i=0;i<nElem-1;i++ )
   {
     clog << i+1 << " of " << nElem-1 << endl;
-    double stepX1 = (xmax-xmin)/static_cast<double>(N[i]);
-    double stepZ1 = (zmax-zmin)/static_cast<double>(N[i]);
-    double stepX2 = (xmax-xmin)/static_cast<double>(N[i+1]);
-    double stepZ2 = (zmax-zmin)/static_cast<double>(N[i+1]);
-    wg1.setTransverseDiscretization(xmin,xmax,stepX1);
-    wg1.setLongitudinalDiscretization(zmin,zmax,stepZ1);
-    wg1.setSolver(solver); // Need to set the solver to ensure after changing the discretization
-    wg1.setBoundaryConditions(pw1);
-    wg1.solve();
+    if (( i == 0 ) || ( i%2 == 1))
+    {
+      clog << "Wg1 uses: n = " << N[i+i%2] << endl;
+      double stepX1 = (xmax-xmin)/static_cast<double>(N[i+i%2]);
+      double stepZ1 = (zmax-zmin)/static_cast<double>(N[i+i%2]);
+      wg1.setTransverseDiscretization(xmin,xmax,stepX1);
+      wg1.setLongitudinalDiscretization(zmin,zmax,stepZ1);
+      wg1.setSolver(solver); // Need to set the solver to ensure after changing the discretization
+      wg1.setBoundaryConditions(pw1);
+      wg1.solve();
+    }
 
-    wg2.setTransverseDiscretization(xmin, xmax, stepX2);
-    wg2.setLongitudinalDiscretization(zmin, zmax, stepZ2);
-    wg2.setSolver(solver2);
-    wg2.setBoundaryConditions(pw2);
-    wg2.solve();
-    error.push_back( compare(wg1,wg2) );
+    if (( i == 0 ) || (i%2 == 0))
+    {
+      clog << "Wg2 uses: n = " << N[i+1] << endl;
+      double stepX2 = (xmax-xmin)/static_cast<double>(N[i+1]);
+      double stepZ2 = (zmax-zmin)/static_cast<double>(N[i+1]);
+
+      wg2.setTransverseDiscretization(xmin, xmax, stepX2);
+      wg2.setLongitudinalDiscretization(zmin, zmax, stepZ2);
+      wg2.setSolver(solver2);
+      wg2.setBoundaryConditions(pw2);
+      wg2.solve();
+    }
+
+    if (( i== 0 ) || (i%2 == 0))
+    {
+      clog << "Comparing using wg2 finer than wg1\n";
+      error.push_back( compare(wg1, wg2) );
+    }
+    else if ( i%2 == 1 )
+    {
+      clog << "Comparing using that wg1 finer than wg2\n";
+      error.push_back( compare(wg2, wg1) );
+    }
   }
 
   string fname("data/convergence.h5");
