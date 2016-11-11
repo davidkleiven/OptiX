@@ -26,6 +26,8 @@ class Eigenmodes:
         self.delta = None
         self.width = None
         self.transmission = None
+        self.nPropagatingModes = 0
+        self.exportTransFname = ""
 
     def read( self, h5file ):
         indx = 0
@@ -74,7 +76,7 @@ class Eigenmodes:
         # Locate the start indices
         x = np.linspace( self.modes[modenumber].xmin, self.modes[modenumber].xmax, N)
         xstart = np.argmin( np.abs( x-x0) )
-        xEnd = np.argmin( np.abs( x-xmax) )
+        xEnd = np.argmin( np.abs(x-xmax) )
 
         if ( xstart < 0 ):
             xstart = 0
@@ -111,22 +113,23 @@ class Eigenmodes:
             coeff[i] = np.sum( mode.profile*amplitudeIn(x) )*dx
         return coeff
 
-    def transmissionByIntegratOverWG( self, coeff, propConst, absorption, k0, zmax ):
+    def transmissionByIntegrateOverWG( self, coeff, propConst, absorption, k0, zmax ):
         z = np.linspace(0.0, zmax, 10001)
         T = np.zeros(len(z))
+        Tfull = np.zeros(len(z))
         xmin = self.modes[0].xmin
         xmax = self.modes[0].xmax
         x = np.linspace(xmin, xmax, len(self.modes[0].profile))
         xstart = np.argmin( np.abs( x+self.width))
         xend = np.argmin( np.abs(x) )
         intensity = np.zeros((len(x),len(z))) + 1j*np.zeros((len(x), len(z)))
-        for n in range(0, 13):
+        for n in range(0, self.nPropagatingModes):
             intensity += self.fieldFromMode(n, coeff[n], propConst[n], absorption[n], k0, z)
 
         intensity = np.abs( intensity )**2
         for i in range(0, len(T)):
             T[i] = np.trapz( intensity[xstart:xend,i])
-        #T = np.sum( intensity[:, :], axis=0 )
+            Tfull[i] = np.trapz( intensity[:,i])
 
         fig = plt.figure()
         ax = fig.add_subplot(1,1,1)
@@ -138,7 +141,15 @@ class Eigenmodes:
         fig.savefig( fname, bbox_inches="tight")
         print ("Figure written to %s"%(fname))
 
-
+        if ( self.exportTransFname != "" ):
+            with h5.File( self.exportTransFname, 'w' ) as hf:
+                dset1 = hf.create_dataset( "transmission", data=T)
+                dset2 = hf.create_dataset( "transmissionFull", data=Tfull)
+                dset1.attrs.create("zmin", 0.0)
+                dset1.attrs.create("zmax", zmax)
+                dset2.attrs.create("zmin", 0.0)
+                dset2.attrs.create("zmax", zmax)
+            print ("Transmission data written to %s"%(self.exportTransFname))
 
     def plotAbsorption( self, coeff, absCoeff, k0, zmax ):
         fig = plt.figure()
@@ -146,7 +157,7 @@ class Eigenmodes:
         z = np.linspace(0.0, zmax, 101 )
         T = np.zeros(len(z))
         #for i in range(0, len(coeff)):
-        for i in range(0, 13):
+        for i in range(0, self.nPropagatingModes):
             T += coeff[i]**2 *np.exp( -k0*z*absCoeff[i])
 
         T /= T[0]
@@ -170,10 +181,7 @@ class Eigenmodes:
         z = np.linspace( 0.0, wglength, Nz )
         cmap = "viridis"
         field = np.zeros( (Nx,Nz) )+1j*np.zeros( (Nx,Nz) )
-        #for i in range( 0, len(self.modes) ):
-        for i in range( 0, 13 ):
-            #decayPart =  coeff[i]*np.exp(1j*propConst[i]*z)*np.exp(-0.5*absorption[i]*k0*z)
-            #field += np.outer( self.modes[i].profile, decayPart )
+        for i in range( 0, self.nPropagatingModes ):
             field += self.fieldFromMode( i, coeff[i], propConst[i], absorption[i], k0, z)
         field = np.abs( field )**2
 
