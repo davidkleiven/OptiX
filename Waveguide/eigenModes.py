@@ -110,6 +110,34 @@ class Eigenmodes:
             coeff[i] = np.sum( mode.profile*amplitudeIn(x) )*dx
         return coeff
 
+    def transmissionByIntegratOverWG( self, coeff, propConst, absorption, k0, zmax ):
+        z = np.linspace(0.0, zmax, 1001)
+        T = np.zeros(len(z))
+        xmin = self.modes[0].xmin
+        xmax = self.modes[0].xmax
+        x = np.linspace(xmin, xmax, len(self.modes[0].profile))
+        xstart = np.argmin( np.abs( x+self.width))
+        xend = np.argmin( np.abs(x) )
+        intensity = np.zeros((len(x),len(z))) + 1j*np.zeros((len(x), len(z)))
+        for n in range(0, 13):
+            intensity += self.fieldFromMode(n, coeff[n], propConst[n], absorption[n], k0, z)
+
+        intensity = np.abs( intensity )**2
+        T = np.sum( intensity[xstart:xend, :], axis=0 )
+        #T = np.sum( intensity[:, :], axis=0 )
+
+        fig = plt.figure()
+        ax = fig.add_subplot(1,1,1)
+        T /= T[0]
+        ax.plot( z/1E3, np.log(T), color="black" )
+        ax.set_xlabel( "$z (\mathrm{\mu m})$" )
+        ax.set_ylabel( "$\ln T$" )
+        fname = "Figures/transmissionModesIntegration.pdf"
+        fig.savefig( fname, bbox_inches="tight")
+        print ("Figure written to %s"%(fname))
+
+
+
     def plotAbsorption( self, coeff, absCoeff, k0, zmax ):
         fig = plt.figure()
         ax = fig.add_subplot(1,1,1)
@@ -129,6 +157,10 @@ class Eigenmodes:
         fig.savefig(fname, bbox_inches="tight")
         print ("Figure written to %s"%(fname))
 
+    def fieldFromMode( self, modenumber, coeff, prop, decay, k0, z ):
+        decayPart =  coeff*np.exp(1j*prop*z)*np.exp(-0.5*decay*k0*z)
+        return np.outer( self.modes[modenumber].profile, decayPart )
+
     def contour( self, coeff, propConst, absorption, k0, wglength ):
         cmap = "viridis"
         Nx = len( self.modes[0].profile )
@@ -138,8 +170,9 @@ class Eigenmodes:
         field = np.zeros( (Nx,Nz) )+1j*np.zeros( (Nx,Nz) )
         #for i in range( 0, len(self.modes) ):
         for i in range( 0, 13 ):
-            decayPart =  coeff[i]*np.exp(1j*propConst[i]*z)*np.exp(-0.5*absorption[i]*k0*z)
-            field += np.outer( self.modes[i].profile, decayPart )
+            #decayPart =  coeff[i]*np.exp(1j*propConst[i]*z)*np.exp(-0.5*absorption[i]*k0*z)
+            #field += np.outer( self.modes[i].profile, decayPart )
+            field += self.fieldFromMode( i, coeff[i], propConst[i], absorption[i], k0, z)
         field = np.abs( field )**2
 
         fig = plt.figure()
