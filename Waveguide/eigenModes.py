@@ -134,6 +134,7 @@ class Eigenmodes:
         fig = plt.figure()
         ax = fig.add_subplot(1,1,1)
         T /= T[0]
+        Tfull /= Tfull[0]
         ax.plot( z/1E3, np.log(T), color="black" )
         ax.set_xlabel( "$z (\mathrm{\mu m})$" )
         ax.set_ylabel( "$\ln T$" )
