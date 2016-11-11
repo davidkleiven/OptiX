@@ -60,6 +60,10 @@ void WaveGuide1DSimulation::save( ControlFile &ctl ) const
   unsigned int rank = 1;
   file_id = H5Fcreate(h5fname.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT );
 
+  double xmin = solver->getXmin();
+  double xmax = solver->getXmax();
+  double delta = cladding->getDelta();
+  double beta = cladding->getBeta();
   for ( unsigned int i=0;i<solver->getNmodes();i++ )
   {
     stringstream dataname;
@@ -69,6 +73,12 @@ void WaveGuide1DSimulation::save( ControlFile &ctl ) const
     // Armadillo stores column major in buffer
     H5LTmake_dataset( file_id, dataname.str().c_str(), rank, &dims, H5T_NATIVE_DOUBLE, solver->getSolution().colptr(i));
     H5LTset_attribute_double( file_id, dataname.str().c_str(), "eigenvalue", &eigval, 1);
+    H5LTset_attribute_double( file_id, dataname.str().c_str(), "xmin", &xmin, 1);
+    H5LTset_attribute_double( file_id, dataname.str().c_str(), "xmax", &xmax, 1);
+    H5LTset_attribute_double( file_id, dataname.str().c_str(), "delta", &delta, 1);
+    H5LTset_attribute_double( file_id, dataname.str().c_str(), "beta", &beta, 1);
+    H5LTset_attribute_double( file_id, dataname.str().c_str(), "width", &width, 1);
+    H5LTset_attribute_double( file_id, dataname.str().c_str(), "Rcurv", &outerRadius, 1);
   }
 
   H5Fclose(file_id);

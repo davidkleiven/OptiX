@@ -31,7 +31,7 @@ TEST_SOURCES := $(addprefix unittest/, ${TEST_SOURCES})
 TEST_OBJECTS := $(addprefix unittest/, ${TEST_OBJECTS})
 
 waveguide.out: ${OBJECTS}
-	g++ -std=c++11 ${OPT} -o $@ $^ -L ${LDIR} -L ${ARMA_PATH} ${LIBS}
+	g++ -std=c++11 ${OPT} -o $@ $^ -L ${LDIR} -L ${ARMA_PATH} ${LIBS} ${GRAPHLIBS}
 
 unittest.out: ${TEST_OBJECTS} $(filter-out obj/main.o, ${OBJECTS})
 	g++ -std=c++11 -o $@ $^ -L ${LDIR} -L ${ARMA_PATH} ${LIBS} -lboost_program_options -lboost_unit_test_framework
