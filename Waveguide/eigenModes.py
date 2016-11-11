@@ -1,3 +1,8 @@
+import sys
+sys.path.append("../FresnelFDTD")
+import mplLaTeX as mp
+import matplotlib as mpl
+mpl.rcParams.update( mp.params )
 import numpy as np
 from matplotlib import pyplot as plt
 import h5py as h5
@@ -74,10 +79,10 @@ class Eigenmodes:
 
     def effectiveAbsorption( self ):
         effAbs = np.zeros( len( self.modes) )
-        print ("Note: Assuming that the waveguide starts at x=0 and ends at x=width!")
+        print ("Note: Assuming that the waveguide starts at x=-width and ends at x=0.0!")
         for i in range( 0, len(effAbs) ):
             total = self.integrateMode( i, -2*self.width, 4.0*self.width )
-            inside = self.integrateMode( i, 0.0, self.width )
+            inside = self.integrateMode( i, -self.width, 0.0 )
             outside = total - inside
             effAbs[i] = self.beta*outside/total
         return effAbs
@@ -87,7 +92,7 @@ class Eigenmodes:
         # Prop const[n] = beta[n]-k_0 = -0.5*E/k_0^2
         propConst = np.zeros( len( self.modes ) )
         for i in range(0, len(self.modes) ):
-            propConst[i] = -0.5*self.modes[i].eigenvalue/k0**2
+            propConst[i] = -0.5*self.modes[i].eigenvalue/k0
         return propConst
 
     def computeInitialCoefficient( self, amplitudeIn ):
@@ -100,7 +105,26 @@ class Eigenmodes:
             coeff[i] = np.sum( mode.profile*amplitudeIn(x) )*dx
         return coeff
 
-    def contour( self, coeff, propConst, absorption, wglength ):
+    def plotAbsorption( self, coeff, absCoeff, k0, zmax ):
+        fig = plt.figure()
+        ax = fig.add_subplot(1,1,1)
+        z = np.linspace(0.0, zmax, 101 )
+        T = np.zeros(len(z))
+        #for i in range(0, len(coeff)):
+        for i in range(0, 13):
+            T += coeff[i]**2 *np.exp( -k0*z*absCoeff[i])
+
+        T /= T[0]
+        fig = plt.figure()
+        ax = fig.add_subplot(1,1,1)
+        ax.plot( z/1E3, np.log(T), color="black" )
+        ax.set_ylabel("$\ln T$")
+        ax.set_xlabel("$z$ ($\mathrm{\mu m}$)")
+        fname = "Figures/transmissionModes.pdf"
+        fig.savefig(fname, bbox_inches="tight")
+        print ("Figure written to %s"%(fname))
+
+    def contour( self, coeff, propConst, absorption, k0, wglength ):
         Nx = len( self.modes[0].profile )
         Nz = 2000
         z = np.linspace( 0.0, wglength, Nz )
@@ -108,12 +132,19 @@ class Eigenmodes:
         field = np.zeros( (Nx,Nz) )+1j*np.zeros( (Nx,Nz) )
         #for i in range( 0, len(self.modes) ):
         for i in range( 0, 13 ):
-            decayPart =  coeff[i]*np.exp(1j*propConst[i]*z)*np.exp(-absorption[i]*z)
-            print decayPart.shape
+            decayPart =  coeff[i]*np.exp(1j*propConst[i]*z)*np.exp(-0.5*absorption[i]*k0*z)
             field += np.outer( self.modes[i].profile, decayPart )
-        field = np.abs( field )
+        field = np.abs( field )**2
 
         fig = plt.figure()
         ax = fig.add_subplot(1,1,1)
-        im = ax.imshow( field )
-        plt.show()
+        xmin = self.modes[0].xmin
+        xmax = self.modes[0].xmax
+        extent = [0.0, wglength/1E3, xmin, xmax]
+        im = ax.imshow( field, extent=extent, aspect="equal", origin="lower", norm=mpl.colors.LogNorm() )
+        ax.set_aspect( (extent[1]-extent[0])/(extent[3]-extent[2]) )
+        ax.set_xlabel("$z (\mathrm{\mu m})$")
+        ax.set_ylabel("$x$ (nm)")
+        fname = "Figures/contour.jpeg"
+        fig.savefig( fname, bbox_inches="tight", dpi=800)
+        print ("Figure written to %s"%(fname))
