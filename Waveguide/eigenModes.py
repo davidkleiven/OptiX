@@ -82,8 +82,7 @@ class Eigenmodes:
             xstart = 0
         if ( xEnd > N ):
             xEnd = N
-
-        return dx*np.sum( self.modes[modenumber].profile[xstart:xEnd]**2 )
+        return dx*np.trapz( self.modes[modenumber].profile[xstart:xEnd]**2 )
 
     def effectiveAbsorption( self ):
         effAbs = np.zeros( len( self.modes) )
@@ -172,7 +171,8 @@ class Eigenmodes:
         print ("Figure written to %s"%(fname))
 
     def fieldFromMode( self, modenumber, coeff, prop, decay, k0, z ):
-        decayPart =  coeff*np.exp(1j*prop*z)*np.exp(-0.5*decay*k0*z)
+        beta = k0 + prop
+        decayPart =  coeff*np.exp(1j*prop*z)*np.exp(-0.5*decay*beta*z)
         return np.outer( self.modes[modenumber].profile, decayPart )
 
     def contour( self, coeff, propConst, absorption, k0, wglength ):
