@@ -41,6 +41,7 @@ protected:
   virtual double waveGuideStartX( double z ) const;
   virtual double waveGuideEndX( double z ) const;
   std::vector<double> transmission;
+  std::vector<double> transmissionFull;
   double stepWhenComputingTransmission{0.0};
   bool useSmoothed{false};
 };

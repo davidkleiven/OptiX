@@ -44,6 +44,7 @@ void CurvedWaveGuideFD::computeTransmission( double step )
   closestIndex( 0.0, 0.0, wgStart, zIndx );
   closestIndex( width, 0.0, wgEnd, zIndx );
   double intensityAtZero = trapezoidalIntegrateIntensityZ( zIndx, wgStart, wgEnd );
+  double intensityAtZeroFull = trapezoidalIntegrateIntensityZ( zIndx, 0, nodeNumberTransverse()-1 );
 
   // Just simple trapezoidal rule for integrating in z-direction
   //double z = step;
@@ -67,7 +68,9 @@ void CurvedWaveGuideFD::computeTransmission( double step )
     assert( isInsideGuide( xWgEnd-1, z ) );
 
     double intensity = trapezoidalIntegrateIntensityZ( zIndx, wgStart, wgEnd );
+    double intensityFull = trapezoidalIntegrateIntensityZ( zIndx, 0, nodeNumberTransverse()-1 );
     transmission.push_back( intensity/intensityAtZero );
+    transmissionFull.push_back( intensityFull/intensityAtZeroFull );
     z += step;
   }
   stepWhenComputingTransmission = step; // Save for later
@@ -97,6 +100,7 @@ void CurvedWaveGuideFD::saveTransmission( ControlFile &ctl ) const
   hsize_t dim = transmission.size();
   hid_t file_id = H5Fcreate( fname.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
   H5LTmake_dataset( file_id, "transmission", rank, &dim, H5T_NATIVE_DOUBLE, &transmission[0]);
+  H5LTmake_dataset( file_id, "transmissionFull", rank, &dim, H5T_NATIVE_DOUBLE, &transmissionFull[0]);
   H5Fclose(file_id);
   ctl.get()["Transmission"] = trans;
   clog << "Transmission is written to " << fname << endl;
