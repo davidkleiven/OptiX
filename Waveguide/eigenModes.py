@@ -25,6 +25,7 @@ class Eigenmodes:
         self.beta = None
         self.delta = None
         self.width = None
+        self.transmission = None
 
     def read( self, h5file ):
         indx = 0
@@ -94,7 +95,7 @@ class Eigenmodes:
 
     def propagationConstants( self, k0 ):
         # Subtract off the "main" propagation constant k
-        # Prop const[n] = beta[n]-k_0 = -0.5*E/k_0^2
+        # Prop const[n] = beta[n]-k_0 = -0.5*E/k_0
         propConst = np.zeros( len( self.modes ) )
         for i in range(0, len(self.modes) ):
             propConst[i] = -0.5*self.modes[i].eigenvalue/k0
@@ -111,7 +112,7 @@ class Eigenmodes:
         return coeff
 
     def transmissionByIntegratOverWG( self, coeff, propConst, absorption, k0, zmax ):
-        z = np.linspace(0.0, zmax, 1001)
+        z = np.linspace(0.0, zmax, 10001)
         T = np.zeros(len(z))
         xmin = self.modes[0].xmin
         xmax = self.modes[0].xmax
@@ -123,7 +124,8 @@ class Eigenmodes:
             intensity += self.fieldFromMode(n, coeff[n], propConst[n], absorption[n], k0, z)
 
         intensity = np.abs( intensity )**2
-        T = np.sum( intensity[xstart:xend, :], axis=0 )
+        for i in range(0, len(T)):
+            T[i] = np.trapz( intensity[xstart:xend,i])
         #T = np.sum( intensity[:, :], axis=0 )
 
         fig = plt.figure()
