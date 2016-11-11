@@ -6,6 +6,11 @@ mpl.rcParams.update( mp.params )
 import numpy as np
 from matplotlib import pyplot as plt
 import h5py as h5
+try:
+    import colormaps as cmaps
+    plt.register_cmap(name="viridis", cmap=cmaps.viridis)
+except:
+    print ("Module colormaps not found")
 
 class Mode:
     def __init__(self):
@@ -125,6 +130,7 @@ class Eigenmodes:
         print ("Figure written to %s"%(fname))
 
     def contour( self, coeff, propConst, absorption, k0, wglength ):
+        cmap = "viridis"
         Nx = len( self.modes[0].profile )
         Nz = 2000
         z = np.linspace( 0.0, wglength, Nz )
@@ -141,7 +147,8 @@ class Eigenmodes:
         xmin = self.modes[0].xmin
         xmax = self.modes[0].xmax
         extent = [0.0, wglength/1E3, xmin, xmax]
-        im = ax.imshow( field, extent=extent, aspect="equal", origin="lower", norm=mpl.colors.LogNorm() )
+        im = ax.imshow( field, extent=extent, aspect="equal", origin="lower", cmap=cmap)#, norm=mpl.colors.LogNorm() )
+        fig.colorbar(im)
         ax.set_aspect( (extent[1]-extent[0])/(extent[3]-extent[2]) )
         ax.set_xlabel("$z (\mathrm{\mu m})$")
         ax.set_ylabel("$x$ (nm)")
