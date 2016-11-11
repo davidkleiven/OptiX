@@ -15,8 +15,11 @@ int main( int argc, char** argv )
 {
   gsl_error_handler_t* prevHandler = gsl_set_error_handler_off();
   double eDensityTa = 4066.5; // nm^-3 same number as Salditt et al.
+  double beta = 3.45E-6; // Salditt is not use in the calculation, but useful when postprocessing
+  double delta = 4.49E-5;
   Cladding cladding;
   cladding.setElectronDensity( eDensityTa );
+  cladding.setRefractiveIndex( delta, beta );
 
   cout << "Potential in Ta: " << cladding.getPotential() << "nm^{-2}\n";
 
