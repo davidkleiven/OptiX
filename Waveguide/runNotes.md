@@ -118,3 +118,4 @@
 768375 | Cartesiann Nz=10000, Nx=2000, Lz=400um | Far field looks very good |
 352700 | Eigenmode run, saving more parameters in the hdf5 file | Looks good |
 172060 | Eigenmode run| Looks good | 
+515190 | Eigenmode run, 99 modes| Looks good | 
