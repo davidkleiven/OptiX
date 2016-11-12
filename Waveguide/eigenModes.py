@@ -28,6 +28,7 @@ class Eigenmodes:
         self.transmission = None
         self.nPropagatingModes = 0
         self.exportTransFname = ""
+        self.radius = None
 
     def read( self, h5file ):
         indx = 0
@@ -41,6 +42,8 @@ class Eigenmodes:
                     raise( "Could not read delta from h5file!")
                 elif ( self.width is None ):
                     raise( "Could not read the waveguide width from the h5file!")
+                elif ( self.radius is None ):
+                    raise( "Could not read the radius of curvature from the h5file!" )
                 return
 
             mode = Mode()
@@ -56,6 +59,8 @@ class Eigenmodes:
                 self.delta = dset.attrs.get( "delta" )
             if ( self.width is None ):
                 self.width = dset.attrs.get( "width" )
+            if ( self.radius is None ):
+                self.radius = dset.attrs.get( "Rcurv" )
 
             if ( eigval is None ):
                 raise ("No eigenvalue attached to the file")
@@ -68,6 +73,23 @@ class Eigenmodes:
             mode.xmax = float( xmax )
             self.modes.append( mode )
             indx += 1
+
+    def imaginaryPerturbation( self, modenumber ):
+        N = len( self.modes[modenumber].profile )
+        x = np.linspace( self.modes[modenumber].xmin, self.modes[modenumber].xmax, N)
+        xstart = np.argmin( np.abs( x+self.width) )
+        xEnd = np.argmin( np.abs(x) )
+        total =  np.trapz( self.modes[modenumber].profile**2 )
+        inside = np.trapz( self.modes[modenumber].profile[xstart:xEnd]**2 )
+        outside = np.trapz( self.modes[modenumber].profile[:xstart]**2 ) + np.trapz( self.modes[modenumber].profile[xEnd:]**2)
+        I1 = -2.0 *self.beta*(total-inside)/total
+        I1 = -2.0 *self.beta*outside/total
+
+        # Second term
+        total2 = np.trapz( x*self.modes[modenumber].profile**2 )
+        inside2 = np.trapz( x[xstart:xEnd]*self.modes[modenumber].profile[xstart:xEnd]**2 )
+        I2 = -(4.0*self.beta /self.radius )*(total2-inside2)/total
+        return I1+I2
 
     def integrateMode( self, modenumber, x0, xmax ):
         N = len( self.modes[modenumber].profile )
@@ -85,13 +107,15 @@ class Eigenmodes:
         return dx*np.trapz( self.modes[modenumber].profile[xstart:xEnd]**2 )
 
     def effectiveAbsorption( self ):
+        k0 = 2.0*np.pi/0.1569 # Just for debuggin
         effAbs = np.zeros( len( self.modes) )
         print ("Note: Assuming that the waveguide starts at x=-width and ends at x=0.0!")
         for i in range( 0, len(effAbs) ):
-            total = self.integrateMode( i, -2*self.width, 4.0*self.width )
-            inside = self.integrateMode( i, -self.width, 0.0 )
-            outside = total - inside
-            effAbs[i] = self.beta*outside/total
+            #total = self.integrateMode( i, -2*self.width, 4.0*self.width )
+            #inside = self.integrateMode( i, -self.width, 0.0 )
+            #outside = total - inside
+            #effAbs[i] = self.beta*outside/total
+            effAbs[i] =  -self.imaginaryPerturbation( i )/2.0 # Why 4.0?
         return effAbs
 
     def propagationConstants( self, k0 ):
@@ -172,7 +196,8 @@ class Eigenmodes:
 
     def fieldFromMode( self, modenumber, coeff, prop, decay, k0, z ):
         beta = k0 + prop
-        decayPart =  coeff*np.exp(1j*prop*z)*np.exp(-0.5*decay*beta*z)
+        #decayPart =  coeff*np.exp(1j*prop*z)*np.exp(-0.5*decay*k0*z)
+        decayPart =  coeff*np.exp(1j*prop*z)*np.exp(-decay*k0*z)
         return np.outer( self.modes[modenumber].profile, decayPart )
 
     def contour( self, coeff, propConst, absorption, k0, wglength ):

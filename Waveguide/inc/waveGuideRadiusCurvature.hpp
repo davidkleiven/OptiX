@@ -10,5 +10,7 @@ public:
   void setRadiusOfCurvature( double R ){ outerRadius = R; };
   double potential( double x ) const override;
   void load( ControlFile &ctl ) override;
+protected:
+  WaveGuideLargeCurvature( const char* name ):WaveGuide1DSimulation(name){};
 };
 #endif

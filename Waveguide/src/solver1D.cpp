@@ -2,12 +2,14 @@
 #include <cassert>
 #include <stdexcept>
 #include <cmath>
+#include "waveGuide.hpp"
 
 using namespace std;
 
 Solver1D::~Solver1D()
 {
   delete solution;
+  if ( solutionImag != NULL ) delete solutionImag;
 }
 
 void Solver1D::setLimits( double xlow, double xhigh )
@@ -96,4 +98,13 @@ double Solver1D::normEigenvec( unsigned int mode ) const
     norm += 2.0*pow( (*solution)(i,mode), 2 );
   }
   return 0.5*norm*(x2-x1)/static_cast<double>(solution->n_rows);
+}
+
+void Solver1D::setGuide( const WaveGuide1DSimulation &guide )
+{
+  waveguide = &guide;
+  if ( waveguide->useComplex() )
+  {
+    solutionImag = new arma::mat();
+  }
 }
