@@ -71,14 +71,22 @@ void WaveGuide1DSimulation::save( ControlFile &ctl ) const
     double eigval = solver->getEigenvalue(i);
 
     // Armadillo stores column major in buffer
-    H5LTmake_dataset( file_id, dataname.str().c_str(), rank, &dims, H5T_NATIVE_DOUBLE, solver->getSolution().colptr(i));
-    H5LTset_attribute_double( file_id, dataname.str().c_str(), "eigenvalue", &eigval, 1);
-    H5LTset_attribute_double( file_id, dataname.str().c_str(), "xmin", &xmin, 1);
-    H5LTset_attribute_double( file_id, dataname.str().c_str(), "xmax", &xmax, 1);
-    H5LTset_attribute_double( file_id, dataname.str().c_str(), "delta", &delta, 1);
-    H5LTset_attribute_double( file_id, dataname.str().c_str(), "beta", &beta, 1);
-    H5LTset_attribute_double( file_id, dataname.str().c_str(), "width", &width, 1);
-    H5LTset_attribute_double( file_id, dataname.str().c_str(), "Rcurv", &outerRadius, 1);
+    string name(dataname.str());
+    H5LTmake_dataset( file_id, name.c_str(), rank, &dims, H5T_NATIVE_DOUBLE, solver->getSolution().colptr(i));
+    H5LTset_attribute_double( file_id, name.c_str(), "eigenvalue", &eigval, 1);
+    H5LTset_attribute_double( file_id, name.c_str(), "xmin", &xmin, 1);
+    H5LTset_attribute_double( file_id, name.c_str(), "xmax", &xmax, 1);
+    H5LTset_attribute_double( file_id, name.c_str(), "delta", &delta, 1);
+    H5LTset_attribute_double( file_id, name.c_str(), "beta", &beta, 1);
+    H5LTset_attribute_double( file_id, name.c_str(), "width", &width, 1);
+    H5LTset_attribute_double( file_id, name.c_str(), "Rcurv", &outerRadius, 1);
+    if ( useComplexPotential )
+    {
+      double eigvalImag = solver->getEigenvalueImag(i);
+      H5LTset_attribute_double( file_id, name.c_str(), "eigenvalueImag", &eigvalImag, 1);
+      name += "imag";
+      H5LTmake_dataset( file_id, name.c_str(), rank, &dims, H5T_NATIVE_DOUBLE, solver->getSolutionImag().colptr(i) );
+    }
   }
 
   H5Fclose(file_id);

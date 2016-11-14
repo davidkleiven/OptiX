@@ -39,9 +39,9 @@ int main( int argc, char** argv )
   */
 
   StandardFD solver;
-  solver.setLimits( -150.0, 50.0 );
-  solver.setStepsize(1.0);
-  solver.setNumberOfModesToStore( 15 );
+  solver.setLimits( -200.0, 100.0 );
+  solver.setStepsize(0.3);
+  solver.setNumberOfModesToStore( 99 );
 
   wg.setSolver( solver );
   ControlFile ctl("data/eigenmodes");

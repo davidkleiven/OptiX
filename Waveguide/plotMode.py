@@ -89,8 +89,8 @@ def main(argv):
     stat = json.load(infile)
     infile.close()
 
-    modeStart = 12
-    modeEnd = 14
+    modeStart = 0
+    modeEnd = 3
     nModes = 20
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)

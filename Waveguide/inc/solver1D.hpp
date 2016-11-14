@@ -14,6 +14,7 @@ class Solver1D
     virtual void solve() = 0;
     void setLimits( double x0, double x2 );
     double getEigenvalue( unsigned int i ) const { return eigenvalues[i]; };
+    double getEigenvalueImag( unsigned int i ) const { return eigenvaluesImag[i]; };
     double getXmin() const { return x1; };
     double getXmax() const { return x2; };
     void addEigenmode( double eigenvalue, double eigvec[], unsigned int size ); // Intended for use when loading
@@ -21,9 +22,10 @@ class Solver1D
     unsigned int getNmodes() const { return nModes; };
     unsigned int getEigenVectorSize() const { return solution->n_rows; };
     std::string getName() const { return name; };
-    void setGuide( const WaveGuide1DSimulation &guide ){ waveguide = &guide; };
+    void setGuide( const WaveGuide1DSimulation &guide );
     const arma::mat& getSolution() const { return *solution; };
     arma::mat& getSolution() { return *solution; };
+    arma::mat& getSolutionImag() { return *solutionImag; };
     double getSolution( double x, unsigned int eigenmode ) const;
     void setNumberOfModesToStore( unsigned int modes ) { nModes=modes;};
     void printMode( unsigned int mode ) const; // For debugging
@@ -34,7 +36,9 @@ class Solver1D
     std::string name;
     unsigned int nModes{0};
     std::vector<double> eigenvalues;
+    std::vector<double> eigenvaluesImag;
     arma::mat *solution{NULL};
+    arma::mat *solutionImag{NULL};
     const WaveGuide1DSimulation* waveguide{NULL};
     unsigned int maxNumberOfModes{100};
 

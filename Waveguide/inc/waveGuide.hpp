@@ -2,7 +2,9 @@
 #define WAVE_GUIDE_1D_SIMULATION_H
 #include <cstddef>
 #include <string>
+#include <complex>
 
+typedef std::complex<double> cdouble;
 class Cladding;
 class Solver1D;
 class ControlFile;
@@ -19,12 +21,14 @@ public:
   void setSolver( Solver1D &solv );
   void setWavenumber( double k ){ wavenumber = k; };
   void setWaveLength( double lambda ){ wavenumber = 2.0*PI/lambda; };
-  virtual double potential( double x ) const = 0;
+  virtual double potential( double x ) const {return 0.0;};
+  virtual cdouble complexPotential( double x ) const { return 0.0; };
   double getWavenumber() const { return wavenumber; };
   void solve();
   void save( ControlFile &ctl ) const;
   virtual void load( ControlFile &ctl );
   const Solver1D* getSolver() const { return solver; };
+  bool useComplex() const { return useComplexPotential; };
 protected:
   double width;
   double innerRadius;
@@ -35,7 +39,7 @@ protected:
   static const double PI;
   std::string name;
   void writePotentialToFile( const std::string &fname, double xmin, double xmax ) const;
-
+  bool useComplexPotential{false};
 private:
     bool solverInitializedFromLoad{false};
 };
