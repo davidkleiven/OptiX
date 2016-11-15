@@ -111,7 +111,7 @@ int main( int argc, char **argv )
   double xMarginAboveAndBelow = 0.01E3; // In nanometers = 0.5 um
   unsigned int Nz = 10000; // Number of discretization points in x and z direction
   unsigned int Nx = 2000;
-  
+
   unsigned int nPointsTransmission = 200;
 
   Cladding cladding;
@@ -142,8 +142,8 @@ int main( int argc, char **argv )
 
     if ( useCylCrd )
     {
-      xmin = -2.0*width;
-      xmax = 2.0*width;
+      xmin = -width;
+      xmax = width+width;
       // Note now z refers to the azimutal angle theta and x to the radius
       zmin = 0.0;
       double wgDistance = 400E3; // Simulate 400 um
