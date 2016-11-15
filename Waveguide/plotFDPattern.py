@@ -24,6 +24,11 @@ def plot2D(data, stat, borders, field=None, phase=None):
     Z,X = np.meshgrid(z,x)
     '''
 
+    normalize = True
+    appendName = ""
+    if ( normalize ):
+        appendName = "normalized"
+
     try:
         crd = stat["waveguide"]["crd"]
     except:
@@ -41,17 +46,21 @@ def plot2D(data, stat, borders, field=None, phase=None):
         xlabel = "$x$ (nm)"
 
     extent = [zmin, zmax, stat["xDiscretization"]["min"], stat["xDiscretization"]["max"]]
+    dataNorm = np.abs(data)**2
+    if ( normalize ):
+        dataNorm /= np.max(dataNorm)
+
     k = 2.0*np.pi/0.1569
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
-    im = ax.imshow(np.abs(data)**2, extent=extent, cmap=colormap, aspect=1.0, origin ="lower")
+    im = ax.imshow(dataNorm, extent=extent, cmap=colormap, aspect=1.0, origin ="lower")
     ax.set_xlabel(zlabel)
     ax.set_ylabel(xlabel)
     ax.set_aspect( np.abs( (extent[1]-extent[0])/(extent[3]-extent[2]) ))
     fig.colorbar( im )
     if ( not borders is None ):
         borders.visualize( ax )
-    fname = "Figures/contourLinScale%d.jpeg"%(stat["UID"])
+    fname = "Figures/contourLinScale%d%s.jpeg"%(stat["UID"], appendName)
     fig.savefig(fname, bbox_inches="tight", dpi=800)
     print ("Figure written to %s"%(fname))
 
@@ -65,14 +74,14 @@ def plot2D(data, stat, borders, field=None, phase=None):
 
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
-    im = ax.imshow(np.abs(data)**2, extent=extent, cmap=colormap, aspect=1.0, origin="lower", norm=mpl.colors.LogNorm(minval, maxval))
+    im = ax.imshow(dataNorm, extent=extent, cmap=colormap, aspect=1.0, origin="lower", norm=mpl.colors.LogNorm(minval, maxval))
     ax.set_xlabel(zlabel)
     ax.set_ylabel(xlabel)
     fig.colorbar(im)
     if ( not borders is None ):
         borders.visualize( ax )
     ax.set_aspect( np.abs( (extent[1]-extent[0])/(extent[3]-extent[2]) ))
-    fname = "Figures/contourLogScale%d.jpeg"%(stat["UID"])
+    fname = "Figures/contourLogScale%d%s.jpeg"%(stat["UID"], appendName)
     plt.show()
     fig.savefig(fname, bbox_inches="tight", dpi=800)
     print ("Figure written to %s"%(fname))

@@ -29,6 +29,7 @@ class Eigenmodes:
         self.nPropagatingModes = 0
         self.exportTransFname = ""
         self.radius = None
+        self.normalizeContourPlots = True
 
     def read( self, h5file ):
         indx = 0
@@ -211,6 +212,11 @@ class Eigenmodes:
             field += self.fieldFromMode( i, coeff[i], propConst[i], absorption[i], k0, z)
         field = np.abs( field )**2
 
+        appendName = ""
+        if ( self.normalizeContourPlots ):
+            field /= np.max(field)
+            appendName = "normalized"
+
         fig = plt.figure()
         ax = fig.add_subplot(1,1,1)
         xmin = self.modes[0].xmin
@@ -221,7 +227,7 @@ class Eigenmodes:
         ax.set_aspect( (extent[1]-extent[0])/(extent[3]-extent[2]) )
         ax.set_xlabel("$z (\mathrm{\mu m})$")
         ax.set_ylabel("$x$ (nm)")
-        fname = "Figures/contour.jpeg"
+        fname = "Figures/contour%s.jpeg"%(appendName)
         fig.savefig( fname, bbox_inches="tight", dpi=800)
         print ("Figure written to %s"%(fname))
 
@@ -238,6 +244,6 @@ class Eigenmodes:
         ax.set_aspect( (extent[1]-extent[0])/(extent[3]-extent[2]) )
         ax.set_xlabel("$z (\mathrm{\mu m})$")
         ax.set_ylabel("$x$ (nm)")
-        fname = "Figures/contourLog.jpeg"
+        fname = "Figures/contourLog%s.jpeg"%(appendName)
         fig.savefig( fname, bbox_inches="tight", dpi=800)
         print ("Figure written to %s"%(fname))
