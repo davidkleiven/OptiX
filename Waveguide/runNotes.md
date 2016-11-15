@@ -117,5 +117,6 @@
 682477 | Cartesian with b-track Lz=400 um | Looks OK, more equal to the other cartesian |
 768375 | Cartesiann Nz=10000, Nx=2000, Lz=400um | Far field looks very good |
 352700 | Eigenmode run, saving more parameters in the hdf5 file | Looks good |
-174797 | Eigenmode run, 99 modes | Looks good |
-172060 | Eigenmode run| Looks good | 
+174797 | Eigenmode run, 15 modes | Looks good |
+172060 | Eigenmode run | Looks good |
+363100 | Eigenmode run, 70 modes | Looks good |

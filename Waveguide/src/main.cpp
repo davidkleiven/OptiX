@@ -41,7 +41,7 @@ int main( int argc, char** argv )
   StandardFD solver;
   solver.setLimits( -200.0, 100.0 );
   solver.setStepsize(0.3);
-  solver.setNumberOfModesToStore( 99 );
+  solver.setNumberOfModesToStore( 70 );
 
   wg.setSolver( solver );
   ControlFile ctl("data/eigenmodes");

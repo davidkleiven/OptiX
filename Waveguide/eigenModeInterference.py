@@ -33,7 +33,7 @@ def main( argv ):
         print (str(exc))
         return
 
-    eigModes.nPropagatingModes = 99
+    eigModes.nPropagatingModes = 70
     eigModes.exportTransFname = "data/transmissionExport.h5"
     absorb = eigModes.effectiveAbsorption()
     prop = eigModes.propagationConstants( k0 )
