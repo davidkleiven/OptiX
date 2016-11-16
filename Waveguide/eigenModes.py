@@ -4,9 +4,12 @@ import mplLaTeX as mp
 import matplotlib as mpl
 #mpl.rcParams.update( mp.params )
 mpl.rcParams['svg.fonttype'] = 'none'
+mpl.rcParams["font.size"] = 28
+mpl.rcParams["axes.linewidth"] = 0.1
 import numpy as np
 from matplotlib import pyplot as plt
 import h5py as h5
+import subprocess
 try:
     import colormaps as cmaps
     plt.register_cmap(name="viridis", cmap=cmaps.viridis)
@@ -191,10 +194,11 @@ class Eigenmodes:
         fig = plt.figure()
         ax = fig.add_subplot(1,1,1)
         ax.plot( z/1E3, np.log(T), color="black" )
-        ax.set_ylabel("$\ln T$")
-        ax.set_xlabel("$z$ ($\mathrm{\mu m}$)")
-        fname = "Figures/transmissionModes.pdf"
+        ax.set_ylabel("\$\ln T\$")
+        ax.set_xlabel("\$z\$ (\$\mathrm{\mu m}\$)")
+        fname = "Figures/transmissionModes.svg"
         fig.savefig(fname, bbox_inches="tight")
+        subprocess.call(["inkscape","--export-ps=Figures/transmissionModes.ps", "--export-latex", fname])
         print ("Figure written to %s"%(fname))
 
     def fieldFromMode( self, modenumber, coeff, prop, decay, k0, z ):
@@ -227,10 +231,12 @@ class Eigenmodes:
         im = ax.imshow( field, extent=extent, aspect="equal", origin="lower", cmap=cmap)#, norm=mpl.colors.LogNorm() )
         fig.colorbar(im)
         ax.set_aspect( (extent[1]-extent[0])/(extent[3]-extent[2]) )
-        ax.set_xlabel("$z (\mathrm{\mu m})$")
-        ax.set_ylabel("$x$ (nm)")
-        fname = "Figures/contour%s.jpeg"%(appendName)
-        fig.savefig( fname, bbox_inches="tight", dpi=800)
+        ax.set_xlabel("\$z (\mathrm{\mu m})\$")
+        ax.set_ylabel("\$x\$ (nm)")
+        fname = "Figures/contour%s.svg"%(appendName)
+        #fig.savefig( fname, bbox_inches="tight", dpi=800)
+        fig.savefig( fname, bbox_inches="tight")
+        subprocess.call(["inkscape", "--export-ps=Figures/contour%s.ps"%(appendName), "--export-latex", fname])
         print ("Figure written to %s"%(fname))
 
         # Same on log scale
@@ -244,8 +250,9 @@ class Eigenmodes:
         im = ax.imshow( field, extent=extent, aspect="equal", origin="lower", cmap=cmap, norm=mpl.colors.LogNorm(minval,maxval) )
         fig.colorbar(im)
         ax.set_aspect( (extent[1]-extent[0])/(extent[3]-extent[2]) )
-        ax.set_xlabel("$z (\mathrm{\mu m})$")
-        ax.set_ylabel("$x$ (nm)")
-        fname = "Figures/contourLog%s.jpeg"%(appendName)
-        fig.savefig( fname, bbox_inches="tight", dpi=800)
+        ax.set_xlabel("\$z (\mathrm{\mu m})\$")
+        ax.set_ylabel("\$x\$ (nm)")
+        fname = "Figures/contourLog%s.svg"%(appendName)
+        fig.savefig( fname, bbox_inches="tight")
+        subprocess.call(["inkscape", "--export-ps=Figures/contourLog%s.ps"%(appendName), "--export-latex", fname])
         print ("Figure written to %s"%(fname))

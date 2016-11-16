@@ -3,6 +3,9 @@ sys.path.append("../FresnelFDTD")
 import mplLaTeX as ml
 import matplotlib as mpl
 #mpl.rcParams.update(ml.params)
+mpl.rcParams["svg.font"]="none"
+mpl.rcParams["axes.linewidth"] = 0.1
+mpl.rcParams["font.size"] = 28
 CALL_OVER_SSH = False
 if ( CALL_OVER_SSH ):
     mpl.use("Agg")
@@ -37,13 +40,13 @@ def plot2D(data, stat, borders, field=None, phase=None):
     if ( crd == "cylindrical" ):
         zmin = stat["zDiscretization"]["min"]*180.0/np.pi
         zmax = stat["zDiscretization"]["max"]*180.0/np.pi
-        zlabel = "$\\theta$ (deg)"
-        xlabel = "$r$ (nm)"
+        zlabel = "\$\\theta\$ (deg)"
+        xlabel = "\$r\$ (nm)"
     else:
         zmin = stat["zDiscretization"]["min"]/1000.0
         zmax = stat["zDiscretization"]["max"]/1000.0
-        zlabel = "$z$ ($\micro$m)"
-        xlabel = "$x$ (nm)"
+        zlabel = "\$z\$ (\$\micro\$m)"
+        xlabel = "\$x\$ (nm)"
 
     extent = [zmin, zmax, stat["xDiscretization"]["min"], stat["xDiscretization"]["max"]]
     dataNorm = np.abs(data)**2
@@ -60,9 +63,15 @@ def plot2D(data, stat, borders, field=None, phase=None):
     fig.colorbar( im )
     if ( not borders is None ):
         borders.visualize( ax )
-    fname = "Figures/contourLinScale%d%s.jpeg"%(stat["UID"], appendName)
+    #fname = "Figures/contourLinScale%d%s.jpeg"%(stat["UID"], appendName)
+    fname = "Figures/contourLinScale%d%s.svg"%(stat["UID"], appendName)
     fig.savefig(fname, bbox_inches="tight", dpi=800)
     print ("Figure written to %s"%(fname))
+    if ( fname.find(".svg") != -1 ):
+        psname = fname[:-3]+"ps"
+        subprocess.call(["inkscape", "--export-ps=%s"%(psname), "--export-latex", fname])
+        print ("PS exported to %s"%(psname))
+
 
     plt.clf()
     frac = 1E-8
@@ -81,7 +90,13 @@ def plot2D(data, stat, borders, field=None, phase=None):
     if ( not borders is None ):
         borders.visualize( ax )
     ax.set_aspect( np.abs( (extent[1]-extent[0])/(extent[3]-extent[2]) ))
-    fname = "Figures/contourLogScale%d%s.jpeg"%(stat["UID"], appendName)
+    #fname = "Figures/contourLogScale%d%s.jpeg"%(stat["UID"], appendName)
+    fname = "Figures/contourLogScale%d%s.svg"%(stat["UID"], appendName)
+    if ( fname.find(".svg") != -1 ):
+        psname = fname[:-3]+"ps"
+        subprocess.call(["inkscape", "--export-ps=%s"%(psname), "--export-latex", fname])
+        print ("PS exported to %s"%(psname))
+
     plt.show()
     fig.savefig(fname, bbox_inches="tight", dpi=800)
     print ("Figure written to %s"%(fname))
@@ -128,8 +143,8 @@ def plot2Dsparse( x, z, intensity, stat ):
     print ("Interpolation...")
     plt.clf()
     plt.contourf( Z/1000.0, X, intensityInterp**2, cmap="gist_heat")
-    plt.xlabel("$z$ ($\mathrm{\mu m}$)")
-    plt.ylabel("$x$ (nm)")
+    plt.xlabel("\$z\$ (\$\mathrm{\mu m}\$)")
+    plt.ylabel("\$x\$ (nm)")
     plt.colorbar()
     fname = "Figures/contourLinScale.jpeg"
     fig.savefig(fname, bbox_inches="tight", dpi=800)
@@ -138,8 +153,8 @@ def plot2Dsparse( x, z, intensity, stat ):
     '''
     plt.clf()
     plt.tricontour( trianulation, intensity**2, cmap="gist_heat", norm=mpl.colors.LogNorm(np.min(intensity**2), np.max(intensity**2)))
-    plt.xlabel("$z$ ($\mathrm{\mu m}$)")
-    plt.ylabel("$x$ (nm)")
+    plt.xlabel("\$z\$ (\$\mathrm{\mu m}\$)")
+    plt.ylabel("\$x\$ (nm)")
     plt.colorbar()
     fname = "Figures/contourLogScale.jpeg"
     plt.savefig(fname, bbox_inches="tight", dpi=800)
@@ -149,7 +164,7 @@ def plot2Dsparse( x, z, intensity, stat ):
 def plotWG( x, z ):
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
-    ax.plot( z/1000.0, x, 'k.')
+    ax.plot( z/1000.0, x,\$'k.')
     ax.set_xlabel("$z$ $\mathrm{\mu m}$")
     ax.set_ylabel("$x$ (nm)")
     fname = "Figures/pointsInWG.jpeg"
