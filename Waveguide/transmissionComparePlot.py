@@ -4,15 +4,21 @@ sys.path.append("../")
 import colorScheme as cs
 import mplLaTeX as ml
 import matplotlib as mpl
-mpl.rcParams.update(ml.params)
+#mpl.rcParams.update(ml.params)
+mpl.rcParams["svg.fonttype"] = "none"
+mpl.rcParams["axes.linewidth"] = 0.1
+mpl.rcParams["font.size"] = 28
 import numpy as np
 import h5py as h5
 from matplotlib import pyplot as plt
+import subprocess
 
 FNAMES = ["data/singleCurvedWG133595_trans.h5", "data/singleCurvedWG558175_trans.h5", "data/transmissionExport.h5"]
-LABELS = ["Cylindrical", "Cartesian", "Conformal Map"]
+LABELS = ["Cylindrical", "Cartesian", "Eigenmodes"]
 DSET_NAMES = ["transmission", "transmission", "transmission"]
-FIGNAME = "Figures/compareTransmission.pdf"
+FIGNAME = "Figures/compareTransmission"
+PSNAME = FIGNAME+".ps"
+FIGNAME += ".svg"
 
 def main():
     fig = plt.figure()
@@ -27,11 +33,14 @@ def main():
 
         z = np.linspace(zmin,zmax, len(data))
         ax.plot( z/1E6, np.log(data), color=cs.COLORS[i], label=LABELS[i])
-    ax.set_xlabel("$z$ (mm)")
-    ax.set_ylabel("$\ln T$")
+    ax.set_xlabel("\$z\$ (mm)")
+    ax.set_ylabel("\$\ln T\$")
     ax.legend(loc="upper right", frameon=False)
     fig.savefig(FIGNAME, bbox_inches="tight")
     print ("Figure written to %s"%(FIGNAME))
+    print ("Exporting to ps")
+    subprocess.call(["inkscape", "--export-ps=%s"%(PSNAME), "--export-latex", FIGNAME])
+    print ("PS-files written to %s"%(PSNAME))
 
 if __name__ == "__main__":
     main()

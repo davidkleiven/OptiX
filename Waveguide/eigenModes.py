@@ -2,7 +2,8 @@ import sys
 sys.path.append("../FresnelFDTD")
 import mplLaTeX as mp
 import matplotlib as mpl
-mpl.rcParams.update( mp.params )
+#mpl.rcParams.update( mp.params )
+mpl.rcParams['svg.fonttype'] = 'none'
 import numpy as np
 from matplotlib import pyplot as plt
 import h5py as h5
@@ -160,9 +161,10 @@ class Eigenmodes:
         T /= T[0]
         Tfull /= Tfull[0]
         ax.plot( z/1E3, np.log(T), color="black" )
-        ax.set_xlabel( "$z (\mathrm{\mu m})$" )
-        ax.set_ylabel( "$\ln T$" )
-        fname = "Figures/transmissionModesIntegration.pdf"
+        ax.set_xlabel( "\$z (\mathrm{\mu m})\$" )
+        ax.set_ylabel( "\$\ln T\$" )
+        #fname = "Figures/transmissionModesIntegration.pdf"
+        fname = "Figures/transmissionModesIntegration.svg"
         fig.savefig( fname, bbox_inches="tight")
         print ("Figure written to %s"%(fname))
 
