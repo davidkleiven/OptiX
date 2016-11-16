@@ -4,7 +4,7 @@ sys.path.append("../FresnelFDTD")
 import mplLaTeX as ml
 import matplotlib as mpl
 #mpl.rcParams.update(ml.params)
-mpl.rcParams["svg.font"]="none"
+mpl.rcParams["svg.fonttype"]="none"
 mpl.rcParams["axes.linewidth"] = 0.1
 mpl.rcParams["font.size"] = 28
 CALL_OVER_SSH = False
@@ -93,13 +93,13 @@ def plot2D(data, stat, borders, field=None, phase=None):
     ax.set_aspect( np.abs( (extent[1]-extent[0])/(extent[3]-extent[2]) ))
     #fname = "Figures/contourLogScale%d%s.jpeg"%(stat["UID"], appendName)
     fname = "Figures/contourLogScale%d%s.svg"%(stat["UID"], appendName)
+    fig.savefig(fname, bbox_inches="tight")
     if ( fname.find(".svg") != -1 ):
         psname = fname[:-3]+"ps"
         subprocess.call(["inkscape", "--export-ps=%s"%(psname), "--export-latex", fname])
         print ("PS exported to %s"%(psname))
 
     plt.show()
-    fig.savefig(fname, bbox_inches="tight", dpi=800)
     print ("Figure written to %s"%(fname))
 
     plt.clf()
@@ -165,7 +165,7 @@ def plot2Dsparse( x, z, intensity, stat ):
 def plotWG( x, z ):
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
-    ax.plot( z/1000.0, x,\$'k.')
+    ax.plot( z/1000.0, x,'k.')
     ax.set_xlabel("$z$ $\mathrm{\mu m}$")
     ax.set_ylabel("$x$ (nm)")
     fname = "Figures/pointsInWG.jpeg"

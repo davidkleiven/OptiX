@@ -3,7 +3,7 @@ sys.path.append("../FresnelFDTD")
 sys.path.append("../")
 import mplLaTeX as ml
 import matplotlib as mpl
-mpl.rcParams.update(ml.params)
+#mpl.rcParams.update(ml.params)
 import numpy as np
 import h5py as h5
 import json
