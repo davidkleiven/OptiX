@@ -1,4 +1,5 @@
 import sys
+import subprocess
 sys.path.append("../FresnelFDTD")
 import mplLaTeX as ml
 import matplotlib as mpl
