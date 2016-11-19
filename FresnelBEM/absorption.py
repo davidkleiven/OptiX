@@ -1,16 +1,20 @@
 import sys
+import subprocess
 # ==== PARAMETERS USED IF NICE PLOT IS TRUE ====
 MAX_NUMBER_OF_LINES = 4
 COLORS = ["#ca0020", "#f4a582", "#92c5de", "#0571b0"]
 sys.path.append("../FresnelFDTD/")
 import mplLaTeX
 import matplotlib as mpl
-mpl.rcParams.update(mplLaTeX.params)
-from matplotlib import pyplot as plt
+#mpl.rcParams.update(mplLaTeX.params)
 import json
 import numpy as np
 import fresnelExact as fe
 from scipy import stats
+mpl.rcParams.update(mpl.rcParamsDefault)
+mpl.rcParams["svg.fonttype"] = "none"
+mpl.rcParams["font.size"] = 28
+from matplotlib import pyplot as plt
 
 # ==== PARAMETERS USED IF NICE PLOT IS TRUE ====
 MAX_NUMBER_OF_LINES = 4
@@ -27,7 +31,7 @@ def expectedAttenuationLength( k, eps1, eps2, incangle ):
 def computePenetrationDepth( position, field ):
     slope, interscapt, rvalue, pvalue, stderr = stats.linregress( position, np.log(field) )
     penetration = -2.0/slope
-    return penetration 
+    return penetration
 
 def plotPenetration( k, absorptionSet, eps1, eps2, figname ):
     wavelength = 2.0*np.pi/k
@@ -36,6 +40,7 @@ def plotPenetration( k, absorptionSet, eps1, eps2, figname ):
     n1 = np.sqrt(eps1)
     n2 = np.sqrt(eps2)
     criticalAngle = 90.0-np.arcsin( n2.real/n1.real )*180.0/np.pi
+    indx = 0
     for entry in absorptionSet["absMonitor"]:
         if ( entry["polarisation"] == "p" ):
             continue
@@ -43,19 +48,26 @@ def plotPenetration( k, absorptionSet, eps1, eps2, figname ):
         #          due to the divergence in the Green functions
         d = computePenetrationDepth( absorptionSet["position"][1:], entry["amplitude"][1:] )
         attenuationLenghts.append( d/wavelength )
-        anglesDimless.append( (90.0-entry["angle"])/criticalAngle )
+        anglesDimless.append( (90.0-entry["angle"][indx])/criticalAngle )
+        indx += 1
     anglesDimless = np.array( anglesDimless )
+    print anglesDimless
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
-    ax.plot( anglesDimless, attenuationLenghts, 'ko', ms=3, fillstyle="none" )
+    ax.plot( anglesDimless, attenuationLenghts, 'ko', ms=7, fillstyle="none" )
     angles = np.linspace( 90.0-np.max(anglesDimless)*criticalAngle - 0.05, 90.0, 50 )
     expPenetration = expectedAttenuationLength( k, eps1, eps2, angles )/wavelength
     ax.plot( (90.0-angles)/criticalAngle, expPenetration, 'k')
-    ax.set_ylabel( "Penetration depth, $d$ ($\lambda$)" )
-    ax.set_xlabel( "$\\frac{\\alpha}{\\alpha_c}$" )
-    fig.savefig( figname, bbox_inches="tight" ) 
+    ax.set_ylabel( "Penetration depth, \$d\$ (\$\lambda\$)" )
+    ax.set_xlabel( "\$\\frac{\\alpha}{\\alpha_c}\$" )
+    fig.savefig( figname, bbox_inches="tight" )
+
+    if ( figname[-4:] == ".svg" ):
+        psname = figname[:-3]+"ps"
+        subprocess.call( ["inkscape", "--export-ps=%s"%(psname), "--export-latex", figname] )
+        print ("PS version written to %s"%(psname))
     print ("Figure written to %s"%(figname))
-    
+
 
 def main(argv):
     if ( len(argv) < 1 or len(argv) > 2):
@@ -77,7 +89,7 @@ def main(argv):
         if (arg.find("--nice") != -1):
             niceplot = True
     x = np.array( data["absorption"]["position"] )
-    values = data["absorption"]["absMonitor"]
+    values = np.array( data["absorption"]["absMonitor"] )
     fig = plt.figure()
     ax = fig.add_subplot(111)
     smallestvalue = 1E16
@@ -97,14 +109,14 @@ def main(argv):
         k = 0.01
         eps1 = 1.0
         eps2 = 0.99998+1.99998E-6*1j
-        angle = entry["angle"]
+        angle = float( entry["angle"][counter] )
         attenuation = expectedAttenuationLength( k, eps1, eps2, angle )
         y = np.abs( fe.ts(eps1, eps2, 1.0, 1.0, angle, k)*np.exp(-x/attenuation) )**2
         amp = np.array(entry["amplitude"])
         wavelength = 2.0*np.pi/k
         if ( niceplot ):
             ax.plot( x/wavelength, amp, 'o', fillstyle="none", color="black", ms=3)
-            ax.plot( x/wavelength, y, color=COLORS[plotNumber], label="$\SI{%2.2f}{\degree}$"%(angle))
+            ax.plot( x/wavelength, y, color=COLORS[plotNumber], label="\$\SI{%2.2f}{\degree}\$"%(angle))
             xNorm = x/wavelength
             plotNumber += 1
         else:
@@ -118,15 +130,13 @@ def main(argv):
     ax.set_ylim(0.8*smallestvalue,10)
     if ( niceplot ):
         ax.legend( loc="lower left", frameon=False)
-    ax.set_xlabel("Distance inside slab ($\lambda$)")
+    ax.set_xlabel("Distance inside slab (\$\lambda\$)")
     ax.set_ylabel("TE amplitude ratio")
     fname = "Figures/absorption.pdf"
     fig.savefig( fname, bbox_inches="tight" )
     print ("Figure written to %s"%(fname))
 
-    plotPenetration( k, data["absorption"], eps1, eps2, "Figures/penetration.pdf") 
+    plotPenetration( k, data["absorption"], eps1, eps2, "Figures/penetration.svg")
 
 if __name__ == "__main__":
     main(sys.argv[1:])
-    
-    

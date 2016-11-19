@@ -1,34 +1,42 @@
 import sys
+import subprocess
 sys.path.append( "../FresnelFDTD/" )
-import mplLaTeX
+#import mplLaTeX
 import plotFlux as pf # Contains the exact expression for the fluxes
 import matplotlib as mpl
-mpl.rcParams.update(mplLaTeX.params)
+#mpl.rcParams.update(mplLaTeX.params)
 import numpy as np
-from matplotlib import pyplot as plt
 import json
 import computeReflectionAngle as cra
-import fresnelExact as fe 
+import fresnelExact as fe
+mpl.rcParams.update(mpl.rcParamsDefault)
+mpl.rcParams["svg.fonttype"] = "none"
+mpl.rcParams["font.size"] = 28
+from matplotlib import pyplot as plt
 
 def plotError( angle, error_rs, error_rp, error_ts, error_tp, brewster, fname ):
     fig = plt.figure()
     ax = fig.add_subplot(111)
-
-    ax.plot( angle, error_rs, 'o', ms=2, color='black', fillstyle='none', label="$R_\mathrm{s}$" )
-    ax.plot( angle, error_rp, 'x', ms=2, color='black', label="$R_\mathrm{p}$")
+    ax.plot( 90.0-angle, error_rs, 'o', ms=7, color='black', fillstyle='none', label="\$R_\mathrm{s}\$" )
+    ax.plot( 90.0-angle, error_rp, 'x', ms=7, color='black', label="\$R_\mathrm{p}\$")
     if ( not error_ts is None ):
-        ax.plot( angle, error_ts, '^', ms=2, color="black", label="$T_\mathrm{s}$")
+        ax.plot( angle, error_ts, '^', ms=2, color="black", label="\$T_\mathrm{s}\$")
     if ( not error_tp is None ):
-        ax.plot( angle, error_tp, '.', ms=4, color="black", label="$T_\mathrm{p}$")
+        ax.plot( angle, error_tp, '.', ms=4, color="black", label="\$T_\mathrm{p}\$")
     ax.set_ylim( 1E-11, 1E-1 )
     if ( np.min(angle) < brewster ):
         ax.axvline( brewster, color='black', ls="dotted" )
         ax.text( brewster+1, 1E-8, "Brewster", rotation=-90 )
-    ax.set_xlabel( "Incident angle (deg)" )
+    ax.set_xlabel( "Grazing incident ingle (deg)" )
     ax.set_ylabel( "Relative error" )
     ax.set_yscale('log')
     ax.legend( loc='lower right', frameon=False )
+
     fig.savefig( fname, bbox_inches="tight" )
+    if ( fname[-3:] != ".svg" ):
+        psname = fname[:-3]+"ps"
+        subprocess.call(["inkscape", "--export-ps=%s"%(psname), "--export-latex", fname])
+        print ("Postscript written to %s"%(psname))
     print ( "Figure written to %s"%( fname ))
 
 def main(argv):
@@ -46,7 +54,7 @@ def main(argv):
         print ("Using complex refractive indices...")
     else:
         print ("Using real refractive indices...")
-    
+
     try:
         infile = open( argv[0], 'r' )
     except:
@@ -64,8 +72,8 @@ def main(argv):
 
     incangle = np.array( data["IncidentAngle"] )
     angle = np.linspace(np.min(incangle)-0.05, 90.0, 1001)
-    ax.plot( 90.0-np.array(data["IncidentAngle"]), data["FluxReflected"]["s"], 'o', ms=3, color='black', fillstyle='none', label="$R_\mathrm{TE}$")
-    ax.plot( 90.0-np.array(data["IncidentAngle"]), data["FluxReflected"]["p"], 'x', ms=3, color='black', label="$R_\mathrm{TM}$" )
+    ax.plot( 90.0-np.array(data["IncidentAngle"]), data["FluxReflected"]["s"], 'o', ms=7, color='black', fillstyle='none', label="\$R_\mathrm{TE}\$")
+    ax.plot( 90.0-np.array(data["IncidentAngle"]), data["FluxReflected"]["p"], 'x', ms=7, color='black', label="\$R_\mathrm{TM}\$" )
     if ( useAbsorption ):
         eps1 = 1.0
         eps2 = 0.99998*(1.0+2E-6*1j )
@@ -79,10 +87,10 @@ def main(argv):
         n2 = np.sqrt(eps2)
         alpha_c = np.arccos( n2.real/n1.real )*180.0/np.pi
         ax.axvline( alpha_c, color="black", ls="--" )
-        ax.text( alpha_c-0.03, 0.1, "$\\alpha_c$")
+        ax.text( alpha_c-0.03, 0.1, "\$\\alpha_c\$")
     else:
-        ax.plot( 90.0-np.array(data["IncidentAngle"]), data["FluxTransmitted"]["s"], '^', ms=2, color='black', label="$T_\mathrm{s}$")
-        ax.plot( 90.0-np.array(data["IncidentAngle"]), data["FluxTransmitted"]["p"], '.', ms=4, color='black', label="$T_\mathrm{p}$")
+        ax.plot( 90.0-np.array(data["IncidentAngle"]), data["FluxTransmitted"]["s"], '^', ms=2, color='black', label="\$T_\mathrm{s}\$")
+        ax.plot( 90.0-np.array(data["IncidentAngle"]), data["FluxTransmitted"]["p"], '.', ms=4, color='black', label="\$T_\mathrm{p}\$")
         ax.plot(90.0-angle, pf.Rs(90.0-angle, n1, n2), color='black')
         ax.plot(90.0-angle, pf.Rp(90.0-angle, n1, n2), color='black')
         ax.plot(90.0-angle, pf.Tp(90.0-angle, n1, n2), color='black')
@@ -90,8 +98,10 @@ def main(argv):
         ax.set_ylabel("Transmittance/Reflectance")
     ax.set_xlabel("Grazing incident angle (deg)")
     ax.legend( loc='center left', frameon=False)
-    fname = "Figures/powerCoefficients.pdf"
+    fname = "Figures/powerCoefficients.svg"
+    psname = "Figures/powerCoefficients.ps"
     fig.savefig( fname, bbox_inches="tight" )
+    subprocess.call(["inkscape", "--export-ps=%s"%(psname), "--export-latex", fname])
     print ("Figure written to %s"%(fname))
 
     # Plot relative error
@@ -117,8 +127,7 @@ def main(argv):
         errorTp = None
     else:
         errorTp = np.abs( np.array(data["FluxTransmitted"]["p"]) - Tp )/Tp
-    plotError( simulatedAngles, errorRs, errorRp, errorTs, errorTp, brewster, "Figures/powerCoefficientsError.pdf" )
-    
+    plotError( simulatedAngles, errorRs, errorRp, errorTs, errorTp, brewster, "Figures/powerCoefficientsError.svg" )
+
 if __name__ == '__main__':
     main(sys.argv[1:] )
-    
