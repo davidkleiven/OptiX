@@ -69,9 +69,9 @@ def plot2D(data, stat, borders, field=None, phase=None):
     fig.savefig(fname, bbox_inches="tight", dpi=800)
     print ("Figure written to %s"%(fname))
     if ( fname.find(".svg") != -1 ):
-        psname = fname[:-3]+"ps"
-        subprocess.call(["inkscape", "--export-ps=%s"%(psname), "--export-latex", fname])
-        print ("PS exported to %s"%(psname))
+        psname = fname[:-3]+"pdf"
+        subprocess.call(["inkscape", "--export-pdf=%s"%(psname), "--export-latex", fname])
+        print ("PDF exported to %s"%(psname))
 
 
     plt.clf()
@@ -95,9 +95,9 @@ def plot2D(data, stat, borders, field=None, phase=None):
     fname = "Figures/contourLogScale%d%s.svg"%(stat["UID"], appendName)
     fig.savefig(fname, bbox_inches="tight")
     if ( fname.find(".svg") != -1 ):
-        psname = fname[:-3]+"ps"
-        subprocess.call(["inkscape", "--export-ps=%s"%(psname), "--export-latex", fname])
-        print ("PS exported to %s"%(psname))
+        psname = fname[:-3]+"pdf"
+        subprocess.call(["inkscape", "--export-pdf=%s"%(psname), "--export-latex", fname])
+        print ("PDF exported to %s"%(psname))
 
     plt.show()
     print ("Figure written to %s"%(fname))
