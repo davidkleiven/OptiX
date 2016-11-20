@@ -41,13 +41,21 @@ def main():
             theta_max = zmax/(R[j]*1E3)
             theta_min = zmin/(R[j]*1E3)
             indx = int( (theta-theta_min)*len(t)/(theta_max-theta_min) )
-            print indx
             if ( indx >= len(t) ):
                 indx = -1
             transmission[j] = t[indx]
+        invR = np.linspace(0.9*np.min(1/R), 1.05*np.max(1/R), 10)
         slope, interscept, pvalue, rvalue, stderr = stats.linregress(1.0/R, np.log(transmission))
         ax.plot( 1/R, np.log(transmission), marker="o", color="black", ms=7, ls="none", fillstyle="none")
-        ax.plot( 1/R, interscept+slope/R, color=cs.COLORS[i], label="%d mm"%(POS[i]))
+        ax.plot( invR, interscept+slope*invR, color=cs.COLORS[i], label="%d mm"%(POS[i]))
+        ax.set_xlabel("\$R^{-1}\$ (mm\$^{-1}\$)")
+        ax.set_ylabel("Effective attenuation coefficient")
+        ax.legend(bbox_to_anchor=(0.6,0.5), frameon=False, labelspacing=0.05)
+        fname = "Figures/inverseRScaling.svg"
+        fig.savefig(fname)
+        psname = "Figures/invserseRScaling.ps"
+        subprocess.call(["inkscape", "--export-ps=%s"%(psname), "--export-latex", fname])
+        print ("Figure written to %s and %s"%(fname, psname))
     plt.show()
 
 if __name__ == "__main__":
