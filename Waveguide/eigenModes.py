@@ -10,6 +10,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 import h5py as h5
 import subprocess
+from scipy import stats
 try:
     import colormaps as cmaps
     plt.register_cmap(name="viridis", cmap=cmaps.viridis)
@@ -200,6 +201,41 @@ class Eigenmodes:
         fig.savefig(fname, bbox_inches="tight")
         subprocess.call(["inkscape","--export-ps=Figures/transmissionModes.ps", "--export-latex", fname])
         print ("Figure written to %s"%(fname))
+
+    def plotAbsCoefficients( self, absCoeff, k0 ):
+        fig = plt.figure()
+        ax= fig.add_subplot(1,1,1)
+        eigvals = []
+        for i in range(0, self.nPropagatingModes):
+            eigvals.append(self.modes[i].eigenvalue)
+        eigvals = np.array( eigvals )
+        x = 2.0*self.delta*k0**2 - eigvals
+        kappa = 2.0*self.delta*k0**2 - eigvals
+        alpha = kappa**(1.5)*self.radius/k0**2
+        x =  0.5*(1 + 0.5/alpha + 3.0/alpha**2)/kappa
+        x = 0.5/kappa
+        for i in range(0, len(x)):
+            if ( i%2 == 0 ):
+                x[i] *= np.cos(np.sqrt(eigvals[i])*50.0)**2
+                print np.cos(np.sqrt(eigvals[i])*50.0)**2
+            else:
+                x[i] *= np.sin(np.sqrt(eigvals[i])*50.0)**2
+                print np.sin(np.sqrt(eigvals[i])*50.0)**2
+        #print 2.0*self.delta*k0**2, eigvals
+        #print x,  (k0*absCoeff[:self.nPropagatingModes])**(-1)
+        slope, interscept, pvalue, rvalue, stderr = stats.linregress(np.log(eigvals), np.log(absCoeff[:self.nPropagatingModes]*k0))
+        print slope
+        ax.plot( eigvals, (absCoeff[:self.nPropagatingModes]*k0), color="black", ls="none", marker="o", ms=7, fillstyle="none" )
+        ax.plot( eigvals, x, color="black" )
+        ax.set_xscale("log")
+        ax.set_yscale("log")
+        ax.set_xlabel("\$\sqrt{2\delta k^2 - E_n}\$")
+        ax.set_ylabel( "Attenuation length " )
+        fname = "Figures/attenuationLengthScaling.svg"
+        psname = "Figures/attenuationLengthScaling.ps"
+        fig.savefig(fname)
+        subprocess.call(["inkscape", "--export-ps=%s"%(psname), "--export-latex", fname])
+        print ("Output: %s and %s"%(fname, psname))
 
     def fieldFromMode( self, modenumber, coeff, prop, decay, k0, z ):
         beta = k0 + prop

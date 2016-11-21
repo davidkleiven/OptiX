@@ -135,9 +135,10 @@ int main( int argc, char **argv )
 
     if ( useStraight )
     {
-      zmax = 500.0E3; // 500 um
-      xmin = -xMarginAboveAndBelow;
-      xmax = width + xMarginAboveAndBelow;
+      zmax = 400.0E3; // 500 um
+      xmin = -width;
+      xmax = width + width;
+      wglength = 1.5*zmax;
     }
 
     if ( useCylCrd )

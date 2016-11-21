@@ -121,3 +121,15 @@
 172060 | Eigenmode run | Looks good |
 363100 | Eigenmode run, 70 modes | Looks good |
 953999 | Cylindrical, distance is widht on both side | Looks good |
+563999 | Straight waveguide | Wrong boundary conditions |
+478288 | Straight waveguide | Too short waveguide |
+579186 | Straight waveguide | Looks good |
+%%% | __Parameter sweep over R__ | %%% |
+265156 |  Lz/R=0.01, delta=4.45E-5, R=10 mm | Looks Ok |
+963983 | R = 20 mm | Looks OK |
+681603 | R = 30 mm | Looks OK |
+827383 | R = 40 mm | Looks OK |
+116355 | R = 60 mm | Looks OK |
+507568| R = 80 mm | Looks OK |
+680743 | R = 100 mm | Looks OK |
+326866 | R = 150 mm | Looks OK |
