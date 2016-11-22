@@ -39,7 +39,7 @@ int main( int argc, char** argv )
   }
   IncidentAngleSweep simulation;
   Visualizer vis;
-  double width = 100.0;
+  double width = 68.9;
   simulation.setWavelength( 0.1569 );
   simulation.setCladdingSilicon();
   if ( useAlcohol )

@@ -3,11 +3,14 @@ sys.path.append("../FresnelFDTD")
 sys.path.append("../")
 import mplLaTeX as ml
 import matplotlib as mpl
-mpl.rcParams.update(ml.params)
+#mpl.rcParams.update(ml.params)
+mpl.rcParams["svg.fonttype"] = "none"
+mpl.rcParams["font.size"] = 28
 import numpy as np
 import json
 import h5py as h5
 from matplotlib import pyplot as plt
+import subprocess
 import colorScheme as cs
 try:
     import colormaps as cmaps
@@ -57,8 +60,10 @@ def main( argv ):
     ax.set_xlabel("Exit angle (deg)")
     ax.set_ylabel("Incident angle (deg)")
     fig.colorbar( im )
-    fname = "Figures/incAngleSweep.jpeg"
+    fname = "Figures/incAngleSweep.svg"
     fig.savefig(fname, bbox_inches="tight", dpi=800)
+    psname = "Figures/incAngleSweep.ps"
+    subprocess.call(["inkscape", "--export-ps=%s"%(psname), "--export-latex", fname])
     print ("Figure written to %s"%(fname))
 
 if __name__ == "__main__":

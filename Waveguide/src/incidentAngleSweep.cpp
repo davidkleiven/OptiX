@@ -136,8 +136,9 @@ void IncidentAngleSweep::save( const string &fname ) const
 
 void IncidentAngleSweep::setAlcoholInside()
 {
-  double delta = 4.08E-6; // For 7.9 keV (0.1569 nm)
-  inside.setRefractiveIndex(delta, 0.0);
+  double delta = 3E-6; // For 7.9 keV (0.1569 nm)
+  double beta = 5E-9;
+  inside.setRefractiveIndex(delta, beta);
   wg.setInsideMaterial(inside);
 }
 
