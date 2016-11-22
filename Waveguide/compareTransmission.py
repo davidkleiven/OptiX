@@ -1,15 +1,17 @@
 import sys
-sys.path.append("../FresnelFDTD")
+#sys.path.append("../FresnelFDTD")
 sys.path.append("../")
 import colorScheme as cs
-import mplLaTeX as ml
+#import mplLaTeX as ml
 import matplotlib as mpl
-mpl.rcParams.update(ml.params)
+mpl.rcParams["svg.fonttype"] = "none"
+mpl.rcParams["font.size"] = 28
 import numpy as np
 import h5py as h5
 import json
 from matplotlib import pyplot as plt
 from scipy import stats
+import subprocess
 
 def main( argv ):
     MSG = "Usage: python compareTransmission.py --file=<jsonfile> [--help]\n"
@@ -86,6 +88,10 @@ def main( argv ):
     fname = "Figures/"+param["figurename"]
     fig.savefig(fname, bbox_inches="tight")
     print ("Figure written to %s"%(fname))
+
+    if ( fname.find[-3:] == "svg"):
+        psname = fname[:-3]+"ps"
+        subprocess.call(["inkscape", "--export-ps=%s"%(psname), "--export-latex", fname])
 
 if __name__ == "__main__":
     main(sys.argv[1:])

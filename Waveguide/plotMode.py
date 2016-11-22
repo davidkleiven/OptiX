@@ -1,9 +1,11 @@
 import sys
-sys.path.append("../FresnelFDTD")
+#sys.path.append("../FresnelFDTD")
 sys.path.append("../")
-import mplLaTeX as ml
+#import mplLaTeX as ml
 import matplotlib as mpl
-mpl.rcParams.update(ml.params)
+#mpl.rcParams.update(ml.params)
+mpl.rcParams["svg.fonttype"] = "none"
+mpl.rcParams["font.size"] = 28
 import numpy as np
 import json
 import h5py as h5
@@ -11,6 +13,7 @@ from matplotlib import pyplot as plt
 import colorScheme as cs
 DELTA = 4.14E-5 # Salditt et al
 BETA = 3.45E-6 # Salditt et al
+import subprocess
 
 def damping( u, v, k, width, eigenvalue, R ):
     q = np.sqrt( k**2 - eigenvalue )
@@ -103,15 +106,17 @@ def main(argv):
             absorption[i] = computeEffectiveFieldAbsorption( u, data, -stat["width"], 0.0)
             print "Absorption mode %d: %.2E"%(i+1,absorption[i])
             if ( i >= modeStart ) and ( i < modeEnd ):
-                ax.plot( u, data, color=cs.COLORS[i%mxColors], label="%d"%(i+1))
+                ax.plot( u, data**2, color=cs.COLORS[i%mxColors], label="%d"%(i+1))
 
     ymin, ymax = ax.get_ylim()
     ax = addShadedBkg( ax, -stat["width"], 0.0)
     ax.set_xlabel("$u$ (nm)")
     ax.set_ylabel("Intensity (a.u.)")
     ax.legend(loc="upper right", frameon=False)
-    figname = "Figures/profile.pdf"
+    figname = "Figures/profile.svg"
+    psname = "Figures/profile.ps"
     fig.savefig(figname, bbox_inches="tight")
+    subprocess.call(["inkscape", "--export-ps=%s"%(psname), "--export-latex", figname])
     print ("Figure written to %s"%(figname))
 
     # Plot potential
