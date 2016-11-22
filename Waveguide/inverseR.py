@@ -54,7 +54,7 @@ def main():
         ax.legend(bbox_to_anchor=(0.6,0.5), frameon=False, labelspacing=0.05)
         fname = "Figures/inverseRScaling.svg"
         fig.savefig(fname)
-        psname = "Figures/invserseRScaling.ps"
+        psname = "Figures/inverseRScaling.ps"
         subprocess.call(["inkscape", "--export-ps=%s"%(psname), "--export-latex", fname])
         print ("Figure written to %s and %s"%(fname, psname))
     plt.show()

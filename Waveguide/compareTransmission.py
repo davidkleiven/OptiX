@@ -82,10 +82,10 @@ def main( argv ):
         ax.plot( zFit/1E6, interscept+slope*zFit, lw=0.5, color="black" )
         indx += 1
 
-    ax.set_xlabel("$z$ (mm)")
+    ax.set_xlabel("\$z\$ (mm)")
     #ax.set_xlim(right=minOfMaxZ/1E6)
     ax.set_ylim(bottom=ymin-0.05)
-    ax.set_ylabel("$\ln$ (Transmission)")
+    ax.set_ylabel("\$\ln Transmission \$")
     ax.legend(loc="upper right", frameon=False)
     fname = "Figures/"+param["figurename"]
     fig.savefig(fname, bbox_inches="tight")
