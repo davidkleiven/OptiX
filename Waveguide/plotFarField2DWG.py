@@ -1,9 +1,11 @@
 import sys
 sys.path.append("../FresnelFDTD")
 sys.path.append("../")
-import mplLaTeX as ml
+#import mplLaTeX as ml
 import matplotlib as mpl
-mpl.rcParams.update(ml.params)
+#mpl.rcParams.update(ml.params)
+mpl.rcParams["svg.fonttype"] = "none"
+mpl.rcParams["font.size"] = 28
 import numpy as np
 import json
 import h5py as h5
