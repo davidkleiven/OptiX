@@ -21,6 +21,7 @@ PSNAME = FIGNAME+".ps"
 FIGNAME += ".svg"
 
 def main():
+    colors = ["#e41a1c", "#377eb8", "#4daf4a"]
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
     for i in range(0, len(FNAMES)):
@@ -32,7 +33,7 @@ def main():
             zmax = dset.attrs.get("zmax")
 
         z = np.linspace(zmin,zmax, len(data))
-        ax.plot( z/1E6, np.log(data), color=cs.COLORS[i], label=LABELS[i])
+        ax.plot( z/1E6, np.log(data), color=colors[i], label=LABELS[i])
     ax.set_xlabel("\$z\$ (mm)")
     ax.set_ylabel("\$\ln T\$")
     ax.legend(loc="upper right", frameon=False)
