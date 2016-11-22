@@ -75,6 +75,7 @@ def main( argv ):
 	zFit = np.linspace(0.4*np.max(z), 1.05*np.max(z), 11)
 
         print ("Damping length %s mm: %.2E mm"%(entry["label"],-1.0/(slope*1E6)))
+	print ("Intersception %.2E"%(np.exp(interscept)))
         if ( stat["Transmission"]["zEnd"] < minOfMaxZ ):
             minOfMaxZ = stat["Transmission"]["zEnd"]
             ymin = np.min(np.log(data))
