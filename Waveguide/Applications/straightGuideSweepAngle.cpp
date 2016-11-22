@@ -48,7 +48,7 @@ int main( int argc, char** argv )
   }
   simulation.setWidth( width );
   simulation.setTransverseDisc( -width, 2.0*width, 1000);
-  simulation.setLongitudinalDisc( 0.0, 5E6, 10000 );
+  simulation.setLongitudinalDisc( 0.0, 2E6, 10000 );
   simulation.setIncAngles( -0.2, 0.2, 100 );
   simulation.setFFTSignalLength(32768);
   //simulation.saveIndx( 50 );

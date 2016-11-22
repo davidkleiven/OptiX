@@ -532,7 +532,7 @@ void WaveGuideFDSimulation::computeFarField( unsigned int signalLength )
 
   if ( farFieldModulus == NULL )
   {
-    farFieldModulus = new arma::vec( arma::abs(ft) );
+    farFieldModulus = new arma::vec( arma::abs(ft)/sqrt(ft.n_elem) );
   }
   else
   {
