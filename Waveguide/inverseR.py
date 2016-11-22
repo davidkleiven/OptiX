@@ -47,6 +47,8 @@ def main():
             transmission[j] = t[indx]
         invR = np.linspace(0.9*np.min(1/R), 1.05*np.max(1/R), 10)
         slope, interscept, pvalue, rvalue, stderr = stats.linregress(1.0/R, np.log(transmission))
+        print ("Slope: %.2E mm"%(slope))
+        print ("Interscept: %.2E"%(np.exp(interscept)))
         ax.plot( 1/R, np.log(transmission), marker="o", color="black", ms=7, ls="none", fillstyle="none")
         ax.plot( invR, interscept+slope*invR, color=colors[i], label="%d mm"%(POS[i]))
         ax.set_xlabel("\$R^{-1}\$ (mm\$^{-1}\$)")
