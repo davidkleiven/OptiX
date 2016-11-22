@@ -41,7 +41,7 @@ def main( argv ):
     #eigModes.contour( coeff, prop, absorb, k0, 400E3 )
     #eigModes.plotAbsorption( coeff, absorb, k0, 400E3 )
     #eigModes.transmissionByIntegrateOverWG( coeff, prop, absorb, k0, 400E3 )
-    eigModes.nPropagatingModes = 12
+    #eigModes.nPropagatingModes = 12
     eigModes.plotAbsCoefficients( absorb, k0)
 
 if __name__ == "__main__":

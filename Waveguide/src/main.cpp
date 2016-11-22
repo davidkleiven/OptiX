@@ -23,9 +23,9 @@ int main( int argc, char** argv )
 
   cout << "Potential in Ta: " << cladding.getPotential() << "nm^{-2}\n";
 
-  WaveGuideLargeCurvature wg;
-  //WaveGuideStraight wg;
-  wg.setRadiusOfCurvature( 40E6 ); // 40 mm
+  //WaveGuideLargeCurvature wg;
+  WaveGuideStraight wg;
+  //wg.setRadiusOfCurvature( 40E6 ); // 40 mm
   wg.setWidth( 100.0 ); // 100 nm
   wg.setCladding( cladding );
   wg.setWaveLength( 0.1569 );

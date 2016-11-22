@@ -49,7 +49,7 @@ def main():
         ax.plot( 1/R, np.log(transmission), marker="o", color="black", ms=7, ls="none", fillstyle="none")
         ax.plot( invR, interscept+slope*invR, color=cs.COLORS[i], label="%d mm"%(POS[i]))
         ax.set_xlabel("\$R^{-1}\$ (mm\$^{-1}\$)")
-        ax.set_ylabel("Effective attenuation coefficient")
+        ax.set_ylabel("\$\ln T\$")
         ax.legend(bbox_to_anchor=(0.6,0.5), frameon=False, labelspacing=0.05)
         fname = "Figures/inverseRScaling.svg"
         fig.savefig(fname)
