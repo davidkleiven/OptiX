@@ -40,8 +40,9 @@ def main( argv ):
     ax = fig.add_subplot(1,1,1)
 
     indx = 0
-    markers = ["v", "s", "^"]
-    fs = ["none", "none", "full"]
+    markers = ["o", "o", "o"]
+    fs = ["full", "full", "full"]
+    color = ["#e41a1c", "#377eb8", "#4daf4a"]
     minOfMaxZ = np.inf
     for entry in param["entries"]:
         ctlfile = param["basename"]+"%d.json"%(entry["uid"])
@@ -71,12 +72,13 @@ def main( argv ):
         zFit = z[fitStart:]
         dataFit = data[fitStart:]
         slope, interscept, rvalue, pvalue, stderr = stats.linregress(zFit,np.log(dataFit))
+	zFit = np.linspace(0.4*np.max(z), 1.05*np.max(z), 11)
 
         print ("Damping length %s mm: %.2E mm"%(entry["label"],-1.0/(slope*1E6)))
         if ( stat["Transmission"]["zEnd"] < minOfMaxZ ):
             minOfMaxZ = stat["Transmission"]["zEnd"]
             ymin = np.min(np.log(data))
-        ax.plot( z/1E6, np.log(data), marker=markers[indx], ms=2, color="black", fillstyle=fs[indx], linestyle="None", label=entry["label"])
+        ax.plot( z/1E6, np.log(data), marker=markers[indx], ms=7, color=color[indx], fillstyle=fs[indx], linestyle="None", label=entry["label"])
         ax.plot( zFit/1E6, interscept+slope*zFit, lw=0.5, color="black" )
         indx += 1
 
@@ -89,9 +91,10 @@ def main( argv ):
     fig.savefig(fname, bbox_inches="tight")
     print ("Figure written to %s"%(fname))
 
-    if ( fname.find[-3:] == "svg"):
+    if ( fname[-3:] == "svg"):
         psname = fname[:-3]+"ps"
         subprocess.call(["inkscape", "--export-ps=%s"%(psname), "--export-latex", fname])
+	print ("PS version written to %s"%(psname))
 
 if __name__ == "__main__":
     main(sys.argv[1:])

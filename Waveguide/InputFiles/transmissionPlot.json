@@ -1,7 +1,7 @@
 {
   "entries":[
     {
-      "uid":702004,
+      "uid":579186,
       "label":"Straight"
     },
     {
@@ -13,7 +13,7 @@
       "label":"40 mm"
     }
   ],
-  "numberOfPoints":4,
+  "numberOfPoints":200,
   "basename":"data/singleCurvedWG",
   "figurename":"transmissionParamSweep_1017.svg"
 }
