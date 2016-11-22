@@ -9,6 +9,7 @@ import json
 import h5py as h5
 from matplotlib import pyplot as plt
 import colorScheme as cs
+import subprocess
 DELTA = 4.14E-5 # Salditt et al
 BETA = 3.45E-6 # Salditt et al
 
@@ -73,13 +74,13 @@ def main( argv ):
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
     ax.plot(angle, farField**2, color="black")
-    #ax.plot(freq, np.abs(pfft)**2, color="red")
     ax.set_yscale("log")
-    #ax.set_xlabel("q (nm$^{-1}$)")
     ax.set_xlabel("Exit angle (deg)")
     ax.set_ylabel("Intensity (a.u.)")
-    fname = "Figures/farField%d.pdf"%(uid)
+    fname = "Figures/farField%d.svg"%(uid)
+    psname = "Figures/farField%d.ps"%(uid)
     fig.savefig(fname, bbox_inches="tight")
+    subprocess.call(["inkscape", "--export-ps=%s"%(psname), "--export-latex", fname])
     print ("Figure written to %s"%(fname))
 
     # Plot the exit field
@@ -99,8 +100,10 @@ def main( argv ):
     ax.plot( x, exitField, color="black")
     ax.set_xlabel("$x$ (nm)")
     ax.set_ylabel("Field (a.u.)")
-    fname = "Figures/exitField%d.jpeg"%(uid)
+    fname = "Figures/exitField%d.svg"%(uid)
     fig.savefig(fname, bbox_inches="tight")
+    psname = "Figures/exitField%d.ps"%(uid)
+    subprocess.call(["inkscape", "--export-ps=%s"%(psname), "--export-latex", fname])
     print ("Figure written to %s"%(fname))
 
 if __name__ == "__main__":
