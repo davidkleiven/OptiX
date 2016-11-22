@@ -133,4 +133,24 @@
 507568| R = 80 mm | Looks OK |
 680743 | R = 100 mm | Looks OK |
 326866 | R = 150 mm | Looks OK |
+%%% | %%% | %%% |
 796988 | R = 40 mm, L = 1200 um, width=1200 nm, Nx=2000, Nz=3000 | Looks good, solution mimics the Eikonal equation |
+%%% | __Parameter sweep over width___ | %%% |
+114123  | w = 10 nm | No propagating modes
+301088 | w = 20 nm | Look OK |
+433090 | w = 30 nm | Looks OK |
+857974 | w = 40 nm | Looks OK |
+348856 | w = 60 nm | Looks OK |
+539750 | w = 80 nm  | Looks OK |
+763629 | w = 100 nm | Looks OK |
+397296 | w = 150 nm | Looks OK |
+%%% | __Parameter sweep over width__ | %%% |
+326678 | w = 40 nm | Looks OK |
+479615 | w = 60 nm | Looks OK |
+943087 | w = 80 nm | Looks OK |
+963353 | w = 100 nm | Looks OK |
+524050 | w = 200 nm | Looks OK |
+473836 | w = 400 nm | Looks OK |
+903590 | w = 800 nm | Looks OK |
+272447 | w = 1200 nm  | Looks OK |
+%%% | %%% | %%% |
