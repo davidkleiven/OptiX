@@ -12,14 +12,14 @@
 297428 | Lx=5 um, Lz=500 um. dx=3nm, dz=100nm R=80mm | Looks good, plottable in python :) |
 876401 | Lx=5 um, Lz=500 um. dx=3nm, dz=100nm R=40mm | Wave is lost at approx. z = 0.4 mm. Files deleted. |
 205961 | Lx=5 um, Lz=500 um. dx=3nm, dz=50nm R=40mm | Wave is lost at approx. z=0.4 mm. Files deleted. |
-651953 | Lx=2.5 um, Lz=500 um. dx=3nm, dz=50nm R=80mm | Looks very good |
+651953 | Lx=2.5 um, Lz=500 um. dx=3nm, dz=50nm R=80mm | Looks very good. Files deleted |
 392705 | Lx=2.5 um, Lz=500 um. dx=3nm, dz=50nm R=40mm, delta=4.49E-5 | Wrong parameters. Files deleted. |
 852045 | Lx=5.0 um, Lz=500 um. dx=3nm, dz=50nm R=40mm, delta=4.49E-5 | The beam is lost around 0.4 mm. Files deleted |
 385496 | Lx=5.0 um, Lz=500 um. dx=3nm, dz=50nm R=40mm, delta=4.49E-5, try with full circle formula | The beam is lost around 0.4 mm. Files deleted |
-263117 | Lx=5.0 um, Lz=500 um. dx=1nm, dz=50nm R=40mm, delta=4.49E-5 | Looks very, very good |
+263117 | Lx=5.0 um, Lz=500 um. dx=1nm, dz=50nm R=40mm, delta=4.49E-5 | Looks very, very good. Files deleted |
 972076 | Lx=5.0 um, Lz=500 um. dx=1nm, dz=50nm R=40mm, delta=4.49E-5 | Forgot to save the transmission. Files deleted. |
 715235 | Lx=5.0 um, Lz=500 um. dx=1nm, dz=50nm R=40mm, delta=4.49E-5 | Errors in the control file. Files are deleted |
-516123 | Lx=5.0 um, Lz=500 um. dx=1nm, dz=100nm R=40mm, delta=4.49E-5 | Looks good, Damping: 2.6 mm |
+516123 | Lx=5.0 um, Lz=500 um. dx=1nm, dz=100nm R=40mm, delta=4.49E-5 | Looks good, Damping: 2.6 mm. Files deleted |
 751007 | Lx=5.0 um, Lz=200 um. dx=1nm, dz=50nm R=20mm, delta=4.49E-5 | Forgot to copy executable to server. Files are deleted. |
 799571 | Lx=5.0 um, Lz=200 um. dx=1nm, dz=50nm R=20mm, delta=4.49E-5 | Too low stepsize when computing transmission. Filed deleted  |
 776143 | Lx=2.0 um, Lz=200 um. dx=1nm, dz=50nm R=20mm, delta=4.49E-5 | Too low stepsize when computing transmission. Files deleted |
@@ -51,7 +51,7 @@
 293663 | Lz/R=0.01 max(dx) =1.0, dz=calculated, delta=4.45E-5, Straight waveguide | L=5.35 mm, way too wide domain in the transverse direction |
 702004 | Lz/R=0.01 max(dx) =1.0, dz=calculated, delta=4.45E-5, Straight waveguide | L = 5.32 mm, looks good |
 966449 | Lz/R=0.01 max(dx) =1.0, dz=calculated, delta=4.45E-5, Straight waveguide, with real part | L = 5.32 mm, looks good |
-%%% | __Parameter sweep over R saving the real part of the solution in addition__ | %%% |
+%%% | __Parameter sweep over R saving the real part of the solution in addition__ (All files deleted)| %%% |
 694357 | Lz/R=0.01 max(dx) = 1 nm, max(dz)=100.0 nm, delta=4.45E-5, R=10 mm | Looks Ok |
 725810 | R = 20 mm | Looks OK |
 519089 | R = 30 mm | Looks OK |
@@ -62,10 +62,10 @@
 521840 | R = 150 mm | Looks OK |
 %%% | %%% | %%%
 281636 | 1D eigenmode run. R=40mm. delta=4.49E-5 | Lookds good|
-754680 | Coupled. R=80mm. delta=4.49E-5, sep=50 nm, couplerStart=1um | Difficult to see the second wg on log scale |
-363907 | Coupled. R=80mm. delta=4.49E-5, sep=150 nm, couplerStart=1um | Good, need to close the upper for a longer time |
-305415 | Coupled. R=80mm. delta=4.49E-5, sep=150 nm, couplerStart=50um | Ok, difficult to see |
-379863 | Coupled. R=80mm, R2=2R1. delta=4.49E-5, sep=150 nm, couplerStart=50um | Some signals are catched |
+754680 | Coupled. R=80mm. delta=4.49E-5, sep=50 nm, couplerStart=1um | Difficult to see the second wg on log scale. Files deleted |
+363907 | Coupled. R=80mm. delta=4.49E-5, sep=150 nm, couplerStart=1um | Good, need to close the upper for a longer time. Files deleted |
+305415 | Coupled. R=80mm. delta=4.49E-5, sep=150 nm, couplerStart=50um | Ok, difficult to see. Files deleted |
+379863 | Coupled. R=80mm, R2=2R1. delta=4.49E-5, sep=150 nm, couplerStart=50um | Some signals are catched. Files deleted |
 %%% | %%% | %%%
 747532 | Lz/R=0.01 max(dx) =1.0, dz=calculated, delta=4.45E-5, R=80mm, with far field | Ok. Some useful attributes where misisn. Files deleted. |
 805696 | Lz/R=0.01 max(dx) =1.0, dz=calculated, delta=4.45E-5, R=80mm, with far field | Not analysed |
@@ -156,3 +156,4 @@
 %%% | %%% | %%% |
 237813 | Incident angle sweep straight, no alcohol. width=69.8 nm | Looks good |
 441159 | Incident angle sweep straight, alcohol, width=69.8 nm | Looks good |
+269064 | Incident angle sweep, w=69.8 nm, E=10keV | Looks good |

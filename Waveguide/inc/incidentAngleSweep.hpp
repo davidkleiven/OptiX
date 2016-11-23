@@ -25,8 +25,9 @@ public:
   void solve();
   void setTransverseDisc( double xmin, double xmax, unsigned int Nx );
   void setLongitudinalDisc( double zmin, double zmax, unsigned int Nz );
-  void setCladdingSilicon();
-  void setAlcoholInside();
+  void setCladdingSilicon( double energyInEv );
+  void setAlcoholInside( double energyInEv );
+  void setEthylenGlycolInside( double energyInEv );
   void saveIndx( unsigned int indx );
   void setFFTSignalLength( unsigned int length){fftSignalLength=length;};
   void setVisualizer( Visualizer &newvis ){ vis = &newvis; };

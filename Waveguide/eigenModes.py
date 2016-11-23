@@ -35,6 +35,8 @@ class Eigenmodes:
         self.exportTransFname = ""
         self.radius = None
         self.normalizeContourPlots = True
+        self.maxAngle = 0.4
+        self.minAngle = -0.4
 
     def read( self, h5file ):
         indx = 0
@@ -292,3 +294,101 @@ class Eigenmodes:
         fig.savefig( fname, bbox_inches="tight")
         subprocess.call(["inkscape", "--export-ps=Figures/contourLog%s.ps"%(appendName), "--export-latex", fname])
         print ("Figure written to %s"%(fname))
+
+    def farField( self, mode ):
+        sigLength = 32768
+        data = self.modes[mode].profile
+        if ( len(data) < sigLength ):
+            padLength = (sigLength - len(data))/2
+            data = np.pad(data, padLength, "edge")
+        ft = np.fft.fft(data)/np.sqrt( len(data) )
+        return np.fft.fftshift(ft)
+
+    def plotFarField( self, k0=10.0, start=0 ):
+        colors = ["black", "#e41a1c", "#377eb8", "#4daf4a", "#984ea3"]
+        fig = plt.figure()
+        ax = fig.add_subplot(1,1,1)
+        figP = plt.figure()
+        axP = figP.add_subplot(1,1,1)
+        total = np.zeros( 32768 ) + 1j*np.zeros( 32768 )
+        dist = (self.modes[0].xmax - self.modes[0].xmin)/len(self.modes[0].profile)
+        freq = np.fft.fftfreq(len(total), d=dist)
+        freq = np.fft.fftshift(freq)
+        angle = np.arcsin(2.0*np.pi*freq/k0)*180.0/np.pi
+        angle = np.real( angle )
+        startIndx = np.argmin( np.abs(angle-self.minAngle))
+        endIndx = np.argmin( np.abs( angle - self.maxAngle) )
+
+        for i in range(start,start+len(colors)):
+            farField = self.farField(i)
+            total += farField
+            intensity = np.abs(farField)**2
+            phase = np.angle(farField)
+            print startIndx, endIndx
+            ax.plot( angle[startIndx:endIndx], intensity[startIndx:endIndx], color=colors[i-start], label="%d"%(i+1) )
+            if ( i== start+1 ):
+                print phase
+                axP.plot( angle[startIndx:endIndx], phase[startIndx:endIndx], color=colors[i-start], label="%d"%(i+1))
+        #total = np.abs(total)**2
+        #ax.plot( angle[startIndx:endIndx], total[startIndx:endIndx], color="black", label="Sum")
+        ax.set_xlabel("Exit angle (deg)")
+        axP.set_xlabel("Exit angle (deg)")
+        ax.set_ylabel("Intensity (a.u.)")
+        axP.set_ylabel("Phase (rad)")
+        ax.legend(loc="upper right", labelspacing=0.005, frameon=False )
+        fname = "Figures/farField.svg"
+        psname = "Figures/farField.ps"
+        fig.savefig(fname)
+        subprocess.call(["inkscape", "--export-ps=%s"%(psname), "--export-latex", fname])
+        print ("Figure exported to %s and %s"%(fname, psname))
+        fname = "Figures/farPhase.svg"
+        psname = "Figures/farPhase.ps"
+        figP.savefig(fname)
+        subprocess.call(["inkscape", "--export-ps=%s"%(psname), "--export-latex", fname])
+        print ("Figure exported to %s and %s"%(fname, psname))
+        plt.show()
+
+        ax.set_yscale("log")
+        ax.set_ylim( bottom=1E-4*np.max(total))
+        ax.set_ylim( top=2*np.max(total))
+        fname = "Figures/farFieldLog.svg"
+        psname = "Figures/farFieldLog.ps"
+        ax.legend(loc="upper right", labelspacing=0.05, frameon=False, ncol=4, columnspacing=0.01, handlelength=0.1)
+        fig.savefig(fname)
+        subprocess.call(["inkscape", "--export-ps=%s"%(psname), "--export-latex", fname])
+        print ("Figure exported to %s and %s"%(fname, psname))
+        plt.show()
+
+    def plotExcitationVSAngle( self, ampFunc ):
+        angles = np.linspace( -0.2, 0.2, 201 )
+        coeff1 = np.zeros(len(angles))
+        coeff2 = np.zeros(len(angles))
+        coeff3 = np.zeros(len(angles))
+        coeff4 = np.zeros(len(angles))
+        coeff5 = np.zeros(len(angles))
+        for i in range(0, len(angles)):
+            ampFunc.angle = angles[i]*np.pi/180.0
+            coeff = self.computeInitialCoefficient( ampFunc.amp )
+            coeff1[i] = coeff[0]
+            coeff2[i] = coeff[1]
+            coeff3[i] = coeff[2]
+            coeff4[i] = coeff[3]
+            coeff5[i] = coeff[4]
+
+        fig = plt.figure()
+        colors = ["#e41a1c", "#377eb8", "#4daf4a", "#984ea3"]
+        ax = fig.add_subplot(1,1,1)
+        ax.plot(angles, coeff1**2, color="black", label="1")
+        ax.plot(angles, coeff2**2, color=colors[0], label="2")
+        ax.plot(angles, coeff3**2, color=colors[1], label="3")
+        ax.plot(angles, coeff4**2, color=colors[2], label="4")
+        ax.plot(angles, coeff5**2, color=colors[3], label="5")
+        ax.set_xlabel("Incident angle (deg)")
+        ax.set_ylabel("\$|c_n|^2\$")
+        ax.legend( loc="upper right", frameon=False, labelspacing=0.005 )
+        fname = "Figures/excitationVSangle.svg"
+        fig.savefig(fname)
+        psname = "Figures/excitationVSangle.ps"
+        subprocess.call(["inkscape", "--export-ps=%s"%(psname), "--export-latex", fname])
+        print ("Figures written to %s and %s"%(fname, psname))
+        plt.show()

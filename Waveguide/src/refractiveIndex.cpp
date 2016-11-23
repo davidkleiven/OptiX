@@ -4,8 +4,9 @@
 #include <cassert>
 using namespace std;
 const map<elementName, filename> RefractiveIndex::knownElements = {{"Ta", "MatProp/indexRefrTa.txt"},
-                                    {"C2H5O", "MatProp/indexRefrC2H5O.txt"},
-                                    {"SiO2", "MatProp/indexRefrSiO2.txt"}};
+                                    {"C2H6O", "MatProp/indexRefrC2H6O.txt"},
+                                    {"SiO2", "MatProp/indexRefrSiO2.txt"},
+                                    {"C2H6O2", "MatProp/indexRefrC2H6O2.txt"}};
 
 void RefractiveIndex::load( const char* element )
 {

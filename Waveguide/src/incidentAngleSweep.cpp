@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <sstream>
+#include "refractiveIndex.hpp"
 
 using namespace std;
 IncidentAngleSweep::IncidentAngleSweep():picDir("")
@@ -43,10 +44,14 @@ void IncidentAngleSweep::setLongitudinalDisc( double zmin, double zmax, unsigned
   wg.setLongitudinalDiscretization( zmin, zmax, step );
 }
 
-void IncidentAngleSweep::setCladdingSilicon()
+void IncidentAngleSweep::setCladdingSilicon( double energyInEv )
 {
-  double beta = 1E-7;
-  double delta = 1E-5;
+
+  RefractiveIndex refr;
+  refr.load( "SiO2" );
+  double delta = refr.getDelta( energyInEv );
+  double beta = refr.getBeta( energyInEv );
+  cout << "Cladding: delta="<<delta<<", beta=" << beta << endl;
   cladding.setRefractiveIndex( delta, beta );
   wg.setCladding( cladding );
 }
@@ -134,14 +139,27 @@ void IncidentAngleSweep::save( const string &fname ) const
     clog << "Results written to " << ss.str() << endl;
   }
 
-void IncidentAngleSweep::setAlcoholInside()
+void IncidentAngleSweep::setAlcoholInside( double energyInEv )
 {
-  double delta = 3E-6; // For 7.9 keV (0.1569 nm)
-  double beta = 5E-9;
+  RefractiveIndex refr;
+  refr.load( "C2H6O" );
+  double delta = refr.getDelta( energyInEv );
+  double beta = refr.getBeta( energyInEv );
+  cout << "Inside: delta="<<delta << ", beta=" << beta << endl;
   inside.setRefractiveIndex(delta, beta);
   wg.setInsideMaterial(inside);
 }
 
+void IncidentAngleSweep::setEthylenGlycolInside( double energyInEv )
+{
+  RefractiveIndex refr;
+  refr.load( "C2H6O2" );
+  double delta = refr.getDelta( energyInEv );
+  double beta = refr.getBeta( energyInEv );
+  cout << "Inside: delta="<<delta << ", beta=" << beta << endl;
+  inside.setRefractiveIndex(delta, beta);
+  wg.setInsideMaterial(inside);
+}
 void IncidentAngleSweep::savePic( const char *dir )
 {
   picDir = dir;

@@ -40,15 +40,17 @@ int main( int argc, char** argv )
   IncidentAngleSweep simulation;
   Visualizer vis;
   double width = 69.8;
-  simulation.setWavelength( 0.1569 );
-  simulation.setCladdingSilicon();
+  double energy = 10000.0; //ev
+  simulation.setWavelength( 0.124 );
+  simulation.setCladdingSilicon( energy );
   if ( useAlcohol )
   {
-    simulation.setAlcoholInside();
+    simulation.setEthylenGlycolInside( energy );
+    //simulation.setAlcoholInside( energy );
   }
   simulation.setWidth( width );
   simulation.setTransverseDisc( -width, 2.0*width, 1000);
-  simulation.setLongitudinalDisc( 0.0, 2E6, 10000 );
+  simulation.setLongitudinalDisc( 0.0, 3E6, 10000 );
   simulation.setIncAngles( -0.2, 0.2, 100 );
   simulation.setFFTSignalLength(32768);
   //simulation.saveIndx( 50 );
@@ -65,7 +67,6 @@ int main( int argc, char** argv )
   }
 
   simulation.solve();
-
 
   string fname("data/angleSweep");
   simulation.save( fname );

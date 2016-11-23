@@ -6,6 +6,13 @@ import numpy as np
 def amp(x):
     return 1.0
 
+class AngleSweepAmplitude:
+    def __init__(self):
+        self.angle = 0.0
+        self.k0 = 0.0
+    def amp(self, x):
+        return np.cos( x*self.k0*self.angle )
+
 def main( argv ):
     fname = ""
     for arg in argv:
@@ -24,6 +31,7 @@ def main( argv ):
 
     eigModes = em.Eigenmodes()
     wavelength = 0.1569 # Should be included in the h5file
+    wavelength = 0.124 # Should be included in the h5file
     k0 = 2.0*np.pi/wavelength
     try:
         with h5.File( fname, 'r' ) as hf:
@@ -42,7 +50,12 @@ def main( argv ):
     #eigModes.plotAbsorption( coeff, absorb, k0, 400E3 )
     #eigModes.transmissionByIntegrateOverWG( coeff, prop, absorb, k0, 400E3 )
     #eigModes.nPropagatingModes = 12
-    eigModes.plotAbsCoefficients( absorb, k0)
+    #eigModes.plotAbsCoefficients( absorb, k0)
+    eigModes.plotFarField( k0=k0 )
+
+    angleSw = AngleSweepAmplitude()
+    angleSw.k0 = k0
+    eigModes.plotExcitationVSAngle(angleSw)
 
 if __name__ == "__main__":
     main( sys.argv[1:] )
