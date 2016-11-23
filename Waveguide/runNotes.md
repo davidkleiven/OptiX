@@ -154,5 +154,5 @@
 903590 | w = 800 nm | Looks OK |
 272447 | w = 1200 nm  | Looks OK |
 %%% | %%% | %%% |
-237813 | Incident angle sweep straight, no alcohol. width=68.9 nm | Looks good |
-441159 | Incident angle sweep straight, alcohol, width=68.9 nm | Looks good |
+237813 | Incident angle sweep straight, no alcohol. width=69.8 nm | Looks good |
+441159 | Incident angle sweep straight, alcohol, width=69.8 nm | Looks good |
