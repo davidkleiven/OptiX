@@ -60,6 +60,7 @@ def plot2D(data, stat, borders, field=None, phase=None):
     im = ax.imshow(dataNorm, extent=extent, cmap=colormap, aspect=1.0, origin ="lower")
     ax.set_xlabel(zlabel)
     ax.set_ylabel(xlabel)
+    ax.autoscale(False)
     ax.set_aspect( np.abs( (extent[1]-extent[0])/(extent[3]-extent[2]) ))
     fig.colorbar( im )
     if ( not borders is None ):
@@ -87,6 +88,7 @@ def plot2D(data, stat, borders, field=None, phase=None):
     im = ax.imshow(dataNorm, extent=extent, cmap=colormap, aspect=1.0, origin="lower", norm=mpl.colors.LogNorm(minval, maxval))
     ax.set_xlabel(zlabel)
     ax.set_ylabel(xlabel)
+    ax.autoscale(False)
     fig.colorbar(im)
     if ( not borders is None ):
         borders.visualize( ax )
@@ -110,6 +112,7 @@ def plot2D(data, stat, borders, field=None, phase=None):
         ax.set_xlabel(zlabel)
         ax.set_ylabel(xlabel)
         fig.colorbar( im )
+        ax.autoscale(False)
         if ( not borders is None ):
             borders.visualize( ax )
         ax.set_aspect( np.abs( (extent[1]-extent[0])/(extent[3]-extent[2]) ))
@@ -126,6 +129,7 @@ def plot2D(data, stat, borders, field=None, phase=None):
         ax.set_xlabel(zlabel)
         ax.set_ylabel(xlabel)
         fig.colorbar( im )
+        ax.autoscale(False)
         if ( not borders is None ):
             borders.visualize( ax )
         ax.set_aspect( np.abs( (extent[1]-extent[0])/(extent[3]-extent[2]) ))
