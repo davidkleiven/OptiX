@@ -5,6 +5,7 @@
 #include <fstream>
 #include <H5Cpp.h>
 #include <cmath>
+#include <ctime>
 
 class StepSource
 {
@@ -23,6 +24,7 @@ public:
 using namespace std;
 int main( int argc, char** argv )
 {
+  srand(time(0));
   const double PI = acos(-1.0);
   string paramFname("");
   double zmax=1.0;
@@ -154,7 +156,7 @@ int main( int argc, char** argv )
 
     propagator.setStepsize( zmax/nSteps );
     propagator.propagate( nSteps );
-    string fname("data/fresnelPropTest.h5");
+    string fname("data/fresnelProp");
     propagator.save( fname );
   }
   catch ( exception &exc )

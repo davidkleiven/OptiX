@@ -88,13 +88,16 @@ void FresnelPropagator::step()
 
 void FresnelPropagator::save( const string &fname ) const
 {
+  int uid = rand()%10000000;
   if ( intensity == NULL )
   {
     throw (runtime_error("No solution has been computed!"));
   }
 
   hsize_t dim[2] = {intensity->n_cols, intensity->n_rows};
-  hid_t file_id = H5Fcreate( fname.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+  stringstream ss;
+  ss << fname << uid << ".h5";
+  hid_t file_id = H5Fcreate( ss.str().c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
   H5LTmake_dataset( file_id, "intensity", 2, dim, H5T_NATIVE_DOUBLE, intensity->memptr());
 
   // Set useful attributes
@@ -103,9 +106,14 @@ void FresnelPropagator::save( const string &fname ) const
   H5LTset_attribute_double( file_id, "intensity", "xmax", &xDisc->max, 1);
   H5LTset_attribute_double( file_id, "intensity", "xstep", &xDisc->step, 1);
   H5LTset_attribute_double( file_id, "intensity", "zstep", &dz, 1);
+  double zmin = 0.0;
+  H5LTset_attribute_double( file_id, "intensity", "zmin", &zmin, 1);
+  double zmax = dz*intensity->n_cols;
+  H5LTset_attribute_double( file_id, "intensity", "zmax", &zmax, 1);
+  H5LTset_attribute_int( file_id, "intensity", "uid", &uid, 1);
   H5Fclose(file_id);
 
-  clog << "Intensity written to " << fname << endl;
+  clog << "Intensity written to " << ss.str() << endl;
 }
 
 double FresnelPropagator::getX( unsigned int ix ) const
