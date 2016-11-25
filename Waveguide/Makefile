@@ -53,10 +53,10 @@ coupledWG.out: $(filter-out obj/main.o, ${OBJECTS}) ${ODIR}/coupledWaveGuideSimu
 	g++ -std=c++11 -o $@ $^ -L ${LDIR} -L ${ARMA_PATH} ${LIBS}
 
 beamSplitSim.out: $(filter-out obj/main.o, ${OBJECTS}) ${ODIR}/beamSplitSim.o
-	g++ -std=c++11 -o $@ $^ -L ${LDIR} -L ${ARMA_PATH} ${LIBS}
+	g++ -std=c++11 -o $@ $^ -L ${LDIR} -L ${ARMA_PATH} ${LIBS} ${GRAPHLIBS}
 
 fresnelProp.out: $(filter-out obj/main.o, ${OBJECTS}) ${ODIR}/fresnelProp.o
-	g++ -std=c++11 -o $@ $^ -L ${LDIR} -L ${ARMA_PATH} ${LIBS}
+	g++ -std=c++11 -o $@ $^ -L ${LDIR} -L ${ARMA_PATH} ${LIBS} ${GRAPHLIBS}
 
 incidentAngleSweep.out: $(filter-out obj/main.o, ${OBJECTS}) ${ODIR}/straightGuideSweepAngle.o
 	g++ -std=c++11 -o $@ $^ -L ${LDIR} -L ${ARMA_PATH} ${LIBS} ${GRAPHLIBS}

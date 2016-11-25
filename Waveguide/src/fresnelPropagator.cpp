@@ -1,5 +1,4 @@
 #include "fresnelPropagator.hpp"
-#include "waveGuideFDSimulation.hpp"
 #include <cmath>
 #include <H5Cpp.h>
 #include <hdf5_hl.h>

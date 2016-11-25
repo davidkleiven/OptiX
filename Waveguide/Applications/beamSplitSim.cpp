@@ -63,6 +63,7 @@ int main( int argc, char **argv )
     wg.solve();
     clog << "done\n";
     wg.extractWGBorders();
+    wg.computeFarField( 524288 );
     clog << "Exporting results...\n";
     wg.save( ctl );
     ctl.save();

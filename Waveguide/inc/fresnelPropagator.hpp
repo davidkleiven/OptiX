@@ -3,8 +3,9 @@
 #include <armadillo>
 #include <complex>
 #include <stdexcept>
+#include "waveGuideFDSimulation.hpp"
 typedef std::complex<double> cdouble;
-class Disctretization;
+
 
 class FresnelPropagator
 {
