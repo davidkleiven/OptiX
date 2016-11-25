@@ -22,7 +22,11 @@ def main( argv ):
     MSG += "file: HDF5 field created by the far field computer.\n"
     MSG += "      Contains one dataset for the exit field and one for the far field\n"
     MSG += "fullExitField: Plot the full exit field as outputted to the HDF5 filed\n"
+    MSG += "angles: center,width"
     fullExitField = False
+    anglesGiven = False
+    angCenter = 0.0
+    angWidth = 0.0
     for arg in argv:
         if ( arg.find("--file=") != -1 ):
             fname = arg.split("--file=")[1]
@@ -31,6 +35,11 @@ def main( argv ):
             return
         elif ( arg.find("--fullExit") != -1 ):
             fullExitField = True
+        elif ( arg.find("--angles=") != -1 ):
+            anglesGiven = True
+            angs = arg.split("--angles=")[1]
+            angCenter = float( angs.split(",")[0] )
+            angWidth = float( angs.splot(",")[1] )
         else:
             print ("Unknown argument %s"%(arg))
             return
@@ -71,10 +80,14 @@ def main( argv ):
     angle *= 180.0/np.pi
     dAngle = 1.0
 
-    maxpos = np.argmax(farField**2)
-    angleCenter = angle[maxpos]
-    start = np.argmin( np.abs( angle -angleCenter +dAngle) )
-    end = np.argmin( np.abs( angle-angleCenter -dAngle) )
+    if ( not anglesGiven ):
+        maxpos = np.argmax(farField**2)
+        angleCenter = angle[maxpos]
+        start = np.argmin( np.abs( angle -angleCenter +dAngle) )
+        end = np.argmin( np.abs( angle-angleCenter -dAngle) )
+    else:
+        start = np.argmin( np.abs( angle -angCenter +angWidth) )
+        end = np.argmin( np.abs( angle-angCenter -angWidth) )
     farField = farField[start:end]
     angle = angle[start:end]
     fig = plt.figure()
