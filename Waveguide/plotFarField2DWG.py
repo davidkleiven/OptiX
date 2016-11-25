@@ -39,7 +39,7 @@ def main( argv ):
             anglesGiven = True
             angs = arg.split("--angles=")[1]
             angCenter = float( angs.split(",")[0] )
-            angWidth = float( angs.splot(",")[1] )
+            angWidth = float( angs.split(",")[1] )
         else:
             print ("Unknown argument %s"%(arg))
             return
