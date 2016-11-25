@@ -21,12 +21,16 @@ def main( argv ):
     MSG += "help: Prin this message\n"
     MSG += "file: HDF5 field created by the far field computer.\n"
     MSG += "      Contains one dataset for the exit field and one for the far field\n"
+    MSG += "fullExitField: Plot the full exit field as outputted to the HDF5 filed\n"
+    fullExitField = False
     for arg in argv:
         if ( arg.find("--file=") != -1 ):
             fname = arg.split("--file=")[1]
         elif ( arg.find("--help") != -1 ):
             print (MSG)
             return
+        elif ( arg.find("--fullExit") != -1 ):
+            fullExitField = True
         else:
             print ("Unknown argument %s"%(arg))
             return
@@ -88,15 +92,17 @@ def main( argv ):
     # Plot the exit field
     indx = np.argmax(np.abs(exitField))
     x = np.linspace(xmin, xmax, len(exitField))
-    delta = int( 0.3*len(exitField) )
-    minIndx = indx-delta
-    maxIndx = indx+delta
-    if ( minIndx < 0 ):
-        minIndx = 0
-    if ( maxIndx >= len(exitField)):
-        maxIndx = -1
-    exitField = exitField[minIndx:maxIndx]
-    x = x[minIndx:maxIndx]
+
+    if ( not fullExitField )
+        delta = int( 0.3*len(exitField) )
+        minIndx = indx-delta
+        maxIndx = indx+delta
+        if ( minIndx < 0 ):
+            minIndx = 0
+        if ( maxIndx >= len(exitField)):
+            maxIndx = -1
+        exitField = exitField[minIndx:maxIndx]
+        x = x[minIndx:maxIndx]
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
     ax.plot( x, exitField, color="black")
