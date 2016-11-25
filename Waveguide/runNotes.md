@@ -158,3 +158,4 @@
 441159 | Incident angle sweep straight, alcohol, width=69.8 nm | Looks good |
 269064 | Incident angle sweep, w=69.8 nm, E=10keV | Looks good |
 4289323 | Fresnel simulation of run 857974 |
+497528 | Beam split | Look good |s
