@@ -93,7 +93,7 @@ def main( argv ):
     indx = np.argmax(np.abs(exitField))
     x = np.linspace(xmin, xmax, len(exitField))
 
-    if ( not fullExitField )
+    if ( not fullExitField ):
         delta = int( 0.3*len(exitField) )
         minIndx = indx-delta
         maxIndx = indx+delta
