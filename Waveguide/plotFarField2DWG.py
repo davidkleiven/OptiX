@@ -88,14 +88,33 @@ def main( argv ):
     else:
         start = np.argmin( np.abs( angle -angCenter +angWidth) )
         end = np.argmin( np.abs( angle-angCenter -angWidth) )
-    farField = farField[start:end]
-    angle = angle[start:end]
+
+    angMin = -100.0
+    angMax = 100.0
+    happy = False
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
-    ax.plot(angle, farField**2, color="black")
-    ax.set_yscale("log")
-    ax.set_xlabel("Exit angle (deg)")
-    ax.set_ylabel("Intensity (a.u.)")
+    print ("Type any non numeric entry to quit")
+    while ( not happy ):
+        start = np.argmin( np.abs(angle-angMin))
+        end = np.argmin( np.abs(angle-angMax))
+        ff = farField[start:end]
+        ang = angle[start:end]
+        ax.plot(ang, ff**2, color="black")
+        ax.set_yscale("log")
+        ax.set_xlabel("Exit angle (deg)")
+        ax.set_ylabel("Intensity (a.u.)")
+        ax.set_ylim(bottom=1E-6*np.max(ff**2))
+        plt.show( block=False )
+        angMin = raw_input("Min angle:")
+        angMax = raw_input("Max angle:")
+        try:
+            angMin = float(angMin)
+            angMax = float(angMax)
+        except:
+            happy = True
+        fig.clf()
+        ax = fig.add_subplot(1,1,1)
     fname = "Figures/farField%d.svg"%(uid)
     psname = "Figures/farField%d.ps"%(uid)
     fig.savefig(fname, bbox_inches="tight")

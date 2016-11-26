@@ -30,6 +30,7 @@ def main( argv ):
         farField = hf.get("farField")
         attrs = dset.attrs
         wavenumber = float( farField.attrs["wavenumber"] )
+        ef = np.array( hf.get( "exitField" ) )
         xmin = float( dset.attrs.get("xmin"))
         xmax = float( dset.attrs.get("xmax"))
         amp = np.array(dset)
@@ -60,16 +61,21 @@ def main( argv ):
 
 
     fname = fname.split(".")[0]+"mirror.h5"
-    farField = np.fft.fft( newField )
-    np.fft.fftshift( farField )
+    length = 32768
+    padField = np.pad( newField, length/2, "edge")
+    farField = np.fft.fft( padField )
+    farField = np.fft.fftshift( farField )/np.sqrt(len(farField))
     with h5.File(fname, 'w') as hf:
         dset = hf.create_dataset("exitIntensity", data=np.abs(newField))
         dset2 = hf.create_dataset("exitPhase", data=np.angle(newField))
         dset3 = hf.create_dataset("farField", data=np.array(farField) )
-        dset.attrs["xmin"] = xmin
-        dset.attrs["xmax"] = xmax
-        dset.attrs["displacement"] = d
-        dset3.attrs["wavenumber"] = wavenumber
+        dset4 = hf.create_dataset("exitField", data=ef)
+        dsets = [dset, dset2, dset3, dset4]
+        for ds in dsets:
+            dset.attrs["xmin"] = xmin
+            dset.attrs["xmax"] = xmax
+            dset.attrs["displacement"] = d
+            dset.attrs["wavenumber"] = wavenumber
 
     print ("New data written to %s"%(fname))
 
