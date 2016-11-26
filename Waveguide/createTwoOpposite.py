@@ -11,9 +11,7 @@ def main( argv ):
     d = 0.0
     fname = ""
     for arg in argv:
-        if ( arg.find("--d=") != -1 ):
-            d = float( arg.split("--d=")[1] )
-        elif ( arg.find("--file=") != -1 ):
+        if ( arg.find("--file=") != -1 ):
             fname = arg.split("--file=")[1]
         elif ( arg.find("--help") != -1 ):
             print ("Usage: python crateTwoOpposite.py --d=<distance> --file=<farFieldH5file>")
@@ -41,13 +39,29 @@ def main( argv ):
     field = amp*np.exp(1j*phase)
     mirror = field[-1::-1]
     dx = (xmax-xmin)/len(field)
-    dIndx = int(d/dx)
-    newLength = len(field)+dIndx
-    newField = np.zeros(newLength) + 1j*np.zeros(newLength)
-    newField[:len(field)] = field
-    newField[-len(field):] += mirror
+    d=0.0
+    happy = False
+    while ( not happy ):
+        dIndx = int(d/dx)
+        newLength = len(field)+dIndx
+        newField = np.zeros(newLength) + 1j*np.zeros(newLength)
+        newField[:len(field)] = field
+        newField[-len(field):] += mirror
+        x = np.linspace(xmin,newLength*dx, newLength)
+        plt.plot(x, np.abs(newField))
+        plt.xlabel("x (nm)")
+        plt.show( block=False )
+        d = raw_input("Separation (nm) (type any non-numeric character to quit): ")
+        try:
+            d = float(d)
+        except:
+            happy = True
+        plt.clf()
+
 
     fname = fname.split(".")[0]+"mirror.h5"
+    farField = np.fft.fft( newField )
+    np.fft.fftshift( farField )
     with h5.File(fname, 'w') as hf:
         dset = hf.create_dataset("exitIntensity", data=np.abs(newField))
         dset2 = hf.create_dataset("exitPhase", data=np.angle(newField))
@@ -58,8 +72,6 @@ def main( argv ):
         dset3.attrs["wavenumber"] = wavenumber
 
     print ("New data written to %s"%(fname))
-    plt.plot(np.abs(newField))
-    plt.show()
 
 if __name__ == "__main__":
     main( sys.argv[1:])
