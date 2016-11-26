@@ -42,13 +42,28 @@ def main( argv ):
     dx = (xmax-xmin)/len(field)
     d=0.0
     happy = False
+    dIndx = 0
+    xmaxNew = xmax
+    xminNew = xmin
     while ( not happy ):
         dIndx = int(d/dx)
-        newLength = len(field)+dIndx
+        newLength = len(field)+np.abs(dIndx)
+        center = int(newLength/2)
         newField = np.zeros(newLength) + 1j*np.zeros(newLength)
-        newField[:len(field)] = field
-        newField[-len(field):] += mirror
-        x = np.linspace(xmin,newLength*dx, newLength)
+        if ( dIndx >= 0):
+            newField[dIndx:len(field)+dIndx] = field
+            newField[:len(field)] += mirror
+            x = np.linspace(xmin,xmin+newLength*dx, newLength)
+            xmaxNew = xmin+newLength*dx
+            xminNew = xmin
+        else:
+            dIndx = np.abs(dIndx)
+            newField[:len(field)] = field
+            newField[dIndx:len(field)+dIndx] += mirror
+            xmaxNew = xmax
+            x = np.linspace(xmax-dx*newLength, xmax, newLength)
+            xminNew = xmax-dx*newLength
+
         plt.plot(x, np.abs(newField))
         plt.xlabel("x (nm)")
         plt.show( block=False )
@@ -69,13 +84,13 @@ def main( argv ):
         dset = hf.create_dataset("exitIntensity", data=np.abs(newField))
         dset2 = hf.create_dataset("exitPhase", data=np.angle(newField))
         dset3 = hf.create_dataset("farField", data=np.array(farField) )
-        dset4 = hf.create_dataset("exitField", data=ef)
+        dset4 = hf.create_dataset("exitField", data=np.real(newField))
         dsets = [dset, dset2, dset3, dset4]
         for ds in dsets:
-            dset.attrs["xmin"] = xmin
-            dset.attrs["xmax"] = xmax
-            dset.attrs["displacement"] = d
-            dset.attrs["wavenumber"] = wavenumber
+            ds.attrs["xmin"] = xminNew
+            ds.attrs["xmax"] = xmaxNew
+            ds.attrs["displacement"] = d
+            ds.attrs["wavenumber"] = wavenumber
 
     print ("New data written to %s"%(fname))
 

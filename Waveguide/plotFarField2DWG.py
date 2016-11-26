@@ -80,15 +80,6 @@ def main( argv ):
     angle *= 180.0/np.pi
     dAngle = 1.0
 
-    if ( not anglesGiven ):
-        maxpos = np.argmax(farField**2)
-        angleCenter = angle[maxpos]
-        start = np.argmin( np.abs( angle -angleCenter +dAngle) )
-        end = np.argmin( np.abs( angle-angleCenter -dAngle) )
-    else:
-        start = np.argmin( np.abs( angle -angCenter +angWidth) )
-        end = np.argmin( np.abs( angle-angCenter -angWidth) )
-
     angMin = -100.0
     angMax = 100.0
     happy = False
@@ -96,6 +87,8 @@ def main( argv ):
     ax = fig.add_subplot(1,1,1)
     print ("Type any non numeric entry to quit")
     while ( not happy ):
+        fig.clf()
+        ax = fig.add_subplot(1,1,1)
         start = np.argmin( np.abs(angle-angMin))
         end = np.argmin( np.abs(angle-angMax))
         ff = farField[start:end]
@@ -113,33 +106,41 @@ def main( argv ):
             angMax = float(angMax)
         except:
             happy = True
-        fig.clf()
-        ax = fig.add_subplot(1,1,1)
     fname = "Figures/farField%d.svg"%(uid)
     psname = "Figures/farField%d.ps"%(uid)
     fig.savefig(fname, bbox_inches="tight")
     subprocess.call(["inkscape", "--export-ps=%s"%(psname), "--export-latex", fname])
     print ("Figure written to %s"%(fname))
+    plt.close()
 
     # Plot the exit field
     indx = np.argmax(np.abs(exitField))
     x = np.linspace(xmin, xmax, len(exitField))
 
-    if ( not fullExitField ):
-        delta = int( 0.3*len(exitField) )
-        minIndx = indx-delta
-        maxIndx = indx+delta
-        if ( minIndx < 0 ):
-            minIndx = 0
-        if ( maxIndx >= len(exitField)):
-            maxIndx = -1
-        exitField = exitField[minIndx:maxIndx]
-        x = x[minIndx:maxIndx]
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
-    ax.plot( x, exitField, color="black")
-    ax.set_xlabel("$x$ (nm)")
-    ax.set_ylabel("Field (a.u.)")
+    happy = False
+    start = 0
+    end = -1
+    while ( not happy ):
+        fig.clf()
+        ax = fig.add_subplot(1,1,1)
+        xx = x[start:end]
+        ef = exitField[start:end]
+        ax.plot( xx, ef, color="black")
+        ax.set_xlabel("$x$ (nm)")
+        ax.set_ylabel("Field (a.u.)")
+        plt.show( block=False )
+        xmin = raw_input("Minval: ")
+        xmax = raw_input("Maxval: ")
+        try:
+            xmin = float(xmin)
+            xmax = float(xmax)
+            start = np.argmin( np.abs(x-xmin))
+            end = np.argmin( np.abs(x-xmax))
+        except:
+            happy = True
+
     fname = "Figures/exitField%d.svg"%(uid)
     fig.savefig(fname, bbox_inches="tight")
     psname = "Figures/exitField%d.ps"%(uid)
