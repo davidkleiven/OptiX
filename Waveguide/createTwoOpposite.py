@@ -28,6 +28,7 @@ def main( argv ):
     with h5.File( fname, 'r' ) as hf:
         dset = hf.get("exitIntensity")
         farField = hf.get("farField")
+        dx = farField.get("gridspacing")
         attrs = dset.attrs
         wavenumber = float( farField.attrs["wavenumber"] )
         ef = np.array( hf.get( "exitField" ) )
@@ -91,6 +92,7 @@ def main( argv ):
             ds.attrs["xmax"] = xmaxNew
             ds.attrs["displacement"] = d
             ds.attrs["wavenumber"] = wavenumber
+            ds.attrs["gridspaceing"] = dx
 
     print ("New data written to %s"%(fname))
 
