@@ -83,7 +83,7 @@ def main( argv ):
     with h5.File(fname, 'w') as hf:
         dset = hf.create_dataset("exitIntensity", data=np.abs(newField))
         dset2 = hf.create_dataset("exitPhase", data=np.angle(newField))
-        dset3 = hf.create_dataset("farField", data=np.array(farField) )
+        dset3 = hf.create_dataset("farField", data=np.abs(farField) )
         dset4 = hf.create_dataset("exitField", data=np.real(newField))
         dsets = [dset, dset2, dset3, dset4]
         for ds in dsets:
