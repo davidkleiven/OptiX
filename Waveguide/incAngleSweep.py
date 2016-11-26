@@ -18,6 +18,7 @@ try:
 except:
     cmap = "viridis"
 
+cmap="jet"
 DELTA = 4.14E-5 # Salditt et al
 BETA = 3.45E-6 # Salditt et al
 
@@ -53,12 +54,13 @@ def main( argv ):
     end = np.argmin( np.abs( phi-thetaMax) )
     phi = phi[start:end]
     intensity = intensity[:,start:end]
-    intensity = np.fliplr(intensity)
+    #intensity = np.fliplr(intensity)
     im = ax.pcolor( phi, theta, intensity, cmap=cmap, norm=mpl.colors.LogNorm() )
 
     #ax.set_aspect( np.abs( (extent[1]-extent[0])/(extent[3]-extent[2]) ))
     ax.set_xlabel("Exit angle (deg)")
     ax.set_ylabel("Incident angle (deg)")
+    ax.autoscale(False)
     fig.colorbar( im )
     fname = "Figures/incAngleSweep.svg"
     fig.savefig(fname, bbox_inches="tight", dpi=800)
