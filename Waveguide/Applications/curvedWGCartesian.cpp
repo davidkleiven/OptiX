@@ -129,7 +129,7 @@ int main( int argc, char **argv )
   // Parameters for running a sweep over radii of curvature
   double LzOverR = 0.01; // max(z)/R << 1 is a requirement
   double xMarginAboveAndBelow = 0.01E3; // In nanometers = 0.5 um
-  unsigned int Nz = 3000; // Number of discretization points in x and z direction
+  unsigned int Nz = 6000; // Number of discretization points in x and z direction
   unsigned int Nx = 2000;
 
   unsigned int nPointsTransmission = 200;
