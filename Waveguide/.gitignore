@@ -4,3 +4,6 @@ Figures/*
 GeometricalOptics/Figures/*
 Movie/*
 MatPropData
+doc/*.db
+doc/html/*
+doc/latex*
