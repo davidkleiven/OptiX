@@ -75,7 +75,7 @@ void IncidentAngleSweep::solve()
   auto endIter = indxToSave.end();
   for ( unsigned int i=0;i<nTheta;i++ )
   {
-    clog << "Running "<< i+1 << " of " << nTheta << endl;
+    clog << "Running "<< i+1 << " of " << nTheta << "\r";
     double theta = getAngle( i );
     pw.setAngleDeg(theta);
     wg.setBoundaryConditions( pw );
@@ -163,4 +163,11 @@ void IncidentAngleSweep::setEthylenGlycolInside( double energyInEv )
 void IncidentAngleSweep::savePic( const char *dir )
 {
   picDir = dir;
+}
+
+void IncidentAngleSweep::setCladdingDeltaBeta( double delta, double beta )
+{
+  cout << "Warning! It is recommended to set the material properties based on the beam energy!\n";
+  cladding.setRefractiveIndex( delta, beta );
+  wg.setCladding( cladding );
 }

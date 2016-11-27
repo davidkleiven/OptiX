@@ -26,6 +26,7 @@ public:
   void setTransverseDisc( double xmin, double xmax, unsigned int Nx );
   void setLongitudinalDisc( double zmin, double zmax, unsigned int Nz );
   void setCladdingSilicon( double energyInEv );
+  void setCladdingDeltaBeta( double delta, double beta ); // This overrules the material properties
   void setAlcoholInside( double energyInEv );
   void setEthylenGlycolInside( double energyInEv );
   void saveIndx( unsigned int indx );
