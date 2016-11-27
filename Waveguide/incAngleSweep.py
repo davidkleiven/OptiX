@@ -18,11 +18,12 @@ try:
 except:
     cmap = "viridis"
 
-cmap="jet"
+#cmap="jet"
 DELTA = 4.14E-5 # Salditt et al
 BETA = 3.45E-6 # Salditt et al
 
 def main( argv ):
+    global cmap
     for arg in argv:
         if ( arg.find("--file=") != -1 ):
             fname = arg.split("--file=")[1]
@@ -30,7 +31,10 @@ def main( argv ):
             print ("Usage: python incAngleSweep.py --file=<hdf5 datafile>")
             print ("file: HDF5 file created by the incidentAngleSweep application")
             print ("help: Print this message")
+            print ("cmap: Specify the cmap (default: viridis)")
             return
+        elif ( arg.find("--cmap=") != -1 ):
+            cmap = arg.split("--cmap=")[1]
         else:
             print ("Unknown argument %s"%(arg))
             return
