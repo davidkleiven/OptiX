@@ -17,10 +17,20 @@ class ParaxialEquation
 {
 public:
   ParaxialEquation(){};
+
+  /** Return coefficient in front of the first derivative */
   virtual double F( double x, double z ) const;
+
+  /** Return the coefficeint in front of the Laplacian */
   virtual double G( double x, double z ) const;
+
+  /** Return the coefficient inside the first derivative in the Laplacian */
   virtual double H( double x, double z ) const;
+
+  /** Return the coefficient that is added to the delta */
   virtual double J( double x, double z ) const;
+
+  /** Return phase factor at position z */
   virtual cdouble phaseFactor( double k, double z ) const;
 };
 #endif

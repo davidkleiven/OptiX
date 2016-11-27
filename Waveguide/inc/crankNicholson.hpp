@@ -12,12 +12,17 @@ struct CSRBuild
   T *col{NULL};
 };
 
+/** Class for handling the Crank-Nicholson discretization scheme */
 class CrankNicholson: public Solver2D
 {
 public:
   CrankNicholson():Solver2D("CrankNicholson"){};
   ~CrankNicholson();
+
+  /** Solves the system */
   void solve() override final;
+
+  /** Set the required parameters from the waveguide object */
   void initValuesFromWaveGuide();
 protected:
   unsigned int Nx{0};
@@ -28,6 +33,7 @@ protected:
   double wavenumber{1.0};
   ThomasAlgorithm matrixSolver;
 
+  /** Performs one iteration */
   void solveCurrent( unsigned int iz );
 };
 

@@ -2,6 +2,7 @@
 #define WAVE_GUIDE_BORDER_H
 #include <vector>
 
+/** Struct for storing the waveguide borders of a single waveguide */
 struct WaveGuideBorder
 {
   std::vector<double> x1;

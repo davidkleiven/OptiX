@@ -5,16 +5,26 @@
 
 typedef std::complex<double> cdouble;
 
+/** Class handling the cladding of the waveguide */
 class Cladding
 {
 public:
   Cladding(){};
+
+  /** Set the electron density. Depricated */
   void setElectronDensity( double eDensity );
+
+  /** Return the potential in the corresponding Schrodinger equation */
   double getPotential() const { return potential; };
 
   // Alternatives
+  /** Set the refractive index */
   void setRefractiveIndex( double delta, double beta );
+
+  /** Get delta. Refractive index n = 1 - delta + i*beta */
   double getDelta() const { return delta; }
+
+  /** Get beta: Refractive index n=1 1- delta + i*beta */
   double getBeta() const { return beta; };
 private:
   void computePotential();

@@ -9,10 +9,20 @@ class ExitFieldSource
 {
 public:
   ExitFieldSource(){};
+
+  /** Evaluates the field at position x */
   cdouble operator()(double x) const;
+
+  /** Sets the transverse discretization */
   void setDiscretization( double xmin, double xmax );
+
+  /** Returns the transverse discretization */
   Disctretization getDisc() const { return xDisc; };
+
+  /** Load field from HDF5 file */
   void load( H5::H5File &file );
+
+  /** Not used */
   cdouble initfield( double x ) const;
 private:
   arma::cx_vec values;

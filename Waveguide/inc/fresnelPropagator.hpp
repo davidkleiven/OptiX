@@ -6,24 +6,44 @@
 #include "waveGuideFDSimulation.hpp"
 typedef std::complex<double> cdouble;
 
-
+/** Class for evolving an sourece according to the Fresnel convolution integral */
 class FresnelPropagator
 {
 public:
   FresnelPropagator(){};
   ~FresnelPropagator();
+
+  /** Propagates the field a Nsteps */
   void propagate( unsigned int Nsteps );
+
+  /** Set the stepsize in the forward direction in nano meters */
   void setStepsize( double step ){ dz = step; };
+
+  /** Set the wavelength in nano meter */
   void setWavelength( double lambda );
+
+  /** Set the initial field. The template parameter has to implement operator( double x ) that evaluates the field */
   template <class T>
   void setInitialConditions( const T &initfield );
+
+  /** Gaussian kernel in the Fourier domain */
   cdouble kernel( double kx ) const;
+
+  /** Sets the transverse discretization */
   void setTransverseDiscretization( double xmin, double xmax, unsigned int Nsteps );
+
+  /** Saves the field to a HDF5 file */
   void save( const std::string &fname ) const;
 private:
   void step();
+
+  /** Returns the spatial frequency corresponding to the array index */
   double spatialFreq( unsigned int indx ) const;
+
+  /** Get the x-coordinate corresponding to the array index ix */
   double getX( unsigned int ix ) const;
+
+  /** Shift the FFT to have the zero frequency in the center */
   static void fftshift( arma::cx_vec &vec );
   arma::mat *intensity{NULL};
   arma::cx_vec prev;
