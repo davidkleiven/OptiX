@@ -36,3 +36,6 @@ This assumes that the image files are named *visualize0.png*, *visualize1.png*, 
 
 # SCUFF-EM and BEM
 Notes on the running the boundary element code using the *SCUFF-EM* library can be found [here](FresnelBEM/Notes.md).
+
+# Paraxial Wave Equation Propagator
+The documentation for the paraxial wave equation code is available [here](https://davidkleiven.github.io/ParaxialWaveDoc/).

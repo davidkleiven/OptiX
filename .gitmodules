@@ -1,0 +1,3 @@
+[submodule "Waveguide/doxyDoc"]
+	path = Waveguide/doxyDoc
+	url = https://github.com/davidkleiven/ParaxialWaveDoc.git
