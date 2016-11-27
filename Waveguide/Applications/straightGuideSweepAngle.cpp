@@ -7,6 +7,9 @@ int main( int argc, char** argv )
   bool useAlcohol = false;
   bool realTimeVisualize = false;
   bool saveVisualizations = false;
+  double delta = -1.0;
+  double beta = -1.0;
+  bool overrideMaterialProp = false;
   for ( unsigned int i=1;i<argc;i++ )
   {
     string arg(argv[i]);
@@ -22,6 +25,14 @@ int main( int argc, char** argv )
     {
       saveVisualizations = true;
     }
+    else if ( arg.find("--deltaBeta=") != string::npos )
+    {
+      stringstream ss;
+      ss << arg.substr(12);
+      char comma;
+      ss >> delta >> comma >> beta;
+      overrideMaterialProp = true;
+    }
     else if ( arg.find("--help") != string::npos )
     {
       cout << "Usage: ./incidentAngleSweep.out [--useAlc --help]\n";
@@ -29,6 +40,7 @@ int main( int argc, char** argv )
       cout << "usealc: Use alcohol inside. Refractive indices is set for wavelength (1.57 A)\n";
       cout << "visualize: Run with real time visualization\n";
       cout << "saveVis: Save screenshot to files\n";
+      cout << "deltaBeta: delta,beta. This is not recommended as it overrides the material properties!\n";
       return 0;
     }
     else
@@ -41,13 +53,23 @@ int main( int argc, char** argv )
   Visualizer vis;
   double width = 69.8;
   double energy = 10000.0; //ev
-  simulation.setWavelength( 0.124 );
-  simulation.setCladdingSilicon( energy );
+  double lambda = 12.398*100.0/energy;
+  cout << "Wavelength: " << lambda << " nm\n";
+  simulation.setWavelength( lambda );
+  if ( overrideMaterialProp )
+  {
+    simulation.setCladdingDeltaBeta( delta, beta );
+  }
+  else
+  {
+    simulation.setCladdingSilicon( energy );
+  }
   if ( useAlcohol )
   {
     simulation.setEthylenGlycolInside( energy );
     //simulation.setAlcoholInside( energy );
   }
+
   simulation.setWidth( width );
   simulation.setTransverseDisc( -width, 2.0*width, 1000);
   simulation.setLongitudinalDisc( 0.0, 3E6, 10000 );
