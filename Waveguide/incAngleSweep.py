@@ -67,6 +67,7 @@ def main( argv ):
     psname = "Figures/incAngleSweep.ps"
     subprocess.call(["inkscape", "--export-ps=%s"%(psname), "--export-latex", fname])
     print ("Figure written to %s"%(fname))
+    plt.show()
 
 if __name__ == "__main__":
     main( sys.argv[1:] )
