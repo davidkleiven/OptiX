@@ -59,7 +59,7 @@ def main( argv ):
     phi = phi[start:end]
     intensity = intensity[:,start:end]
     #intensity = np.fliplr(intensity)
-    im = ax.pcolor( phi, theta, intensity, cmap=cmap, norm=mpl.colors.LogNorm() )
+    im = ax.imshow( phi, theta, intensity, cmap=cmap, norm=mpl.colors.LogNorm() )
 
     #ax.set_aspect( np.abs( (extent[1]-extent[0])/(extent[3]-extent[2]) ))
     ax.set_xlabel("Exit angle (deg)")
