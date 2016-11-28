@@ -120,6 +120,7 @@
 174797 | Eigenmode run, 15 modes | Looks good |
 172060 | Eigenmode run | Looks good |
 363100 | Eigenmode run, 70 modes | Looks good |
+577579 | Eigenmodes straight waveguide | Looks good |
 953999 | Cylindrical, distance is widht on both side | Looks good |
 563999 | Straight waveguide | Wrong boundary conditions |
 478288 | Straight waveguide | Too short waveguide |
