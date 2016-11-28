@@ -39,6 +39,13 @@ def main( argv ):
             print ("Unknown argument %s"%(arg))
             return
 
+    try:
+        uid = int(fname[-9:-3])
+    except Exception as exc:
+        print (str(exc))
+        print ("Error when extracting UID from filename")
+        return
+
     with h5.File( fname, 'r' ) as hf:
         dset = hf.get("intensity")
         thetaMin = float( dset.attrs.get("thetaMin") )
@@ -69,9 +76,9 @@ def main( argv ):
     ax.set_ylabel("Incident angle (deg)")
     ax.autoscale(False)
     fig.colorbar( im )
-    fname = "Figures/incAngleSweep.svg"
+    fname = "Figures/incAngleSweep%d.svg"%(uid)
     fig.savefig(fname, bbox_inches="tight", dpi=800)
-    psname = "Figures/incAngleSweep.ps"
+    psname = "Figures/incAngleSweep%d.ps"%(uid)
     subprocess.call(["inkscape", "--export-ps=%s"%(psname), "--export-latex", fname])
     print ("Figure written to %s"%(fname))
     plt.show()
