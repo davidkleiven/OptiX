@@ -7,6 +7,7 @@
 #include <ctime>
 #include <sstream>
 #include "refractiveIndex.hpp"
+#include <cmath>
 
 using namespace std;
 IncidentAngleSweep::IncidentAngleSweep():picDir("")
@@ -23,6 +24,15 @@ double IncidentAngleSweep::getAngle( unsigned int indx ) const
 
 void IncidentAngleSweep::setWavelength( double wl )
 {
+  const double PI = acos(-1.0);
+  /** Change the wavelength according to the refractive index */
+  if ( !vacuumInside )
+  {
+    // Should the wavelength be changed, due the refractive index???
+    //double k = 2.0*PI/wl;
+    //k *= (1.0 - inside.getDelta());
+    //wl = 2.0*PI/k;
+  }
   wg.setWaveLength( wl );
   pw.setWavelength( wl );
 }
@@ -148,6 +158,7 @@ void IncidentAngleSweep::setAlcoholInside( double energyInEv )
   cout << "Inside: delta="<<delta << ", beta=" << beta << endl;
   inside.setRefractiveIndex(delta, beta);
   wg.setInsideMaterial(inside);
+  vacuumInside = false;
 }
 
 void IncidentAngleSweep::setEthylenGlycolInside( double energyInEv )
@@ -159,6 +170,7 @@ void IncidentAngleSweep::setEthylenGlycolInside( double energyInEv )
   cout << "Inside: delta="<<delta << ", beta=" << beta << endl;
   inside.setRefractiveIndex(delta, beta);
   wg.setInsideMaterial(inside);
+  vacuumInside = false;
 }
 void IncidentAngleSweep::savePic( const char *dir )
 {

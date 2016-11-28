@@ -21,7 +21,7 @@ public:
   /** Set the width of the waveguide in nano meters */
   void setWidth( double w );
 
-  /** Set the wavelength in nano meters */
+  /** Set the vacuum wavelength in nano meters */
   void setWavelength( double wl );
 
   /** Set the length of the waveguide in milli meters */
@@ -83,5 +83,6 @@ private:
   Visualizer *vis{NULL};
   std::string picDir;
   bool saveImages{false};
+  bool vacuumInside{true};
 };
 #endif

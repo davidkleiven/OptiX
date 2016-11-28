@@ -19,7 +19,7 @@ except:
 
 class Mode:
     def __init__(self):
-        self.profile = []
+        self./ = []
         self.eigenvalue = []
         self.xmin = 0.0
         self.xmax = 0.0
