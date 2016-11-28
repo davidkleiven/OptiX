@@ -41,10 +41,10 @@ def main( argv ):
 
     with h5.File( fname, 'r' ) as hf:
         dset = hf.get("intensity")
-        thetaMin = dset.attrs.get("thetaMin")
-        thetaMax = dset.attrs.get("thetaMax")
-        phiMin = dset.attrs.get("phiMin")
-        phiMax = dset.attrs.get("phiMax")
+        thetaMin = float( dset.attrs.get("thetaMin") )
+        thetaMax = float( dset.attrs.get("thetaMax") )
+        phiMin = float( dset.attrs.get("phiMin") )
+        phiMax = float( dset.attrs.get("phiMax") )
         intensity = np.array( dset )
 
     fig = plt.figure()
@@ -60,7 +60,8 @@ def main( argv ):
     intensity = intensity[:,start:end]
     #intensity = np.fliplr(intensity)
     extent = [phiMin, phiMax, thetaMin, thetaMax]
-    im = ax.imshow( intensity, extent=extent, cmap=cmap, norm=mpl.colors.LogNorm() )
+    intensity = intensity.T
+    im = ax.imshow( intensity, extent=extent, cmap=cmap, norm=mpl.colors.LogNorm(), origin="lower" )
     ax.set_aspect( (extent[1]-extent[0])/(extent[3]-extent[2]))
 
     #ax.set_aspect( np.abs( (extent[1]-extent[0])/(extent[3]-extent[2]) ))
