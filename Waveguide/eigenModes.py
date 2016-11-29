@@ -6,6 +6,7 @@ import matplotlib as mpl
 mpl.rcParams['svg.fonttype'] = 'none'
 mpl.rcParams["font.size"] = 28
 mpl.rcParams["axes.linewidth"] = 0.1
+mpl.rcParams["axes.unicode_minus"]=False
 import numpy as np
 from matplotlib import pyplot as plt
 import h5py as h5

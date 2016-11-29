@@ -6,6 +6,7 @@ import matplotlib as mpl
 #mpl.rcParams.update(ml.params)
 mpl.rcParams["svg.fonttype"] = "none"
 mpl.rcParams["font.size"] = 28
+mpl.rcParams["axes.unicode_minus"]=False
 import numpy as np
 import json
 import h5py as h5
@@ -99,6 +100,7 @@ def main(argv):
     ax = fig.add_subplot(1,1,1)
     mxColors = len(cs.COLORS)
     absorption = np.zeros(nModes)
+    colors = ["#e41a1c", "#377eb8", "#4daf4a", "#984ea3"]
     with h5.File(stat["solutionfile"], "r") as hf:
         for i in range(0, nModes):
             data = np.array( hf.get("mode%d"%(i)) )
@@ -106,18 +108,19 @@ def main(argv):
             absorption[i] = computeEffectiveFieldAbsorption( u, data, -stat["width"], 0.0)
             print "Absorption mode %d: %.2E"%(i+1,absorption[i])
             if ( i >= modeStart ) and ( i < modeEnd ):
-                ax.plot( u, data**2, color=cs.COLORS[i%mxColors], label="%d"%(i+1))
+                ax.plot( u, data, color=colors[i%4], label="%d"%(i+1))
 
     ymin, ymax = ax.get_ylim()
     ax = addShadedBkg( ax, -stat["width"], 0.0)
     ax.set_xlabel("$u$ (nm)")
     ax.set_ylabel("Intensity (a.u.)")
-    ax.legend(loc="upper right", frameon=False)
+    ax.legend(loc="upper right", frameon=False, labelspacing=0.05)
     figname = "Figures/profile.svg"
     psname = "Figures/profile.ps"
     fig.savefig(figname, bbox_inches="tight")
     subprocess.call(["inkscape", "--export-ps=%s"%(psname), "--export-latex", figname])
     print ("Figure written to %s"%(figname))
+    plt.show()
 
     # Plot potential
     with h5.File(stat["potentialFname"], "r") as hf:
