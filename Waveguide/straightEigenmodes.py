@@ -11,7 +11,7 @@ from matplotlib import pyplot as plt
 class StraightEigenmodes(eig.Eigenmodes):
     def __init__(self):
         eig.Eigenmodes.__init__(self)
-        self.potStrength = 0.0001
+        self.potStrength = 8E-5
 
     def curvatureInducedPotential( self, x ):
         return -self.potStrength*x
@@ -30,6 +30,19 @@ class StraightEigenmodes(eig.Eigenmodes):
             data += integral*self.modes[i].profile/(self.modes[mode].eigenvalue-self.modes[i].eigenvalue)
         return data
 
+    def addShade( self, ax, wgstart, wgend ):
+        xmin, xmax = ax.get_xlim()
+        ymin, ymax = ax.get_ylim()
+        width1 = wgstart-xmin
+        height = ymax-ymin
+        width2 = xmax-wgend
+        color = "#d3d3d3"
+        R1 = mpl.patches.Rectangle((xmin,ymin), width1, height, facecolor=color, edgecolor="none")
+        R2 = mpl.patches.Rectangle((wgend,ymin), width2, height, facecolor=color, edgecolor="none")
+        ax.add_patch(R1)
+        ax.add_patch(R2)
+        return ax
+
     def plotCorrection3Lowest( self ):
         fig = plt.figure()
         ax = fig.add_subplot(1,1,1)
@@ -42,6 +55,7 @@ class StraightEigenmodes(eig.Eigenmodes):
             correction = self.computePerturbingWavefunction( i, 13 )
             ax.plot( x, correction, color=colors[i], label="%d"%(i+1))
             ax.plot( x, correction+self.modes[i].profile, color=colors[i], lw=4, ls="--")
+        self.addShade( ax, -100.0, 0.0 )
         ax.legend(loc="upper right", labelspacing=0.05, frameon=False)
         ax.set_xlabel("\$x\$ (nm)")
         ax.set_ylabel("Amplitude (a.u.)")
