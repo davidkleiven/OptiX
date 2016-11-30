@@ -22,6 +22,11 @@ void WaveGuide1DSimulation::setCladding( const Cladding &newCladding )
   cladding = &newCladding;
 }
 
+void WaveGuide1DSimulation::setCore( const Cladding &newCore )
+{
+  core = &newCore;
+}
+
 WaveGuide1DSimulation::~WaveGuide1DSimulation()
 {
   if ( solverInitializedFromLoad )

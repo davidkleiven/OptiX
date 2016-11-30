@@ -19,6 +19,9 @@ public:
   /** Set cladding */
   void setCladding( const Cladding &cladding );
 
+  /** Set material inside */
+  void setCore( const Cladding &core );
+
   /** Get cladding */
   const Cladding& getCladding() const { return *cladding; };
 
@@ -65,12 +68,13 @@ protected:
   double innerRadius;
   double outerRadius;
   const Cladding *cladding{NULL};
+  const Cladding *core{NULL};
   double wavenumber;
   Solver1D *solver{NULL};
   static const double PI;
   std::string name;
 
-  /** Save potential to file */ 
+  /** Save potential to file */
   void writePotentialToFile( const std::string &fname, double xmin, double xmax ) const;
   bool useComplexPotential{false};
 private:
