@@ -20,7 +20,7 @@ except:
 
 class Mode:
     def __init__(self):
-        self./ = []
+        self.profile = []
         self.eigenvalue = []
         self.xmin = 0.0
         self.xmax = 0.0
@@ -38,6 +38,7 @@ class Eigenmodes:
         self.normalizeContourPlots = True
         self.maxAngle = 0.4
         self.minAngle = -0.4
+        self.uid = 0
 
     def read( self, h5file ):
         indx = 0
@@ -305,8 +306,10 @@ class Eigenmodes:
         ft = np.fft.fft(data)/np.sqrt( len(data) )
         return np.fft.fftshift(ft)
 
-    def plotFarField( self, k0=10.0, start=0 ):
+    def plotFarField( self, k0=10.0, start=0, nModes=5 ):
         colors = ["black", "#e41a1c", "#377eb8", "#4daf4a", "#984ea3"]
+        assert ( nModes <= len(colors) )
+
         fig = plt.figure()
         ax = fig.add_subplot(1,1,1)
         figP = plt.figure()
@@ -320,7 +323,7 @@ class Eigenmodes:
         startIndx = np.argmin( np.abs(angle-self.minAngle))
         endIndx = np.argmin( np.abs( angle - self.maxAngle) )
 
-        for i in range(start,start+len(colors)):
+        for i in range(start,start+nModes):
             farField = self.farField(i)
             total += farField
             intensity = np.abs(farField)**2
@@ -337,8 +340,8 @@ class Eigenmodes:
         ax.set_ylabel("Intensity (a.u.)")
         axP.set_ylabel("Phase (rad)")
         ax.legend(loc="upper right", labelspacing=0.005, frameon=False )
-        fname = "Figures/farField.svg"
-        psname = "Figures/farField.ps"
+        fname = "Figures/farField%d.svg"%(self.uid)
+        psname = "Figures/farField%d.ps"%(self.uid)
         fig.savefig(fname)
         subprocess.call(["inkscape", "--export-ps=%s"%(psname), "--export-latex", fname])
         print ("Figure exported to %s and %s"%(fname, psname))
@@ -379,13 +382,13 @@ class Eigenmodes:
         fig = plt.figure()
         colors = ["#e41a1c", "#377eb8", "#4daf4a", "#984ea3"]
         ax = fig.add_subplot(1,1,1)
-        ax.plot(angles, coeff1**2, color="black", label="1")
-        ax.plot(angles, coeff2**2, color=colors[0], label="2")
-        ax.plot(angles, coeff3**2, color=colors[1], label="3")
-        ax.plot(angles, coeff4**2, color=colors[2], label="4")
-        ax.plot(angles, coeff5**2, color=colors[3], label="5")
+        ax.plot(angles, coeff1, color="black", label="1")
+        ax.plot(angles, coeff2, color=colors[0], label="2")
+        ax.plot(angles, coeff3, color=colors[1], label="3")
+        ax.plot(angles, coeff4, color=colors[2], label="4")
+        #ax.plot(angles, coeff5, color=colors[3], label="5")
         ax.set_xlabel("Incident angle (deg)")
-        ax.set_ylabel("\$|c_n|^2\$")
+        ax.set_ylabel("\$c_n\$")
         ax.legend( loc="upper right", frameon=False, labelspacing=0.005 )
         fname = "Figures/excitationVSangle.svg"
         fig.savefig(fname)
