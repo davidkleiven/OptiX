@@ -3,30 +3,42 @@ import matplotlib as mpl
 import subprocess
 mpl.rcParams["svg.fonttype"] = "none"
 mpl.rcParams["font.size"] = 28
+mpl.rcParams["axes.unicode_minus"]=False
 from matplotlib import pyplot as plt
+from scipy import stats
 
-FNAME_REAL = "MatPropData/refrIndexRealSiN3.csv"
-FNAME_IMAG = "MatPropData/refrIndexImagSiN3.csv"
+FNAME = "MatProp/indexRefrSiO2.txt"
 FIGNAME = "Figures/refrIndexSiN3"
 PSNAME = FIGNAME+".ps"
 FIGNAME += ".svg"
 
 def main():
-    energyRe, nre = np.loadtxt( FNAME_REAL, delimiter=",", unpack=True)
-    energyIm, nim = np.loadtxt( FNAME_IMAG, delimiter=",", unpack=True)
-
+    energy, delta, beta = np.loadtxt(FNAME, unpack=True, skiprows=2)
+    energy /= 1000.0
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
-    ax.plot( energyRe/1000.0, nre, color="black", label="\$\delta\$")
-    ax.plot( energyIm/1000.0, nim, color="black", ls="--", lw=2, label="\$\\beta\$")
+    every = 7
+    fitStart = int( len(energy)/2 )
+    slope, interscept, rvalue, pvalue, stderr = stats.linregress(np.log10(energy[fitStart:]), np.log10(delta[fitStart:]))
+    fit = 10**(interscept)*energy**slope
+    print ("Slope delta: %.1f"%(slope))
+
+    ax.plot( energy[::every], delta[::every], color="black", marker='o', fillstyle="none", ls="none", label="\$\delta\$")
+    ax.plot( energy, fit, color="black")
+    ax.plot( energy[::every], beta[::every], color="black", marker="s", fillstyle="none", ls="none", lw=2, label="\$\\beta\$")
+    slope, interscept, rvalue, pvalue, stderr = stats.linregress(np.log10(energy[fitStart:]), np.log10(beta[fitStart:]))
+    fit = 10**(interscept)*energy**slope
+    print ("Slope beta: %.1f"%(slope))
+    ax.plot( energy, fit, color="black")
     ax.set_xlabel("Energy (\$\SI{}{\kilo\electronvolt}\$)")
     ax.set_xscale("log")
     ax.set_yscale("log")
-    #ax.legend(loc="upper right", frameon=False)
-    ax.legend(bbox_to_anchor=(1.3,1), frameon=False)
+    ax.set_xlim(right=10.0)
+    ax.legend(loc="lower left", frameon=False, labelspacing=0.05)
     fig.savefig( FIGNAME )
     subprocess.call(["inkscape", "--export-ps=%s"%(PSNAME), "--export-latex", FIGNAME])
     print ("Figure written to %s"%(PSNAME))
+    plt.show()
 
 if __name__ == "__main__":
     main()
