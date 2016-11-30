@@ -6,6 +6,7 @@ import matplotlib as mpl
 #mpl.rcParams.update(ml.params)
 mpl.rcParams["svg.fonttype"] = "none"
 mpl.rcParams["font.size"] = 28
+mpl.rcParams["axes.unicode_minus"]=False
 import numpy as np
 import json
 import h5py as h5
