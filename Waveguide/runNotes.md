@@ -164,3 +164,5 @@
 9262170 | Fresnel two curved WG | Looks very good, can not be used have to use the cartesian |
 629884 | Curved WG Lz=400 um, R=40mm with border tracker | Looks good
 6043124 | Fresnel of two curved WG, using code with border tracker. Based on 629884. | Looks very good |
+570321 | Eigenmode SiO2 core vaccuum, E=10 keV | Looks good |
+304440 | Eigenmode SiO2 core C2H6O2 E=10keV | Looks good | 
