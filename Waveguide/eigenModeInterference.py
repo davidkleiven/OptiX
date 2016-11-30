@@ -11,6 +11,8 @@ class AngleSweepAmplitude:
         self.angle = 0.0
         self.k0 = 0.0
     def amp(self, x):
+        return np.exp( 1j*x*self.k0*self.angle )
+        return np.sin( x*self.k0*self.angle )
         return np.cos( x*self.k0*self.angle )
 
 def main( argv ):
@@ -29,7 +31,14 @@ def main( argv ):
         print ("No filename given!")
         return
 
+    try:
+        uid = int( fname[-9:-3] )
+    except Exception as exc:
+        print (str(exc))
+        print ("Using uid = 0")
+        uid = 0
     eigModes = em.Eigenmodes()
+    eigModes.uid = uid
     wavelength = 0.1569 # Should be included in the h5file
     wavelength = 0.124 # Should be included in the h5file
     k0 = 2.0*np.pi/wavelength
@@ -51,7 +60,7 @@ def main( argv ):
     #eigModes.transmissionByIntegrateOverWG( coeff, prop, absorb, k0, 400E3 )
     #eigModes.nPropagatingModes = 12
     #eigModes.plotAbsCoefficients( absorb, k0)
-    eigModes.plotFarField( k0=k0 )
+    #eigModes.plotFarField( k0=k0, nModes=4 )
 
     angleSw = AngleSweepAmplitude()
     angleSw.k0 = k0
