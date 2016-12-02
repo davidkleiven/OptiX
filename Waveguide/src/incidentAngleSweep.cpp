@@ -114,6 +114,7 @@ void IncidentAngleSweep::solve()
     if ( vis != NULL )
     {
       vis->fillVertexArray( arma::abs( wg.getSolver().getSolution() ) );
+      sf::sleep(sf::milliseconds(1000));
       vis->display();
 
       if ( picDir != "" )

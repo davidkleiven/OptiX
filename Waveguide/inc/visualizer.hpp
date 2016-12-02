@@ -53,6 +53,7 @@ protected:
   sf::RenderWindow *window{NULL};
   sf::View *view{NULL};
   sf::VertexArray *vArray{NULL};
+  sf::RenderTexture *tx{NULL};
 
   double width{640};
   double height{480};
