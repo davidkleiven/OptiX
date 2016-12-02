@@ -42,7 +42,7 @@ def main( argv ):
             cmap = arg.split("--cmap=")[1]
         elif ( arg.find("--figname=") != -1 ):
             figname = arg.split("--figname=")[1]
-        elif ( arg.find("--noshow") != -1 ).
+        elif ( arg.find("--noshow") != -1 ):
             showfig = False
         else:
             print ("Unknown argument %s"%(arg))
@@ -53,7 +53,7 @@ def main( argv ):
     except Exception as exc:
         print (str(exc))
         print ("Error when extracting UID from filename")
-        return
+        uid = 0
 
     with h5.File( fname, 'r' ) as hf:
         dset = hf.get("intensity")
