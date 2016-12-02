@@ -68,7 +68,7 @@ void Visualizer::fillVertexArray( const arma::mat &values )
       (*vArray)[row*vArrayNrow+col].color = color;
     }
   }
-
+  
   // Draw onto screen
   window->draw( *vArray );
 }

@@ -74,6 +74,7 @@ int main( int argc, char** argv )
   double energy = 10000.0; //ev
   double lambda = 12.398*100.0/energy;
   cout << "Wavelength: " << lambda << " nm\n";
+  cout << "Data folder: " << dfolder << endl;
   simulation.setWavelength( lambda );
   if ( overrideMaterialProp )
   {
@@ -96,6 +97,7 @@ int main( int argc, char** argv )
   simulation.setWidth( width );
   simulation.setTransverseDisc( -width, 2.0*width, 1000);
   simulation.setLongitudinalDisc( 0.0, waveguideLength*1E6, 10000 );
+  clog << "Waveguide length: " << waveguideLength << " mm\n";
   simulation.setIncAngles( -0.2, 0.2, 100 );
   simulation.setFFTSignalLength(32768);
   //simulation.saveIndx( 50 );
