@@ -1,4 +1,5 @@
 #include "incidentAngleSweep.hpp"
+#include "incidentAngleLengthSweep.hpp"
 #include <string>
 
 using namespace std;
@@ -13,6 +14,9 @@ int main( int argc, char** argv )
   double waveguideLength = 3.0; // In mm
   bool useUID = true;
   string dfolder("data");
+  double Lmin = -1.0;
+  double Lmax = 3.0;
+  unsigned int Nlengths=0;
   for ( unsigned int i=1;i<argc;i++ )
   {
     string arg(argv[i]);
@@ -50,6 +54,14 @@ int main( int argc, char** argv )
     {
       useUID = false;
     }
+    else if ( arg.find("--lengthSweep=") != string::npos )
+    {
+      stringstream ss;
+      ss << arg.substr(14);
+      char comma;
+      ss >> Lmin >> comma >> Lmax >> comma >> Nlengths;
+      waveguideLength = Lmax;
+    }
     else if ( arg.find("--help") != string::npos )
     {
       cout << "Usage: ./incidentAngleSweep.out [--useAlc --help]\n";
@@ -59,6 +71,7 @@ int main( int argc, char** argv )
       cout << "saveVis: Save screenshot to files\n";
       cout << "deltaBeta: delta,beta. This is not recommended as it overrides the material properties!\n";
       cout << "wglength: Length of the waveguide in mm\n";
+      cout << "lengthSweep:<minimum length>,<maximum lengths>,<number of steps>\n";
       cout << "dfolder: Data folder\n";
       return 0;
     }
@@ -68,54 +81,68 @@ int main( int argc, char** argv )
       return 1;
     }
   }
-  IncidentAngleSweep simulation;
+  IncidentAngleSweep *simulation;
+  IncidentAngleLengthSweep *lengthSweepSim;
+  if ( Nlengths > 0 )
+  {
+    lengthSweepSim = new IncidentAngleLengthSweep();
+    cout << "Perform a length sweep simulation\n";
+    lengthSweepSim->setNumberOfLengths( Nlengths );
+    lengthSweepSim->setLmin( Lmin*1E6 );
+    simulation = lengthSweepSim;
+  }
+  else
+  {
+    simulation = new IncidentAngleSweep();
+  }
   Visualizer vis;
   double width = 69.8;
   double energy = 10000.0; //ev
   double lambda = 12.398*100.0/energy;
   cout << "Wavelength: " << lambda << " nm\n";
   cout << "Data folder: " << dfolder << endl;
-  simulation.setWavelength( lambda );
+  simulation->setWavelength( lambda );
   if ( overrideMaterialProp )
   {
-    simulation.setCladdingDeltaBeta( delta, beta );
+    simulation->setCladdingDeltaBeta( delta, beta );
   }
   else
   {
-    simulation.setCladdingSilicon( energy );
+    simulation->setCladdingSilicon( energy );
   }
   if ( useAlcohol )
   {
-    simulation.setEthylenGlycolInside( energy );
-    //simulation.setAlcoholInside( energy );
+    simulation->setEthylenGlycolInside( energy );
+    //simulation->setAlcoholInside( energy );
   }
 
   if ( !useUID )
   {
-    simulation.turnOffUID();
+    simulation->turnOffUID();
   }
-  simulation.setWidth( width );
-  simulation.setTransverseDisc( -width, 2.0*width, 1000);
-  simulation.setLongitudinalDisc( 0.0, waveguideLength*1E6, 10000 );
+  simulation->setWidth( width );
+  simulation->setTransverseDisc( -width, 2.0*width, 1000);
+  simulation->setLongitudinalDisc( 0.0, waveguideLength*1E6, 10000 );
   clog << "Waveguide length: " << waveguideLength << " mm\n";
-  simulation.setIncAngles( -0.2, 0.2, 100 );
-  simulation.setFFTSignalLength(32768);
-  //simulation.saveIndx( 50 );
+  simulation->setIncAngles( -0.2, 0.2, 100 );
+  simulation->setFFTSignalLength(32768);
+  //simulation->saveIndx( 50 );
 
   if ( realTimeVisualize )
   {
     vis.setColorMax( 2.0 );
     vis.init();
-    simulation.setVisualizer( vis );
+    simulation->setVisualizer( vis );
     if ( saveVisualizations )
     {
-      simulation.savePic("Movie");
+      simulation->savePic("Movie");
     }
   }
 
-  simulation.solve();
+  simulation->solve();
 
   string fname = dfolder +"/angleSweep";
-  simulation.save( fname );
+  simulation->save( fname );
+  delete simulation;
   return 0;
 }

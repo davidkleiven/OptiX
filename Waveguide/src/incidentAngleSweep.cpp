@@ -91,6 +91,7 @@ void IncidentAngleSweep::solve()
     wg.setBoundaryConditions( pw );
     wg.solve();
     wg.computeFarField(fftSignalLength);
+    processFarField(); // Childs may want to do other stuff with the far field
 
     if ( i == 0 )
     {
@@ -191,4 +192,17 @@ void IncidentAngleSweep::setCladdingDeltaBeta( double delta, double beta )
   cout << "Warning! It is recommended to set the material properties based on the beam energy!\n";
   cladding.setRefractiveIndex( delta, beta );
   wg.setCladding( cladding );
+}
+
+unsigned int IncidentAngleSweep::angleIndx( double angle ) const
+{
+  double PI = acos(-1.0);
+  int n = (angle*PI/180.0)*wg.getWavenumber()*wg.transverseDiscretization().step*fftSignalLength/(2.0*PI);
+  return n;
+}
+
+double IncidentAngleSweep::angleDeg( int indx ) const
+{
+  double PI = acos(-1.0);
+  return 2.0*180.0*static_cast<double>(indx)/(wg.getWavenumber()*fftSignalLength*wg.transverseDiscretization().step);
 }

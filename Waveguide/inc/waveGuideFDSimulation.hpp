@@ -58,6 +58,9 @@ public:
   /** Compute far field using a zero padded signal of a given length. Should be 2^{some integer} */
   void computeFarField( unsigned int signalLength ); // With padding to increase low freq resolution
 
+  /** Compute far field based on the field at z-position given by pos */
+  void computeFarField( unsigned int signalLength, double pos );
+
   /** Get the wavenumber in nm^{-1}*/
   double getWavenumber() const{ return wavenumber; };
 

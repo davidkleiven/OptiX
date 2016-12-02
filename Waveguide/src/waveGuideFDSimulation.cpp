@@ -13,6 +13,7 @@
 #include <cmath>
 #include "paraxialSource.hpp"
 #include "borderTracker.hpp"
+#include <limits>
 //#define DEBUG_BOUNDARY_EXTRACTOR
 
 const double PI = acos(-1.0);
@@ -508,10 +509,31 @@ void WaveGuideFDSimulation::getExitField( arma::cx_vec &vec ) const
 
 void WaveGuideFDSimulation::computeFarField( unsigned int signalLength )
 {
+  // Extract the last column, thus specify z to inf
+  computeFarField( signalLength, numeric_limits<double>::max() );
+}
+
+void WaveGuideFDSimulation::computeFarField( unsigned int signalLength, double pos )
+{
+
   // Extract the last column of the solution matrix
   arma::cx_vec exitField;
   arma::cx_vec paddedSignal;
-  getExitField( exitField );
+  if ( pos > zDisc->max )
+  {
+    getExitField( exitField );
+  }
+  else
+  {
+    unsigned int ix, iz;
+    closestIndex( 0.0, pos, ix, iz );
+    iz = iz >= solver->getSolution().n_cols ? solver->getSolution().n_cols-1:iz;
+    exitField.set_size( solver->getSolution().n_rows );
+    for ( unsigned int ix=0;ix<solver->getSolution().n_rows;ix++ )
+    {
+      exitField(ix) = solver->getSolution()(ix,iz);
+    }
+  }
   if ( signalLength < exitField.n_elem )
   {
     paddedSignal = exitField;
