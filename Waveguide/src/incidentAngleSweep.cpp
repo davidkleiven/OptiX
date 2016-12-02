@@ -131,7 +131,15 @@ void IncidentAngleSweep::solve()
 void IncidentAngleSweep::save( const string &fname ) const
 {
     stringstream ss;
-    ss << fname << uid << ".h5";
+    if ( generateUID )
+    {
+      ss << fname << uid << ".h5";
+    }
+    else
+    {
+      ss << fname << ".h5";
+    }
+
     const double PI = acos(-1.0);
     double qMax = PI/wg.transverseDiscretization().step;
     double phiMax = qMax/wg.getWavenumber();

@@ -10,6 +10,9 @@ int main( int argc, char** argv )
   double delta = -1.0;
   double beta = -1.0;
   bool overrideMaterialProp = false;
+  double waveguideLength = 3.0; // In mm
+  bool useUID = true;
+  string dfolder("data");
   for ( unsigned int i=1;i<argc;i++ )
   {
     string arg(argv[i]);
@@ -33,6 +36,20 @@ int main( int argc, char** argv )
       ss >> delta >> comma >> beta;
       overrideMaterialProp = true;
     }
+    else if ( arg.find("--wglength=") != string::npos )
+    {
+      stringstream ss;
+      ss << arg.substr(11);
+      ss >> waveguideLength;
+    }
+    else if ( arg.find("--dfolder=") != string::npos )
+    {
+      dfolder = arg.substr(10);
+    }
+    else if ( arg.find("--noUID") != string::npos )
+    {
+      useUID = false;
+    }
     else if ( arg.find("--help") != string::npos )
     {
       cout << "Usage: ./incidentAngleSweep.out [--useAlc --help]\n";
@@ -41,6 +58,8 @@ int main( int argc, char** argv )
       cout << "visualize: Run with real time visualization\n";
       cout << "saveVis: Save screenshot to files\n";
       cout << "deltaBeta: delta,beta. This is not recommended as it overrides the material properties!\n";
+      cout << "wglength: Length of the waveguide in mm\n";
+      cout << "dfolder: Data folder\n";
       return 0;
     }
     else
@@ -70,9 +89,13 @@ int main( int argc, char** argv )
     //simulation.setAlcoholInside( energy );
   }
 
+  if ( !useUID )
+  {
+    simulation.turnOffUID();
+  }
   simulation.setWidth( width );
   simulation.setTransverseDisc( -width, 2.0*width, 1000);
-  simulation.setLongitudinalDisc( 0.0, 3E6, 10000 );
+  simulation.setLongitudinalDisc( 0.0, waveguideLength*1E6, 10000 );
   simulation.setIncAngles( -0.2, 0.2, 100 );
   simulation.setFFTSignalLength(32768);
   //simulation.saveIndx( 50 );
@@ -90,7 +113,7 @@ int main( int argc, char** argv )
 
   simulation.solve();
 
-  string fname("data/angleSweep");
+  string fname = dfolder +"/angleSweep";
   simulation.save( fname );
   return 0;
 }

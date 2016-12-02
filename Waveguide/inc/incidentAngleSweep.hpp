@@ -65,6 +65,9 @@ public:
 
   /** Set directory to save the pictures. */
   void savePic( const char *dir );
+
+  /** Do not generate random UID for the filename */
+  void turnOffUID(){ generateUID = false; };
 private:
   double getAngle( unsigned int indx ) const;
   StraightWG2D wg;
@@ -84,5 +87,6 @@ private:
   std::string picDir;
   bool saveImages{false};
   bool vacuumInside{true};
+  bool generateUID{true};
 };
 #endif

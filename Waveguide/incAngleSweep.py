@@ -25,6 +25,8 @@ BETA = 3.45E-6 # Salditt et al
 
 def main( argv ):
     global cmap
+    figname = ""
+    showfig = True
     for arg in argv:
         if ( arg.find("--file=") != -1 ):
             fname = arg.split("--file=")[1]
@@ -33,9 +35,15 @@ def main( argv ):
             print ("file: HDF5 file created by the incidentAngleSweep application")
             print ("help: Print this message")
             print ("cmap: Specify the cmap (default: viridis)")
+            print ("figname: Figure name to write to. (default behaviour: save svg --> ps+ps_tex)")
+            print ("noshow: Do not show figures")
             return
         elif ( arg.find("--cmap=") != -1 ):
             cmap = arg.split("--cmap=")[1]
+        elif ( arg.find("--figname=") != -1 ):
+            figname = arg.split("--figname=")[1]
+        elif ( arg.find("--noshow") != -1 ).
+            showfig = False
         else:
             print ("Unknown argument %s"%(arg))
             return
@@ -77,12 +85,21 @@ def main( argv ):
     ax.set_ylabel("Incident angle (deg)")
     ax.autoscale(False)
     fig.colorbar( im )
-    fname = "Figures/incAngleSweep%d.svg"%(uid)
-    fig.savefig(fname, bbox_inches="tight", dpi=800)
-    psname = "Figures/incAngleSweep%d.ps"%(uid)
-    subprocess.call(["inkscape", "--export-ps=%s"%(psname), "--export-latex", fname])
-    print ("Figure written to %s"%(fname))
-    plt.show()
+
+    # If figure name is specified only save this
+    if ( figname != "" ):
+        fig.savefig(figname)
+        print ("Figure written to %s"%(figname))
+    else:
+        # Otherwise save to svg and export
+        fname = "Figures/incAngleSweep%d.svg"%(uid)
+        fig.savefig(fname, bbox_inches="tight", dpi=800)
+        psname = "Figures/incAngleSweep%d.ps"%(uid)
+        subprocess.call(["inkscape", "--export-ps=%s"%(psname), "--export-latex", fname])
+        print ("Figure written to %s"%(fname))
+
+    if ( showfig ):
+        plt.show()
 
 if __name__ == "__main__":
     main( sys.argv[1:] )

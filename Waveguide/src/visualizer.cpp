@@ -9,7 +9,7 @@ Visualizer::Visualizer(){};
 Visualizer::~Visualizer()
 {
   if ( view != NULL ) delete view;
-  delete window;
+  if ( window != NULL ) delete window;
 
   if ( vArray != NULL ) delete vArray;
 }
