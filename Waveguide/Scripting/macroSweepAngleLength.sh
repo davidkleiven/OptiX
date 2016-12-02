@@ -5,8 +5,8 @@ mkdir -p ${DFOLDER}
 i=0
 for wglength in ${LENGTHS[@]}
 do
-  .././incidentAngleSweep.out --wglength=${wglength} --dfolder=${DFOLDER} --noUID
-  python ../incidentAngleSweep.py --file=${DFOLDER}/angleSweep.h5 --noshow --figname="${DFOLDER}/frame${i}.png"
+  ../incidentAngleSweep.out --wglength=${wglength} --dfolder=${DFOLDER} --noUID
+  python ../incAngleSweep.py --file=${DFOLDER}/angleSweep.h5 --noshow --figname="${DFOLDER}/frame${i}.png"
   $i=$i+1
 done
 
