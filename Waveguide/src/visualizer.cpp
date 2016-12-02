@@ -1,5 +1,6 @@
 #include "visualizer.hpp"
 #include <iostream>
+#include <stdexcept>
 //#include <SFML/Color.hpp>
 
 using namespace std;
@@ -12,6 +13,7 @@ Visualizer::~Visualizer()
   if ( window != NULL ) delete window;
 
   if ( vArray != NULL ) delete vArray;
+  if ( tx != NULL ) delete tx;
 }
 
 void Visualizer::init( const char *windowName )
@@ -19,6 +21,14 @@ void Visualizer::init( const char *windowName )
   window = new sf::RenderWindow(sf::VideoMode(width, height), windowName);
   window->setKeyRepeatEnabled(false);
   window->clear( sf::Color::Black );
+  window->setVerticalSyncEnabled(true);
+
+  tx = new sf::RenderTexture();
+
+  if ( !tx->create(width, height) )
+  {
+    throw (runtime_error("Could not create texture!"));
+  }
 
   // Define view
   //view = new sf::View( sf::FloatRect(width/2, height/2, width, height) );
@@ -69,8 +79,11 @@ void Visualizer::fillVertexArray( const arma::mat &values )
     }
   }
   
+  tx->draw(*vArray);
+  tx->display();
+  sf::Sprite sprite( tx->getTexture());
   // Draw onto screen
-  window->draw( *vArray );
+  window->draw( sprite );
 }
 
 bool Visualizer::isOpen() const
