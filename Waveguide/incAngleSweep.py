@@ -46,7 +46,7 @@ def main( argv ):
             figname = arg.split("--figname=")[1]
         elif ( arg.find("--noshow") != -1 ):
             showfig = False
-        elif ( arg.find("--tile=") != -1 ):
+        elif ( arg.find("--title=") != -1 ):
             title = arg.split("--title=")[1]
         else:
             print ("Unknown argument %s"%(arg))
@@ -89,7 +89,7 @@ def main( argv ):
     ax.set_ylabel("Incident angle (deg)")
     if ( title != "" ):
         ax.set_title(title)
-        
+
     ax.autoscale(False)
     fig.colorbar( im )
 
