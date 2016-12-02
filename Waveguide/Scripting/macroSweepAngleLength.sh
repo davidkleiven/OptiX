@@ -10,5 +10,5 @@ do
   $i=$i+1
 done
 
-cd ${DFOLDER}
-avconv -r 10 -i frame%d.png anim.mp4
+#cd ${DFOLDER}
+#avconv -r 10 -i frame%d.png anim.mp4
