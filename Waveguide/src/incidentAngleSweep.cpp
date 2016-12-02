@@ -111,7 +111,7 @@ void IncidentAngleSweep::solve()
       ++saveIter;
     }
 
-    if ( vis != NULL )
+    if (( vis != NULL ) && (i%displayEvery == 0))
     {
       vis->fillVertexArray( arma::abs( wg.getSolver().getSolution() ) );
       sf::sleep(sf::milliseconds(1000));

@@ -68,6 +68,9 @@ public:
 
   /** Do not generate random UID for the filename */
   void turnOffUID(){ generateUID = false; };
+
+  /** Set the interval between each visualized wave field */
+  void setDisplayInterval( unsigned int interval ){ displayEvery = interval; };
 private:
   double getAngle( unsigned int indx ) const;
   StraightWG2D wg;
@@ -88,5 +91,6 @@ private:
   bool saveImages{false};
   bool vacuumInside{true};
   bool generateUID{true};
+  unsigned int displayEvery{10};
 };
 #endif

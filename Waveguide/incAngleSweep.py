@@ -27,6 +27,7 @@ def main( argv ):
     global cmap
     figname = ""
     showfig = True
+    title = ""
     for arg in argv:
         if ( arg.find("--file=") != -1 ):
             fname = arg.split("--file=")[1]
@@ -37,6 +38,7 @@ def main( argv ):
             print ("cmap: Specify the cmap (default: viridis)")
             print ("figname: Figure name to write to. (default behaviour: save svg --> ps+ps_tex)")
             print ("noshow: Do not show figures")
+            print ("title: Figure title")
             return
         elif ( arg.find("--cmap=") != -1 ):
             cmap = arg.split("--cmap=")[1]
@@ -44,6 +46,8 @@ def main( argv ):
             figname = arg.split("--figname=")[1]
         elif ( arg.find("--noshow") != -1 ):
             showfig = False
+        elif ( arg.find("--tile=") != -1 ):
+            title = arg.split("--title=")[1]
         else:
             print ("Unknown argument %s"%(arg))
             return
@@ -83,6 +87,9 @@ def main( argv ):
     #ax.set_aspect( np.abs( (extent[1]-extent[0])/(extent[3]-extent[2]) ))
     ax.set_xlabel("Exit angle (deg)")
     ax.set_ylabel("Incident angle (deg)")
+    if ( title != "" ):
+        ax.set_title(title)
+        
     ax.autoscale(False)
     fig.colorbar( im )
 
