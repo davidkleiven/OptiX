@@ -2,6 +2,7 @@
 #include <cmath>
 #include <H5Cpp.h>
 #include <hdf5_hl.h>
+#include <cassert>
 //#define DEBUG_FFT
 
 using namespace std;
@@ -43,14 +44,13 @@ void FresnelPropagator::setTransverseDiscretization( double xmin, double xmax, u
   prev.set_size(nSteps);
 }
 
-double FresnelPropagator::spatialFreq( unsigned int indx ) const
+double FresnelPropagator::spatialFreq( unsigned int indx, unsigned int size ) const
 {
-  unsigned int N = intensity->n_rows;
-  if ( indx > N/2 )
+  if ( indx > size/2 )
   {
-    indx = N-indx;
+    indx = size-indx;
   }
-  return 2.0*PI*indx/(xDisc->step*N);// - PI/(xDisc->step*N);
+  return 2.0*PI*indx/(xDisc->step*size);// - PI/(xDisc->step*N);
 }
 
 void FresnelPropagator::step()
@@ -62,7 +62,9 @@ void FresnelPropagator::step()
   }
 
   // Fourier transform previous step
-  arma::cx_vec fftPrev = arma::fft( prev );
+  arma::cx_vec paddedPrev;
+  padSignal( prev, paddedPrev );
+  arma::cx_vec fftPrev = arma::fft( paddedPrev );
 
   #ifdef DEBUG_FFT
     if ( current == 0 )
@@ -74,14 +76,15 @@ void FresnelPropagator::step()
     }
   #endif
 
-  for ( unsigned int i=0;i<intensity->n_rows;i++ )
+  for ( unsigned int i=0;i<fftPrev.n_elem;i++ )
   {
-    double kx = spatialFreq(i);
-    fftPrev(i) *= kernel(kx);
+    double kx = spatialFreq( i, fftPrev.n_elem );
+    fftPrev(i) *= kernel( kx );
   }
 
   // Inverse fourier transform
-  prev = arma::ifft(fftPrev);
+  paddedPrev = arma::ifft(fftPrev);
+  unpadSignal( paddedPrev, prev );
   //fftshift(prev);
   current++;
 }
@@ -146,5 +149,28 @@ void FresnelPropagator::fftshift( arma::cx_vec &vec )
     cdouble copy = vec(i);
     vec(i) = vec(i+vec.n_elem/2);
     vec(i+vec.n_elem/2) = copy;
+  }
+}
+
+void FresnelPropagator::padSignal( const arma::cx_vec &vec, arma::cx_vec &padded ) const
+{
+  unsigned int closestlog2 = log2( vec.n_elem );
+  unsigned int padSize = padFactor*pow( 2, closestlog2 );
+  padded.set_size( padSize );
+  padded.fill( 0.0 );
+  for ( unsigned int i=0;i<vec.n_elem;i++ )
+  {
+    padded[padSize/2-vec.n_elem/2+i] = vec[i];
+  }
+}
+
+void FresnelPropagator::unpadSignal( const arma::cx_vec &padded, arma::cx_vec &vec ) const
+{
+  assert( vec.n_elem == intensity->n_rows );
+  assert( padded.n_elem > vec.n_elem );
+
+  for ( unsigned int i=0;i<vec.n_elem;i++ )
+  {
+    vec[i] = padded[padded.n_elem/2-vec.n_elem/2+i];
   }
 }

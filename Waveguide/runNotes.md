@@ -167,3 +167,4 @@
 570321 | Eigenmode SiO2 core vaccuum, E=10 keV | Looks good |
 304440 | Eigenmode SiO2 core C2H6O2 E=10keV | Looks good |
 125047 | Lengths + angle sweep L=2.5 mm to 3.5 mm | Far field is very dependent on the length |
+4439827 | Fresnel two curved WG, using code with border tracker. Based 629884. With padding to avoid periodic effects | Looks good | 

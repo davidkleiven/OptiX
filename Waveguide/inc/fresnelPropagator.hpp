@@ -34,17 +34,27 @@ public:
 
   /** Saves the field to a HDF5 file */
   void save( const std::string &fname ) const;
+
+  /** Set the pad factor. Size of the padded signal is padFactor*2^{floor(log2(original signal size))} */
+  void setPadFactor( unsigned int factor ){ padFactor = factor; };
 private:
   void step();
 
   /** Returns the spatial frequency corresponding to the array index */
-  double spatialFreq( unsigned int indx ) const;
+  double spatialFreq( unsigned int indx, unsigned int size ) const;
 
   /** Get the x-coordinate corresponding to the array index ix */
   double getX( unsigned int ix ) const;
 
   /** Shift the FFT to have the zero frequency in the center */
   static void fftshift( arma::cx_vec &vec );
+
+  /** Perform zero padding before doing FFT */
+  void padSignal( const arma::cx_vec &vec, arma::cx_vec &padded ) const;
+
+  /** Unpad the signal by extracting the central part of the padded signal */
+  void unpadSignal( const arma::cx_vec &padded, arma::cx_vec &vec ) const;
+
   arma::mat *intensity{NULL};
   arma::cx_vec prev;
   double dz{0.0};
@@ -52,6 +62,7 @@ private:
   Disctretization *xDisc{NULL};
   unsigned int current{0};
   bool initConditionsSet{false};
+  unsigned int padFactor{4};
 };
 
 // Implement hte template set function
