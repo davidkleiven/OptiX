@@ -39,9 +39,9 @@ def plot2D(data, stat, borders, field=None, phase=None):
         crd="cartesian"
 
     if ( crd == "cylindrical" ):
-        zmin = stat["zDiscretization"]["min"]*180.0/np.pi
-        zmax = stat["zDiscretization"]["max"]*180.0/np.pi
-        zlabel = "\$\\theta\$ (deg)"
+        zmin = stat["zDiscretization"]["min"]*stat["waveguide"]["RadiusOfCurvature"]/1000.0
+        zmax = stat["zDiscretization"]["max"]*stat["waveguide"]["RadiusOfCurvature"]/1000.0
+        zlabel = "\$R\\theta (\SI{}{\mircro\meter})\$"
         xlabel = "\$r\$ (nm)"
     else:
         zmin = stat["zDiscretization"]["min"]/1000.0
