@@ -1,0 +1,20 @@
+{
+  "entries":[
+    {
+      "uid":558362,
+      "label":"6 nm"
+    },
+    {
+      "uid":272786,
+      "label":"3 nm"
+    },
+    {
+      "uid":869908,
+      "label":"0.2 nm"
+    }
+  ],
+  "numberOfPoints":4,
+  "basename":"data/singleCurvedWG",
+  "figurename":"transmissionDiscCompare.svg",
+  "zend":0.1
+}
