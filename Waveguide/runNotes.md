@@ -101,7 +101,6 @@
 476450 | R=40mm delta=4.45E-5, beta=3.45E-6 step, w=100nm, nz=nx=2000 | Hairs |
 869908 | R=40mm delta=4.45E-5, beta=3.45E-6 step, w=100nm, nz=nx=3000 | Hairs |
 558362 | R=40mm delta=4.45E-5, beta=3.45E-6 step, w=100nm, nz=3000 nx=100 | Some interesting staircase |
-558362 | R=40mm delta=4.45E-5, beta=3.45E-6 step, w=100nm, nz=3000 nx=50 | Too smeared |
 272786 | R=40mm delta=4.45E-5, beta=3.45E-6 step, w=100nm, nz=3000 nx=200 | Interasting staircase features |
 133595 | R=40mm delta=4.45E-5, beta=3.45E-6 step, w=100nm, nz=3000 nx=200, cylindrical, proper transmission | Looks OK |
 352671 | R=40mm delta=4.45E-5, beta=3.45E-6 step, w=100nm, nz=1000 nx=1000, cartesian | Too high losses |
@@ -167,4 +166,4 @@
 570321 | Eigenmode SiO2 core vaccuum, E=10 keV | Looks good |
 304440 | Eigenmode SiO2 core C2H6O2 E=10keV | Looks good |
 125047 | Lengths + angle sweep L=2.5 mm to 3.5 mm | Far field is very dependent on the length |
-4439827 | Fresnel two curved WG, using code with border tracker. Based 629884. With padding to avoid periodic effects | Looks good | 
+4439827 | Fresnel two curved WG, using code with border tracker. Based 629884. With padding to avoid periodic effects | Looks good |

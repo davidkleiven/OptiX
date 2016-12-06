@@ -79,7 +79,7 @@ def main( argv ):
         if ( stat["Transmission"]["zEnd"] < minOfMaxZ ):
             minOfMaxZ = stat["Transmission"]["zEnd"]
             ymin = np.min(np.log(data))
-        ax.plot( z/1E6, np.log(data), marker=markers[indx], ms=7, color=color[indx], fillstyle=fs[indx], linestyle="None", label=entry["label"])
+        ax.plot( z/1E6, np.log(data), marker=markers[indx], markeredgewidth=0.0, ms=7, color=color[indx], fillstyle=fs[indx], linestyle="None", label=entry["label"])
         ax.plot( zFit/1E6, interscept+slope*zFit, lw=0.5, color="black" )
         indx += 1
 
