@@ -96,6 +96,7 @@ def main( argv ):
         psname = fname[:-3]+"ps"
         subprocess.call(["inkscape", "--export-ps=%s"%(psname), "--export-latex", fname])
 	print ("PS version written to %s"%(psname))
+    plt.show()
 
 if __name__ == "__main__":
     main(sys.argv[1:])
