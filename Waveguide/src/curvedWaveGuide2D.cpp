@@ -51,9 +51,24 @@ void CurvedWaveGuideFD::computeTransmission( double step )
   //while ( z < zDisc->max-step )
   for ( unsigned int iz=0;iz<nodeNumberLongitudinal();iz++ )
   {
+    double xWgStart, xWgEnd;
     double z = zDisc->min +iz*zDisc->step;
-    double xWgStart = waveGuideStartX( z );
-    double xWgEnd = waveGuideEndX( z );
+    if ( bTracker == NULL )
+    {
+      xWgStart = waveGuideStartX( z );
+      xWgEnd = waveGuideEndX( z );
+      
+      // Assertions for debugging (allow first and last point to be outside )
+      assert( isInsideGuide( xWgStart+1, z ) );
+      assert( isInsideGuide( xWgEnd-1, z ) );
+    }
+    else
+    {
+      // Reset wg start and wgEnd as these should be constant throughout the waveguide if the border tracker is used
+      xWgStart = waveGuideStartX( 0.0 );
+      xWgEnd = waveGuideEndX( 0.0 );
+    }
+
     closestIndex( xWgStart, z, wgStart, zIndx );
     closestIndex( xWgEnd, z, wgEnd, zIndx );
 
@@ -62,10 +77,6 @@ void CurvedWaveGuideFD::computeTransmission( double step )
       clog << "Computed transmission at " << iz << " points.\n";
       break;
     }
-
-    // Assertions for debugging (allow first and last point to be outside )
-    assert( isInsideGuide( xWgStart+1, z ) );
-    assert( isInsideGuide( xWgEnd-1, z ) );
 
     double intensity = trapezoidalIntegrateIntensityZ( zIndx, wgStart, wgEnd );
     double intensityFull = trapezoidalIntegrateIntensityZ( zIndx, 0, nodeNumberTransverse()-1 );
