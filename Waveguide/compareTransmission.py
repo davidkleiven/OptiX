@@ -40,11 +40,13 @@ def main( argv ):
     ax = fig.add_subplot(1,1,1)
 
     indx = 0
-    markers = ["o", "o", "o"]
-    fs = ["full", "full", "full"]
-    color = ["#e41a1c", "#377eb8", "#4daf4a"]
+    markers = ["o", "o", "o", "o"]
+    fs = ["full", "full", "full", "full"]
+    color = ["#e41a1c", "#377eb8", "#4daf4a", "#984ea3"]
     minOfMaxZ = np.inf
     for entry in param["entries"]:
+        if ( indx >= len(color) ):
+            break
         ctlfile = param["basename"]+"%d.json"%(entry["uid"])
         try:
             infile = open(ctlfile, 'r')
@@ -79,15 +81,18 @@ def main( argv ):
         if ( stat["Transmission"]["zEnd"] < minOfMaxZ ):
             minOfMaxZ = stat["Transmission"]["zEnd"]
             ymin = np.min(np.log(data))
-        ax.plot( z/1E6, np.log(data), marker=markers[indx], markeredgewidth=0.0, ms=7, color=color[indx], fillstyle=fs[indx], linestyle="None", label=entry["label"])
+        #ax.plot( z/1E6, np.log(data), marker=markers[indx], markeredgewidth=0.0, ms=7, color=color[indx], fillstyle=fs[indx], linestyle="None", label=entry["label"])
+        ax.plot( z/1E6, np.log(data), color=color[indx], fillstyle=fs[indx], label=entry["label"])
         ax.plot( zFit/1E6, interscept+slope*zFit, lw=0.5, color="black" )
         indx += 1
 
     ax.set_xlabel("\$z\$ (mm)")
     #ax.set_xlim(right=minOfMaxZ/1E6)
+    ax.set_xlim(right=0.1)
     ax.set_ylim(bottom=ymin-0.05)
+    ax.set_ylim(-0.3,0.4)
     ax.set_ylabel("\$\ln Transmission \$")
-    ax.legend(loc="upper right", frameon=False)
+    ax.legend(loc="upper right", frameon=False, labelspacing=0.05)
     fname = "Figures/"+param["figurename"]
     fig.savefig(fname, bbox_inches="tight")
     print ("Figure written to %s"%(fname))
