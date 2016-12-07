@@ -13,5 +13,7 @@
       "marker":"s",
       "info":"Cylindrical"
     }
-  ]
+  ],
+  "basename":"data/singleCurvedWG",
+  "figname":"Figures/convergenceTransCylCart.svg"
 }
