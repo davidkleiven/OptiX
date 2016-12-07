@@ -46,6 +46,8 @@ int main( int argc, char **argv )
   unsigned int endRun = 8;
   unsigned int deltaStart = 0;
   unsigned int deltaEnd = 1;
+  unsigned int Nx = 2000;
+  unsigned int Nz = 6000;
   double planeWaveAngleDeg = 0.0;//0.2;
   double linearRampWidthFraction = 5.0; // Only relevant of profile = LINEAR_RAMP
   Source_t source = Source_t::PLANE;
@@ -57,7 +59,7 @@ int main( int argc, char **argv )
     string arg(argv[i]);
     if ( arg.find("--help") != string::npos )
     {
-      cout << "Usage: ./curvedWG.out [--help, --run=<run number> --straight --source=<sourcetype>]\n";
+      cout << "Usage: ./curvedWG.out [--help, --run=<run number> --straight --source=<sourcetype> --disc=Nx,Nz]\n";
       cout << "help: Print this message\n";
       for ( unsigned int j=0;j<8;j++ )
       {
@@ -69,6 +71,7 @@ int main( int argc, char **argv )
       cout << "brdtrack: Use the border tracker. Only have effect if using cartesian coordinates\n";
       cout << "widthsweep: Perform a sweep over different widths\n";
       cout << "deltasweep: Perform a sweep over different delta\n";
+      cout << "disc: Number of discretization points in each direction";
       return 0;
     }
     else if ( arg.find("--run=") != string::npos )
@@ -118,6 +121,13 @@ int main( int argc, char **argv )
     {
       deltaSweep = true;
     }
+    else if ( arg.find("--disc=") != string::npos )
+    {
+      stringstream ss;
+      ss << arg.substr(7);
+      char comma;
+      ss >> Nx >> comma >> Nz;
+    }
     else
     {
       cout << "Unknown argument " << arg << endl;
@@ -129,8 +139,6 @@ int main( int argc, char **argv )
   // Parameters for running a sweep over radii of curvature
   double LzOverR = 0.01; // max(z)/R << 1 is a requirement
   double xMarginAboveAndBelow = 0.01E3; // In nanometers = 0.5 um
-  unsigned int Nz = 6000; // Number of discretization points in x and z direction
-  unsigned int Nx = 2000;
 
   unsigned int nPointsTransmission = 200;
 
@@ -191,7 +199,6 @@ int main( int argc, char **argv )
 
         if ( useCylCrd )
         {
-          width = 400.0;
           xmin = -width;
           xmax = width+width;
           // Note now z refers to the azimutal angle theta and x to the radius
@@ -305,13 +312,9 @@ int main( int argc, char **argv )
           wg->solve();
           clog << "done\n";
 
-          if ( !useBorderTracker )
-          {
-            // TODO: This does not currently work if the boundary trackre is used
-            clog << "Computing transmission... ";
-            wg->computeTransmission( (zmax-zmin)/static_cast<double>(nPointsTransmission) );
-            clog << "done\n";
-          }
+          clog << "Computing transmission... ";
+          wg->computeTransmission( (zmax-zmin)/static_cast<double>(nPointsTransmission) );
+          clog << "done\n";
 
           if ( computeFarField )
           {
