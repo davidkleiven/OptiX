@@ -11,14 +11,14 @@ OPT=-O2#-pg
 
 LIBS:=-lcblas -llapack -lgsl -ljsoncpp -lz -lhdf5_serial -lhdf5_serial_hl \
       -lhdf5_cpp -lhdf5_hl_cpp -larmadillo -lharminv
-GRAPHLIBS := -lsfml-graphics -lsfml-window -lsfml-system
+GRAPHLIBS := -lsfml-graphics -lsfml-window -lsfml-system -lvisa
 
 SOURCES:= main.cpp cladding.cpp waveGuide.cpp waveGuideRadiusCurvature.cpp numerovSolver.cpp solver1D.cpp waveGuideStraight.cpp \
 	        stdFDsolver.cpp crancNicholson.cpp waveGuideFDSimulation.cpp solver2D.cpp curvedWaveGuide2D.cpp controlFile.cpp \
 					straightWG2D.cpp linearMap1D.cpp coupledCurvedWG.cpp harmonicInversion.cpp paraxialSource.cpp planeWave.cpp \
 					gaussianBeam.cpp paraxialEquation.cpp cylindricalParaxialEquation.cpp curvedWGCylCrd.cpp \
 					beamSplitter.cpp gaussianWG.cpp linearRampWG.cpp fresnelPropagator.cpp exitFieldSource.cpp \
-					incidentAngleSweep.cpp visualizer.cpp colormaps.cpp visualizer1D.cpp borderTracker.cpp \
+					incidentAngleSweep.cpp borderTracker.cpp \
 					refractiveIndex.cpp incidentAngleLengthSweep.cpp
 
 OBJECTS := ${SOURCES:.cpp=.o}
@@ -30,6 +30,10 @@ TEST_SOURCES := thomasAlgTest.cpp numerovTest.cpp waveGuideRadiusCurvatureTest.c
 TEST_OBJECTS := ${TEST_SOURCES:%.cpp=%.o}
 TEST_SOURCES := $(addprefix unittest/, ${TEST_SOURCES})
 TEST_OBJECTS := $(addprefix unittest/, ${TEST_OBJECTS})
+ALL_APPS := waveguide.out curvedWG2D.out convergence.out wgHarmInv.out eigenProject.out coupledWG.out \
+            beamSplitSim.out fresnelProp.out incidentAngleSweep.out farFieldConvergence.out borderDemo.out
+all: ${ALL_APPS}
+	echo "All applications comilied successfully..."
 
 waveguide.out: ${OBJECTS}
 	g++ -std=c++11 ${OPT} -o $@ $^ -L ${LDIR} -L ${ARMA_PATH} ${LIBS} ${GRAPHLIBS}
@@ -44,13 +48,13 @@ convergence.out: $(filter-out obj/main.o, ${OBJECTS}) ${ODIR}/convergence.o
 	g++ -std=c++11 -o $@ $^ -L ${LDIR} -L ${ARMA_PATH} ${LIBS} ${GRAPHLIBS}
 
 wgHarmInv.out: $(filter-out obj/main.o, ${OBJECTS}) ${ODIR}/wgHarmonicInversion.o
-	g++ -std=c++11 -o $@ $^ -L ${LDIR} -L ${ARMA_PATH} ${LIBS}
+	g++ -std=c++11 -o $@ $^ -L ${LDIR} -L ${ARMA_PATH} ${LIBS} ${GRAPHLIBS}
 
 eigenProject.out: $(filter-out obj/main.o, ${OBJECTS}) ${ODIR}/projectOntoEigenmodes.o
-	g++ -std=c++11 -o $@ $^ -L ${LDIR} -L ${ARMA_PATH} ${LIBS}
+	g++ -std=c++11 -o $@ $^ -L ${LDIR} -L ${ARMA_PATH} ${LIBS} ${GRAPHLIBS}
 
 coupledWG.out: $(filter-out obj/main.o, ${OBJECTS}) ${ODIR}/coupledWaveGuideSimulation.o
-	g++ -std=c++11 -o $@ $^ -L ${LDIR} -L ${ARMA_PATH} ${LIBS}
+	g++ -std=c++11 -o $@ $^ -L ${LDIR} -L ${ARMA_PATH} ${LIBS} ${GRAPHLIBS}
 
 beamSplitSim.out: $(filter-out obj/main.o, ${OBJECTS}) ${ODIR}/beamSplitSim.o
 	g++ -std=c++11 -o $@ $^ -L ${LDIR} -L ${ARMA_PATH} ${LIBS} ${GRAPHLIBS}
@@ -60,9 +64,6 @@ fresnelProp.out: $(filter-out obj/main.o, ${OBJECTS}) ${ODIR}/fresnelProp.o
 
 incidentAngleSweep.out: $(filter-out obj/main.o, ${OBJECTS}) ${ODIR}/straightGuideSweepAngle.o
 	g++ -std=c++11 -o $@ $^ -L ${LDIR} -L ${ARMA_PATH} ${LIBS} ${GRAPHLIBS}
-
-testVisualizer.out: $(filter-out obj/main.o, ${OBJECTS}) ${ODIR}/testVisualizer.o
-	g++ -std=c++11 -o $@ $^ -L ${LDIR} -L ${ARMA_PATH} -L ${SFML_PATH} ${LIBS} ${GRAPHLIBS}
 
 farFieldConvergence.out: $(filter-out obj/main.o, ${OBJECTS}) ${ODIR}/farFieldConvergence.o
 	g++ -std=c++11 -o $@ $^ -L ${LDIR} -L ${ARMA_PATH} -L ${SFML_PATH} ${LIBS} ${GRAPHLIBS}

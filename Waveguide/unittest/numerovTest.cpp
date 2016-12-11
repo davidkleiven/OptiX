@@ -14,7 +14,7 @@ public:
 class NumerovTest: public Numerov
 {
 public:
-  NumerovTest(){eigenvalue=2.0;};
+  NumerovTest(){};
   double alpha_nTest( double x){ return alpha_n(x); };
   double alpha_np1Test( double x ){ return alpha_np1(x); };
   double alpha_nm1Test( double x ){ return alpha_nm1(x); };

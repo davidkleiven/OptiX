@@ -6,11 +6,13 @@
 #include "straightWG2D.hpp"
 #include "paraxialEquation.hpp"
 #include "planeWave.hpp"
-#include "visualizer.hpp"
+#include <visa/visa.hpp>
 #include <vector>
 #include <H5Cpp.h>
 #include <hdf5_hl.h>
 #include <string>
+#include <chrono>
+#include <thread>
 
 using namespace std;
 enum class ErrorNorm_t{L1, L2};
@@ -67,7 +69,7 @@ double compare( const WaveGuideFDSimulation &poorDisc, const WaveGuideFDSimulati
 
 int main( int argc, char** argv )
 {
-  bool visualizeResults = false;
+  bool visualizeResults = true;
   ErrorNorm_t norm = ErrorNorm_t::L1;
   Cladding cladding1;
   double delta = 4.49E-5;
@@ -86,13 +88,12 @@ int main( int argc, char** argv )
 
   StraightWG2D wg1;
   StraightWG2D wg2;
-  Visualizer vis1;
-  Visualizer vis2;
+  visa::WindowHandler plots;
 
   if ( visualizeResults )
   {
-    vis1.init( "Active window" );
-    vis2.init( "Passive window (no event loop)" );
+    plots.addPlot("Active");
+    plots.addPlot("Passive");
   }
 
   double testZ = zmax/2.0;
@@ -133,8 +134,8 @@ int main( int argc, char** argv )
 
       if ( visualizeResults )
       {
-        vis1.fillVertexArray( arma::abs( wg1.getSolver().getSolution() ) );
-        vis1.display();
+        arma::mat solutionCopy = arma::abs( wg1.getSolver().getSolution() );
+        plots.get("Active").fillVertexArray( solutionCopy );
       }
     }
 
@@ -152,7 +153,8 @@ int main( int argc, char** argv )
 
       if ( visualizeResults )
       {
-        vis2.fillVertexArray( arma::abs( wg2.getSolver().getSolution() ) );
+        arma::mat solutionCopy = arma::abs( wg2.getSolver().getSolution() );
+        plots.get("Passive").fillVertexArray( solutionCopy );
       }
     }
 
@@ -169,34 +171,13 @@ int main( int argc, char** argv )
 
     if ( visualizeResults )
     {
-      clog << "Press any key to continue to next interation\n";
-      bool goToNextIteration = false;
-      while ( !goToNextIteration && vis1.isOpen() )
+      // Very slow over SSH
+      //for ( unsigned int i=0;i<10;i++ )
       {
-        sf::Event event;
-        while ( vis1.pollEvent(event) )
-        {
-          if ( event.type == sf::Event::Closed )
-          {
-            vis1.close();
-            vis2.close();
-          }
-          else if ( event.type == sf::Event::KeyPressed )
-          {
-            goToNextIteration = true;
-          }
-        }
-        vis1.display();
-        vis2.display();
+        plots.show();
+        //this_thread::sleep_for(chrono::milliseconds(300));
       }
-
     }
-  }
-
-  if ( visualizeResults )
-  {
-    vis1.close();
-    vis2.close();
   }
 
   string fname("data/convergence.h5");

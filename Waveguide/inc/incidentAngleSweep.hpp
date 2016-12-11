@@ -5,7 +5,7 @@
 #include "cladding.hpp"
 #include "paraxialEquation.hpp"
 #include "crankNicholson.hpp"
-#include "visualizer.hpp"
+#include <visa/visa.hpp>
 #include <armadillo>
 #include <set>
 #include <string>
@@ -61,7 +61,7 @@ public:
   void setFFTSignalLength( unsigned int length){fftSignalLength=length;};
 
   /** Add a visualizer to create a 2D colorplot of the wavefield */
-  void setVisualizer( Visualizer &newvis ){ vis = &newvis; };
+  void setVisualizer( visa::WindowHandler &plots );
 
   /** Set directory to save the pictures. */
   void savePic( const char *dir );
@@ -80,7 +80,7 @@ private:
   CrankNicholson solver;
   arma::mat farField;
   std::set<unsigned int> indxToSave;
-  Visualizer *vis{NULL};
+  visa::WindowHandler *vis{NULL};
   std::string picDir;
   bool saveImages{false};
   bool vacuumInside{true};
@@ -95,6 +95,7 @@ protected:
   double thetaMax{0.0};
   bool generateUID{true};
   unsigned int uid{0};
+  std::string plotname;
 
   /** Index in the FFT array corresponding to the exity angle in degree */
   unsigned int angleIndx( double angle ) const;

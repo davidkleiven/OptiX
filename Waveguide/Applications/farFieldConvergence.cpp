@@ -8,7 +8,7 @@
 #include "paraxialEquation.hpp"
 #include "cylindricalParaxialEquation.hpp"
 #include "curvedWGCylCrd.hpp"
-#include "visualizer1D.hpp"
+#include <visa/visa.hpp>
 #include <complex>
 #include <stdexcept>
 #include <cstdlib>
@@ -77,16 +77,14 @@ int main( int argc, char **argv )
     }
   }
 
-  Visualizer1D vis;
-  Visualizer visColor;
-  Visualizer1D exVis;
+  visa::WindowHandler plots;
   CrankNicholson solver;
 
   try
   {
-    vis.init( "Far field pattern" );
-    visColor.init( "Top view" );
-    exVis.init("Exit field");
+    plots.addLinePlot("Far field pattern");
+    plots.addPlot("Top view");
+    plots.addLinePlot("Exit field");
     solver.setEquation( *eq );
     pw.setWavelength( wavelength );
 
@@ -95,9 +93,8 @@ int main( int argc, char **argv )
     wg->setWaveLength( wavelength );
     wg->setCladding( cladding );
 
-    vis.setLimits(-6.0, 4.0);
-    exVis.setLimits(-3.0,3.0);
-    vis.clear();
+    plots.get("Far field pattern").setLimits(-6.0,4.0);
+    plots.get("Exit field").setLimits(-3.0,3.0);
 
     bool abortRun = false;
     for ( unsigned int iz=0;iz<NzDisc;iz++ )
@@ -138,95 +135,25 @@ int main( int argc, char **argv )
         clog << "xmin: " << -2.0 << " " << "xmax: " << 2.0 << endl;
       }
 
-      if ( vis.isOpen() )
-      {
-        vis.fillVertexArray( logFT.subvec( indxStart, indxEnd ) );
-        vis.display();
-      }
+      arma::vec logFTSub(logFT.subvec(indxStart, indxEnd));
+      plots.get("Far field pattern").fillVertexArray( logFTSub );
+      arma::vec exitF;
+      wg->getExitField( exitF );
+      plots.get("Exit field").fillVertexArray(exitF);
 
-      if ( exVis.isOpen() )
-      {
-        arma::vec exitF;
-        wg->getExitField( exitF );
-        exVis.fillVertexArray( exitF );
-        exVis.display();
-      }
+      arma::mat solCopy =  arma::abs( wg->getSolver().getSolution() );
+      plots.get("Top view").fillVertexArray( solCopy );
 
-      if ( visColor.isOpen() )
-      {
-        visColor.fillVertexArray( arma::abs( wg->getSolver().getSolution() ) );
-        visColor.display();
-        sf::Event event;
-        bool nextRun = false;
-        clog << "Press space to continue\n";
-        while (!nextRun && !abortRun)
-        {
-          while ( visColor.pollEvent( event ) )
-          {
-            if ( event.type == sf::Event::KeyPressed )
-            {
-              if ( event.key.code == sf::Keyboard::Space )
-              {
-                nextRun = true;
-                clog << "Space pressed\n";
-              }
-              else if ( event.key.code == sf::Keyboard::Escape )
-              {
-                abortRun = true;
-                vis.close();
-                exVis.close();
-                visColor.close();
-              }
-            }
-          }
-        }
-      }
+      plots.show();
       clog << " done\n";
-      if ( abortRun )
-      {
-        break;
-      }
     }
 
     delete wg;
     delete eq;
-
-    while ( vis.isOpen() || visColor.isOpen() || exVis.isOpen() )
-    {
-      sf::Event event;
-      while ( vis.pollEvent( event ) )
-      {
-        if ( event.type == sf::Event::Closed )
-        {
-          vis.close();
-        }
-      }
-      while ( visColor.pollEvent( event ) )
-      {
-        if ( event.type == sf::Event::Closed )
-        {
-          visColor.close();
-        }
-      }
-      while ( exVis.pollEvent( event ) )
-      {
-        if ( event.type == sf::Event::Closed )
-        {
-          exVis.close();
-        }
-      }
-      vis.display();
-      exVis.display();
-      visColor.display();
-    }
   }
   catch ( exception &exc )
   {
     cout << exc.what() << endl;
-    if ( vis.isOpen() )
-    {
-      vis.close();
-    }
     delete wg;
     delete eq;
     return 1;
