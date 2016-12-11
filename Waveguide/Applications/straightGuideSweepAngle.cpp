@@ -1,6 +1,7 @@
 #include "incidentAngleSweep.hpp"
 #include "incidentAngleLengthSweep.hpp"
 #include <string>
+#include <visa/visa.hpp>
 
 using namespace std;
 int main( int argc, char** argv )
@@ -95,7 +96,8 @@ int main( int argc, char** argv )
   {
     simulation = new IncidentAngleSweep();
   }
-  Visualizer vis;
+
+  visa::WindowHandler plots;
   double width = 69.8;
   double energy = 10000.0; //ev
   double lambda = 12.398*100.0/energy;
@@ -130,9 +132,7 @@ int main( int argc, char** argv )
 
   if ( realTimeVisualize )
   {
-    vis.setColorMax( 2.0 );
-    vis.init();
-    simulation->setVisualizer( vis );
+    simulation->setVisualizer( plots );
     if ( saveVisualizations )
     {
       simulation->savePic("Movie");

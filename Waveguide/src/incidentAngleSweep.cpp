@@ -114,20 +114,19 @@ void IncidentAngleSweep::solve()
 
     if (( vis != NULL ) && (i%displayEvery == 0))
     {
-      vis->fillVertexArray( arma::abs( wg.getSolver().getSolution() ) );
-      sf::sleep(sf::milliseconds(1000));
-      vis->display();
+      arma::mat solCopy = arma::abs( wg.getSolver().getSolution() );
+      vis->get(plotname.c_str()).fillVertexArray( solCopy );
+      vis->show();
 
       if ( picDir != "" )
       {
-        auto image = vis->capture();
+        auto image = vis->get(plotname.c_str()).capture();
         stringstream ss;
         ss << picDir << "/img" << i << ".png";
         image.saveToFile(ss.str().c_str());
       }
     }
   }
-  vis->close();
 }
 
 void IncidentAngleSweep::save( const string &fname ) const
@@ -205,4 +204,11 @@ double IncidentAngleSweep::angleDeg( int indx ) const
 {
   double PI = acos(-1.0);
   return 2.0*180.0*static_cast<double>(indx)/(wg.getWavenumber()*fftSignalLength*wg.transverseDiscretization().step);
+}
+
+void IncidentAngleSweep::setVisualizer( visa::WindowHandler &plotter )
+{
+  vis = &plotter;
+  plotname="Contour";
+  vis->addPlot(plotname.c_str());
 }
