@@ -13,6 +13,7 @@ FDTD simulations of optical phenomena
 * Jsoncpp *-ljsoncpp* <https://github.com/open-source-parsers/jsoncpp>
 * MEEP *-lmeep* <http://ab-initio.mit.edu/wiki/index.php/Meep>  
 * C math library *-lm*
+* Visualize Array [VISA](https://github.com/davidkleiven/VISA)
 
 # Python visualisation
 The plots are generated using [matplotlib](http://matplotlib.org/) and [Mayavi](http://docs.enthought.com/mayavi/mayavi/).
