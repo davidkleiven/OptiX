@@ -7,6 +7,7 @@
 
 class WaveGuideFDSimulation;
 class ParaxialEquation;
+class ParaxialSimulation;
 
 typedef std::complex<double> cdouble;
 
@@ -23,7 +24,7 @@ public:
   std::string getName() const { return name; };
 
   /** Set waveguide to operate on */
-  void setGuide( WaveGuideFDSimulation &guide );
+  void setSimulator( ParaxialSimulation &guide );
 
   /** Set paraxial equation to solve */
   void setEquation( const ParaxialEquation &equation ){ eq = &equation; };
@@ -67,7 +68,7 @@ public:
   virtual void fillInfo( Json::Value &obj ) const;
 protected:
   std::string name;
-  WaveGuideFDSimulation *guide;
+  ParaxialSimulation *guide;
   const ParaxialEquation *eq{NULL};
   arma::cx_mat *solution{NULL};
 

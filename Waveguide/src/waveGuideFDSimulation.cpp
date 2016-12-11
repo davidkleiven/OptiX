@@ -19,80 +19,15 @@
 const double PI = acos(-1.0);
 
 using namespace std;
-WaveGuideFDSimulation::WaveGuideFDSimulation(): xDisc(new Disctretization), zDisc(new Disctretization), name(""){};
+WaveGuideFDSimulation::WaveGuideFDSimulation(): ParaxialSimulation("noname"){};
 
-WaveGuideFDSimulation::WaveGuideFDSimulation( const char* wgname ): WaveGuideFDSimulation()
-{
-  name = wgname;
-}
+WaveGuideFDSimulation::WaveGuideFDSimulation( const char* wgname ): ParaxialSimulation(wgname){}
 
-void WaveGuideFDSimulation::solve()
-{
-  if ( solver == NULL )
-  {
-    throw ( runtime_error("No solver specified!"));
-  }
-
-  if ( src == NULL )
-  {
-    throw ( runtime_error("No source specified!"));
-  }
-  solver->solve();
-}
 
 WaveGuideFDSimulation::~WaveGuideFDSimulation()
 {
-  delete xDisc;
-  delete zDisc;
-
-  if ( solverInitializedViaInit )
-  {
-    delete solver;
-  }
-
-  if ( farFieldModulus != NULL ) delete farFieldModulus;
   if ( wgborder != NULL ) delete wgborder;
   if ( bTracker != NULL ) delete bTracker;
-}
-
-void WaveGuideFDSimulation::setWaveLength( double lambda )
-{
-  wavenumber = 2.0*PI/lambda;
-}
-
-void WaveGuideFDSimulation::setTransverseDiscretization( double xmin, double xmax, double step )
-{
-  xDisc->min = xmin;
-  xDisc->max = xmax;
-  xDisc->step = step;
-}
-
-void WaveGuideFDSimulation::setLongitudinalDiscretization( double xmin, double xmax, double step )
-{
-  zDisc->min = xmin;
-  zDisc->max = xmax;
-  zDisc->step = step;
-}
-
-unsigned int WaveGuideFDSimulation::nodeNumberTransverse() const
-{
-  return (xDisc->max - xDisc->min)/xDisc->step + 1.0;
-}
-
-unsigned int WaveGuideFDSimulation::nodeNumberLongitudinal() const
-{
-  return ( zDisc->max - zDisc->min)/zDisc->step + 1.0;
-}
-
-void WaveGuideFDSimulation::setSolver( Solver2D &solv )
-{
-  if ( solverInitializedViaInit )
-  {
-    throw ("You cannot set a new solver when it has been initialized via the init function");
-  }
-
-  solver = &solv;
-  solver->setGuide( *this );
 }
 
 void WaveGuideFDSimulation::setCladding( const Cladding &clad )
@@ -105,112 +40,9 @@ void WaveGuideFDSimulation::setInsideMaterial( const Cladding &clad )
   insideMaterial = &clad;
 }
 
-void WaveGuideFDSimulation::save( ControlFile &ctl ) const
+void WaveGuideFDSimulation::saveSpecialDatasets( hid_t fid, vector<string> &dsets ) const
 {
-  save(ctl, -1.0);
-}
 
-void WaveGuideFDSimulation::save( ControlFile &ctl, double intensityThreshold ) const
-{
-  if ( solver == NULL )
-  {
-    throw ( runtime_error("No solver specified!\n"));
-  }
-
-  if ( src == NULL )
-  {
-    throw ( runtime_error("No source specified!\n") );
-  }
-  bool useSparse = (intensityThreshold > 0.0);
-  string fname = ctl.getFnameTemplate();
-  string h5fname = fname+".h5";
-  string h5fieldfname = fname+"_field.h5";
-  string jsonfname = fname+".json";
-  string wgFname = fname+"_wg.h5";
-  string farFieldFname = fname+"_farField.h5";
-  string phaseName = fname+"_phase.h5";
-
-  //arma::abs(solver->getSolution()).save(h5fname.c_str(), arma::hdf5_binary);
-  if ( useSparse )
-  {
-    sparseSave( h5fname, intensityThreshold );
-    clog << "Solution written to " << h5fname << endl;
-  }
-  else
-  {
-    arma::mat absSol = arma::abs(solver->getSolution());
-    absSol.save(h5fname.c_str(), arma::hdf5_binary);
-    clog << "Amplitude written to " << h5fname << endl;
-
-    solver->getField( absSol );
-    absSol.save(h5fieldfname.c_str(), arma::hdf5_binary);
-    clog << "Realpart written to " << h5fieldfname << endl;
-
-    solver->getPhase( absSol );
-    absSol.save(phaseName.c_str(), arma::hdf5_binary);
-    clog << "Phase written to " << phaseName << endl;
-  }
-
-  hid_t file_id = H5Fcreate(wgFname.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT );
-  if ( wgborder != NULL )
-  {
-    unsigned int indx = 0;
-    for ( auto iter=wgborder->begin(); iter != wgborder->end(); ++iter )
-    {
-      stringstream uxname, uzname, bxname, bzname;
-      uxname << "upperBorderX" << indx;
-      uzname << "upperBorderZ" << indx;
-      bxname << "lowerBorderX" << indx;
-      bzname << "lowerBorderZ" << indx;
-      indx++;
-      hsize_t dim = iter->x1.size();
-      const double *ptr = &iter->x1[0];
-      unsigned int rank = 1;
-      H5LTmake_dataset( file_id, bxname.str().c_str(), rank, &dim, H5T_NATIVE_DOUBLE, ptr);
-      ptr = &iter->z1[0];
-      H5LTmake_dataset( file_id, bzname.str().c_str(), rank, &dim, H5T_NATIVE_DOUBLE, ptr);
-      ptr = &iter->x2[0];
-      H5LTmake_dataset( file_id, uxname.str().c_str(), rank, &dim, H5T_NATIVE_DOUBLE, ptr);
-      ptr = &iter->z2[0];
-      H5LTmake_dataset( file_id, uzname.str().c_str(), rank, &dim, H5T_NATIVE_DOUBLE, ptr);
-    }
-    H5Fclose(file_id);
-    ctl.get()["wgfile"] = wgFname;
-    clog << "Waveguide borders written to " << wgFname << endl;
-  }
-
-  Json::Value wginfo;
-  Json::Value solverInfo;
-  Json::Value sourceInfo;
-  src->info( sourceInfo );
-  wginfo["Cladding"]["delta"] = cladding->getDelta();
-  wginfo["Cladding"]["beta"] = cladding->getBeta();
-  wginfo["length"] = wglength;
-  ctl.get()["datafile"] = h5fname;
-  ctl.get()["fieldData"] = h5fieldfname;
-  ctl.get()["phase"] = phaseName;
-  ctl.get()["name"] = name;
-  ctl.get()["sparseSave"] = useSparse;
-  ctl.get()["sparseThreshold"] = intensityThreshold;
-  ctl.get()["xDiscretization"]["min"] = xDisc->min;
-  ctl.get()["xDiscretization"]["max"] = xDisc->max;
-  ctl.get()["xDiscretization"]["step"] = xDisc->step;
-  ctl.get()["zDiscretization"]["min"] = zDisc->min;
-  ctl.get()["zDiscretization"]["max"] = zDisc->max;
-  ctl.get()["zDiscretization"]["step"] = zDisc->step;
-  ctl.get()["source"] = sourceInfo;
-  ctl.get()["borderTracker"] = (bTracker != NULL );
-  fillInfo( wginfo );
-  // TODO: For some reason the next line gives a segmentation fault
-  //solver->fillInfo( solverInfo );
-  ctl.get()["solver"] = solverInfo;
-  ctl.get()["waveguide"] = wginfo;
-
-  if ( farFieldModulus != NULL )
-  {
-    ctl.get()["farFieldFile"] = farFieldFname;
-    saveFarField( farFieldFname, ctl.getUID() );
-  }
 }
 
 double* WaveGuideFDSimulation::allocateSolutionMatrix() const
@@ -345,50 +177,6 @@ void WaveGuideFDSimulation::sparseSave( const string &fname, double intensityThr
   H5Fclose(file_id);
 }
 
-void WaveGuideFDSimulation::closestIndex( double x, double z, unsigned int &ix, unsigned int &iz ) const
-{
-  ix = (x - xDisc->min)/xDisc->step;
-  iz = (z - zDisc->min)/zDisc->step;
-}
-
-double WaveGuideFDSimulation::getIntensity( double x, double z ) const
-{
-  // Some assertions for debugging
-  assert( x < xDisc->max );
-  assert( x >= xDisc->min );
-  assert( z < zDisc->max );
-  assert( z >= zDisc->min );
-
-  unsigned int ix, iz;
-  closestIndex( x, z, ix, iz );
-
-  double x1 = xDisc->min + ix*xDisc->step;
-  double x2 = x1 + xDisc->step;
-  double z1 = zDisc->min + iz*zDisc->step;
-  double z2 = z1 + iz*zDisc->step;
-
-  double intensity = pow( abs(solver->getSolution()(ix,iz)),2 )*(x2 - x)*(z2-z);
-  intensity += pow( abs(solver->getSolution()(ix+1,iz)), 2 )*(x-x1)*(z2-z);
-  intensity += pow( abs(solver->getSolution()(ix,iz+1)), 2 )*(z-z1)*(x2-x);
-  intensity += pow( abs(solver->getSolution()(ix+1,iz+1)), 2 )*(z2-z)*(x-x1);
-  return intensity/( (x2-x1)*(z2-z1) );
-}
-
-double WaveGuideFDSimulation::getIntensity( unsigned int ix, unsigned int iz ) const
-{
-  return pow( abs( solver->getSolution()(ix,iz) ), 2 );
-}
-
-double WaveGuideFDSimulation::getZ( unsigned int iz ) const
-{
-  return zDisc->min + iz*zDisc->step;
-}
-
-double WaveGuideFDSimulation::getX( int ix ) const
-{
-  return xDisc->min + ix*xDisc->step;
-}
-
 double WaveGuideFDSimulation::trapezoidalIntegrateIntensityZ( unsigned int iz, unsigned int ixStart, unsigned int ixEnd ) const
 {
   double integral = getIntensity( ixStart, iz ) + getIntensity( ixEnd, iz );
@@ -401,6 +189,7 @@ double WaveGuideFDSimulation::trapezoidalIntegrateIntensityZ( unsigned int iz, u
   return integral*dx*0.5;
 }
 
+/*
 void WaveGuideFDSimulation::init( const ControlFile &ctl )
 {
   // Initialize x-discretization
@@ -438,6 +227,7 @@ void WaveGuideFDSimulation::init( const ControlFile &ctl )
     }
   }
 }
+*/
 
 void WaveGuideFDSimulation::getXrayMatProp( double x, double z, double &delta, double &beta) const
 {
@@ -487,133 +277,6 @@ void WaveGuideFDSimulation::getXrayMatProp( double x, double z, double &delta, d
   beta = cladding->getBeta();
 }
 
-void WaveGuideFDSimulation::getExitField( arma::vec &vec ) const
-{
-  vec.set_size( solver->getSolution().n_rows );
-  unsigned int extractCol = solver->getSolution().n_cols-1;
-  for ( unsigned int i=0;i<vec.n_elem; i++ )
-  {
-    vec(i) = solver->getSolution()(i,extractCol).real();
-  }
-}
-
-void WaveGuideFDSimulation::getExitField( arma::cx_vec &vec ) const
-{
-  vec.set_size( solver->getSolution().n_rows );
-  unsigned int extractCol = solver->getSolution().n_cols-1;
-  for ( unsigned int i=0;i<vec.n_elem; i++ )
-  {
-    vec(i) = solver->getSolution()(i,extractCol);
-  }
-}
-
-void WaveGuideFDSimulation::computeFarField( unsigned int signalLength )
-{
-  // Extract the last column, thus specify z to inf
-  computeFarField( signalLength, numeric_limits<double>::max() );
-}
-
-void WaveGuideFDSimulation::computeFarField( unsigned int signalLength, double pos )
-{
-
-  // Extract the last column of the solution matrix
-  arma::cx_vec exitField;
-  arma::cx_vec paddedSignal;
-  if ( pos > zDisc->max )
-  {
-    getExitField( exitField );
-  }
-  else
-  {
-    unsigned int ix, iz;
-    closestIndex( 0.0, pos, ix, iz );
-    iz = iz >= solver->getSolution().n_cols ? solver->getSolution().n_cols-1:iz;
-    exitField.set_size( solver->getSolution().n_rows );
-    for ( unsigned int ix=0;ix<solver->getSolution().n_rows;ix++ )
-    {
-      exitField(ix) = solver->getSolution()(ix,iz);
-    }
-  }
-  if ( signalLength < exitField.n_elem )
-  {
-    paddedSignal = exitField;
-  }
-  else
-  {
-    paddedSignal.set_size(signalLength);
-    paddedSignal.fill(0.0);
-    // Fill in the signal on the center
-    unsigned int start = signalLength/2 - exitField.n_elem/2;
-    for ( unsigned int i=0;i<exitField.n_elem;i++ )
-    {
-      paddedSignal(start+i) = exitField(i);
-    }
-  }
-
-  arma::cx_vec ft = arma::fft( paddedSignal );
-
-  if ( farFieldModulus == NULL )
-  {
-    farFieldModulus = new arma::vec( arma::abs(ft)/sqrt(ft.n_elem) );
-  }
-  else
-  {
-    *farFieldModulus = arma::vec( arma::abs(ft)/sqrt(ft.n_elem) );
-  }
-
-  // Shift the FFT
-  unsigned int N = farFieldModulus->n_elem;
-  for ( unsigned int i=0;i<N/2;i++ )
-  {
-    double copy = (*farFieldModulus)(i);
-    (*farFieldModulus)(i) = (*farFieldModulus)(i+N/2);
-    (*farFieldModulus)(i+N/2) = copy;
-  }
-}
-
-void WaveGuideFDSimulation::computeFarField()
-{
-  computeFarField(0);
-}
-
-void WaveGuideFDSimulation::saveFarField( const string &fname, unsigned int uid ) const
-{
-  if ( farFieldModulus == NULL )
-  {
-    return;
-  }
-
-  arma::vec exitField;
-  getExitField( exitField );
-  arma::cx_vec exitFieldCmpl;
-  getExitField( exitFieldCmpl );
-  arma::vec exitAmpl = arma::abs( exitFieldCmpl );
-  arma::vec exitPhase;
-  exitPhase.set_size(exitAmpl.n_elem);
-  for ( unsigned int i=0;i<exitAmpl.n_elem;i++ )
-  {
-    exitPhase(i) = arg( exitFieldCmpl(i) );
-  }
-
-  hid_t file_id = H5Fcreate(fname.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT );
-  hsize_t dim = farFieldModulus->size();
-  H5LTmake_dataset( file_id, "farField", 1, &dim, H5T_NATIVE_DOUBLE, farFieldModulus->memptr());
-  dim = exitField.n_elem;
-  H5LTmake_dataset( file_id, "exitField", 1, &dim, H5T_NATIVE_DOUBLE, exitField.memptr());
-  H5LTmake_dataset( file_id, "exitIntensity", 1, &dim, H5T_NATIVE_DOUBLE, exitAmpl.memptr() );
-  H5LTmake_dataset( file_id, "exitPhase", 1, &dim, H5T_NATIVE_DOUBLE, exitPhase.memptr() );
-  H5LTset_attribute_double( file_id, "farField", "wavenumber", &wavenumber, 1);
-  H5LTset_attribute_double( file_id, "farField", "gridspacing", &xDisc->step, 1);
-  H5LTset_attribute_double( file_id, "exitField", "xmin", &xDisc->min, 1);
-  H5LTset_attribute_double( file_id, "exitField", "xmax", &xDisc->max, 1);
-  H5LTset_attribute_double( file_id, "exitIntensity", "xmin", &xDisc->min, 1);
-  H5LTset_attribute_double( file_id, "exitIntensity", "xmax", &xDisc->max, 1);
-  int intUID = uid;
-  H5LTset_attribute_int( file_id, "farField", "uid", &intUID, 1);
-  H5Fclose(file_id);
-  clog << "Far field written to " << fname << endl;
-}
-
 cdouble WaveGuideFDSimulation::transverseBC( double z, Boundary_t bnd ) const
 {
   double delta = cladding->getDelta();
@@ -640,19 +303,6 @@ cdouble WaveGuideFDSimulation::transverseBC( double z ) const
   return this->transverseBC( z, WaveGuideFDSimulation::Boundary_t::BOTTOM );
 }
 
-void WaveGuideFDSimulation::setBoundaryConditions( const ParaxialSource &source )
-{
-  src = &source;
-  unsigned int Nx = nodeNumberTransverse();
-  vector<cdouble> values(Nx, 1.0);
-  for ( unsigned int i=0;i<Nx;i++ )
-  {
-    double x = xDisc->min + i*xDisc->step;
-    values[i] = src->get( x, 0.0 );
-  }
-  solver->setLeftBC(&values[0]);
-}
-
 void WaveGuideFDSimulation::useBorderTracker()
 {
   if ( bTracker != NULL ) delete bTracker;
@@ -660,4 +310,34 @@ void WaveGuideFDSimulation::useBorderTracker()
   bTracker = new BorderTracker();
   bTracker->setWG(*this);
   bTracker->init();
+}
+
+void WaveGuideFDSimulation::save( ControlFile &ctl )
+{
+  ParaxialSimulation::save( ctl );
+  if ( wgborder != NULL )
+  {
+    unsigned int indx = 0;
+    for ( auto iter=wgborder->begin(); iter != wgborder->end(); ++iter )
+    {
+      stringstream uxname, uzname, bxname, bzname;
+      uxname << "upperBorderX" << indx;
+      uzname << "upperBorderZ" << indx;
+      bxname << "lowerBorderX" << indx;
+      bzname << "lowerBorderZ" << indx;
+      indx++;
+      hsize_t dim = iter->x1.size();
+      const double *ptr = &iter->x1[0];
+      arma::vec vec(iter->x1);
+      unsigned int rank = 1;
+      dsetnames.push_back( bxname.str() );
+      saveVec( iter->x1, dsetnames.back().c_str() );
+      dsetnames.push_back( bzname.str() );
+      saveVec( iter->z1, dsetnames.back().c_str() );
+      dsetnames.push_back( uxname.str() );
+      saveVec( iter->x2, dsetnames.back().c_str() );
+      dsetnames.push_back( uzname.str() );
+      saveVec( iter->z2, dsetnames.back().c_str() );
+    }
+  }
 }
