@@ -101,6 +101,7 @@ def main(argv):
     mxColors = len(cs.COLORS)
     absorption = np.zeros(nModes)
     colors = ["#e41a1c", "#377eb8", "#4daf4a", "#984ea3"]
+    signs = "+---" # TODO: Make this more generic. Input from terminal?
     with h5.File(stat["solutionfile"], "r") as hf:
         for i in range(0, nModes):
             data = np.array( hf.get("mode%d"%(i)) )
@@ -108,7 +109,11 @@ def main(argv):
             absorption[i] = computeEffectiveFieldAbsorption( u, data, -stat["width"], 0.0)
             print "Absorption mode %d: %.2E"%(i+1,absorption[i])
             if ( i >= modeStart ) and ( i < modeEnd ):
-                ax.plot( u, data, color=colors[i%4], label="%d"%(i+1))
+                if ( signs[i] == "+" ):
+                    pre = 1.0
+                else:
+                    pre = -1.0
+                ax.plot( u, pre*data, color=colors[i%4], label="%d"%(i+1))
 
     ymin, ymax = ax.get_ylim()
     ax = addShadedBkg( ax, -stat["width"], 0.0)
