@@ -8,7 +8,7 @@
 #include "paraxialEquation.hpp"
 #include "cylindricalParaxialEquation.hpp"
 #include "curvedWGCylCrd.hpp"
-#include <visa.hpp>
+#include <visa/visa.hpp>
 #include <complex>
 #include <stdexcept>
 #include <cstdlib>

@@ -3,7 +3,6 @@ IDIR_HDF5=/usr/lib/x86_64-linux-gnu/hdf5/serial/include
 LDIR=/usr/lib/x86_64-linux-gnu/hdf5/serial/lib
 ARMA_PATH=/home/david/Documents/localLib/armadillo-7.400.4/
 ARMA_INC=/home/david/Documents/localLib/include
-VISA_INC=/usr/local/include/visa
 SFML_PATH=/usr/lib/x86_64-linux-gnu
 APPDIR=Applications
 ODIR=obj
@@ -75,7 +74,7 @@ ${ODIR}/%.o: ${SDIR}/%.cpp
 	g++ -std=c++11 -MMD ${OPT} -c $< -I ${IDIR} -I ${IDIR_HDF5} -I ${ARMA_INC} -o $@
 
 ${ODIR}/%.o: ${APPDIR}/%.cpp
-	g++ -std=c++11 -MMD ${OPT} -c $< -I ${IDIR} -I ${IDIR_HDF5} -I ${ARMA_INC} -I ${VISA_INC} -o $@
+	g++ -std=c++11 -MMD ${OPT} -c $< -I ${IDIR} -I ${IDIR_HDF5} -I ${ARMA_INC} -o $@
 
 unittest/%.o: unittest/%.cpp
 	g++ -std=c++11 -MMD -c $< -I ${IDIR} -I ${IDIR_HDF5} -I ${ARMA_INC} -o $@
