@@ -143,7 +143,7 @@ int main( int argc, char **argv )
   unsigned int nPointsTransmission = 200;
 
   Cladding cladding;
-  double delta = 4.49E-5; // Default value
+  double delta = 4.14E-5; // Default value
   double beta = 3.45E-6;
   cladding.setRefractiveIndex(delta, beta);
   double width = 100.0; // Width of the waveguide in nm
