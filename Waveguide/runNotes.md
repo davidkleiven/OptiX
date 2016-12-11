@@ -167,3 +167,16 @@
 304440 | Eigenmode SiO2 core C2H6O2 E=10keV | Looks good |
 125047 | Lengths + angle sweep L=2.5 mm to 3.5 mm | Far field is very dependent on the length |
 4439827 | Fresnel two curved WG, using code with border tracker. Based 629884. With padding to avoid periodic effects | Looks good |
+899810 | Cylidnrial Nx=100, Nz=3000 | Looks OK |
+477129 | Cylindrical Nx=50, Nz=3000 | Looks OK |
+191298 | Cylindrical Nx=200, Nz=3000 | Not analysed |
+581287 | Cylindrical Nx=400, Nz=3000 | Not analysed |
+563966 | Cylindrical Nx=800, Nz=3000 | Not analysed |
+504230 | Cartesian Nx=100, brdtrack, Nz=3000 | Not analysed |
+943809 | Cartesian Nx=200, brdtrack, Nz=3000 | Not analysed |
+171918 | Cartesian Nx=400, brdtrack, Nz=3000 | Not analysed |
+224190 | Cartesian Nx=800, brdtrack, Nz=3000 | Not analysed |
+868127 | Cartesian Nx=100, brdtrack, Nz=3000, with transmission | Not analysed |
+631690 | Cartesian Nx=200, brdtrack, Nz=3000, with transmission | Not analysed |
+976491 | Cartesian Nx=400, brdtrack, Nz=3000, with transmission | Not analysed |
+496524 | Cartesian Nx=800, brdtrack, Nz=3000, with transmission | Not analysed |
