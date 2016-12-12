@@ -56,6 +56,12 @@ public:
   /** Get the wavenumber in nm^{-1}*/
   double getWavenumber() const{ return wavenumber; };
 
+  /** Get the wavelength in nm */
+  double getWavelength() const;
+
+  /** Get wave energy in eV */
+  double getEnergy() const;
+
   /** Set wavenumber in nm^{-1}*/
   void setWavenumber( double k ){ wavenumber = k; };
 

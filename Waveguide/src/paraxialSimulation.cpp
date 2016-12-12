@@ -375,3 +375,13 @@ void ParaxialSimulation::setBoundaryConditions( const ParaxialSource &source )
   }
   solver->setLeftBC(&values[0]);
 }
+
+double ParaxialSimulation::getEnergy() const
+{
+  return 12.398*100.0/getWavelength();
+}
+
+double ParaxialSimulation::getWavelength() const
+{
+  return 2.0*PI/wavenumber;
+}

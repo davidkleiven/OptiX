@@ -19,7 +19,7 @@ SOURCES:= main.cpp cladding.cpp waveGuide.cpp waveGuideRadiusCurvature.cpp numer
 					gaussianBeam.cpp paraxialEquation.cpp cylindricalParaxialEquation.cpp curvedWGCylCrd.cpp \
 					beamSplitter.cpp gaussianWG.cpp linearRampWG.cpp fresnelPropagator.cpp exitFieldSource.cpp \
 					incidentAngleSweep.cpp borderTracker.cpp paraxialSimulation.cpp \
-					refractiveIndex.cpp incidentAngleLengthSweep.cpp
+					refractiveIndex.cpp incidentAngleLengthSweep.cpp cylinder2D.cpp
 
 OBJECTS := ${SOURCES:.cpp=.o}
 SOURCES := $(addprefix ${SDIR}/, ${SOURCES})
@@ -69,6 +69,9 @@ farFieldConvergence.out: $(filter-out obj/main.o, ${OBJECTS}) ${ODIR}/farFieldCo
 	g++ -std=c++11 -o $@ $^ -L ${LDIR} -L ${ARMA_PATH} -L ${SFML_PATH} ${LIBS} ${GRAPHLIBS}
 
 borderDemo.out: $(filter-out obj/main.o, ${OBJECTS}) ${ODIR}/borderDemo.o
+	g++ -std=c++11 -o $@ $^ -L ${LDIR} -L ${ARMA_PATH} -L ${SFML_PATH} ${LIBS} ${GRAPHLIBS}
+
+cylinder2D.out: $(filter-out obj/main.o, ${OBJECTS}) ${ODIR}/cylinderScattering.o
 	g++ -std=c++11 -o $@ $^ -L ${LDIR} -L ${ARMA_PATH} -L ${SFML_PATH} ${LIBS} ${GRAPHLIBS}
 
 ${ODIR}/%.o: ${SDIR}/%.cpp
