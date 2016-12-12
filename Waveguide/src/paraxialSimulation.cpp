@@ -10,8 +10,10 @@
 #include <cassert>
 #include <cmath>
 #include "paraxialSource.hpp"
+#include "h5Attribute.hpp"
 #include <limits>
 #include <stdexcept>
+#include <utility>
 
 using namespace std;
 const double PI = acos(-1.0);
@@ -101,29 +103,29 @@ void ParaxialSimulation::save( ControlFile &ctl )
   if ( file != NULL ) delete file;
   file = new H5::H5File( h5fname.c_str(), H5F_ACC_TRUNC );
 
+  // Fill attrs
+  commonAttributes.push_back( makeAttr("xmin",xDisc->min) );
+  commonAttributes.push_back( makeAttr("xmax", xDisc->max) );
+  commonAttributes.push_back( makeAttr("zmin", zDisc->min) );
+  commonAttributes.push_back( makeAttr("zmax", zDisc->max) );
+  int uid = ctl.getUID();
+  commonAttributes.push_back( makeAttr("uid", uid) );
+
   //arma::abs(solver->getSolution()).save(h5fname.c_str(), arma::hdf5_binary);
-  arma::mat absSol = arma::abs(solver->getSolution());
-  hsize_t dim[2] = {absSol.n_rows, absSol.n_cols};
-  int rank = 2;
-  dsetnames.push_back("amplitude");
-  saveArmaMat( absSol, dsets.back().c_str() );
-
-  solver->getPhase( absSol );
-  dsetnames.push_back("phase");
-  saveArmaMat( absSol, dsets.back().c_str() );
-
-  // Add all attributes to all datasets
-  for ( unsigned int i=0;i<dsets.size();i++ )
+  if ( saveColorPlot )
   {
-    H5::DataSet dset = file->openDataSet( dsetnames[i].c_str() );
-    addAttribute( dset, "xmin", xDisc->min );
-    addAttribute( dset, "xmax", xDisc->max );
-    addAttribute( dset, "zmin", zDisc->min );
-    addAttribute( dset, "zmax", zDisc->max );
-    int uid = ctl.getUID();
-    addAttribute( dset, "uid", uid );
-    saveFarField();
+    arma::mat absSol = arma::abs(solver->getSolution());
+    hsize_t dim[2] = {absSol.n_rows, absSol.n_cols};
+    int rank = 2;
+    dsetnames.push_back("amplitude");
+    saveArmaMat( absSol, dsets.back().c_str(), commonAttributes );
+
+    solver->getPhase( absSol );
+    dsetnames.push_back("phase");
+    saveArmaMat( absSol, dsets.back().c_str(), commonAttributes );
   }
+
+  saveFarField();
 
   Json::Value wginfo;
   Json::Value solverInfo;
@@ -164,9 +166,14 @@ void ParaxialSimulation::saveFarField()
     exitPhase(i) = arg( exitFieldCmpl(i) );
   }
 
-  hsize_t dim = farFieldModulus->size();
+  arma::vec zoomFar;
+  extractFarField( zoomFar );
+  hsize_t dim = zoomFar.n_elem;
   dsetnames.push_back("farField");
-  saveArmaVec( *farFieldModulus, dsetnames.back().c_str());
+  saveArmaVec( zoomFar, dsetnames.back().c_str());
+  H5::DataSet dset = file->openDataSet( dsetnames.back() );
+  addAttribute( dset, "phiMin", farParam.phiMin );
+  addAttribute( dset, "phiMax", farParam.phiMax );
   dim = exitField.n_elem;
   dsetnames.push_back("exitField");
   saveArmaVec( exitField, dsetnames.back().c_str() );
@@ -199,7 +206,7 @@ void ParaxialSimulation::getExitField( arma::cx_vec &vec ) const
 void ParaxialSimulation::computeFarField( unsigned int signalLength )
 {
   // Extract the last column, thus specify z to inf
-  computeFarField( signalLength, numeric_limits<double>::max() );
+  computeFarField( signalLength, numeric_limits<double>::max());
 }
 
 void ParaxialSimulation::computeFarField( unsigned int signalLength, double pos )
@@ -230,7 +237,7 @@ void ParaxialSimulation::computeFarField( unsigned int signalLength, double pos 
   else
   {
     paddedSignal.set_size(signalLength);
-    paddedSignal.fill(0.0);
+    paddedSignal.fill(farParam.padValue);
     // Fill in the signal on the center
     unsigned int start = signalLength/2 - exitField.n_elem/2;
     for ( unsigned int i=0;i<exitField.n_elem;i++ )
@@ -312,28 +319,64 @@ double ParaxialSimulation::getX( int ix ) const
 
 void ParaxialSimulation::saveArmaMat( const arma::mat &matrix, const char* dsetname )
 {
+  saveArmaMat( matrix, dsetname, commonAttributes );
+}
+
+void ParaxialSimulation::saveArmaMat( const arma::mat &matrix, const char* dsetname, const vector<H5Attr> &attrs )
+{
   // Create dataspace
   hsize_t fdim[2] = {matrix.n_rows, matrix.n_cols};
   H5::DataSpace dataspace( 2, fdim );
 
   // Create dataset
-  H5::DataSet dataset( file->createDataSet(dsetname, H5::PredType::NATIVE_DOUBLE, dataspace) );
+  H5::DataSet ds( file->createDataSet(dsetname, H5::PredType::NATIVE_DOUBLE, dataspace) );
+  H5::DataSpace attribSpace(H5S_SCALAR);
+
+  for ( unsigned int i=0;i<attrs.size();i++ )
+  {
+    H5::Attribute att = ds.createAttribute( attrs[i].name.c_str(), attrs[i].dtype, attribSpace );
+    if ( attrs[i].dtype == H5::PredType::NATIVE_INT )
+    {
+      int value = attrs[i].value;
+      att.write( H5::PredType::NATIVE_INT, &value );
+    }
+    double value = attrs[i].value;
+    att.write( H5::PredType::NATIVE_DOUBLE, &value );
+  }
 
   // Write to file
-  dataset.write( matrix.memptr(), H5::PredType::NATIVE_DOUBLE );
+  ds.write( matrix.memptr(), H5::PredType::NATIVE_DOUBLE );
 }
 
 void ParaxialSimulation::saveArmaVec( const arma::vec &vec, const char* dsetname )
+{
+  saveArmaVec( vec, dsetname, commonAttributes );
+}
+
+void ParaxialSimulation::saveArmaVec( const arma::vec &vec, const char* dsetname, const vector<H5Attr> &attrs )
 {
   // Create dataspace
   hsize_t fdim = vec.n_elem;
   H5::DataSpace dataspace( 1, &fdim );
 
   // Create dataset
-  H5::DataSet dataset( file->createDataSet(dsetname, H5::PredType::NATIVE_DOUBLE, dataspace) );
+  H5::DataSpace attribSpace(H5S_SCALAR);
+  H5::DataSet ds( file->createDataSet(dsetname, H5::PredType::NATIVE_DOUBLE, dataspace) );
+
+  for ( unsigned int i=0;i<attrs.size();i++ )
+  {
+    H5::Attribute att = ds.createAttribute( attrs[i].name.c_str(), attrs[i].dtype, attribSpace );
+    if ( attrs[i].dtype == H5::PredType::NATIVE_INT )
+    {
+      int value = attrs[i].value;
+      att.write( H5::PredType::NATIVE_INT, &value );
+    }
+    double value = attrs[i].value;
+    att.write( H5::PredType::NATIVE_DOUBLE, &value );
+  }
 
   // Write to file
-  dataset.write( vec.memptr(), H5::PredType::NATIVE_DOUBLE );
+  ds.write( vec.memptr(), H5::PredType::NATIVE_DOUBLE );
 }
 
 void ParaxialSimulation::saveVec( const vector<double> &vec, const char* dsetname )
@@ -384,4 +427,37 @@ double ParaxialSimulation::getEnergy() const
 double ParaxialSimulation::getWavelength() const
 {
   return 2.0*PI/wavenumber;
+}
+
+void ParaxialSimulation::extractFarField( arma::vec &newFarField ) const
+{
+  if ( farFieldModulus == NULL )
+  {
+    throw (runtime_error("ExtractFarField: Far field is not computed!"));
+  }
+  unsigned int nmin = farFieldAngleToIndx( farParam.phiMin );
+  unsigned int nmax = farFieldAngleToIndx( farParam.phiMax );
+  newFarField = farFieldModulus->subvec(nmin, nmax);
+}
+
+unsigned int ParaxialSimulation::farFieldAngleToIndx( double angle ) const
+{
+  if ( farFieldModulus == NULL )
+  {
+    throw (runtime_error("farFieldAngleToIndx: Far field is not computed!"));
+  }
+  double angleRad = angle*PI/180.0;
+  int n = farFieldModulus->n_elem*wavenumber*xDisc->step*sin(angleRad)/(2.0*PI);
+  if ( abs(n) >= farFieldModulus->n_elem/2 )
+  {
+    if ( angle > 0.0 ) return farFieldModulus->n_elem-1;
+    return 0;
+  }
+  return n+static_cast<int>(farFieldModulus->n_elem)/2;
+}
+
+void ParaxialSimulation::setFarFieldAngleRange( double phiMin, double phiMax )
+{
+  farParam.phiMin = phiMin;
+  farParam.phiMax = phiMax;
 }

@@ -2,6 +2,7 @@
 #include "planeWave.hpp"
 #include "paraxialEquation.hpp"
 #include "crankNicholson.hpp"
+#include "controlFile.hpp"
 #include <iostream>
 #include <visa/visa.hpp>
 #include <armadillo>
@@ -44,6 +45,12 @@ int main( int argc, char **argv )
     clog << "Solving system...";
     cylinderSim.solve();
     clog << "done\n";
+    cylinderSim.saveContour(false);
+    ControlFile ctl("data/cylinder");
+    cylinderSim.setFarFieldPadValue( 1.0 );
+    cylinderSim.setFarFieldAngleRange( -0.1, 0.1 );
+    cylinderSim.computeFarField( 262144 );
+    cylinderSim.save( ctl );
 
     visa::WindowHandler plots;
     plots.addPlot("Intensity");

@@ -4,6 +4,9 @@
 #include <H5Cpp.h>
 #include <armadillo>
 #include <jsoncpp/json/writer.h>
+#include "farFieldParameters.hpp"
+#include "h5Attribute.hpp"
+#include <vector>
 class Solver2D;
 class ControlFile;
 class ParaxialSource;
@@ -43,6 +46,12 @@ public:
 
   /** Get longitudinal discretization */
   const Disctretization& longitudinalDiscretization() const { return *zDisc; };
+
+  /** Set the padding value used when computing the far field */
+  void setFarFieldPadValue( double padValue ){ farParam.padValue=padValue; };
+
+  /** Set the angle range where the far field will be stored */
+  void setFarFieldAngleRange( double phiMin, double phiMax );
 
   /** Compute far field */
   void computeFarField();
@@ -101,6 +110,9 @@ public:
   /** Get the array index closest to x, z */
   void closestIndex( double x, double z, unsigned int &ix, unsigned int &iz ) const;
 
+  /** Enable/disable storing of the intensity and phase for a contour plot */
+  void saveContour( bool save=true ){ saveColorPlot=save; };
+
   // Virtual methods
   /** Set incident field */
   virtual void setBoundaryConditions( const ParaxialSource& src ); // This function should fill the boundary
@@ -136,6 +148,9 @@ protected:
   H5::H5File* file{NULL};
   std::vector<std::string> dsetnames;
   bool solverInitializedViaInit{false};
+  bool saveColorPlot{true};
+  FarFieldParameters farParam;
+  std::vector<H5Attr> commonAttributes;
 
   /** Get exit field */
   void getExitField( arma::cx_vec &vec ) const;
@@ -147,9 +162,15 @@ protected:
   virtual void saveSpecialDatasets( hid_t file_id, std::vector<std::string> &dset ) const{};
 
   /** Add armadillo matrix to HDF5 file */
+  void saveArmaMat( const arma::mat &matrix, const char* dsetname, const std::vector<H5Attr> &attr );
+
+  /** Add armadillo matrix to HDF5 using the common attributes */
   void saveArmaMat( const arma::mat &matrix, const char* dsetname );
 
   /** Add armadillo vector to HDF5 */
+  void saveArmaVec( const arma::vec &vec, const char* dsetname, const std::vector<H5Attr> &attr );
+
+  /** Add armadillo vector to HDF5 using the default attributes */
   void saveArmaVec( const arma::vec &vec, const char* dsetname );
 
   /** Add STL vector to HDF5 */
@@ -160,5 +181,11 @@ protected:
 
   /** Add attribute to dataset */
   void addAttribute( H5::DataSet &ds, const char* name, int value );
+
+  /** Extracts the part of the far field corresponding to the angles in far field parameters */
+  void extractFarField( arma::vec &newFarField ) const;
+
+  /** Computes the index in the far field array corresponding to a certain angle */
+  unsigned int farFieldAngleToIndx( double angle ) const;
 };
 #endif

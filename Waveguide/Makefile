@@ -18,7 +18,7 @@ SOURCES:= main.cpp cladding.cpp waveGuide.cpp waveGuideRadiusCurvature.cpp numer
 					straightWG2D.cpp linearMap1D.cpp coupledCurvedWG.cpp harmonicInversion.cpp paraxialSource.cpp planeWave.cpp \
 					gaussianBeam.cpp paraxialEquation.cpp cylindricalParaxialEquation.cpp curvedWGCylCrd.cpp \
 					beamSplitter.cpp gaussianWG.cpp linearRampWG.cpp fresnelPropagator.cpp exitFieldSource.cpp \
-					incidentAngleSweep.cpp borderTracker.cpp paraxialSimulation.cpp \
+					incidentAngleSweep.cpp borderTracker.cpp paraxialSimulation.cpp h5Attribute.cpp \
 					refractiveIndex.cpp incidentAngleLengthSweep.cpp cylinder2D.cpp
 
 OBJECTS := ${SOURCES:.cpp=.o}
