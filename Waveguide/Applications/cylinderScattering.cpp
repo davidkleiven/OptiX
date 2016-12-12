@@ -14,7 +14,7 @@ int main( int argc, char **argv )
 {
   // Define lengths in nm
   double x0 = 0.0;
-  double radius = 5000.0;
+  double radius = 2000.0;
   double z0 = 2.0*radius;
   double wavelength = 0.1569;
   //wavelength = 0.5;
@@ -49,9 +49,11 @@ int main( int argc, char **argv )
     plots.addPlot("Intensity");
     plots.addPlot("Phase");
     plots.get("Intensity").setColorMax(1.0);
+    plots.get("Intensity").setColorMin(0.99);
     arma::mat solution = arma::abs( cylinderSim.getSolver().getSolution() );
     plots.get("Intensity").fillVertexArray( solution );
     plots.get("Phase").setColorMax(3.14159);
+    plots.get("Phase").setColorMin(-3.14159);
     cylinderSim.getSolver().getPhase(solution);
     plots.get("Phase").fillVertexArray(solution);
 
