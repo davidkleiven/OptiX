@@ -124,10 +124,13 @@ int main( int argc, char** argv )
   }
   simulation->setWidth( width );
   simulation->setTransverseDisc( -width, 2.0*width, 1000);
-  simulation->setLongitudinalDisc( 0.0, waveguideLength*1E6, 10000 );
+  simulation->setLongitudinalDisc( 0.0, waveguideLength*1E6, 8000 );
   clog << "Waveguide length: " << waveguideLength << " mm\n";
-  simulation->setIncAngles( -0.2, 0.2, 100 );
-  simulation->setFFTSignalLength(32768);
+  unsigned int nAngles = 800;
+  unsigned int nFrames = 20;
+  simulation->setIncAngles( -0.2, 0.2, nAngles );
+  simulation->setDisplayInterval( nAngles/nFrames );
+  simulation->setFFTSignalLength( 1048576 );
   //simulation->saveIndx( 50 );
 
   if ( realTimeVisualize )

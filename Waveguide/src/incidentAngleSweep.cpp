@@ -83,6 +83,9 @@ void IncidentAngleSweep::solve()
   wg.setSolver( solver );
   auto saveIter = indxToSave.begin();
   auto endIter = indxToSave.end();
+  const double PI = acos(-1.0);
+  double angRad = thetaMax*PI/180.0;
+  int nmax = fftSignalLength*wg.getWavenumber()*angRad*wg.transverseDiscretization().step/(2.0*PI);
   for ( unsigned int i=0;i<nTheta;i++ )
   {
     clog << "Running "<< i+1 << " of " << nTheta << "\r";
@@ -95,12 +98,19 @@ void IncidentAngleSweep::solve()
 
     if ( i == 0 )
     {
-      farField.set_size( wg.getFarField().n_elem, nTheta );
+      //farField.set_size( wg.getFarField().n_elem, nTheta );
+      farField.set_size( 2*nmax+1, nTheta );
     }
 
+    /*
     for ( unsigned int j=0; j<farField.n_rows;j++ )
     {
       farField(j,i) = wg.getFarField()(j);
+    }
+    */
+    for ( unsigned int j=0; j<farField.n_rows;j++ )
+    {
+      farField(j,i) = wg.getFarField()(fftSignalLength/2-nmax+j);
     }
 
     if ( ( saveIter != endIter ) && ( i == *saveIter ) )
@@ -145,6 +155,7 @@ void IncidentAngleSweep::save( const string &fname ) const
     double qMax = PI/wg.transverseDiscretization().step;
     double phiMax = qMax/wg.getWavenumber();
     phiMax *= 180.0/PI;
+    phiMax = thetaMax;
     double phiMin = -phiMax;
 
     hid_t file_id = H5Fcreate( ss.str().c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);

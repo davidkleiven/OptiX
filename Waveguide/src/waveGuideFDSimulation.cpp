@@ -341,3 +341,11 @@ void WaveGuideFDSimulation::save( ControlFile &ctl )
     }
   }
 }
+
+cdouble WaveGuideFDSimulation::padExitField( double x, double z ) const
+{
+  double delta = cladding->getDelta();
+  double beta = cladding->getBeta();
+  cdouble im(0.0,1.0);
+  return src->get(x,0.0)*exp(-beta*wavenumber*z)*exp(-im*delta*wavenumber*z);
+}

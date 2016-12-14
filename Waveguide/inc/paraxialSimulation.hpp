@@ -187,5 +187,8 @@ protected:
 
   /** Computes the index in the far field array corresponding to a certain angle */
   unsigned int farFieldAngleToIndx( double angle ) const;
+
+  /** Pad the exit signal */
+  virtual cdouble padExitField( double x, double z ) const { return farParam.padValue; };
 };
 #endif

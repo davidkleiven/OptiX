@@ -180,3 +180,5 @@
 631690 | Cartesian Nx=200, brdtrack, Nz=3000, with transmission | Not analysed |
 976491 | Cartesian Nx=400, brdtrack, Nz=3000, with transmission | Not analysed |
 496524 | Cartesian Nx=800, brdtrack, Nz=3000, with transmission | Not analysed |
+113037 | Incident angle sweep, Nx=1000, Nz=8000, nAngles=800 L=1mm | Looks OK |
+502598 | Incident angle sweep , Nx=1000, Nz=8000, nAngles=800 L=0.95 mm | Looks OK |

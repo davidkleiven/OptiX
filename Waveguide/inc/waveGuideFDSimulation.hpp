@@ -96,5 +96,8 @@ protected:
   // Virtual funcitons
   /** Check if the point is after the waveguide end */
   virtual bool waveguideEnded( double x, double z ) const { return z > wglength; };
+
+  /** Pad the signal corresponding to the unaffected source */
+  virtual cdouble padExitField( double x, double z ) const override;
 };
 #endif

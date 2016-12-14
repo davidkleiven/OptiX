@@ -74,6 +74,9 @@ borderDemo.out: $(filter-out obj/main.o, ${OBJECTS}) ${ODIR}/borderDemo.o
 cylinder2D.out: $(filter-out obj/main.o, ${OBJECTS}) ${ODIR}/cylinderScattering.o
 	g++ -std=c++11 -o $@ $^ -L ${LDIR} -L ${ARMA_PATH} -L ${SFML_PATH} ${LIBS} ${GRAPHLIBS}
 
+testFarFieldPad.out: $(filter-out obj/main.o, ${OBJECTS}) ${ODIR}/testFarFieldWithPad.o
+	g++ -std=c++11 -o $@ $^ -L ${LDIR} -L ${ARMA_PATH} -L ${SFML_PATH} ${LIBS} ${GRAPHLIBS}
+
 ${ODIR}/%.o: ${SDIR}/%.cpp
 	g++ -std=c++11 -MMD ${OPT} -c $< -I ${IDIR} -I ${IDIR_HDF5} -I ${ARMA_INC} -o $@
 

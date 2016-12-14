@@ -215,9 +215,11 @@ void ParaxialSimulation::computeFarField( unsigned int signalLength, double pos 
   // Extract the last column of the solution matrix
   arma::cx_vec exitField;
   arma::cx_vec paddedSignal;
+  double zpos;
   if ( pos > zDisc->max )
   {
     getExitField( exitField );
+    zpos = zDisc->max;
   }
   else
   {
@@ -229,7 +231,9 @@ void ParaxialSimulation::computeFarField( unsigned int signalLength, double pos 
     {
       exitField(ix) = solver->getSolution()(ix,iz);
     }
+    zpos = pos;
   }
+
   if ( signalLength < exitField.n_elem )
   {
     paddedSignal = exitField;
@@ -238,8 +242,16 @@ void ParaxialSimulation::computeFarField( unsigned int signalLength, double pos 
   {
     paddedSignal.set_size(signalLength);
     paddedSignal.fill(farParam.padValue);
-    // Fill in the signal on the center
+
     unsigned int start = signalLength/2 - exitField.n_elem/2;
+    // Pad the signal
+    for ( int i=0;i<paddedSignal.n_elem;i++ )
+    {
+      int indx = i-static_cast<int>(start);
+      double x = getX( indx );
+      paddedSignal[i] = padExitField( x, zpos );
+    }
+    // Fill in the signal on the center
     for ( unsigned int i=0;i<exitField.n_elem;i++ )
     {
       paddedSignal(start+i) = exitField(i);
