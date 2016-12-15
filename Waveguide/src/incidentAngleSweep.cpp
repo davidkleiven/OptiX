@@ -83,6 +83,9 @@ void IncidentAngleSweep::solve()
   wg.setSolver( solver );
   auto saveIter = indxToSave.begin();
   auto endIter = indxToSave.end();
+  const double PI = acos(-1.0);
+  double angRad = thetaMax*PI/180.0;
+  int nmax = fftSignalLength*wg.getWavenumber()*angRad*wg.transverseDiscretization().step/(2.0*PI);
   for ( unsigned int i=0;i<nTheta;i++ )
   {
     clog << "Running "<< i+1 << " of " << nTheta << "\r";
@@ -95,12 +98,19 @@ void IncidentAngleSweep::solve()
 
     if ( i == 0 )
     {
-      farField.set_size( wg.getFarField().n_elem, nTheta );
+      //farField.set_size( wg.getFarField().n_elem, nTheta );
+      farField.set_size( 2*nmax+1, nTheta );
     }
 
+    /*
     for ( unsigned int j=0; j<farField.n_rows;j++ )
     {
       farField(j,i) = wg.getFarField()(j);
+    }
+    */
+    for ( unsigned int j=0; j<farField.n_rows;j++ )
+    {
+      farField(j,i) = wg.getFarField()(fftSignalLength/2-nmax+j);
     }
 
     if ( ( saveIter != endIter ) && ( i == *saveIter ) )
@@ -114,20 +124,19 @@ void IncidentAngleSweep::solve()
 
     if (( vis != NULL ) && (i%displayEvery == 0))
     {
-      vis->fillVertexArray( arma::abs( wg.getSolver().getSolution() ) );
-      sf::sleep(sf::milliseconds(1000));
-      vis->display();
+      arma::mat solCopy = arma::abs( wg.getSolver().getSolution() );
+      vis->get(plotname.c_str()).fillVertexArray( solCopy );
+      vis->show();
 
       if ( picDir != "" )
       {
-        auto image = vis->capture();
+        auto image = vis->get(plotname.c_str()).capture();
         stringstream ss;
         ss << picDir << "/img" << i << ".png";
         image.saveToFile(ss.str().c_str());
       }
     }
   }
-  vis->close();
 }
 
 void IncidentAngleSweep::save( const string &fname ) const
@@ -146,6 +155,7 @@ void IncidentAngleSweep::save( const string &fname ) const
     double qMax = PI/wg.transverseDiscretization().step;
     double phiMax = qMax/wg.getWavenumber();
     phiMax *= 180.0/PI;
+    phiMax = thetaMax;
     double phiMin = -phiMax;
 
     hid_t file_id = H5Fcreate( ss.str().c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
@@ -205,4 +215,11 @@ double IncidentAngleSweep::angleDeg( int indx ) const
 {
   double PI = acos(-1.0);
   return 2.0*180.0*static_cast<double>(indx)/(wg.getWavenumber()*fftSignalLength*wg.transverseDiscretization().step);
+}
+
+void IncidentAngleSweep::setVisualizer( visa::WindowHandler &plotter )
+{
+  vis = &plotter;
+  plotname="Contour";
+  vis->addPlot(plotname.c_str());
 }

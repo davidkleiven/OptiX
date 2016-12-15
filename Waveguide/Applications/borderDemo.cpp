@@ -8,13 +8,15 @@
 #include "paraxialEquation.hpp"
 #include "cylindricalParaxialEquation.hpp"
 #include "curvedWGCylCrd.hpp"
-#include "visualizer1D.hpp"
+#include <visa/visa.hpp>
 #include <complex>
 #include <stdexcept>
 #include <cstdlib>
 #include <ctime>
 #include <cmath>
 #include <sstream>
+#include <chrono>
+#include <thread>
 
 using namespace std;
 
@@ -35,8 +37,8 @@ int main( int argc, char **argv )
   // Parameters for running a sweep over radii of curvature
   double LzOverR = 0.01; // max(z)/R << 1 is a requirement
   double xMarginAboveAndBelow = 0.5E3; // In nanometers = 0.5 um
-  unsigned int Nz = 5000;
-  unsigned int Nx = 5000;
+  unsigned int Nz = 3000;
+  unsigned int Nx = 2000;
 
   Cladding cladding;
   double delta = 4.49E-5;
@@ -56,16 +58,14 @@ int main( int argc, char **argv )
   PlaneWave pw;
   ParaxialEquation eq;
 
-  Visualizer visColor;
-  Visualizer1D exVis;
-  Visualizer1D accShift;
+  visa::WindowHandler plots;
   CrankNicholson solver;
 
   try
   {
-    visColor.init( "Top view" );
-    exVis.init("Exit field");
-    accShift.init("Accumulated Pixel Shift");
+    plots.addPlot("Top view");
+    plots.addLinePlot("Exit Field");
+    plots.addLinePlot("Accumulated Pixel Shift");
     solver.setEquation( eq );
     pw.setWavelength( wavelength );
 
@@ -74,8 +74,7 @@ int main( int argc, char **argv )
     wg.setWaveLength( wavelength );
     wg.setCladding( cladding );
 
-    exVis.setLimits(-3.0,3.0);
-    exVis.clear();
+    plots.get("Exit Field").setLimits(-3.0,3.0);
 
     double stepZ = (zmax-zmin)/static_cast<double>(Nz);
     double stepX = (xmax-xmin)/static_cast<double>(Nx);
@@ -89,77 +88,39 @@ int main( int argc, char **argv )
     wg.solve();
     clog << "Sytem solved\n";
 
-    if ( exVis.isOpen() )
-    {
-      arma::vec exitF;
-      wg.getExitField( exitF );
-      exVis.fillVertexArray( exitF );
-      exVis.display();
-    }
+    arma::vec exitF;
+    wg.getExitField( exitF );
+    plots.get("Exit Field").fillVertexArray(exitF);
 
-    if ( accShift.isOpen() )
+    if ( wg.getBorderTracker() != NULL )
     {
-      if ( wg.getBorderTracker() != NULL )
+      vector<int> vec = wg.getBorderTracker()->getAccumulatedPixelShift();
+      arma::vec armVec( vec.size() );
+      for ( unsigned int i=0;i<vec.size();i++ )
       {
-        vector<int> vec = wg.getBorderTracker()->getAccumulatedPixelShift();
-        arma::vec armVec( vec.size() );
-        for ( unsigned int i=0;i<vec.size();i++ )
-        {
-          armVec(i) = vec[i];
-        }
-        double maxval = arma::max(armVec);
-        double minval = arma::min(armVec);
-        accShift.setLimits(minval,maxval);
-        accShift.fillVertexArray( armVec );
-        accShift.display();
+        armVec(i) = vec[i];
       }
-    }
-    if ( visColor.isOpen() )
-    {
-      visColor.fillVertexArray( arma::abs( wg.getSolver().getSolution() ) );
-      cout << "Maxval: " << arma::max( arma::abs( wg.getSolver().getSolution() ) ) << endl;
-      visColor.display();
+      double maxval = arma::max(armVec);
+      double minval = arma::min(armVec);
+
+      plots.get("Accumulated Pixel Shift").setLimits(minval,maxval);
+      plots.get("Accumulated Pixel Shift").fillVertexArray( armVec );
     }
 
+    arma::mat solutionCopy = arma::abs( wg.getSolver().getSolution() );
+    plots.get("Top view").fillVertexArray( solutionCopy );
     clog << " done\n";
 
-    while ( visColor.isOpen() || exVis.isOpen() || accShift.isOpen() )
+    for ( unsigned int i=0;i<10;i++)
     {
-      sf::Event event;
-      while ( visColor.pollEvent( event ) )
-      {
-        if ( event.type == sf::Event::Closed )
-        {
-          visColor.close();
-        }
-      }
-
-      while ( accShift.pollEvent( event ) )
-      {
-        if ( event.type == sf::Event::Closed )
-        {
-          accShift.close();
-        }
-      }
-
-      while ( exVis.pollEvent( event ) )
-      {
-        if ( event.type == sf::Event::Closed )
-        {
-          exVis.close();
-        }
-      }
-      exVis.display();
-      visColor.display();
-      accShift.display();
+      clog << "Closes in " << 10-i << "sec...\r";
+      plots.show();
+      this_thread::sleep_for(chrono::seconds(1));
     }
   }
   catch ( exception &exc )
   {
     cout << exc.what() << endl;
-    exVis.close();
-    visColor.close();
-    accShift.close();
     return 1;
   }
 

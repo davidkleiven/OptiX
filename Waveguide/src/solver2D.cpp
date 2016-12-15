@@ -1,5 +1,5 @@
 #include "solver2D.hpp"
-#include "waveGuideFDSimulation.hpp"
+#include "paraxialSimulation.hpp"
 #include "paraxialEquation.hpp"
 #include <complex>
 #include <stdexcept>
@@ -15,7 +15,7 @@ Solver2D::~Solver2D()
   }
 }
 
-void Solver2D::setGuide( WaveGuideFDSimulation &wg )
+void Solver2D::setSimulator( ParaxialSimulation &wg )
 {
   guide = &wg;
   unsigned int Nx = guide->nodeNumberTransverse();
