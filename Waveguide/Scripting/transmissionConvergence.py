@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib as mpl
 mpl.rcParams["svg.fonttype"] = "none"
 mpl.rcParams["font.size"] = 28
+mpl.rcParams["axes.unicode_minus"] = False
 from matplotlib import pyplot as plt
 import h5py as h5
 import subprocess

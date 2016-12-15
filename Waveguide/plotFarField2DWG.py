@@ -92,6 +92,7 @@ def main( argv ):
         start = np.argmin( np.abs(angle-angMin))
         end = np.argmin( np.abs(angle-angMax))
         ff = farField[start:end]
+        print ff
         ang = angle[start:end]
         ax.plot(ang, ff**2, color="black")
         ax.set_yscale("log")

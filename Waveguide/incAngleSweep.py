@@ -20,6 +20,8 @@ except:
     cmap = "viridis"
 
 #cmap="jet"
+#cmap="inferno"
+#cmap="ocean"
 DELTA = 4.14E-5 # Salditt et al
 BETA = 3.45E-6 # Salditt et al
 
@@ -77,11 +79,16 @@ def main( argv ):
     start = np.argmin( np.abs( phi-thetaMin) )
     end = np.argmin( np.abs( phi-thetaMax) )
     phi = phi[start:end]
-    intensity = intensity[:,start:end]
-    #intensity = np.fliplr(intensity)
+    #intensity = intensity[:,start:end]
+    intensity = np.fliplr(intensity)
     extent = [phiMin, phiMax, thetaMin, thetaMax]
     intensity = intensity.T
-    im = ax.imshow( intensity, extent=extent, cmap=cmap, norm=mpl.colors.LogNorm(), origin="lower" )
+    minval=np.min( intensity )
+    maxval = 1E5*minval
+    #maxval = np.max(intensity)
+    im = ax.imshow( intensity, extent=extent, cmap=cmap, norm=mpl.colors.LogNorm(minval, maxval), origin="lower" )
+    #im = ax.imshow( intensity, extent=extent, cmap=cmap, origin="lower", aspect="auto" )
+    #im = ax.matshow( intensity )
     ax.set_aspect( (extent[1]-extent[0])/(extent[3]-extent[2]))
 
     #ax.set_aspect( np.abs( (extent[1]-extent[0])/(extent[3]-extent[2]) ))
