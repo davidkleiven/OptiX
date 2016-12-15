@@ -108,6 +108,7 @@ void ParaxialSimulation::save( ControlFile &ctl )
   commonAttributes.push_back( makeAttr("xmax", xDisc->max) );
   commonAttributes.push_back( makeAttr("zmin", zDisc->min) );
   commonAttributes.push_back( makeAttr("zmax", zDisc->max) );
+  commonAttributes.push_back( makeAttr("wavenumber", wavenumber) );
   int uid = ctl.getUID();
   commonAttributes.push_back( makeAttr("uid", uid) );
 
@@ -115,14 +116,12 @@ void ParaxialSimulation::save( ControlFile &ctl )
   if ( saveColorPlot )
   {
     arma::mat absSol = arma::abs(solver->getSolution());
-    hsize_t dim[2] = {absSol.n_rows, absSol.n_cols};
-    int rank = 2;
     dsetnames.push_back("amplitude");
-    saveArmaMat( absSol, dsets.back().c_str(), commonAttributes );
+    saveArmaMat( absSol, dsetnames.back().c_str() );
 
     solver->getPhase( absSol );
     dsetnames.push_back("phase");
-    saveArmaMat( absSol, dsets.back().c_str(), commonAttributes );
+    saveArmaMat( absSol, dsetnames.back().c_str() );
   }
 
   saveFarField();
@@ -343,7 +342,6 @@ void ParaxialSimulation::saveArmaMat( const arma::mat &matrix, const char* dsetn
   // Create dataset
   H5::DataSet ds( file->createDataSet(dsetname, H5::PredType::NATIVE_DOUBLE, dataspace) );
   H5::DataSpace attribSpace(H5S_SCALAR);
-
   for ( unsigned int i=0;i<attrs.size();i++ )
   {
     H5::Attribute att = ds.createAttribute( attrs[i].name.c_str(), attrs[i].dtype, attribSpace );
