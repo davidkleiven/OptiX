@@ -10,6 +10,8 @@ do
   i=$((i+1))
 done
 
+DFOLDER="lengthSweepAlc"
+mkdir -o ${DFOLDER}
 for wglength in ${LENGTHS[@]}
 do
   ./incidentAngleSweep.out --wglength=${wglength} --dfolder=${DFOLDER} --noUID --visualize --usealc
