@@ -183,3 +183,5 @@
 113037 | Incident angle sweep, Nx=1000, Nz=8000, nAngles=800 L=1mm | Looks OK, rotated 89 deg wrt measurements |
 502598 | Incident angle sweep , Nx=1000, Nz=8000, nAngles=800 L=0.95 mm | Looks OK |
 95533  | Incident angle sweep, Nx=1000, Nz=8000, nAngles=800 L=0.95 mm, alcohol | It is not so easy to see |
+154842 | Straight waveguide | Looks good |
+3925333 | Fresnel propagation from two straight waveguides based on 154842 | Looks good |
