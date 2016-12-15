@@ -5,7 +5,7 @@
 struct FarFieldParameters
 {
   double padValue{0.0};
-  double phiMin{-180.0};
-  double phiMax{180.0};
+  double phiMin{-90.0};
+  double phiMax{90.0};
 };
 #endif
