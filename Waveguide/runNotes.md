@@ -180,8 +180,13 @@
 631690 | Cartesian Nx=200, brdtrack, Nz=3000, with transmission | Not analysed |
 976491 | Cartesian Nx=400, brdtrack, Nz=3000, with transmission | Not analysed |
 496524 | Cartesian Nx=800, brdtrack, Nz=3000, with transmission | Not analysed |
-113037 | Incident angle sweep, Nx=1000, Nz=8000, nAngles=800 L=1mm | Looks OK, rotated 89 deg wrt measurements |
+113037 | Incident angle sweep, Nx=1000, Nz=8000, nAngles=800 L=1mm | Looks OK, rotated 90 deg wrt measurements |
 502598 | Incident angle sweep , Nx=1000, Nz=8000, nAngles=800 L=0.95 mm | Looks OK |
 95533  | Incident angle sweep, Nx=1000, Nz=8000, nAngles=800 L=0.95 mm, alcohol | It is not so easy to see |
 154842 | Straight waveguide | Looks good |
 3925333 | Fresnel propagation from two straight waveguides based on 154842 | Looks good |
+189596 | Incident angle sweep, L=0.98 mm, no alcohol | Looks good |
+4035 | Incident angle sweep, L=0.98 mm, with alcohol | OK, but not so good agreement with measurements |
+662488 | Incident angle sweep, L=0.97 mm, no alocohol | Does not match the measurements |
+22011 | Incident angle sweep, L=0.99 mm, no alcohol | Does not match the measurements |
+473762 | Incident angle sweep, L=0.975, no alcohol | Does not match the measurements |
