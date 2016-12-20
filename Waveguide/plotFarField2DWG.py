@@ -6,7 +6,8 @@ sys.path.append("Scripting/")
 import matplotlib as mpl
 #mpl.rcParams.update(ml.params)
 mpl.rcParams["svg.fonttype"] = "none"
-mpl.rcParams["font.size"] = 28
+mpl.rcParams["font.size"] = 36
+mpl.rcParams["axes.unicode_minus"]=False
 import numpy as np
 import json
 import h5py as h5
@@ -54,6 +55,7 @@ def main( argv ):
         print ("No file name specified")
         return
 
+    yloc = plt.MaxNLocator(5)
     with h5.File(fname, 'r') as hf:
         exitFieldDset = hf.get("exitField")
         exitField = np.array( exitFieldDset )
@@ -93,7 +95,7 @@ def main( argv ):
     ax = fig.add_subplot(1,1,1)
 
     # Initialize reference
-    color = "#67001f"
+    color = "#e41a1c"
     uselog = True
     uselegend = True
     if ( reference == "twoMirrorGaussians" ):
@@ -104,7 +106,7 @@ def main( argv ):
     elif ( reference == "slit" ):
         refPlot = eff.YoungSlit()
         refPlot.width = 100.0
-        refPlot.separation = 90.0
+        refPlot.separation = 200.0
         uselog = False
     else:
         refPlot = eff.ExactFarFieldDefault()
@@ -115,6 +117,7 @@ def main( argv ):
     while ( not happy ):
         fig.clf()
         ax = fig.add_subplot(1,1,1)
+        ax.xaxis.set_major_locator(yloc)
         start = np.argmin( np.abs(angle-angMin))
         end = np.argmin( np.abs(angle-angMax))
         ff = farField[start:end]

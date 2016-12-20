@@ -55,6 +55,7 @@ def main( argv ):
     absorb = eigModes.effectiveAbsorption()
     prop = eigModes.propagationConstants( k0 )
     coeff = eigModes.computeInitialCoefficient( amp )
+    eigModes.plotEffectiveAbsorption( 12 )
     #eigModes.contour( coeff, prop, absorb, k0, 400E3 )
     #eigModes.plotAbsorption( coeff, absorb, k0, 400E3 )
     #eigModes.transmissionByIntegrateOverWG( coeff, prop, absorb, k0, 400E3 )

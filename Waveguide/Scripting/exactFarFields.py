@@ -4,7 +4,7 @@ from scipy import optimize
 class ExactFarFieldDefault:
     def __init__(self):
         self.name = "Default farfield"
-        self.color = "#053061"
+        self.color = "#377eb8"
 
     def plot( self, ax, qmin, qmax ):
         return
