@@ -1,7 +1,7 @@
 #ifndef CONTROL_FILE_H
 #define CONTROL_FILE_H
 #include <string>
-#include <jsoncpp/json/writer.h>
+#include <json/writer.h>
 #include <vector>
 
 /** Class that handles all the simulation parameters and saves them to a JSON file in the end */

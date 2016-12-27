@@ -2,7 +2,7 @@
 #define SOLVER2D_H
 #include <string>
 #include <complex>
-#include <jsoncpp/json/writer.h>
+#include <json/writer.h>
 #include <armadillo>
 
 class WaveGuideFDSimulation;

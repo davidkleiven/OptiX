@@ -2,7 +2,7 @@
 #define SOURCE_H
 #include <complex>
 #include <string>
-#include <jsoncpp/json/writer.h>
+#include <json/writer.h>
 
 typedef std::complex<double> cdouble;
 
