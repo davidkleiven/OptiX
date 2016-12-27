@@ -1,7 +1,7 @@
 #include "fresnelPropagator.hpp"
 #include "exitFieldSource.hpp"
 #include <string>
-#include <jsoncpp/json/reader.h>
+#include <json/reader.h>
 #include <fstream>
 #include <H5Cpp.h>
 #include <cmath>

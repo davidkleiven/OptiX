@@ -76,3 +76,27 @@ endif( NOT HARMINV_HEADER )
 # Add executables
 add_executable( curvedWG.out Applications/curvedWGCartesian.cpp )
 target_link_libraries( curvedWG.out ${LIB} src )
+
+add_executable( beamSplitSim.out Applications/beamSplitSim.cpp )
+target_link_libraries( beamSplitSim.out ${LIB} src)
+
+add_executable( borderDemo.out Applications/borderDemo.cpp )
+target_link_libraries( borderDemo.out ${LIB} src )
+
+add_executable( convergence.out Applications/convergence.cpp )
+target_link_libraries( convergence.out ${LIB} src )
+
+add_executable( coupledWaveGuideSimulation.out Applications/coupledWaveGuideSimulation.cpp )
+target_link_libraries( coupledWaveGuideSimulation.out ${LIB} src )
+
+add_executable( cylinderScattering.out Applications/cylinderScattering.cpp )
+target_link_libraries( cylinderScattering.out ${LIB} src )
+
+add_executable( farFieldConvergence.out Applications/farFieldConvergence.cpp )
+target_link_libraries( farFieldConvergence.out ${LIB} src )
+
+add_executable( fresnelProp.out Applications/fresnelProp.cpp )
+target_link_libraries( fresnelProp.out ${LIB} src )
+
+add_executable( straightGuideSweepAngle.out Applications/straightGuideSweepAngle.cpp )
+target_link_libraries( straightGuideSweepAngle.out ${LIB} src )
