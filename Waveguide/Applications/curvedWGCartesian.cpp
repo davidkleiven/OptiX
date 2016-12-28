@@ -18,6 +18,11 @@
 #include <ctime>
 #include <cmath>
 #include <sstream>
+#include <visa/visa.hpp>
+#include <chrono>
+#include <thread>
+#define KEEP_PLOT_FOR_SEC 6
+#define VISUALIZE_PATTERN
 
 using namespace std;
 
@@ -329,10 +334,29 @@ int main( int argc, char **argv )
           }
 
           clog << "Exporting results...\n";
+          #ifdef VISUALIZE_PATTERN
+            wg->saveContour( false );
+          #endif
           wg->save( ctl );
           wg->saveTransmission( ctl );
           ctl.save();
           clog << "Finished exporting\n";
+
+          #ifdef VISUALIZE_PATTERN
+            clog << "Visualizing waveguide intensity\n";
+            visa::WindowHandler plots;
+            plots.addPlot("Intensity");
+            arma::mat intensity = arma::abs( wg->getSolver().getSolution() );
+            plots.get("Intensity").fillVertexArray( intensity );
+            plots.show();
+            for ( unsigned int i=0;i<KEEP_PLOT_FOR_SEC;i++ )
+            {
+              plots.show();
+              clog << "Closes in " << KEEP_PLOT_FOR_SEC-i <<  "seconds \r";
+              this_thread::sleep_for( chrono::seconds(1) );
+            }
+          #endif
+
           delete wg;
           delete src;
           delete eq;
