@@ -22,7 +22,7 @@
 #include <chrono>
 #include <thread>
 #define KEEP_PLOT_FOR_SEC 6
-#define VISUALIZE_PATTERN
+//#define VISUALIZE_PATTERN
 
 using namespace std;
 
