@@ -52,16 +52,28 @@ void ParaxialSimulation::setWaveLength( double lambda )
 
 void ParaxialSimulation::setTransverseDiscretization( double xmin, double xmax, double step )
 {
+  setTransverseDiscretization( xmin, xmax, step, 1 );
+}
+
+void ParaxialSimulation::setTransverseDiscretization( double xmin, double xmax, double step, unsigned int downsamplingRatio )
+{
   xDisc->min = xmin;
   xDisc->max = xmax;
   xDisc->step = step;
+  xDisc->downsamplingRatio = downsamplingRatio;
 }
 
-void ParaxialSimulation::setLongitudinalDiscretization( double xmin, double xmax, double step )
+void ParaxialSimulation::setLongitudinalDiscretization( double zmin, double zmax, double step )
 {
-  zDisc->min = xmin;
-  zDisc->max = xmax;
+  setLongitudinalDiscretization( zmin, zmax, step, 1 );
+}
+
+void ParaxialSimulation::setLongitudinalDiscretization( double zmin, double zmax, double step, unsigned int downsamplingRatio )
+{
+  zDisc->min = zmin;
+  zDisc->max = zmax;
   zDisc->step = step;
+  zDisc->downsamplingRatio = downsamplingRatio;
 }
 
 unsigned int ParaxialSimulation::nodeNumberTransverse() const
