@@ -33,8 +33,14 @@ public:
   /** Set the transverse discretization */
   void setTransverseDiscretization( double xmin , double xmax, double step );
 
+  /** Set the transverse discretization with down sampling */
+  void setTransverseDiscretization( double xmin, double xmax, double step, unsigned int downsamplingRatio );
+
   /** Set the longitudinal discretization */
   void setLongitudinalDiscretization( double zmin , double zmax, double step );
+
+  /** Set longitudinal discretization with down sampling */
+  void setLongitudinalDiscretization( double zmin, double zmax, double step, unsigned int downsamplingRatio );
 
   /** Get number of nodes in the transverse direction */
   unsigned int nodeNumberTransverse() const;
