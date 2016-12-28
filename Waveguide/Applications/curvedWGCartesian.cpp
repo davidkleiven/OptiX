@@ -71,7 +71,7 @@ int main( int argc, char **argv )
       cout << "brdtrack: Use the border tracker. Only have effect if using cartesian coordinates\n";
       cout << "widthsweep: Perform a sweep over different widths\n";
       cout << "deltasweep: Perform a sweep over different delta\n";
-      cout << "disc: Number of discretization points in each direction";
+      cout << "disc: Number of discretization points in each direction\n";
       return 0;
     }
     else if ( arg.find("--run=") != string::npos )
