@@ -38,7 +38,9 @@ void CrankNicholson::solve()
   for ( unsigned int iz=1;iz<Nz;iz++ )
   {
     solveCurrent( iz );
+    copyCurrentSolution( iz );
   }
+  filterInLongitudinalDirection();
 }
 
 void CrankNicholson::solveCurrent( unsigned int iz )
@@ -105,9 +107,9 @@ void CrankNicholson::solveCurrent( unsigned int iz )
     }
     else
     {
-      left = ix > 0 ? (*solution)(ix-1,iz-1):guide->transverseBC(z-stepZ, WaveGuideFDSimulation::Boundary_t::BOTTOM);
-      center = (*solution)(ix, iz-1);
-      right = ix < Nx-1 ? (*solution)(ix+1,iz-1):guide->transverseBC(z-stepZ, WaveGuideFDSimulation::Boundary_t::TOP);
+      left = ix > 0 ? (*prevSolution)(ix-1):guide->transverseBC(z-stepZ, WaveGuideFDSimulation::Boundary_t::BOTTOM);
+      center = (*prevSolution)(ix);
+      right = ix < Nx-1 ? (*prevSolution)(ix+1):guide->transverseBC(z-stepZ, WaveGuideFDSimulation::Boundary_t::TOP);
     }
 
     if ( ix > 0 )
@@ -149,7 +151,7 @@ void CrankNicholson::solveCurrent( unsigned int iz )
   // Copy solution to matrix
   for ( unsigned int ix=0;ix<Nx;ix++ )
   {
-    (*solution)(ix,iz) = diag[ix];
+    (*currentSolution)(ix) = diag[ix];
   }
 
   delete [] rhs;
