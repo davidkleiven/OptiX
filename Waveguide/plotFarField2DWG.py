@@ -1,17 +1,20 @@
 import sys
 sys.path.append("../FresnelFDTD")
 sys.path.append("../")
+sys.path.append("Scripting/")
 #import mplLaTeX as ml
 import matplotlib as mpl
 #mpl.rcParams.update(ml.params)
 mpl.rcParams["svg.fonttype"] = "none"
-mpl.rcParams["font.size"] = 28
+mpl.rcParams["font.size"] = 36
+mpl.rcParams["axes.unicode_minus"]=False
 import numpy as np
 import json
 import h5py as h5
 from matplotlib import pyplot as plt
 import colorScheme as cs
 import subprocess
+import exactFarFields as eff
 DELTA = 4.14E-5 # Salditt et al
 BETA = 3.45E-6 # Salditt et al
 
@@ -23,10 +26,12 @@ def main( argv ):
     MSG += "      Contains one dataset for the exit field and one for the far field\n"
     MSG += "fullExitField: Plot the full exit field as outputted to the HDF5 filed\n"
     MSG += "angles: center,width"
+    MSG += "reference: Plot a reference. Options: twoMirrorGaussians, slits"
     fullExitField = False
     anglesGiven = False
     angCenter = 0.0
     angWidth = 0.0
+    reference = "default"
     for arg in argv:
         if ( arg.find("--file=") != -1 ):
             fname = arg.split("--file=")[1]
@@ -40,6 +45,8 @@ def main( argv ):
             angs = arg.split("--angles=")[1]
             angCenter = float( angs.split(",")[0] )
             angWidth = float( angs.split(",")[1] )
+        elif ( arg.find("--reference=") != -1 ):
+            reference = arg.split("--reference=")[1]
         else:
             print ("Unknown argument %s"%(arg))
             return
@@ -48,6 +55,7 @@ def main( argv ):
         print ("No file name specified")
         return
 
+    yloc = plt.MaxNLocator(5)
     with h5.File(fname, 'r') as hf:
         exitFieldDset = hf.get("exitField")
         exitField = np.array( exitFieldDset )
@@ -85,20 +93,47 @@ def main( argv ):
     happy = False
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
+
+    # Initialize reference
+    color = "#e41a1c"
+    uselog = True
+    uselegend = True
+    if ( reference == "twoMirrorGaussians" ):
+        refPlot = eff.TwoMirrorGaussians()
+        refPlot.angle = 0.57*np.pi/180.0
+        refPlot.wavenumber = wavenumber
+        refPlot.wgwidth = 50.0
+    elif ( reference == "slit" ):
+        refPlot = eff.YoungSlit()
+        refPlot.width = 100.0
+        refPlot.separation = 200.0
+        uselog = False
+    else:
+        refPlot = eff.ExactFarFieldDefault()
+        color = "black"
+        uselegend = False
+
     print ("Type any non numeric entry to quit")
     while ( not happy ):
         fig.clf()
         ax = fig.add_subplot(1,1,1)
+        ax.xaxis.set_major_locator(yloc)
         start = np.argmin( np.abs(angle-angMin))
         end = np.argmin( np.abs(angle-angMax))
         ff = farField[start:end]
         print ff
         ang = angle[start:end]
-        ax.plot(ang, ff**2, color="black")
-        ax.set_yscale("log")
+        ax.plot(ang, ff**2, color=color, label="WG")
+        refPlot.fit( np.linspace(q[start],q[end],len(ff)), ff**2 )
+        refPlot.normalize( ff**2 )
+        ax = refPlot.plot( ax, q[start], q[end] )
+        if ( uselog ):
+            ax.set_yscale("log")
         ax.set_xlabel("Exit angle (deg)")
         ax.set_ylabel("Intensity (a.u.)")
         ax.set_ylim(bottom=1E-6*np.max(ff**2))
+        if ( uselegend ):
+            ax.legend(loc="upper right", labelspacing=0.01, frameon=False)
         plt.show( block=False )
         angMin = raw_input("Min angle:")
         angMax = raw_input("Max angle:")

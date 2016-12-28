@@ -3,7 +3,7 @@
 #include "waveGuideFDSimulation.hpp"
 
 #include <complex>
-#include <jsoncpp/json/writer.h>
+#include <json/writer.h>
 
 class CurvedWaveGuideFD;
 class ControlFile;

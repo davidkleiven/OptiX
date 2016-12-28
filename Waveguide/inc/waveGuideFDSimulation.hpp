@@ -3,7 +3,7 @@
 #include <cstddef>
 #include <complex>
 #include <string>
-#include <jsoncpp/json/writer.h>
+#include <json/writer.h>
 #include <armadillo>
 #include "waveGuideBorder.hpp"
 #include "borderTracker.hpp"

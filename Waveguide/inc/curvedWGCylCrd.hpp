@@ -1,7 +1,7 @@
 #ifndef CYLINDRICAL_WAVEGUIDE_CYLCRD_H
 #define CYLINDRICAL_WAVEGUIDE_CYLCRD_H
 #include "curvedWaveGuide2D.hpp"
-#include <jsoncpp/json/writer.h>
+#include <json/writer.h>
 #include <complex>
 
 typedef std::complex<double > cdouble;

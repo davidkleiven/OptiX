@@ -3,7 +3,7 @@
 #include <complex>
 #include <H5Cpp.h>
 #include <armadillo>
-#include <jsoncpp/json/writer.h>
+#include <json/writer.h>
 #include "farFieldParameters.hpp"
 #include "h5Attribute.hpp"
 #include <vector>

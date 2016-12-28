@@ -128,6 +128,28 @@ class Eigenmodes:
             effAbs[i] =  -self.imaginaryPerturbation( i )/2.0 # Why 4.0?
         return effAbs
 
+    def plotEffectiveAbsorption( self, nmodes ):
+        fig = plt.figure()
+        ax = fig.add_subplot(1,1,1)
+        absorb = self.effectiveAbsorption()
+        ind = np.arange(nmodes)
+        w=1
+        ax.bar( ind-0.5*w, absorb[:nmodes]*1E7, width=w, color="#a6bddb")
+        #ax.fill_between(np.arange(0,nmodes), absorb[:nmodes]*1E7, facecolor="#a6bddb")
+        ax.set_xlabel( "Mode number" )
+        ax.set_ylabel( "Absorption coeff. (\$10^{-7}\$)" )
+        ax.set_xlim(left=-0.5*w)
+        ax.text( 0.05,0.8, "\$T_n(z) \sim \exp(-\mu_n kz)\$", transform=ax.transAxes )
+        #ax.set_yscale("log")
+
+        svgname = "Figures/effectiveModeAbs.svg"
+        fig.savefig(svgname)
+        psname = "Figures/effectiveModeAbs.ps"
+        subprocess.call(["inkscape", "--export-ps=%s"%(psname), "--export-latex", svgname])
+        print ("Figures written to %s and %s"%(svgname, psname))
+        plt.show()
+
+
     def propagationConstants( self, k0 ):
         # Subtract off the "main" propagation constant k
         # Prop const[n] = beta[n]-k_0 = -0.5*E/k_0

@@ -3,7 +3,7 @@
 #include "solver1D.hpp"
 #include "stdFDsolver.hpp"
 #include <stdexcept>
-#include <jsoncpp/json/writer.h>
+#include <json/writer.h>
 #include <H5Cpp.h>
 #include <hdf5_hl.h>
 #include <fstream>

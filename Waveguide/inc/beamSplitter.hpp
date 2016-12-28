@@ -1,7 +1,7 @@
 #ifndef BEAM_SPLITTER_H
 #define BEAM_SPLITTER_H
 #include "waveGuideFDSimulation.hpp"
-#include <jsoncpp/json/writer.h>
+#include <json/writer.h>
 
 /** Class handling the beam splitter geometry */
 class BeamSplitter: public WaveGuideFDSimulation

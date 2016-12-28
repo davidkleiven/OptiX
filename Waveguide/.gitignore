@@ -8,3 +8,12 @@ doc/*.db
 doc/html/*
 doc/latex*
 lengthSweep/*
+lengthSweep*/*
+CMakeCache.txt
+CMakeFiles/*
+cmake_install.cmake
+src/CMakeFiles/*
+src/Makefile
+src/cmake_install.cmake
+src/libsrc.a
+Makefile

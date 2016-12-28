@@ -2,7 +2,7 @@
 #define SOLVER_H
 #include <string>
 #include <vector>
-#include <jsoncpp/json/writer.h>
+#include <json/writer.h>
 #include <armadillo>
 
 class WaveGuide1DSimulation;

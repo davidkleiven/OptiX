@@ -5,7 +5,7 @@
 #include <iostream>
 #include <sstream>
 #include <cmath>
-#include <jsoncpp/json/reader.h>
+#include <json/reader.h>
 
 using namespace std;
 

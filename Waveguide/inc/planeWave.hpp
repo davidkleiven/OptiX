@@ -1,7 +1,7 @@
 #ifndef PLANE_WAVE_SOURCE_H
 #define PLANE_WAVE_SOURCE_H
 #include "paraxialSource.hpp"
-#include <jsoncpp/json/writer.h>
+#include <json/writer.h>
 
 /** Class for handling the plane wave source */
 class PlaneWave: public ParaxialSource
