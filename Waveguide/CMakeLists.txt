@@ -100,3 +100,6 @@ target_link_libraries( fresnelProp.out ${LIB} src )
 
 add_executable( straightGuideSweepAngle.out Applications/straightGuideSweepAngle.cpp )
 target_link_libraries( straightGuideSweepAngle.out ${LIB} src )
+
+add_executable( testSaveArmaMat.out unittest/testSaveArmamat.cpp )
+target_link_libraries( testSaveArmaMat.out ${LIB} src )
