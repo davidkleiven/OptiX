@@ -350,8 +350,11 @@ void ParaxialSimulation::saveArmaMat( const arma::mat &matrix, const char* dsetn
       int value = attrs[i].value;
       att.write( H5::PredType::NATIVE_INT, &value );
     }
-    double value = attrs[i].value;
-    att.write( H5::PredType::NATIVE_DOUBLE, &value );
+    else
+    {
+      double value = attrs[i].value;
+      att.write( H5::PredType::NATIVE_DOUBLE, &value );
+    }
   }
 
   // Write to file
