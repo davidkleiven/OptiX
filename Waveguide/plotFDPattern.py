@@ -235,15 +235,15 @@ def main(argv):
 
     fieldData = None
     try:
-        with h5.File(stat["fieldData"], 'r') as hf:
-            fieldData = np.array( hf.get("dataset") )
+        with h5.File(stat["datafile"], 'r') as hf:
+            fieldData = np.array( hf.get("amplitude") )
     except:
         fieldData = None
 
     phaseData = None
     try:
-        with h5.File(stat["phase"], 'r') as hf:
-            phaseData = np.array( hf.get("dataset") )
+        with h5.File(stat["datafile"], 'r') as hf:
+            phaseData = np.array( hf.get("phase") )
     except Exception as exc:
         print str(exc)
         phaseData = None
