@@ -4,6 +4,8 @@
 #include <complex>
 #include <json/writer.h>
 #include <armadillo>
+#include <visa/gaussianKernel.hpp>
+#include <visa/lowPassFilter.hpp>
 
 class WaveGuideFDSimulation;
 class ParaxialEquation;
@@ -71,11 +73,22 @@ protected:
   ParaxialSimulation *guide;
   const ParaxialEquation *eq{NULL};
   arma::cx_mat *solution{NULL};
+  arma::cx_vec *prevSolution{NULL};
+  arma::cx_vec *currentSolution{NULL};
 
   /** Get the solution */
   arma::cx_mat& getSolution( unsigned int iz ) { return *solution; };
 
   /** Get solution, rear or imaginary part specified by comp */
   void realOrImagPart( double *solution, Comp_t comp ) const;
+
+  /** Copies the solution in to the solution matrix */
+  void copyCurrentSolution( unsigned int step );
+
+  /** Filter and downsample in the longitudinal direction */
+  void filterInLongitudinalDirection();
+  
+  visa::GaussianKernel kernel;
+  visa::LowPassFilter filter;
 };
 #endif

@@ -18,6 +18,7 @@ struct Disctretization
   double min;
   double max;
   double step;
+  unsigned int downsamplingRatio{1};
 };
 typedef std::complex<double> cdouble;
 /** Base class for all paraxial simulations */
