@@ -231,7 +231,7 @@ def main(argv):
             intensity = np.array( hf.get("intensity") )
     else:
         with h5.File(stat["datafile"], "r") as hf:
-            data = np.array( hf.get("dataset") )
+            data = np.array( hf.get("amplitude") )
 
     fieldData = None
     try:
