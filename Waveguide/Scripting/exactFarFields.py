@@ -7,7 +7,7 @@ class ExactFarFieldDefault:
         self.color = "#377eb8"
 
     def plot( self, ax, qmin, qmax ):
-        return
+        return ax
 
     def fit( self, x, y ):
         return
