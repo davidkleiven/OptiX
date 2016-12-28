@@ -19,9 +19,10 @@ try:
 except:
     cmap = "viridis"
 
-#cmap="jet"
+cmap="nipy_spectral"
+#cmap="Paired"
 #cmap="inferno"
-#cmap="ocean"
+#cmap="seismic"
 DELTA = 4.14E-5 # Salditt et al
 BETA = 3.45E-6 # Salditt et al
 
@@ -85,6 +86,8 @@ def main( argv ):
     intensity = intensity.T
     minval=np.min( intensity )
     maxval = 1E5*minval
+    minval=1E-2
+    maxval=1.0
     #maxval = np.max(intensity)
     im = ax.imshow( intensity, extent=extent, cmap=cmap, norm=mpl.colors.LogNorm(minval, maxval), origin="lower" )
     #im = ax.imshow( intensity, extent=extent, cmap=cmap, origin="lower", aspect="auto" )
