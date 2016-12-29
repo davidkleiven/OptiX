@@ -12,6 +12,7 @@
 #include "curvedWGCylCrd.hpp"
 #include "gaussianWG.hpp"
 #include "linearRampWG.hpp"
+#include "postProcessMod.hpp"
 #include <complex>
 #include <stdexcept>
 #include <cstdlib>
@@ -260,6 +261,13 @@ int main( int argc, char **argv )
             xmin = -1.0*width;
             xmax = 2.0*width;
           }
+
+          // Set post processing options
+          *wg << post::Intensity() << post::Phase();
+          post::FarField ff;
+          ff.setPadLength( 65535 );
+          ff.setAngleRange( -0.5, 0.5 );
+          *wg << ff;
 
           double stepX = (xmax-xmin)/static_cast<double>(Nx);
           double stepZ = (zmax-zmin)/static_cast<double>(Nz);
