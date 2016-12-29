@@ -62,6 +62,9 @@ public:
   /** Set boundary condition at x=xmin and x=xmax */
   void setXBC( const cdouble valuesTop[], const cdouble valuesBottom[] ); // BC at top (x=xmax) and bottom (x=xmin)
 
+  /** Get last solution. NOTE: Return prev solution as this is not filtered */
+  arma::cx_vec& getLastSolution() const { return *prevSolution; };
+
   // Virtual functions
   /** Pure virtual function for solving the system */
   virtual void solve() = 0;
@@ -87,7 +90,7 @@ protected:
 
   /** Filter and downsample in the longitudinal direction */
   void filterInLongitudinalDirection();
-  
+
   visa::GaussianKernel kernel;
   visa::LowPassFilter filter;
 };

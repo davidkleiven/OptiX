@@ -32,7 +32,7 @@ void IncidentAngleLengthSweep::processFarField()
   /** Compute far field based on the at several positions */
   for ( unsigned int i=0;i<Nlengths;i++ )
   {
-    wg.computeFarField( fftSignalLength, z-i*dz );
+    //wg.computeFarField( fftSignalLength, z-i*dz );
     unsigned int n = data[i].farField.n_rows/2;
     for ( unsigned int j=0;j<2*n;j++ )
     {

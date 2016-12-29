@@ -93,7 +93,7 @@ void IncidentAngleSweep::solve()
     pw.setAngleDeg(theta);
     wg.setBoundaryConditions( pw );
     wg.solve();
-    wg.computeFarField(fftSignalLength);
+    //wg.computeFarField(fftSignalLength);
     processFarField(); // Childs may want to do other stuff with the far field
 
     if ( i == 0 )

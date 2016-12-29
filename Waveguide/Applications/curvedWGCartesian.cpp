@@ -324,7 +324,7 @@ int main( int argc, char **argv )
           if ( computeFarField )
           {
             clog << "Computing far fields... ";
-            wg->computeFarField( 65536 );
+            //wg->computeFarField( 65536 );
             clog << "done\n";
           }
 

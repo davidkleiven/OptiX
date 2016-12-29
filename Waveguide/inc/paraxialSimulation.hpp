@@ -6,6 +6,8 @@
 #include <json/writer.h>
 #include "farFieldParameters.hpp"
 #include "h5Attribute.hpp"
+#include "postProcessing.hpp"
+#include "postProcessMod.hpp"
 #include <vector>
 class Solver2D;
 class ControlFile;
@@ -60,15 +62,6 @@ public:
   /** Set the angle range where the far field will be stored */
   void setFarFieldAngleRange( double phiMin, double phiMax );
 
-  /** Compute far field */
-  void computeFarField();
-
-  /** Compute far field using a zero padded signal of a given length. Should be 2^{some integer} */
-  void computeFarField( unsigned int signalLength ); // With padding to increase low freq resolution
-
-  /** Compute far field based on the field at z-position given by pos */
-  void computeFarField( unsigned int signalLength, double pos );
-
   /** Get the wavenumber in nm^{-1}*/
   double getWavenumber() const{ return wavenumber; };
 
@@ -120,6 +113,10 @@ public:
   /** Enable/disable storing of the intensity and phase for a contour plot */
   void saveContour( bool save=true ){ saveColorPlot=save; };
 
+  /** Add post processing modules */
+  ParaxialSimulation& operator << ( post::PostProcessingModule module );
+  ParaxialSimulation& operator << ( post::FarField &farfield );
+
   // Virtual methods
   /** Set incident field */
   virtual void setBoundaryConditions( const ParaxialSource& src ); // This function should fill the boundary
@@ -131,13 +128,13 @@ public:
   virtual void init( const ControlFile &ctl ){}; // TODO: Implement this
 
   /** Get the boundary condition at the specified boundary */
-  virtual cdouble transverseBC( double z, Boundary_t bnd ) const{};
+  virtual cdouble transverseBC( double z, Boundary_t bnd ) const{ return 0.0; };
 
   /** Get transverse boundary condition at position z. Can be used if is equal on x=xmin and x=xmax*/
-  virtual cdouble transverseBC( double z ) const{};
+  virtual cdouble transverseBC( double z ) const{ return 0.0; };
 
   /** Get the material properties */
-  virtual void getXrayMatProp( double x, double z, double &delta, double &beta ) const{};
+  virtual void getXrayMatProp( double x, double z, double &delta, double &beta ) const{ delta=0.0; beta=0.0; };
 
   /** Save results to HDF5 files */
   virtual void save( ControlFile &ctl );
@@ -158,6 +155,7 @@ protected:
   bool saveColorPlot{true};
   FarFieldParameters farParam;
   std::vector<H5Attr> commonAttributes;
+  std::vector<post::PostProcessingModule> postProcess;
 
   /** Get exit field */
   void getExitField( arma::cx_vec &vec ) const;
@@ -191,9 +189,6 @@ protected:
 
   /** Extracts the part of the far field corresponding to the angles in far field parameters */
   void extractFarField( arma::vec &newFarField ) const;
-
-  /** Computes the index in the far field array corresponding to a certain angle */
-  unsigned int farFieldAngleToIndx( double angle ) const;
 
   /** Pad the exit signal */
   virtual cdouble padExitField( double x, double z ) const { return farParam.padValue; };

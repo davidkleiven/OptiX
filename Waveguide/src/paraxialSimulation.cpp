@@ -136,7 +136,6 @@ void ParaxialSimulation::save( ControlFile &ctl )
     saveArmaMat( absSol, dsetnames.back().c_str() );
   }
 
-  saveFarField();
 
   Json::Value wginfo;
   Json::Value solverInfo;
@@ -158,42 +157,6 @@ void ParaxialSimulation::save( ControlFile &ctl )
   ctl.get()["waveguide"] = wginfo;
 }
 
-void ParaxialSimulation::saveFarField()
-{
-  if ( farFieldModulus == NULL )
-  {
-    return;
-  }
-
-  arma::vec exitField;
-  getExitField( exitField );
-  arma::cx_vec exitFieldCmpl;
-  getExitField( exitFieldCmpl );
-  arma::vec exitAmpl = arma::abs( exitFieldCmpl );
-  arma::vec exitPhase;
-  exitPhase.set_size(exitAmpl.n_elem);
-  for ( unsigned int i=0;i<exitAmpl.n_elem;i++ )
-  {
-    exitPhase(i) = arg( exitFieldCmpl(i) );
-  }
-
-  arma::vec zoomFar;
-  extractFarField( zoomFar );
-  hsize_t dim = zoomFar.n_elem;
-  dsetnames.push_back("farField");
-  saveArmaVec( zoomFar, dsetnames.back().c_str());
-  H5::DataSet dset = file->openDataSet( dsetnames.back() );
-  addAttribute( dset, "phiMin", farParam.phiMin );
-  addAttribute( dset, "phiMax", farParam.phiMax );
-  dim = exitField.n_elem;
-  dsetnames.push_back("exitField");
-  saveArmaVec( exitField, dsetnames.back().c_str() );
-  dsetnames.push_back("exitIntensity");
-  saveArmaVec( exitAmpl, dsetnames.back().c_str() );
-  dsetnames.push_back("exitPhase");
-  saveArmaVec( exitPhase, dsetnames.back().c_str() );
-}
-
 void ParaxialSimulation::getExitField( arma::vec &vec ) const
 {
   vec.set_size( solver->getSolution().n_rows );
@@ -212,87 +175,6 @@ void ParaxialSimulation::getExitField( arma::cx_vec &vec ) const
   {
     vec(i) = solver->getSolution()(i,extractCol);
   }
-}
-
-void ParaxialSimulation::computeFarField( unsigned int signalLength )
-{
-  // Extract the last column, thus specify z to inf
-  computeFarField( signalLength, numeric_limits<double>::max());
-}
-
-void ParaxialSimulation::computeFarField( unsigned int signalLength, double pos )
-{
-
-  // Extract the last column of the solution matrix
-  arma::cx_vec exitField;
-  arma::cx_vec paddedSignal;
-  double zpos;
-  if ( pos > zDisc->max )
-  {
-    getExitField( exitField );
-    zpos = zDisc->max;
-  }
-  else
-  {
-    unsigned int ix, iz;
-    closestIndex( 0.0, pos, ix, iz );
-    iz = iz >= solver->getSolution().n_cols ? solver->getSolution().n_cols-1:iz;
-    exitField.set_size( solver->getSolution().n_rows );
-    for ( unsigned int ix=0;ix<solver->getSolution().n_rows;ix++ )
-    {
-      exitField(ix) = solver->getSolution()(ix,iz);
-    }
-    zpos = pos;
-  }
-
-  if ( signalLength < exitField.n_elem )
-  {
-    paddedSignal = exitField;
-  }
-  else
-  {
-    paddedSignal.set_size(signalLength);
-    paddedSignal.fill(farParam.padValue);
-
-    unsigned int start = signalLength/2 - exitField.n_elem/2;
-    // Pad the signal
-    for ( int i=0;i<paddedSignal.n_elem;i++ )
-    {
-      int indx = i-static_cast<int>(start);
-      double x = getX( indx );
-      paddedSignal[i] = padExitField( x, zpos );
-    }
-    // Fill in the signal on the center
-    for ( unsigned int i=0;i<exitField.n_elem;i++ )
-    {
-      paddedSignal(start+i) = exitField(i);
-    }
-  }
-
-  arma::cx_vec ft = arma::fft( paddedSignal );
-
-  if ( farFieldModulus == NULL )
-  {
-    farFieldModulus = new arma::vec( arma::abs(ft)/sqrt(ft.n_elem) );
-  }
-  else
-  {
-    *farFieldModulus = arma::vec( arma::abs(ft)/sqrt(ft.n_elem) );
-  }
-
-  // Shift the FFT
-  unsigned int N = farFieldModulus->n_elem;
-  for ( unsigned int i=0;i<N/2;i++ )
-  {
-    double copy = (*farFieldModulus)(i);
-    (*farFieldModulus)(i) = (*farFieldModulus)(i+N/2);
-    (*farFieldModulus)(i+N/2) = copy;
-  }
-}
-
-void ParaxialSimulation::computeFarField()
-{
-  computeFarField(0);
 }
 
 void ParaxialSimulation::closestIndex( double x, double z, unsigned int &ix, unsigned int &iz ) const
@@ -460,35 +342,21 @@ double ParaxialSimulation::getWavelength() const
   return 2.0*PI/wavenumber;
 }
 
-void ParaxialSimulation::extractFarField( arma::vec &newFarField ) const
-{
-  if ( farFieldModulus == NULL )
-  {
-    throw (runtime_error("ExtractFarField: Far field is not computed!"));
-  }
-  unsigned int nmin = farFieldAngleToIndx( farParam.phiMin );
-  unsigned int nmax = farFieldAngleToIndx( farParam.phiMax );
-  newFarField = farFieldModulus->subvec(nmin, nmax);
-}
-
-unsigned int ParaxialSimulation::farFieldAngleToIndx( double angle ) const
-{
-  if ( farFieldModulus == NULL )
-  {
-    throw (runtime_error("farFieldAngleToIndx: Far field is not computed!"));
-  }
-  double angleRad = angle*PI/180.0;
-  int n = farFieldModulus->n_elem*wavenumber*xDisc->step*sin(angleRad)/(2.0*PI);
-  if ( abs(n) >= farFieldModulus->n_elem/2 )
-  {
-    if ( angle > 0.0 ) return farFieldModulus->n_elem-1;
-    return 0;
-  }
-  return n+static_cast<int>(farFieldModulus->n_elem)/2;
-}
-
 void ParaxialSimulation::setFarFieldAngleRange( double phiMin, double phiMax )
 {
   farParam.phiMin = phiMin;
   farParam.phiMax = phiMax;
+}
+
+ParaxialSimulation& ParaxialSimulation::operator << ( post::PostProcessingModule module )
+{
+  postProcess.push_back( module );
+  return *this;
+}
+
+ParaxialSimulation& ParaxialSimulation::operator << (post::FarField &ff )
+{
+  ff.linkParaxialSim( *this );
+  postProcess.push_back( ff );
+  return *this;
 }
