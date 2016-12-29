@@ -279,6 +279,9 @@ void WaveGuideFDSimulation::getXrayMatProp( double x, double z, double &delta, d
 
 cdouble WaveGuideFDSimulation::transverseBC( double z, Boundary_t bnd ) const
 {
+  assert( cladding != NULL );
+
+  // TODO: Use the getXrayMatProp() function instead
   double delta = cladding->getDelta();
   double beta = cladding->getBeta();
   cdouble im(0.0,1.0);
