@@ -5,6 +5,9 @@
 #include <stdexcept>
 #include <vector>
 #include <armadillo>
+#include "planeWave.hpp"
+#include "paraxialEquation.hpp"
+#include "cladding.hpp"
 #define STEP 0.2
 #define DEBUG
 
@@ -17,7 +20,6 @@ class MinimalWG: public WaveGuideFDSimulation
 public:
   MinimalWG(){};
   void getXrayMatProp( double x, double z, double &delta, double &beta ) const override final{ delta=_delta; beta=_beta; };
-  void setBoundaryConditions() override final;
   cdouble transverseBC( double z ) const override final;
   const Solver2D& getSolver() const { return *solver; };
   double _delta{0.0};
@@ -30,12 +32,6 @@ cdouble MinimalWG::transverseBC( double z ) const
   return exp(-wavenumber*_beta*z)*exp(-im*_delta*wavenumber*z);
 }
 
-void MinimalWG::setBoundaryConditions()
-{
-  vector<cdouble> values(nodeNumberTransverse(), 1.0);
-  solver->setLeftBC(&values[0]);
-};
-
 MinimalWG* initWG()
 {
   cdouble imgu(0.0,1.0);
@@ -45,14 +41,19 @@ MinimalWG* initWG()
   wg->setWavenumber( 0.1 );
   return wg;
 }
+
 BOOST_AUTO_TEST_SUITE( testSolver )
 BOOST_AUTO_TEST_CASE( testBCSettings )
 {
 
   MinimalWG *wg = initWG();
   CrankNicholson solver;
+  ParaxialEquation eq;
+  solver.setEquation( eq );
   wg->setSolver(solver);
-  wg->setBoundaryConditions();
+  PlaneWave pw;
+  pw.setWavenumber( 0.1 );
+  wg->setBoundaryConditions( pw );
 
   unsigned int Nx = wg->nodeNumberTransverse();
   unsigned int Nz = wg->nodeNumberLongitudinal();
@@ -73,20 +74,25 @@ BOOST_AUTO_TEST_CASE( testBCSettings )
 BOOST_AUTO_TEST_CASE( testSolution )
 {
   MinimalWG *wg = initWG();
+  Cladding cladding;
+  cladding.setRefractiveIndex( 4.14E-5, 3.45E-6 );
+  wg->setCladding( cladding );
   CrankNicholson solver;
+  ParaxialEquation eq;
+  solver.setEquation( eq );
   wg->setSolver(solver);
-  wg->setBoundaryConditions();
+  PlaneWave pw;
+  pw.setWavenumber( 0.1 );
+  wg->setBoundaryConditions( pw );
 
   unsigned int Nx = wg->nodeNumberTransverse();
   unsigned int Nz = wg->nodeNumberLongitudinal();
   const arma::cx_mat bc = wg->getSolver().getSolution(0);
 
   wg->solve();
-
   const arma::cx_mat sol = wg->getSolver().getSolution(0);
 
   double expectedSolution=1.0;
-
   unsigned int numberOfUnequalElements = 0;
   for ( unsigned int ix=0;ix<Nx; ix++ )
   {
@@ -108,10 +114,20 @@ BOOST_AUTO_TEST_CASE( testSolution )
 BOOST_AUTO_TEST_CASE( testWidthAbs )
 {
   MinimalWG *wg = initWG();
-  CrankNicholson solver;
-  wg->setSolver(solver);
-  wg->setBoundaryConditions();
   wg->_beta = 0.1;
+  Cladding cladding;
+  cladding.setRefractiveIndex( wg->_delta, wg->_beta );
+  wg->setCladding( cladding );
+
+  CrankNicholson solver;
+  ParaxialEquation eq;
+  solver.setEquation( eq );
+
+  wg->setSolver(solver);
+  PlaneWave pw;
+  pw.setWavenumber( 0.1 );
+  wg->setBoundaryConditions( pw );
+
 
   unsigned int Nx = wg->nodeNumberTransverse();
   unsigned int Nz = wg->nodeNumberLongitudinal();

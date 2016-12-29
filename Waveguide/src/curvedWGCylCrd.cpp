@@ -40,3 +40,8 @@ double CurvedWGCylCrd::waveGuideEndX( double z ) const
 {
   return width;
 }
+
+cdouble CurvedWGCylCrd::padExitField( double r, double theta ) const
+{
+  return WaveGuideFDSimulation::padExitField( r, R*theta );
+}

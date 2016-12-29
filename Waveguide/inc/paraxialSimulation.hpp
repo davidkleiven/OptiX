@@ -161,11 +161,11 @@ protected:
   /** Extra calling */
   virtual void saveSpecialDatasets( hid_t file_id, std::vector<std::string> &dset ) const{};
 
-  /** Add armadillo matrix to HDF5 file */
-  void saveArmaMat( const arma::mat &matrix, const char* dsetname, const std::vector<H5Attr> &attr );
+  /** Add armadillo matrix to HDF5 file. The matrix is internally transposed, but on return it is simular to the original */
+  void saveArmaMat( arma::mat &matrix, const char* dsetname, const std::vector<H5Attr> &attr );
 
   /** Add armadillo matrix to HDF5 using the common attributes */
-  void saveArmaMat( const arma::mat &matrix, const char* dsetname );
+  void saveArmaMat( arma::mat &matrix, const char* dsetname );
 
   /** Add armadillo vector to HDF5 */
   void saveArmaVec( const arma::vec &vec, const char* dsetname, const std::vector<H5Attr> &attr );

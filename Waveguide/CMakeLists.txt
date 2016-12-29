@@ -100,3 +100,14 @@ target_link_libraries( fresnelProp.out ${LIB} src )
 
 add_executable( straightGuideSweepAngle.out Applications/straightGuideSweepAngle.cpp )
 target_link_libraries( straightGuideSweepAngle.out ${LIB} src )
+
+add_executable( testSaveArmaMat.out unittest/testSaveArmamat.cpp )
+target_link_libraries( testSaveArmaMat.out ${LIB} src )
+
+# Compile unittests
+find_package( Boost COMPONENTS system filesystem unit_test_framework REQUIRED )
+include_directories( ${Boost_INCLUDE_DIRS} )
+link_directories( ${Boost_LIBRARY_DIRS} )
+add_executable( alltests.out unittest/alltests.cpp unittest/curvedWaveGuide2DTest.cpp unittest/testMatrixBuild.cpp
+unittest/thomasAlgTest.cpp unittest/waveGuideRadiusCurvatureTest.cpp )
+target_link_libraries( alltests.out ${LIB} src ${Boost_FILESYSTEM_LIBRARY} ${Boost_FILESYSTEM_LIBRARY} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} )

@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include "paraxialEquation.hpp"
 #include "borderTracker.hpp"
+#include <cassert>
 
 using namespace std;
 
@@ -33,6 +34,10 @@ void CrankNicholson::solve()
   {
     throw ( runtime_error("No paraxial equation object given!") );
   }
+
+  // Assert that the solution matrix is allocated
+  assert( solution != NULL );
+  assert( guide != NULL );
 
   initValuesFromWaveGuide();
   for ( unsigned int iz=1;iz<Nz;iz++ )

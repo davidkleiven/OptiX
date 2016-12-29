@@ -26,5 +26,8 @@ protected:
 
   /** Reuturns the upper waveguide border at position z. Required when computing the transmission */
   double waveGuideEndX( double z ) const override;
+
+  /** Pad the signal corresponding to the unaffected source */
+  virtual cdouble padExitField( double r, double theta ) const override;
 };
 #endif
