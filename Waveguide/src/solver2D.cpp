@@ -25,7 +25,7 @@ void Solver2D::setSimulator( ParaxialSimulation &wg )
   if ( solution != NULL ) delete solution;
   if ( prevSolution != NULL ) delete prevSolution;
   if ( currentSolution != NULL ) delete currentSolution;
-  unsigned int downSampledNx = Nx/guide->transverseDiscretization().downsamplingRatio + 1 ;
+  unsigned int downSampledNx = Nx/guide->transverseDiscretization().downsamplingRatio;
   solution = new arma::cx_mat(downSampledNx,Nz);
   prevSolution = new arma::cx_vec(Nx);
   currentSolution = new arma::cx_vec(Nx);
@@ -179,7 +179,7 @@ void Solver2D::filterInLongitudinalDirection()
 {
   if ( guide->longitudinalDiscretization().downsamplingRatio == 1 ) return;
 
-  unsigned int downSampledNz = solution->n_cols/guide->longitudinalDiscretization().downsamplingRatio + 1;
+  unsigned int downSampledNz = solution->n_cols/guide->longitudinalDiscretization().downsamplingRatio;
   filter.setTargetSize( downSampledNz );
   filter.setSourceSize( solution->n_cols );
 
