@@ -51,15 +51,16 @@ def main( argv ):
                 equalSize = True
                 if ( len(val1.shape) != len(val2.shape) ):
                     equalSize = False
-                for i in range(0, len(val1.shape) ):
-                    if ( val1.shape[i] != val2.shape[i] ):
-                        equalSize = False
-                        break
+                else:
+                    for i in range(0, len(val1.shape) ):
+                        if ( val1.shape[i] != val2.shape[i] ):
+                            equalSize = False
+                            break
 
                 if ( not equalSize ):
                      print ( "\033[0;31mArrays %s have different dimensions\033[0m"%(str(key)) )
                      continue
-                     
+
                 if ( np.allclose(val1, val2, rtol=1E-3) ):
                     print ( "\033[0;32mArrays %s passed\033[0m"%(str(key)) )
                 else:
