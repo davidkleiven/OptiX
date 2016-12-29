@@ -271,10 +271,10 @@ def main(argv):
     if ( stat["sparseSave"] ):
         plot2Dsparse( xVal, zVal, intensity, stat )
     else:
-        data = data.T # Transpose the dataset
-        fieldData = fieldData.T
-        if ( not phaseData is None ):
-            phaseData = phaseData.T
+        #data = data.T # Transpose the dataset
+        #fieldData = fieldData.T
+        #if ( not phaseData is None ):
+            #phaseData = phaseData.T
         plot2D( data, stat, borders, field=fieldData, phase=phaseData )
     #plotWG( xInside-x0, zInside )
 
