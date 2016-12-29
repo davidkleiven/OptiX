@@ -124,19 +124,8 @@ void ParaxialSimulation::save( ControlFile &ctl )
   int uid = ctl.getUID();
   commonAttributes.push_back( makeAttr("uid", uid) );
 
-  //arma::abs(solver->getSolution()).save(h5fname.c_str(), arma::hdf5_binary);
-  if ( saveColorPlot )
-  {
-    arma::mat absSol = arma::abs(solver->getSolution());
-    dsetnames.push_back("amplitude");
-    saveArmaMat( absSol, dsetnames.back().c_str() );
-
-    solver->getPhase( absSol );
-    dsetnames.push_back("phase");
-    saveArmaMat( absSol, dsetnames.back().c_str() );
-  }
-
   unsigned int currentNumberOfAttrs = commonAttributes.size();
+
   // Save all results from all the post processing modules
   for ( unsigned int i=0;i<postProcess.size();i++ )
   {
@@ -155,6 +144,7 @@ void ParaxialSimulation::save( ControlFile &ctl )
         break;
     }
     commonAttributes.resize( currentNumberOfAttrs );
+    clog << "Dataset " << postProcess[i].getName() << " added to HDF5 file\n";
   }
 
   Json::Value wginfo;

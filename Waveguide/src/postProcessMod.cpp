@@ -20,3 +20,8 @@ void post::ExitIntensity::result( const Solver2D &solver, arma::vec &res )
 {
   res = arma::abs( solver.getSolution().col(solver.getSolution().n_cols-1) );
 }
+
+void post::ExitPhase::result( const Solver2D &solver, arma::vec &res )
+{
+  res = arma::arg( solver.getSolution().col(solver.getSolution().n_cols-1) );
+}

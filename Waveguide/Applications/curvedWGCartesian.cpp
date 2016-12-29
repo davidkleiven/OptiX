@@ -263,7 +263,7 @@ int main( int argc, char **argv )
           }
 
           // Set post processing options
-          *wg << post::Intensity() << post::Phase();
+          *wg << post::Intensity() << post::Phase() << post::ExitField() << post::ExitIntensity() << post::ExitPhase();
           post::FarField ff;
           ff.setPadLength( 65535 );
           ff.setAngleRange( -0.5, 0.5 );

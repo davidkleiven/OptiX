@@ -78,5 +78,15 @@ public:
   void result( const Solver2D &solver, arma::vec &res ) override;
 };
 
+/** Module for computing exit phase */
+class ExitPhase: public post::PostProcessingModule
+{
+public:
+  ExitPhase(): post::PostProcessingModule("exitPhase", ReturnType_t::vector1D){};
+
+  /** Returns the phase at the exit */
+  void result( const Solver2D &solver, arma::vec &res ) override;
+};
+
 };
 #endif
