@@ -106,7 +106,6 @@ target_link_libraries( testSaveArmaMat.out ${LIB} src )
 
 # Compile unittests
 find_package( Boost COMPONENTS system filesystem unit_test_framework REQUIRED )
-#find_package( Boost REQUIRED )
 include_directories( ${Boost_INCLUDE_DIRS} )
 link_directories( ${Boost_LIBRARY_DIRS} )
 add_executable( alltests.out unittest/alltests.cpp unittest/curvedWaveGuide2DTest.cpp unittest/testMatrixBuild.cpp
