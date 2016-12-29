@@ -14,13 +14,13 @@ BOOST_AUTO_TEST_CASE( insideWG )
   CWGTest wg;
   wg.setRadiusOfCurvature( 40E6 );
   wg.setWidth( 100.0 );
-  bool inside = wg.isIn( 40E6+50.0, 0.0 );
+  bool inside = wg.isIn( 50.0, 0.0 );
   BOOST_CHECK_EQUAL(inside, true);
 
-  inside = wg.isIn(40E6-1.0,0.0);
+  inside = wg.isIn(-1.0,0.0);
   BOOST_CHECK_EQUAL(inside, false);
 
-  inside = wg.isIn(40E6, 100.0);
+  inside = wg.isIn(0.0, 100.0);
   BOOST_CHECK_EQUAL( inside, true);
 }
 BOOST_AUTO_TEST_SUITE_END()
