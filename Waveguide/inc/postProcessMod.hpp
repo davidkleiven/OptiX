@@ -10,7 +10,7 @@ namespace post
 class Intensity: public post::PostProcessingModule
 {
 public:
-  Intensity(): post::PostProcessingModule("Intensity", ReturnType_t::matrix2D){};
+  Intensity(): post::PostProcessingModule("amplitude", ReturnType_t::matrix2D){};
 
   /** Amplitude of the solution */
   void result( const Solver2D &solver, arma::mat &res ) override;
@@ -20,7 +20,7 @@ public:
 class Phase: public PostProcessingModule
 {
 public:
-  Phase(): post::PostProcessingModule("Phase", ReturnType_t::matrix2D){};
+  Phase(): post::PostProcessingModule("phase", ReturnType_t::matrix2D){};
 
   /** Phase of the solution */
   void result( const Solver2D &solver, arma::mat &res ) override;
@@ -30,7 +30,7 @@ public:
 class FarField: public post::PostProcessingModule
 {
 public:
-  FarField(): post::PostProcessingModule("FarField", ReturnType_t::vector1D){};
+  FarField(): post::PostProcessingModule("farField", ReturnType_t::vector1D){};
 
   /** Amplitude of the far field */
   void result( const Solver2D &solver, arma::vec &res ) override;
@@ -56,6 +56,26 @@ private:
   unsigned int farFieldAngleToIndx( double angle, const arma::vec &res ) const;
 
   void reduceArray( arma::vec &res ) const;
+};
+
+/** Module that returns the real part of the exit field */
+class ExitField: public post::PostProcessingModule
+{
+public:
+  ExitField():post::PostProcessingModule("exitField", ReturnType_t::vector1D){};
+
+  /** Returns the real part of the exit field*/
+  void result( const Solver2D &solver, arma::vec &res ) override;
+};
+
+/** Module that returns the exit amplitude */
+class ExitIntensity: public post::PostProcessingModule
+{
+public:
+  ExitIntensity(): post::PostProcessingModule("exitIntensity", ReturnType_t::vector1D){};
+
+  /** Returns the exit amplitude */
+  void result( const Solver2D &solver, arma::vec &res ) override;
 };
 
 };
