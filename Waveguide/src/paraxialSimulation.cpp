@@ -328,12 +328,12 @@ double ParaxialSimulation::getX( int ix ) const
   return xDisc->min + ix*xDisc->step;
 }
 
-void ParaxialSimulation::saveArmaMat( const arma::mat &matrix, const char* dsetname )
+void ParaxialSimulation::saveArmaMat( arma::mat &matrix, const char* dsetname )
 {
   saveArmaMat( matrix, dsetname, commonAttributes );
 }
 
-void ParaxialSimulation::saveArmaMat( const arma::mat &matrix, const char* dsetname, const vector<H5Attr> &attrs )
+void ParaxialSimulation::saveArmaMat( arma::mat &matrix, const char* dsetname, const vector<H5Attr> &attrs )
 {
   // Create dataspace
   hsize_t fdim[2] = {matrix.n_rows, matrix.n_cols};
@@ -357,8 +357,14 @@ void ParaxialSimulation::saveArmaMat( const arma::mat &matrix, const char* dsetn
     }
   }
 
+  // Transpose the matrix inplace
+  arma::inplace_trans( matrix ); // Uses a greedy algorithm
+
   // Write to file
   ds.write( matrix.memptr(), H5::PredType::NATIVE_DOUBLE );
+
+  // Transpose the matrix back
+  arma::inplace_trans( matrix );
 }
 
 void ParaxialSimulation::saveArmaVec( const arma::vec &vec, const char* dsetname )
