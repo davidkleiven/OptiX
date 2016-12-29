@@ -141,6 +141,9 @@ public:
 
   /** Return a border tracker object. Only relevant for geometries that tracks the border i.e. waveguides */
   virtual BorderTracker* getBorderTracker(){ return NULL; };
+
+  /** Pad the exit signal */
+  virtual cdouble padExitField( double x, double z ) const { return farParam.padValue; };
 protected:
   Solver2D *solver{NULL};
   Disctretization *xDisc; // Transverse
@@ -189,8 +192,5 @@ protected:
 
   /** Extracts the part of the far field corresponding to the angles in far field parameters */
   void extractFarField( arma::vec &newFarField ) const;
-
-  /** Pad the exit signal */
-  virtual cdouble padExitField( double x, double z ) const { return farParam.padValue; };
 };
 #endif

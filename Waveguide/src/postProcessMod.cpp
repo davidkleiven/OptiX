@@ -1,4 +1,5 @@
-#include "postProcessIntensity.hpp"
+#include "postProcessMod.hpp"
+#include "solver2D.hpp"
 
 void post::Intensity::result( const Solver2D &solver, arma::mat &res )
 {

@@ -136,6 +136,26 @@ void ParaxialSimulation::save( ControlFile &ctl )
     saveArmaMat( absSol, dsetnames.back().c_str() );
   }
 
+  unsigned int currentNumberOfAttrs = commonAttributes.size();
+  // Save all results from all the post processing modules
+  for ( unsigned int i=0;i<postProcess.size();i++ )
+  {
+    arma::vec res1D;
+    arma::mat res2D;
+    postProcess[i].result( *solver, res1D );
+    postProcess[i].result( *solver, res2D );
+    postProcess[i].addAttrib( commonAttributes );
+    switch ( postProcess[i].getReturnType() )
+    {
+      case ( post::PostProcessingModule::ReturnType_t::vector1D ):
+        saveArmaVec( res1D, postProcess[i].getName().c_str(), commonAttributes );
+        break;
+      case ( post::PostProcessingModule::ReturnType_t::matrix2D ):
+        saveArmaMat( res2D, postProcess[i].getName().c_str(), commonAttributes );
+        break;
+    }
+    commonAttributes.resize( currentNumberOfAttrs );
+  }
 
   Json::Value wginfo;
   Json::Value solverInfo;

@@ -10,7 +10,7 @@ namespace post
 class Intensity: public post::PostProcessingModule
 {
 public:
-  Intensity(): post::PostProcessingModule("Intensity"){};
+  Intensity(): post::PostProcessingModule("Intensity", ReturnType_t::matrix2D){};
 
   /** Amplitude of the solution */
   void result( const Solver2D &solver, arma::mat &res ) override;
@@ -20,7 +20,7 @@ public:
 class Phase: public PostProcessingModule
 {
 public:
-  Phase(): post::PostProcessingModule("Phase"){};
+  Phase(): post::PostProcessingModule("Phase", ReturnType_t::matrix2D){};
 
   /** Phase of the solution */
   void result( const Solver2D &solver, arma::mat &res ) override;
@@ -30,7 +30,7 @@ public:
 class FarField: public post::PostProcessingModule
 {
 public:
-  FarField(): post::PostProcessingModule("FarField"){};
+  FarField(): post::PostProcessingModule("FarField", ReturnType_t::vector1D){};
 
   /** Amplitude of the far field */
   void result( const Solver2D &solver, arma::vec &res ) override;
@@ -43,6 +43,9 @@ public:
 
   /** Link a paraxial simulation object */
   void linkParaxialSim( const ParaxialSimulation &simulation ){ sim = &simulation; };
+
+  /** Add attributes */
+  virtual void addAttrib( std::vector<H5Attr> &attr ) const override final;
 private:
   unsigned int signalLength{0};
   double phiMin{-90.0};

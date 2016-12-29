@@ -1,5 +1,11 @@
 #include "postProcessMod.hpp"
+#include "paraxialSimulation.hpp"
+#include "solver2D.hpp"
+#include <cmath>
 
+using namespace std;
+
+const double PI = acos(-1.0);
 void post::FarField::setAngleRange( double angMin, double angMax )
 {
   phiMin = angMin;
@@ -9,7 +15,7 @@ void post::FarField::setAngleRange( double angMin, double angMax )
 void post::FarField::result( const Solver2D &solver, arma::vec &res )
 {
   // Extract the last column of the solution matrix
-  arma::cx_vec exitField = solver->getLastSolution();
+  arma::cx_vec exitField = solver.getLastSolution();
   arma::cx_vec paddedSignal;
   double zpos = sim->longitudinalDiscretization().max;
 
@@ -20,7 +26,7 @@ void post::FarField::result( const Solver2D &solver, arma::vec &res )
   else
   {
     paddedSignal.set_size(signalLength);
-    paddedSignal.fill(farParam.padValue);
+    paddedSignal.fill(0.0);
 
     unsigned int start = signalLength/2 - exitField.n_elem/2;
     // Pad the signal
@@ -71,4 +77,10 @@ void post::FarField::reduceArray( arma::vec &res ) const
   unsigned int indxMin = farFieldAngleToIndx( phiMin, res );
   unsigned int indxMax = farFieldAngleToIndx( phiMax, res );
   res = res.subvec( indxMin, indxMax );
+}
+
+void post::FarField::addAttrib( vector<H5Attr> &attr ) const
+{
+  attr.push_back( makeAttr("phiMin", phiMin) );
+  attr.push_back( makeAttr("phiMax", phiMax) );
 }
