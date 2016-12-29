@@ -22,7 +22,7 @@
 #include <chrono>
 #include <thread>
 #define KEEP_PLOT_FOR_SEC 6
-//#define VISUALIZE_PATTERN
+#define VISUALIZE_PATTERN
 
 using namespace std;
 
@@ -335,7 +335,7 @@ int main( int argc, char **argv )
 
           clog << "Exporting results...\n";
           #ifdef VISUALIZE_PATTERN
-            wg->saveContour( false );
+            //wg->saveContour( false );
           #endif
           wg->save( ctl );
           wg->saveTransmission( ctl );
