@@ -41,7 +41,11 @@ def main( argv ):
             if ( keysAreEqual ):
                 print ("\033[0;32mKey test passed\033[0m")
             else:
-                print ("\033[0;31mThe files has not the same keys\033\[0m")
+                print ("\033[0;31mThe files has not the same keys\033[0m")
+                print ("Keys in file 1:")
+                print (dsets1)
+                print ("Keys in file 2:")
+                print (dsets2)
                 return
 
             # Compare datasets
