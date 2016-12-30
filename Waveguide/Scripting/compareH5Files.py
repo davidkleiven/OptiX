@@ -71,10 +71,14 @@ def main( argv ):
                      print ("\033[0m")
                      continue
 
-                if ( np.allclose(val1, val2, rtol=1E-3) ):
+                if ( np.allclose(val1, val2, rtol=1E-3, atol=1E-3) ):
                     print ( "\033[0;32mArrays %s passed\033[0m"%(str(key)) )
                 else:
                     print ( "\033[0;31mArrays %s failed\033[0m"%(str(key)) )
+                    if ( len(val1.shape) == 1 ):
+                        plt.plot(val1-val2)
+                        plt.title(key)
+        plt.show()
 
 if __name__ == "__main__":
     main( sys.argv[1:] )
