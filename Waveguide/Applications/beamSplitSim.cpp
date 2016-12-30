@@ -8,6 +8,7 @@
 #include "paraxialEquation.hpp"
 #include "beamSplitter.hpp"
 #include "planeWave.hpp"
+#include "postProcessMod.hpp"
 #include <complex>
 #include <stdexcept>
 #include <cstdlib>
@@ -63,7 +64,14 @@ int main( int argc, char **argv )
     wg.solve();
     clog << "done\n";
     wg.extractWGBorders();
-    wg.computeFarField( 524288 );
+
+    // Define post processing modules
+    post::Intensity amplitude;
+    post::Phase phase;
+    post::FarField farField;
+    farField.setAngleRange(-0.5,0.5);
+    farField.setPadLength( 524288 );
+    wg << amplitude << phase << farField;
     clog << "Exporting results...\n";
     wg.save( ctl );
     ctl.save();
