@@ -62,7 +62,12 @@ def main( argv ):
                             break
 
                 if ( not equalSize ):
-                     print ( "\033[0;31mArrays %s have different dimensions\033[0m"%(str(key)) )
+                     print ( "\033[0;31mArrays %s have different dimensions"%(str(key)) )
+                     print ("File 1: ", end="")
+                     print (val1.shape)
+                     print ("File 2: ", end="")
+                     print (val2.shape)
+                     print ("\033[0m")
                      continue
 
                 if ( np.allclose(val1, val2, rtol=1E-3) ):
