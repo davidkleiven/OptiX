@@ -1,6 +1,7 @@
 #ifndef WAVE_GUIDE_CURVED_2D_H
 #define WAVE_GUIDE_CURVED_2D_H
 #include "waveGuideFDSimulation.hpp"
+#include "transmittivity.hpp"
 #include <complex>
 #include <vector>
 #include <armadillo>
@@ -13,7 +14,7 @@ typedef std::complex<double> cdouble;
 class CurvedWaveGuideFD: public WaveGuideFDSimulation
 {
 public:
-  CurvedWaveGuideFD(): WaveGuideFDSimulation("CurvedWaveGuide2D"){};
+  CurvedWaveGuideFD();
 
   /** Set the radius of curvature in nano meters */
   void setRadiusOfCurvature( double newR ) { R = newR; };
@@ -62,6 +63,18 @@ public:
   * Thus: wcrd = 0.0: along the lower wall. wcrd=width extracts along the upper wall */
   virtual void extractField( double wcrd, std::vector<cdouble> &res ) const {};
   //virtual void extractField( double wcrd, std::vector<double> &res ) const {} // real part of field
+
+  /** Solve the simulation */
+  virtual void solve() override;
+
+  /** Save the results */
+  virtual void save( ControlFile &ctl ) override;
+
+  /** Returns the lower border of the waveguide at position z. Required when computing the transmission. */
+  virtual double waveGuideStartX( double z ) const;
+
+  /** Returns the upper part of the border at position z. Required when computing the transmission. */
+  virtual double waveGuideEndX( double z ) const;
 protected:
   CurvedWaveGuideFD( const char *name): WaveGuideFDSimulation(name){};
   double R;
@@ -70,11 +83,6 @@ protected:
   std::vector<double> transmissionFull;
   double stepWhenComputingTransmission{0.0};
   bool useSmoothed{false};
-
-  /** Returns the lower border of the waveguide at position z. Required when computing the transmission. */
-  virtual double waveGuideStartX( double z ) const;
-
-  /** Returns the upper part of the border at position z. Required when computing the transmission. */
-  virtual double waveGuideEndX( double z ) const;
+  post::Transmittivity transmittivity;
 };
 #endif

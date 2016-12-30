@@ -83,9 +83,6 @@ public:
   /** Get name of the waveguide simulation */
   std::string getName() const { return name; };
 
-  /** Run simulation */
-  void solve();
-
   /** Perform one step */
   void step();
 
@@ -124,6 +121,9 @@ public:
   ParaxialSimulation& operator << ( post::FarField &farfield );
 
   // Virtual methods
+  /** Run simulation */
+  virtual void solve();
+  
   /** Set incident field */
   virtual void setBoundaryConditions( const ParaxialSource& src ); // This function should fill the boundary
 

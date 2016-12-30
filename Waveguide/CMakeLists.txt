@@ -92,9 +92,6 @@ target_link_libraries( coupledWaveGuideSimulation.out ${LIB} src )
 add_executable( cylinderScattering.out Applications/cylinderScattering.cpp )
 target_link_libraries( cylinderScattering.out ${LIB} src )
 
-add_executable( farFieldConvergence.out Applications/farFieldConvergence.cpp )
-target_link_libraries( farFieldConvergence.out ${LIB} src )
-
 add_executable( fresnelProp.out Applications/fresnelProp.cpp )
 target_link_libraries( fresnelProp.out ${LIB} src )
 

@@ -19,6 +19,11 @@
 
 using namespace std;
 
+CurvedWaveGuideFD::CurvedWaveGuideFD(): WaveGuideFDSimulation("CurvedWaveGuide2D")
+{
+  transmittivity.linkWaveguide( *this );
+}
+
 bool CurvedWaveGuideFD::isInsideGuide( double x, double z ) const
 {
 //  double d = sqrt(x*x + z*z);
@@ -32,59 +37,6 @@ void CurvedWaveGuideFD::fillInfo( Json::Value &obj ) const
   obj["RadiusOfCurvature"] = R;
   obj["Width"] = width;
   obj["crd"] = "cartesian";
-}
-
-void CurvedWaveGuideFD::computeTransmission( double step )
-{
-  // Integrate across waveguide
-  double fluxAtZero = 0.0;
-  unsigned int wgStart = 0;
-  unsigned int wgEnd = 0;
-  unsigned int zIndx;
-  closestIndex( 0.0, 0.0, wgStart, zIndx );
-  closestIndex( width, 0.0, wgEnd, zIndx );
-  double intensityAtZero = trapezoidalIntegrateIntensityZ( zIndx, wgStart, wgEnd );
-  double intensityAtZeroFull = trapezoidalIntegrateIntensityZ( zIndx, 0, nodeNumberTransverse()-1 );
-
-  // Just simple trapezoidal rule for integrating in z-direction
-  //double z = step;
-  //while ( z < zDisc->max-step )
-  for ( unsigned int iz=0;iz<nodeNumberLongitudinal();iz++ )
-  {
-    double xWgStart, xWgEnd;
-    double z = zDisc->min +iz*zDisc->step;
-    if ( bTracker == NULL )
-    {
-      xWgStart = waveGuideStartX( z );
-      xWgEnd = waveGuideEndX( z );
-      
-      // Assertions for debugging (allow first and last point to be outside )
-      assert( isInsideGuide( xWgStart+1, z ) );
-      assert( isInsideGuide( xWgEnd-1, z ) );
-    }
-    else
-    {
-      // Reset wg start and wgEnd as these should be constant throughout the waveguide if the border tracker is used
-      xWgStart = waveGuideStartX( 0.0 );
-      xWgEnd = waveGuideEndX( 0.0 );
-    }
-
-    closestIndex( xWgStart, z, wgStart, zIndx );
-    closestIndex( xWgEnd, z, wgEnd, zIndx );
-
-    if ( waveguideEnded(0.0,z) )
-    {
-      clog << "Computed transmission at " << iz << " points.\n";
-      break;
-    }
-
-    double intensity = trapezoidalIntegrateIntensityZ( zIndx, wgStart, wgEnd );
-    double intensityFull = trapezoidalIntegrateIntensityZ( zIndx, 0, nodeNumberTransverse()-1 );
-    transmission.push_back( intensity/intensityAtZero );
-    transmissionFull.push_back( intensityFull/intensityAtZeroFull );
-    z += step;
-  }
-  stepWhenComputingTransmission = step; // Save for later
 }
 
 double CurvedWaveGuideFD::waveGuideStartX( double z ) const
@@ -258,4 +210,20 @@ void CurvedWaveGuideFD::getXrayMatProp( double x, double z, double &delta, doubl
   }
   delta = cladding->getDelta()*smoothedWG(x,z);
   beta = cladding->getBeta()*smoothedWG(x,z);
+}
+
+void CurvedWaveGuideFD::solve()
+{
+  for ( unsigned int n=0;n<nodeNumberLongitudinal();n++ )
+  {
+    step();
+    transmittivity.compute( getZ(n) );
+  }
+}
+
+void CurvedWaveGuideFD::save( ControlFile &ctl )
+{
+  ParaxialSimulation::save( ctl );
+  arma::vec res = transmittivity.get();
+  saveArmaVec( res, "transmittivity", commonAttributes );
 }

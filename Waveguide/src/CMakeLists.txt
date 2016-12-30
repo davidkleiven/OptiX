@@ -4,6 +4,7 @@ set( SOURCES cladding.cpp waveGuide.cpp waveGuideRadiusCurvature.cpp numerovSolv
 					gaussianBeam.cpp paraxialEquation.cpp cylindricalParaxialEquation.cpp curvedWGCylCrd.cpp
 					beamSplitter.cpp gaussianWG.cpp linearRampWG.cpp fresnelPropagator.cpp exitFieldSource.cpp
 					incidentAngleSweep.cpp borderTracker.cpp paraxialSimulation.cpp h5Attribute.cpp
-				refractiveIndex.cpp incidentAngleLengthSweep.cpp cylinder2D.cpp postProcessMod.cpp farFieldPost.cpp )
+				  refractiveIndex.cpp incidentAngleLengthSweep.cpp cylinder2D.cpp postProcessMod.cpp farFieldPost.cpp
+			    transmittivity.cpp )
 
 add_library( src STATIC ${SOURCES} )
