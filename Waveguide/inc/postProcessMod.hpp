@@ -13,7 +13,7 @@ public:
   Intensity(): post::PostProcessingModule("amplitude", ReturnType_t::matrix2D){};
 
   /** Amplitude of the solution */
-  virtual void result( const Solver2D &solver, arma::mat &res ) override;
+  void result( const Solver2D &solver, arma::mat &res ) override;
 };
 
 /** Module that returns the phase of the solution */
@@ -23,7 +23,7 @@ public:
   Phase(): post::PostProcessingModule("phase", ReturnType_t::matrix2D){};
 
   /** Phase of the solution */
-  virtual void result( const Solver2D &solver, arma::mat &res ) override;
+  void result( const Solver2D &solver, arma::mat &res ) override;
 };
 
 /** Module that computes the far field intensity pattern */
@@ -33,7 +33,7 @@ public:
   FarField(): post::PostProcessingModule("farField", ReturnType_t::vector1D){};
 
   /** Amplitude of the far field */
-  virtual void result( const Solver2D &solver, arma::vec &res ) override;
+  void result( const Solver2D &solver, arma::vec &res ) override;
 
   /** Set pad length */
   void setPadLength( unsigned int pad ){ signalLength = pad; };
@@ -75,7 +75,7 @@ public:
   ExitIntensity(): post::PostProcessingModule("exitIntensity", ReturnType_t::vector1D){};
 
   /** Returns the exit amplitude */
-  virtual void result( const Solver2D &solver, arma::vec &res ) override;
+  void result( const Solver2D &solver, arma::vec &res ) override;
 };
 
 /** Module for computing exit phase */
@@ -85,7 +85,7 @@ public:
   ExitPhase(): post::PostProcessingModule("exitPhase", ReturnType_t::vector1D){};
 
   /** Returns the phase at the exit */
-  virtual void result( const Solver2D &solver, arma::vec &res ) override;
+  void result( const Solver2D &solver, arma::vec &res ) override;
 };
 
 };
