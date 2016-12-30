@@ -86,6 +86,9 @@ public:
   /** Run simulation */
   void solve();
 
+  /** Perform one step */
+  void step();
+
   /** Get intensity at position x,z */
   double getIntensity( double x, double z ) const; // Using linear interpolation
 
@@ -112,6 +115,9 @@ public:
 
   /** Enable/disable storing of the intensity and phase for a contour plot */
   void saveContour( bool save=true ){ saveColorPlot=save; };
+
+  /** Reset the stepper */
+  void reset();
 
   /** Add post processing modules */
   ParaxialSimulation& operator << ( post::PostProcessingModule &module );
@@ -192,5 +198,8 @@ protected:
 
   /** Extracts the part of the far field corresponding to the angles in far field parameters */
   void extractFarField( arma::vec &newFarField ) const;
+
+  /** Checks that the solver is ready */
+  void verifySolverReady() const;
 };
 #endif

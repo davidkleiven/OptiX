@@ -65,9 +65,17 @@ public:
   /** Get last solution. NOTE: Return prev solution as this is not filtered */
   arma::cx_vec& getLastSolution() const { return *prevSolution; };
 
+  /** Run simulation */
+  void solve();
+
+  /** Perform one step */
+  void step();
+
+  /** Reset the counter */
+  void reset(){ currentStep = 1; };
+
   // Virtual functions
   /** Pure virtual function for solving the system */
-  virtual void solve() = 0;
 
   /** Fill JSON object with parameters specific to this class */
   virtual void fillInfo( Json::Value &obj ) const;
@@ -78,6 +86,14 @@ protected:
   arma::cx_mat *solution{NULL};
   arma::cx_vec *prevSolution{NULL};
   arma::cx_vec *currentSolution{NULL};
+  unsigned int currentStep{1};
+
+  unsigned int Nx{0};
+  unsigned int Nz{0};
+  double stepX{1.0}, stepZ{1.0};
+  double xmin{0.0};
+  double zmin{0.0};
+  double wavenumber{1.0};
 
   /** Get the solution */
   arma::cx_mat& getSolution( unsigned int iz ) { return *solution; };
@@ -90,6 +106,12 @@ protected:
 
   /** Filter and downsample in the longitudinal direction */
   void filterInLongitudinalDirection();
+
+  /** Solve one step */
+  virtual void solveStep( unsigned int step ) = 0;
+
+  /** Set the required parameters from the waveguide object */
+  void initValuesFromWaveGuide();
 
   visa::GaussianKernel kernel;
   visa::LowPassFilter filter;

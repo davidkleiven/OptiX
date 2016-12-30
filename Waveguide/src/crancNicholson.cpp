@@ -14,41 +14,7 @@ typedef complex<double> cdouble;
 cdouble IMAG_UNIT(0.0,1.0);
 CrankNicholson::~CrankNicholson(){};
 
-void CrankNicholson::initValuesFromWaveGuide()
-{
-  if ( guide == NULL )
-  {
-    throw( runtime_error("No waveguide specified!"));
-  }
-  Nx = guide->nodeNumberTransverse();
-  Nz = guide->nodeNumberLongitudinal();
-  stepX = guide->transverseDiscretization().step;
-  xmin = guide->transverseDiscretization().min;
-  stepZ = guide->longitudinalDiscretization().step;
-  zmin = guide->longitudinalDiscretization().min;
-  wavenumber = guide->getWavenumber();
-}
-void CrankNicholson::solve()
-{
-  if ( eq == NULL )
-  {
-    throw ( runtime_error("No paraxial equation object given!") );
-  }
-
-  // Assert that the solution matrix is allocated
-  assert( solution != NULL );
-  assert( guide != NULL );
-
-  initValuesFromWaveGuide();
-  for ( unsigned int iz=1;iz<Nz;iz++ )
-  {
-    solveCurrent( iz );
-    copyCurrentSolution( iz );
-  }
-  filterInLongitudinalDirection();
-}
-
-void CrankNicholson::solveCurrent( unsigned int iz )
+void CrankNicholson::solveStep( unsigned int iz )
 {
   assert( iz>=1 );
   cdouble *subdiag = new cdouble[Nx-1];

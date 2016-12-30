@@ -33,6 +33,21 @@ ParaxialSimulation::~ParaxialSimulation()
 
 void ParaxialSimulation::solve()
 {
+  solver->solve();
+}
+
+void ParaxialSimulation::step()
+{
+  solver->step();
+}
+
+void ParaxialSimulation::reset()
+{
+  solver->reset();
+}
+
+void ParaxialSimulation::verifySolverReady() const
+{
   if ( solver == NULL )
   {
     throw ( runtime_error("No solver specified!"));
@@ -42,7 +57,6 @@ void ParaxialSimulation::solve()
   {
     throw ( runtime_error("No source specified!"));
   }
-  solver->solve();
 }
 
 void ParaxialSimulation::setWaveLength( double lambda )

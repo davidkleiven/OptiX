@@ -201,3 +201,46 @@ void Solver2D::filterInLongitudinalDirection()
     }
   }
 }
+
+void Solver2D::solve()
+{
+  if ( eq == NULL )
+  {
+    throw ( runtime_error("No paraxial equation object given!") );
+  }
+
+  // Assert that the solution matrix is allocated
+  assert( solution != NULL );
+  assert( guide != NULL );
+
+  initValuesFromWaveGuide();
+  for ( unsigned int iz=1;iz<Nz;iz++ )
+  {
+    step();
+  }
+  filterInLongitudinalDirection();
+}
+
+void Solver2D::step()
+{
+  if ( currentStep == 1 ) initValuesFromWaveGuide();
+
+  solveStep( currentStep );
+  copyCurrentSolution( currentStep );
+  currentStep++;
+}
+
+void Solver2D::initValuesFromWaveGuide()
+{
+  if ( guide == NULL )
+  {
+    throw( runtime_error("No waveguide specified!"));
+  }
+  Nx = guide->nodeNumberTransverse();
+  Nz = guide->nodeNumberLongitudinal();
+  stepX = guide->transverseDiscretization().step;
+  xmin = guide->transverseDiscretization().min;
+  stepZ = guide->longitudinalDiscretization().step;
+  zmin = guide->longitudinalDiscretization().min;
+  wavenumber = guide->getWavenumber();
+}

@@ -77,33 +77,44 @@ void IncidentAngleSweep::setIncAngles( double min, double max, unsigned int N )
   thetaMax = max;
   nTheta = N;
 }
-void IncidentAngleSweep::solve()
+
+void IncidentAngleSweep::init()
 {
   solver.setEquation( eq );
   wg.setSolver( solver );
-  auto saveIter = indxToSave.begin();
-  auto endIter = indxToSave.end();
-  const double PI = acos(-1.0);
-  double angRad = thetaMax*PI/180.0;
   ff.setAngleRange(thetaMin, thetaMax);
   ff.setPadLength( 65536 );
   ff.linkParaxialSim( wg );
-  
-  //int nmax = fftSignalLength*wg.getWavenumber()*angRad*wg.transverseDiscretization().step/(2.0*PI);
+  zmax = wg.longitudinalDiscretization().max;
+  dz = wg.longitudinalDiscretization().step;
+}
+
+void IncidentAngleSweep::solve()
+{
+  init();
+  auto saveIter = indxToSave.begin();
+  auto endIter = indxToSave.end();
+
   for ( unsigned int i=0;i<nTheta;i++ )
   {
     clog << "Running "<< i+1 << " of " << nTheta << "\r";
     double theta = getAngle( i );
+
     pw.setAngleDeg(theta);
     wg.setBoundaryConditions( pw );
-    wg.solve();
+    double z = dz;
+    wg.reset();
+    while ( z < zmax )
+    {
+      wg.step();
+      processStep( z );
+      z += dz;
+    }
     arma::vec farF;
-    ff.result( wg.getSolver(), farF );
-    processFarField(); // Childs may want to do other stuff with the far field
 
+    ff.result( wg.getSolver(), farF );
     if ( i == 0 )
     {
-      //farField.set_size( wg.getFarField().n_elem, nTheta );
       farField.set_size( farF.n_elem, nTheta );
     }
 
@@ -135,6 +146,7 @@ void IncidentAngleSweep::solve()
         image.saveToFile(ss.str().c_str());
       }
     }
+    proceedToNextAngle();
   }
 }
 
