@@ -5,6 +5,7 @@
 #include "cladding.hpp"
 #include "paraxialEquation.hpp"
 #include "crankNicholson.hpp"
+#include "postProcessMod.hpp"
 #include <visa/visa.hpp>
 #include <armadillo>
 #include <set>
@@ -96,6 +97,7 @@ protected:
   bool generateUID{true};
   unsigned int uid{0};
   std::string plotname;
+  post::FarField ff;
 
   /** Index in the FFT array corresponding to the exity angle in degree */
   unsigned int angleIndx( double angle ) const;
