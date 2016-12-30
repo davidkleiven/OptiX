@@ -114,7 +114,7 @@ public:
   void saveContour( bool save=true ){ saveColorPlot=save; };
 
   /** Add post processing modules */
-  ParaxialSimulation& operator << ( post::PostProcessingModule module );
+  ParaxialSimulation& operator << ( post::PostProcessingModule &module );
   ParaxialSimulation& operator << ( post::FarField &farfield );
 
   // Virtual methods
@@ -158,7 +158,7 @@ protected:
   bool saveColorPlot{true};
   FarFieldParameters farParam;
   std::vector<H5Attr> commonAttributes;
-  std::vector<post::PostProcessingModule> postProcess;
+  std::vector<post::PostProcessingModule*> postProcess;
 
   /** Get exit field */
   void getExitField( arma::cx_vec &vec ) const;

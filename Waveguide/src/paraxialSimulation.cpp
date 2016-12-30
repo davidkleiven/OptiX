@@ -131,20 +131,20 @@ void ParaxialSimulation::save( ControlFile &ctl )
   {
     arma::vec res1D;
     arma::mat res2D;
-    postProcess[i].result( *solver, res1D );
-    postProcess[i].result( *solver, res2D );
-    postProcess[i].addAttrib( commonAttributes );
-    switch ( postProcess[i].getReturnType() )
+    postProcess[i]->result( *solver, res1D );
+    postProcess[i]->result( *solver, res2D );
+    postProcess[i]->addAttrib( commonAttributes );
+    switch ( postProcess[i]->getReturnType() )
     {
       case ( post::PostProcessingModule::ReturnType_t::vector1D ):
-        saveArmaVec( res1D, postProcess[i].getName().c_str(), commonAttributes );
+        saveArmaVec( res1D, postProcess[i]->getName().c_str(), commonAttributes );
         break;
       case ( post::PostProcessingModule::ReturnType_t::matrix2D ):
-        saveArmaMat( res2D, postProcess[i].getName().c_str(), commonAttributes );
+        saveArmaMat( res2D, postProcess[i]->getName().c_str(), commonAttributes );
         break;
     }
     commonAttributes.resize( currentNumberOfAttrs );
-    clog << "Dataset " << postProcess[i].getName() << " added to HDF5 file\n";
+    clog << "Dataset " << postProcess[i]->getName() << " added to HDF5 file\n";
   }
 
   Json::Value wginfo;
@@ -358,15 +358,15 @@ void ParaxialSimulation::setFarFieldAngleRange( double phiMin, double phiMax )
   farParam.phiMax = phiMax;
 }
 
-ParaxialSimulation& ParaxialSimulation::operator << ( post::PostProcessingModule module )
+ParaxialSimulation& ParaxialSimulation::operator << ( post::PostProcessingModule &module )
 {
-  postProcess.push_back( module );
+  postProcess.push_back( &module );
   return *this;
 }
 
 ParaxialSimulation& ParaxialSimulation::operator << (post::FarField &ff )
 {
   ff.linkParaxialSim( *this );
-  postProcess.push_back( ff );
+  postProcess.push_back( &ff );
   return *this;
 }

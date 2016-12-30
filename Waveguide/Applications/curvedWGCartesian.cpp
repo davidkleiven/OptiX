@@ -263,11 +263,15 @@ int main( int argc, char **argv )
           }
 
           // Set post processing options
-          *wg << post::Intensity() << post::Phase() << post::ExitField() << post::ExitIntensity() << post::ExitPhase();
+          post::Intensity amplitude;
+          post::Phase phase;
+          post::ExitField ef;
+          post::ExitIntensity ei;
+          post::ExitPhase ep;
           post::FarField ff;
           ff.setPadLength( 65535 );
           ff.setAngleRange( -0.5, 0.5 );
-          *wg << ff;
+          *wg << amplitude << phase << ef << ei << ep << ff;
 
           double stepX = (xmax-xmin)/static_cast<double>(Nx);
           double stepZ = (zmax-zmin)/static_cast<double>(Nz);
