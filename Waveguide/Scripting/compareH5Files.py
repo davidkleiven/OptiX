@@ -77,7 +77,8 @@ def main( argv ):
                 else:
                     print ( "\033[0;31mArrays %s failed\033[0m"%(str(key)) )
                     if ( len(val1.shape) == 1 ):
-                        plt.plot(val1-val2)
+                        plt.plot(val1)
+                        plt.plot(val2)
                         plt.title(key)
         plt.show()
 
