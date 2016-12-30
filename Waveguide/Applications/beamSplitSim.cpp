@@ -68,10 +68,13 @@ int main( int argc, char **argv )
     // Define post processing modules
     post::Intensity amplitude;
     post::Phase phase;
+    post::ExitField ef;
+    post::ExitPhase ep;
+    post::ExitIntensity ei;
     post::FarField farField;
     farField.setAngleRange(-0.5,0.5);
     farField.setPadLength( 524288 );
-    wg << amplitude << phase << farField;
+    wg << amplitude << phase << farField << ef << ep << ei;
     clog << "Exporting results...\n";
     wg.save( ctl );
     ctl.save();
