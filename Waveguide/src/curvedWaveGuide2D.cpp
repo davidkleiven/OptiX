@@ -19,12 +19,19 @@
 
 using namespace std;
 
+CurvedWaveGuideFD::CurvedWaveGuideFD(): WaveGuideFDSimulation("CurvedWaveGuide2D")
+{
+  transmittivity.linkWaveguide( *this );
+}
+
+CurvedWaveGuideFD::CurvedWaveGuideFD( const char *name): WaveGuideFDSimulation(name)
+{
+  transmittivity.linkWaveguide( *this );
+}
+
 bool CurvedWaveGuideFD::isInsideGuide( double x, double z ) const
 {
-//  double d = sqrt(x*x + z*z);
   return (2.0*x*R+z*z > 0.0 ) && (2.0*x*R+z*z < 2.0*width*R);
-  //return (pow(R+x,2)+z*z > pow(R,2)) && (pow(R+x,2)+z*z < pow(R+width,2));
-  //return ( d < R+width) && (d > R );
 }
 
 void CurvedWaveGuideFD::fillInfo( Json::Value &obj ) const
@@ -32,59 +39,6 @@ void CurvedWaveGuideFD::fillInfo( Json::Value &obj ) const
   obj["RadiusOfCurvature"] = R;
   obj["Width"] = width;
   obj["crd"] = "cartesian";
-}
-
-void CurvedWaveGuideFD::computeTransmission( double step )
-{
-  // Integrate across waveguide
-  double fluxAtZero = 0.0;
-  unsigned int wgStart = 0;
-  unsigned int wgEnd = 0;
-  unsigned int zIndx;
-  closestIndex( 0.0, 0.0, wgStart, zIndx );
-  closestIndex( width, 0.0, wgEnd, zIndx );
-  double intensityAtZero = trapezoidalIntegrateIntensityZ( zIndx, wgStart, wgEnd );
-  double intensityAtZeroFull = trapezoidalIntegrateIntensityZ( zIndx, 0, nodeNumberTransverse()-1 );
-
-  // Just simple trapezoidal rule for integrating in z-direction
-  //double z = step;
-  //while ( z < zDisc->max-step )
-  for ( unsigned int iz=0;iz<nodeNumberLongitudinal();iz++ )
-  {
-    double xWgStart, xWgEnd;
-    double z = zDisc->min +iz*zDisc->step;
-    if ( bTracker == NULL )
-    {
-      xWgStart = waveGuideStartX( z );
-      xWgEnd = waveGuideEndX( z );
-      
-      // Assertions for debugging (allow first and last point to be outside )
-      assert( isInsideGuide( xWgStart+1, z ) );
-      assert( isInsideGuide( xWgEnd-1, z ) );
-    }
-    else
-    {
-      // Reset wg start and wgEnd as these should be constant throughout the waveguide if the border tracker is used
-      xWgStart = waveGuideStartX( 0.0 );
-      xWgEnd = waveGuideEndX( 0.0 );
-    }
-
-    closestIndex( xWgStart, z, wgStart, zIndx );
-    closestIndex( xWgEnd, z, wgEnd, zIndx );
-
-    if ( waveguideEnded(0.0,z) )
-    {
-      clog << "Computed transmission at " << iz << " points.\n";
-      break;
-    }
-
-    double intensity = trapezoidalIntegrateIntensityZ( zIndx, wgStart, wgEnd );
-    double intensityFull = trapezoidalIntegrateIntensityZ( zIndx, 0, nodeNumberTransverse()-1 );
-    transmission.push_back( intensity/intensityAtZero );
-    transmissionFull.push_back( intensityFull/intensityAtZeroFull );
-    z += step;
-  }
-  stepWhenComputingTransmission = step; // Save for later
 }
 
 double CurvedWaveGuideFD::waveGuideStartX( double z ) const
@@ -95,26 +49,6 @@ double CurvedWaveGuideFD::waveGuideStartX( double z ) const
 double CurvedWaveGuideFD::waveGuideEndX( double z ) const
 {
   return waveGuideStartX( z ) + width;
-}
-
-void CurvedWaveGuideFD::saveTransmission( ControlFile &ctl ) const
-{
-  Json::Value trans;
-  trans["zStart"] = zDisc->step;
-  trans["zEnd"] = zDisc->max;
-  trans["step"] = stepWhenComputingTransmission;
-  string fname = ctl.getFnameTemplate();
-  fname += "_trans.h5";
-  trans["file"] = fname;
-
-  int rank = 1;
-  hsize_t dim = transmission.size();
-  hid_t file_id = H5Fcreate( fname.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
-  H5LTmake_dataset( file_id, "transmission", rank, &dim, H5T_NATIVE_DOUBLE, &transmission[0]);
-  H5LTmake_dataset( file_id, "transmissionFull", rank, &dim, H5T_NATIVE_DOUBLE, &transmissionFull[0]);
-  H5Fclose(file_id);
-  ctl.get()["Transmission"] = trans;
-  clog << "Transmission is written to " << fname << endl;
 }
 
 void CurvedWaveGuideFD::init( const ControlFile &ctl )
@@ -258,4 +192,21 @@ void CurvedWaveGuideFD::getXrayMatProp( double x, double z, double &delta, doubl
   }
   delta = cladding->getDelta()*smoothedWG(x,z);
   beta = cladding->getBeta()*smoothedWG(x,z);
+}
+
+void CurvedWaveGuideFD::solve()
+{
+  // Start from 1 as the first step is the initial conditions
+  for ( unsigned int n=1;n<nodeNumberLongitudinal();n++ )
+  {
+    step();
+    transmittivity.compute( getZ(n) );
+  }
+}
+
+void CurvedWaveGuideFD::save( ControlFile &ctl )
+{
+  ParaxialSimulation::save( ctl );
+  arma::vec res = transmittivity.get();
+  saveArmaVec( res, "transmittivity", commonAttributes );
 }
