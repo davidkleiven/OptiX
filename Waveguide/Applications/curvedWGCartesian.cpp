@@ -346,7 +346,6 @@ int main( int argc, char **argv )
             //wg->saveContour( false );
           #endif
           wg->save( ctl );
-          wg->saveTransmission( ctl );
           ctl.save();
           clog << "Finished exporting\n";
 

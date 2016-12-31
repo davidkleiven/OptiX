@@ -1,6 +1,7 @@
 #include "transmittivity.hpp"
 #include "curvedWaveGuide2D.hpp"
 #include "solver2D.hpp"
+#include <cassert>
 #include <cmath>
 
 using namespace std;
@@ -26,14 +27,21 @@ double post::Transmittivity::trapezoidalIntegrateIntensityZ( unsigned int ixStar
 
 void post::Transmittivity::compute( double z )
 {
-  // Integrate across waveguide
-  double fluxAtZero = 0.0;
+  assert( guide != NULL );
+
   unsigned int wgStart = 0;
   unsigned int wgEnd = 0;
   unsigned int zIndx;
-  guide->closestIndex( 0.0, 0.0, wgStart, zIndx );
-  guide->closestIndex( guide->getWidth(), 0.0, wgEnd, zIndx );
-  double intensityAtZero = trapezoidalIntegrateIntensityZ( wgStart, wgEnd );
+  
+  // Integrate across waveguide
+  if ( computeIntensityAtZero )
+  {
+    guide->closestIndex( 0.0, 0.0, wgStart, zIndx );
+    guide->closestIndex( guide->getWidth(), 0.0, wgEnd, zIndx );
+    intensityAtZero = trapezoidalIntegrateIntensityZ( wgStart, wgEnd );
+    computeIntensityAtZero = false;
+  }
+
 
   double xWgStart, xWgEnd;
   if ( guide->getBorderTracker() == NULL )

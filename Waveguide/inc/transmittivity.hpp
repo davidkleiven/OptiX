@@ -24,9 +24,12 @@ namespace post
   private:
     const CurvedWaveGuideFD* guide;
     std::vector<double> *transmission;
+    double intensityAtZero{1.0};
+    bool computeIntensityAtZero{true};
 
     /** Trapezoidal integration */
     double trapezoidalIntegrateIntensityZ( unsigned int ixStart, unsigned int ixEnd ) const;
+
   };
 };
 #endif

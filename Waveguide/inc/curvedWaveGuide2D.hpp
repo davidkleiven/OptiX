@@ -28,12 +28,6 @@ public:
   /** Get the radius of curvature in nano meter */
   double getRadiusOfCurvature() const { return R; };
 
-  /** Compute the transmitted energy defined as the integrated intensity over the waveguide cross section */
-  void computeTransmission( double step );
-
-  /** Save the transmission to a HDF5 file */
-  void saveTransmission( ControlFile &ctl ) const;
-
   /** Get the field inside the waveguide */
   void getFieldInsideWG( arma::mat &matrix ) const;
 
@@ -76,12 +70,9 @@ public:
   /** Returns the upper part of the border at position z. Required when computing the transmission. */
   virtual double waveGuideEndX( double z ) const;
 protected:
-  CurvedWaveGuideFD( const char *name): WaveGuideFDSimulation(name){};
+  CurvedWaveGuideFD( const char *name);
   double R;
   double width;
-  std::vector<double> transmission;
-  std::vector<double> transmissionFull;
-  double stepWhenComputingTransmission{0.0};
   bool useSmoothed{false};
   post::Transmittivity transmittivity;
 };

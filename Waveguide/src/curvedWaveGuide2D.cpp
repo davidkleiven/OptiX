@@ -24,12 +24,14 @@ CurvedWaveGuideFD::CurvedWaveGuideFD(): WaveGuideFDSimulation("CurvedWaveGuide2D
   transmittivity.linkWaveguide( *this );
 }
 
+CurvedWaveGuideFD::CurvedWaveGuideFD( const char *name): WaveGuideFDSimulation(name)
+{
+  transmittivity.linkWaveguide( *this );
+}
+
 bool CurvedWaveGuideFD::isInsideGuide( double x, double z ) const
 {
-//  double d = sqrt(x*x + z*z);
   return (2.0*x*R+z*z > 0.0 ) && (2.0*x*R+z*z < 2.0*width*R);
-  //return (pow(R+x,2)+z*z > pow(R,2)) && (pow(R+x,2)+z*z < pow(R+width,2));
-  //return ( d < R+width) && (d > R );
 }
 
 void CurvedWaveGuideFD::fillInfo( Json::Value &obj ) const
@@ -47,26 +49,6 @@ double CurvedWaveGuideFD::waveGuideStartX( double z ) const
 double CurvedWaveGuideFD::waveGuideEndX( double z ) const
 {
   return waveGuideStartX( z ) + width;
-}
-
-void CurvedWaveGuideFD::saveTransmission( ControlFile &ctl ) const
-{
-  Json::Value trans;
-  trans["zStart"] = zDisc->step;
-  trans["zEnd"] = zDisc->max;
-  trans["step"] = stepWhenComputingTransmission;
-  string fname = ctl.getFnameTemplate();
-  fname += "_trans.h5";
-  trans["file"] = fname;
-
-  int rank = 1;
-  hsize_t dim = transmission.size();
-  hid_t file_id = H5Fcreate( fname.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
-  H5LTmake_dataset( file_id, "transmission", rank, &dim, H5T_NATIVE_DOUBLE, &transmission[0]);
-  H5LTmake_dataset( file_id, "transmissionFull", rank, &dim, H5T_NATIVE_DOUBLE, &transmissionFull[0]);
-  H5Fclose(file_id);
-  ctl.get()["Transmission"] = trans;
-  clog << "Transmission is written to " << fname << endl;
 }
 
 void CurvedWaveGuideFD::init( const ControlFile &ctl )
@@ -214,7 +196,8 @@ void CurvedWaveGuideFD::getXrayMatProp( double x, double z, double &delta, doubl
 
 void CurvedWaveGuideFD::solve()
 {
-  for ( unsigned int n=0;n<nodeNumberLongitudinal();n++ )
+  // Start from 1 as the first step is the initial conditions
+  for ( unsigned int n=1;n<nodeNumberLongitudinal();n++ )
   {
     step();
     transmittivity.compute( getZ(n) );
