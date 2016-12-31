@@ -281,8 +281,12 @@ def main(argv):
     # Plot transmission. Put in try catch as some of the simulaitons do not compute the transmission
     try:
         with h5.File(stat["datafile"], 'r') as hf:
-            data = np.array( hf.get("transmittivity") )
-        trans.plotTransmission( data, stat )
+            dset = hf.get("transmittivity")
+            data = np.array( dset )
+            zmin = float( dset.attrs.get("zmin") )
+            zmax = float( dset.attrs.get("zmax") )
+            uid = int( dset.attrs.get("uid") )
+        trans.plotTransmission( data, zmin, zmax, uid )
     except Exception as exc:
         print str(exc)
         print ("Error when plotting transmission")
