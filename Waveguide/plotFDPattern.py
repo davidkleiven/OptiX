@@ -280,8 +280,8 @@ def main(argv):
 
     # Plot transmission. Put in try catch as some of the simulaitons do not compute the transmission
     try:
-        with h5.File(stat["Transmission"]["file"], 'r') as hf:
-            data = np.array( hf.get("transmission") )
+        with h5.File(stat["datafile"], 'r') as hf:
+            data = np.array( hf.get("transmittivity") )
         trans.plotTransmission( data, stat )
     except Exception as exc:
         print str(exc)
