@@ -58,16 +58,16 @@ void setupPW( PlaneWave &pw, const map<string,double> &params )
 int main( int argc, char **argv )
 {
   map<string,double> params;
-  params["radius"] = 40.0;
-  params["wavelength"] = 0.1569;
-  params["width"] = 100.0;
+  params["radius"] = 40.0;             // In mm
+  params["wavelength"] = 0.1569;       // In nm
+  params["width"] = 100.0;             // In nm
   params["Nx"] = 2000;
   params["Nz"] = 6000;
   params["zmin"] = 0.0;
-  params["zmax"] = 400.0;
-  params["ffAngleMax"] = 1.0;
-  params["ffAngleMin"] = -1.0;
-  params["incAngle"] = 0.0;
+  params["zmax"] = 400E3;              // in nm
+  params["ffAngleMax"] = 1.0;          // In deg
+  params["ffAngleMin"] = -1.0;         // In deg
+  params["incAngle"] = 0.0;            // In deg
   params["xmin"] = 0.0;
   params["xmax"] = 0.0;
   params["downSamplingX"] = 1.0;
@@ -136,7 +136,6 @@ int main( int argc, char **argv )
 
   try
   {
-    clog << "Initializing simulation...";
     switch ( mode )
     {
       case Mode_t::STRAIGHT:
@@ -150,6 +149,7 @@ int main( int argc, char **argv )
         solver.setEquation( eq );
         wg.setCladding( cladding );
         wg.setSolver( solver );
+        wg.setBoundaryConditions( pw );
 
         // Set post processing options
         wg << amplitude << phase << ef << ei << ep << ff;
@@ -169,12 +169,16 @@ int main( int argc, char **argv )
         clog << "Solving curved waveguide in cylindrical coordinates\n";
         params["xmin"] = -params["width"];
         params["xmax"] = 2.0*params["width"];
+        params["zmax"] /= ( params["radius"]*1E6 );
         CurvedWGCylCrd wg;
         commonSetup( wg, params );
+        wg.setCladding( cladding );
         CylindricalParaxialEquation eq;
         eq.setRadiusOfCurvature( params["radius"]*1E6 );
         solver.setEquation( eq );
-
+        wg.setSolver( solver );
+        wg.setBoundaryConditions( pw );
+        wg << amplitude << phase << ef << ei << ep << ff;
         clog << "Solving equation...";
         wg.solve();
         clog << " done\n";
@@ -189,12 +193,15 @@ int main( int argc, char **argv )
       {
         clog << "Curved waveguide in cartesian coordinates\n";
         CurvedWaveGuideFD wg;
-        params["xmax"] = 2.0*params["width"];
+        params["xmax"] = xMargin;
         params["xmin"] = -0.5*params["zmax"]*params["zmax"]/(params["radius"]*1E6) - xMargin;
         commonSetup( wg, params );
+        wg.setCladding( cladding );
         ParaxialEquation eq;
         solver.setEquation( eq ),
         wg.setSolver( solver );
+        wg.setBoundaryConditions( pw );
+        wg << amplitude << phase << ef << ei << ep << ff;
         if ( useBorderTracker ) wg.useBorderTracker();
 
         clog << "Solving system...";

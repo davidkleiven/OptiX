@@ -196,6 +196,7 @@ void CurvedWaveGuideFD::getXrayMatProp( double x, double z, double &delta, doubl
 
 void CurvedWaveGuideFD::solve()
 {
+  verifySolverReady();
   // Start from 1 as the first step is the initial conditions
   for ( unsigned int n=1;n<nodeNumberLongitudinal();n++ )
   {
