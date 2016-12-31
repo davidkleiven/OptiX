@@ -45,7 +45,7 @@ class Transmission(ComparePlots):
         for dset in self.datasets:
             ax.plot( dset.z/1E6, np.log(dset.data), label=dset.label, color=cs.COLORS[indx%mxColor])
             indx += 1
-        ax.set_xlabel("$z (\SI{}{\milli\meter}$)")
+        ax.set_xlabel("$z$ (mm))")
         ax.set_ylabel("$\ln T$")
         ax.legend(loc="upper right", frameon=False)
         fig.savefig(self.figname, bbox_inches="tight")
@@ -86,8 +86,8 @@ class ExitFields(ComparePlots):
         fig.savefig(self.figname, bbox_inches="tight")
         print ("Figure written to %s"%(self.figname))
 
-def plotTransmission( data, stat ):
-    z = np.linspace( stat["Transmission"]["zStart"], stat["Transmission"]["zEnd"], len(data))
+def plotTransmission( data, zmin, zmax, uid ):
+    z = np.linspace( zmin, zmax, len(data))
     fitStart = int( 3*len(data)/4 )
     slope, interscept, rvalue, pvalue, stderr = stats.linregress( z[fitStart:], np.log(data[fitStart:]) )
     zFit = np.linspace( np.min(z), np.max(z), 101 )
@@ -100,6 +100,6 @@ def plotTransmission( data, stat ):
     ax.plot( zFit/1E6, fit, 'k')
     ax.set_xlabel("$z (\SI{}{\milli\meter}$)")
     ax.set_ylabel("$\ln T$")
-    fname = "Figures/transmission%d.pdf"%(stat["UID"])
+    fname = "Figures/transmission%d.pdf"%(uid)
     fig.savefig(fname, bbox_inches="tight")
     print ("Figure written to %s"%(fname))
