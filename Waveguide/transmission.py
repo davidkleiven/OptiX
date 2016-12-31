@@ -98,7 +98,7 @@ def plotTransmission( data, zmin, zmax, uid ):
     ax = fig.add_subplot(1,1,1)
     ax.plot( z/1E6, np.log(data), 'k.', ms=5, fillstyle="none" )
     ax.plot( zFit/1E6, fit, 'k')
-    ax.set_xlabel("$z (\SI{}{\milli\meter}$)")
+    ax.set_xlabel("$z$ (mm)")
     ax.set_ylabel("$\ln T$")
     fname = "Figures/transmission%d.pdf"%(uid)
     fig.savefig(fname, bbox_inches="tight")
