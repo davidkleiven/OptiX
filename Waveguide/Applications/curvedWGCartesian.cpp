@@ -38,7 +38,7 @@ enum class Mode_t {STRAIGHT, CURVED, CURVED_CYLCRD, NONE};
 void commonSetup( CurvedWaveGuideFD &wg, const map<string, double> &params )
 {
   wg.setRadiusOfCurvature( params.at("radius")*1E6 );
-  wg.setWaveguideLength( params.at("zmax") );
+  wg.setWaveguideLength( params.at("wglength") );
   wg.setWidth( params.at("width") );
   wg.setWaveLength( params.at("wavelength") );
   double stepX = (params.at("xmax") - params.at("xmin"))/params.at("Nx");
@@ -72,6 +72,7 @@ int main( int argc, char **argv )
   params["xmax"] = 0.0;
   params["downSamplingX"] = 1.0;
   params["downSamplingZ"] = 1.0;
+  params["wglength"] = 1.1*params["zmax"];
   Mode_t mode = Mode_t::NONE;
 
   bool useBorderTracker = false;
@@ -169,13 +170,13 @@ int main( int argc, char **argv )
         clog << "Solving curved waveguide in cylindrical coordinates\n";
         params["xmin"] = -params["width"];
         params["xmax"] = 2.0*params["width"];
-        params["zmax"] /= ( params["radius"]*1E6 );
+        params["zmax"] /= ( params["radius"]*1E6 ); // Convert to radians
         CurvedWGCylCrd wg;
         commonSetup( wg, params );
-        wg.setCladding( cladding );
         CylindricalParaxialEquation eq;
         eq.setRadiusOfCurvature( params["radius"]*1E6 );
         solver.setEquation( eq );
+        wg.setCladding( cladding );
         wg.setSolver( solver );
         wg.setBoundaryConditions( pw );
         wg << amplitude << phase << ef << ei << ep << ff;
