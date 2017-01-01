@@ -1,6 +1,8 @@
+from __future__ import print_function
 import numpy as np
 import h5py as h5
 import sys
+from matplotlib import pyplot as plt
 
 def compareLists( l1, l2 ):
     if ( len(l1) != len(l2) ):
@@ -41,7 +43,11 @@ def main( argv ):
             if ( keysAreEqual ):
                 print ("\033[0;32mKey test passed\033[0m")
             else:
-                print ("\033[0;31mThe files has not the same keys\033\[0m")
+                print ("\033[0;31mThe files has not the same keys\033[0m")
+                print ("Keys in file 1:")
+                print (dsets1)
+                print ("Keys in file 2:")
+                print (dsets2)
                 return
 
             # Compare datasets
@@ -58,13 +64,23 @@ def main( argv ):
                             break
 
                 if ( not equalSize ):
-                     print ( "\033[0;31mArrays %s have different dimensions\033[0m"%(str(key)) )
+                     print ( "\033[0;31mArrays %s have different dimensions"%(str(key)) )
+                     print ("File 1: ", end="")
+                     print (val1.shape)
+                     print ("File 2: ", end="")
+                     print (val2.shape)
+                     print ("\033[0m")
                      continue
 
-                if ( np.allclose(val1, val2, rtol=1E-3) ):
+                if ( np.allclose(val1, val2, rtol=1E-3, atol=1E-3) ):
                     print ( "\033[0;32mArrays %s passed\033[0m"%(str(key)) )
                 else:
                     print ( "\033[0;31mArrays %s failed\033[0m"%(str(key)) )
+                    if ( len(val1.shape) == 1 ):
+                        plt.plot(val1)
+                        plt.plot(val2)
+                        plt.title(key)
+        plt.show()
 
 if __name__ == "__main__":
     main( sys.argv[1:] )
