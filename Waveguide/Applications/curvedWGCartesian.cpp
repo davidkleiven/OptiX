@@ -13,6 +13,7 @@
 #include "gaussianWG.hpp"
 #include "linearRampWG.hpp"
 #include "postProcessMod.hpp"
+#include <map>
 #include <complex>
 #include <stdexcept>
 #include <cstdlib>
@@ -31,33 +32,50 @@ typedef complex<double> cdouble;
 
 enum class Source_t {PLANE, GAUSSIAN};
 enum class WGProfile_t {STEP, GAUSSIAN, LINEAR_RAMP};
+enum class Mode_t {STRAIGHT, CURVED, CURVED_CYLCRD, NONE};
 
+/** Function for the common setup for the wave guide */
+void commonSetup( CurvedWaveGuideFD &wg, const map<string, double> &params )
+{
+  wg.setRadiusOfCurvature( params.at("radius")*1E6 );
+  wg.setWaveguideLength( params.at("wglength") );
+  wg.setWidth( params.at("width") );
+  wg.setWaveLength( params.at("wavelength") );
+  double stepX = (params.at("xmax") - params.at("xmin"))/params.at("Nx");
+  double stepZ = (params.at("zmax") - params.at("zmin"))/params.at("Nz");
+  wg.setTransverseDiscretization( params.at("xmin"), params.at("xmax"), stepX);
+  wg.setLongitudinalDiscretization( params.at("zmin"), params.at("zmax"), stepZ);
+}
+
+/** Setup the plane wave function */
+void setupPW( PlaneWave &pw, const map<string,double> &params )
+{
+  pw.setWavelength( params.at("wavelength") );
+  pw.setAngleDeg( params.at("incAngle") );
+}
+
+/** Main function */
 int main( int argc, char **argv )
 {
-  double R[8] = {10.0, 20.0, 30.0, 40.0, 60.0, 80.0, 100.0, 150.0}; // In mm
-  double widths[8] = {40.0, 60.0, 80.0, 100.0, 200.0, 400.0, 800.0, 1200.0}; // In nm
-  double logDeltas[8] = {-6.0, -5.5, -5.25, -5.0, -4.75, -4.5, -4.25, -4.0}; // Used for sweep
+  map<string,double> params;
+  params["radius"] = 40.0;             // In mm
+  params["wavelength"] = 0.1569;       // In nm
+  params["width"] = 100.0;             // In nm
+  params["Nx"] = 2000;
+  params["Nz"] = 6000;
+  params["zmin"] = 0.0;
+  params["zmax"] = 400E3;              // in nm
+  params["ffAngleMax"] = 1.0;          // In deg
+  params["ffAngleMin"] = -1.0;         // In deg
+  params["incAngle"] = 0.0;            // In deg
+  params["xmin"] = 0.0;
+  params["xmax"] = 0.0;
+  params["downSamplingX"] = 1.0;
+  params["downSamplingZ"] = 1.0;
+  params["wglength"] = 1.1*params["zmax"];
+  Mode_t mode = Mode_t::NONE;
 
-  bool dumpUIDstoFile = true;
-  bool useStraight = false;
-  bool computeFarField = true;
-  bool useCylCrd = false;
   bool useBorderTracker = false;
-  bool performWidthSweep = false;
-  bool deltaSweep = false;
-  const unsigned int defaultWidthIndex = 6;
-  unsigned int widthStart = defaultWidthIndex;
-  unsigned int widthEnd = widthStart+1;
-  unsigned int startRun = 0;
-  unsigned int endRun = 8;
-  unsigned int deltaStart = 0;
-  unsigned int deltaEnd = 1;
-  unsigned int Nx = 2000;
-  unsigned int Nz = 6000;
-  double planeWaveAngleDeg = 0.0;//0.2;
-  double linearRampWidthFraction = 5.0; // Only relevant of profile = LINEAR_RAMP
-  Source_t source = Source_t::PLANE;
-  WGProfile_t profile = WGProfile_t::STEP;
 
   /*********** PARSE COMMANDLINE ARGUMENTS ************************************/
   for ( unsigned int i=1;i<argc; i++ )
@@ -65,74 +83,28 @@ int main( int argc, char **argv )
     string arg(argv[i]);
     if ( arg.find("--help") != string::npos )
     {
-      cout << "Usage: ./curvedWG.out [--help, --run=<run number> --straight --source=<sourcetype> --disc=Nx,Nz]\n";
+      cout << "Usage: ./curvedWG.out [--help, --mode=<run number> --brdtrack]\n";
       cout << "help: Print this message\n";
-      for ( unsigned int j=0;j<8;j++ )
-      {
-        cout << j << " Radius of curvature: " << R[j] << " mm\n";
-      }
-      cout << "straight: Run with a straight wave guide\n";
-      cout << "source: plane or gaussian. Plane is default\n";
-      cout << "cyl: use cylindrical coordiantes\n";
+      cout << "mode:\n";
+      cout << "    1: Straight\n";
+      cout << "    2: Curved waveguide in cylindrical coordinates\n";
+      cout << "    3: Curved waveguide in cartesian coordinates\n";
       cout << "brdtrack: Use the border tracker. Only have effect if using cartesian coordinates\n";
-      cout << "widthsweep: Perform a sweep over different widths\n";
-      cout << "deltasweep: Perform a sweep over different delta\n";
-      cout << "disc: Number of discretization points in each direction\n";
       return 0;
     }
-    else if ( arg.find("--run=") != string::npos )
+    else if ( arg.find("--mode=") != string::npos )
     {
       stringstream ss;
-      ss << arg.substr(6);
-      ss >> startRun;
-      endRun = startRun + 1;
-      dumpUIDstoFile = false;
-    }
-    else if ( arg.find("--straight") != string::npos )
-    {
-      useStraight = true;
-      endRun = 1;
-      dumpUIDstoFile = false;
-    }
-    else if ( arg.find("--source=") != string::npos )
-    {
-      string sourceStr(arg.substr(9));
-      if ( sourceStr == "gaussian" )
-      {
-        source = Source_t::GAUSSIAN;
-      }
-      else if ( sourceStr == "plane" )
-      {
-        source = Source_t::PLANE;
-      }
-      else
-      {
-        cout << "Unknown source type " << sourceStr << endl;
-        return 0;
-      }
-    }
-    else if ( arg.find("--cyl") != string::npos )
-    {
-      useCylCrd = true;
+      unsigned int intMode;
+      ss << arg.substr(7);
+      ss >> intMode;
+      if ( intMode == 1 ) mode = Mode_t::STRAIGHT;
+      else if ( intMode == 2 ) mode = Mode_t::CURVED_CYLCRD;
+      else if ( intMode == 3 ) mode = Mode_t::CURVED;
     }
     else if ( arg.find("--brdtrack") != string::npos )
     {
       useBorderTracker = true;
-    }
-    else if ( arg.find("--widthsweep") != string::npos )
-    {
-      performWidthSweep = true;
-    }
-    else if ( arg.find("--deltaSweep") != string::npos )
-    {
-      deltaSweep = true;
-    }
-    else if ( arg.find("--disc=") != string::npos )
-    {
-      stringstream ss;
-      ss << arg.substr(7);
-      char comma;
-      ss >> Nx >> comma >> Nz;
     }
     else
     {
@@ -142,265 +114,135 @@ int main( int argc, char **argv )
   }
   /****************** END COMMANDLINE ARGUMENTS *******************************/
 
-  // Parameters for running a sweep over radii of curvature
-  double LzOverR = 0.01; // max(z)/R << 1 is a requirement
-  double xMarginAboveAndBelow = 0.01E3; // In nanometers = 0.5 um
-
-  unsigned int nPointsTransmission = 200;
-
   Cladding cladding;
   double delta = 4.14E-5; // Default value
   double beta = 3.45E-6;
   cladding.setRefractiveIndex(delta, beta);
-  double width = 100.0; // Width of the waveguide in nm
-  vector<unsigned int> allUIDs;
-  bool allowUseOfBorderTracker = false; // Internally handled, do not change this
 
-  if ( performWidthSweep )
-  {
-    widthStart = 0;
-    widthEnd = 8;
-  }
+  // Set post processing options
+  post::Intensity amplitude;
+  post::Phase phase;
+  post::ExitField ef;
+  post::ExitIntensity ei;
+  post::ExitPhase ep;
+  post::FarField ff;
+  ff.setPadLength( params["padLength"] );
+  ff.setAngleRange( params["ffAngleMin"], params["ffAngleMax"] );
+  ControlFile ctl("data/singleCurvedWG"); // File for all parameters and settings
+  PlaneWave pw;
+  setupPW( pw, params );
+  CrankNicholson solver;
+  arma::mat intensity; // Matrix used for visualization
+  double xMargin = 0.01E3;
 
-  if ( deltaSweep )
+  try
   {
-    deltaStart = 0;
-    deltaEnd = 8;
-  }
-
-  // Start sweep
-  for ( unsigned int i=startRun;i<endRun;i++ )
-  {
-    clog << "Running " << i-startRun+1 << " of " << endRun-startRun << endl;
-    for ( unsigned int iw=widthStart;iw<widthEnd;iw++ )
+    switch ( mode )
     {
-      for ( unsigned int idelta=deltaStart;idelta<deltaEnd;idelta++ )
+      case Mode_t::STRAIGHT:
       {
-        if ( deltaSweep )
-        {
-          delta = pow( 10.0, logDeltas[idelta] );
-          cladding.setRefractiveIndex(delta, beta);
-          clog << "Running width delta = " << delta << endl;
-        }
-        double Rcurv = R[i]*1E6;
-        double zmin = 0.0;
-        double zmax = Rcurv*LzOverR;
-        double xmax = width+xMarginAboveAndBelow;
-        double xmin = -0.5*zmax*LzOverR-xMarginAboveAndBelow;
-        double wglength = 1.5*zmax;
+        clog << "Running straight waveguide\n";
+        params["xmin"] = -params["width"];
+        params["xmax"] = 2.0*params["width"];
+        StraightWG2D wg;
+        commonSetup( wg, params );
+        ParaxialEquation eq;
+        solver.setEquation( eq );
+        wg.setCladding( cladding );
+        wg.setSolver( solver );
+        wg.setBoundaryConditions( pw );
 
-        if ( performWidthSweep )
-        {
-          width = widths[iw];
-        }
-        clog << "Running width waveguide width: " << width << "nm\n";
+        // Set post processing options
+        wg << amplitude << phase << ef << ei << ep << ff;
+        clog << "Solving linear system... ";
+        wg.solve();
+        clog << "done\n";
 
-        if ( useStraight )
-        {
-          zmax = 400.0E3; // 500 um
-          xmin = -width;
-          xmax = width + width;
-          wglength = 1.5*zmax;
-        }
-
-        if ( useCylCrd )
-        {
-          xmin = -width;
-          xmax = width+width;
-          // Note now z refers to the azimutal angle theta and x to the radius
-          zmin = 0.0;
-          double wgDistance = 400E3; // Simulate 400 um
-
-          // Hack for generating the geometrical optics plot
-          //width = 1200.0;
-          //xmin = -0.2*width;
-          //xmax = width + 0.2*width;
-          //wgDistance = 1200E3;
-
-          zmax = wgDistance/Rcurv;
-          wglength = 1.1*wgDistance;
-        }
-
-        //stepX = stepX > 1.0 ? 1.0:stepX;
-        //stepZ = stepZ > 100.0 ? 100.0:stepZ;
-
-        ControlFile ctl("data/singleCurvedWG"); // File for all parameters and settings
-
-        CurvedWaveGuideFD *wg = NULL;
-        ParaxialSource *src = NULL;
-        ParaxialEquation *eq = NULL; // Cartesian coordinates
-        try
-        {
-          clog << "Initializing simulation...";
-          if ( useStraight )
-          {
-            wg = new StraightWG2D();
-          }
-          else if ( useCylCrd )
-          {
-            wg = new CurvedWGCylCrd();
-          }
-          else if ( profile == WGProfile_t::GAUSSIAN )
-          {
-            wg = new GaussianWG();
-          }
-          else if ( profile == WGProfile_t::LINEAR_RAMP )
-          {
-            LinearRampWG* linWG = new LinearRampWG();
-            linWG->setWidthFraction( linearRampWidthFraction );
-            wg = linWG;
-          }
-          else
-          {
-            wg = new CurvedWaveGuideFD();
-            allowUseOfBorderTracker = true;
-          }
-
-          if ( useBorderTracker && allowUseOfBorderTracker )
-          {
-            xmin = -1.0*width;
-            xmax = 2.0*width;
-          }
-
-          // Set post processing options
-          post::Intensity amplitude;
-          post::Phase phase;
-          post::ExitField ef;
-          post::ExitIntensity ei;
-          post::ExitPhase ep;
-          post::FarField ff;
-          ff.setPadLength( 65535 );
-          ff.setAngleRange( -0.5, 0.5 );
-          *wg << amplitude << phase << ef << ei << ep << ff;
-
-          double stepX = (xmax-xmin)/static_cast<double>(Nx);
-          double stepZ = (zmax-zmin)/static_cast<double>(Nz);
-
-          double wavelength = 0.1569;
-          switch ( source )
-          {
-            case Source_t::PLANE:
-            {
-              clog << "Using plane wave source\n";
-              PlaneWave *psrc = new PlaneWave();
-              psrc->setAngleDeg( planeWaveAngleDeg );
-              src = psrc;
-              break;
-            }
-            case Source_t::GAUSSIAN:
-              clog << "Using gaussian source\n";
-              GaussianBeam *gsrc = new GaussianBeam();
-              gsrc->setWaist( 1.0 ); // Waist is 10 nm with a wavelength of 0.1569 nm this gives beamdivergence of 0.3 deg
-              gsrc->setOrigin( width/2.0, -1E4 ); // Origin at -100.0 nm
-              src = gsrc;
-              break;
-          }
-
-          src->setWavelength( wavelength );
-
-          wg->setRadiusOfCurvature( Rcurv );
-          wg->setWaveguideLength( wglength );
-          wg->setWidth( width );
-          wg->setWaveLength( wavelength );
-          wg->setCladding( cladding );
-          wg->setTransverseDiscretization(xmin,xmax,stepX);
-          wg->setLongitudinalDiscretization(zmin,zmax,stepZ);
-          CrankNicholson solver;
-          if ( useCylCrd )
-          {
-            CylindricalParaxialEquation *ceq = new CylindricalParaxialEquation();
-            ceq->setRadiusOfCurvature( Rcurv );
-            eq = ceq;
-          }
-          else
-          {
-            eq = new ParaxialEquation();
-          }
-
-          solver.setEquation( *eq );
-          wg->setSolver(solver);
-          wg->setBoundaryConditions( *src );
-          if ( useBorderTracker )
-          {
-            wg->useBorderTracker();
-          }
-          clog << " done\n";
-          clog << "Solving linear system... ";
-          wg->solve();
-          clog << "done\n";
-
-          if ( computeFarField )
-          {
-            clog << "Computing far fields... ";
-            //wg->computeFarField( 65536 );
-            clog << "done\n";
-          }
-
-          if ( !useBorderTracker )
-          {
-            wg->extractWGBorders();
-          }
-
-          clog << "Exporting results...\n";
-          #ifdef VISUALIZE_PATTERN
-            //wg->saveContour( false );
-          #endif
-          wg->save( ctl );
-          ctl.save();
-          clog << "Finished exporting\n";
-
-          #ifdef VISUALIZE_PATTERN
-            clog << "Visualizing waveguide intensity\n";
-            visa::WindowHandler plots;
-            plots.addPlot("Intensity");
-            arma::mat intensity = arma::abs( wg->getSolver().getSolution() );
-            plots.get("Intensity").fillVertexArray( intensity );
-            plots.show();
-            for ( unsigned int i=0;i<KEEP_PLOT_FOR_SEC;i++ )
-            {
-              plots.show();
-              clog << "Closes in " << KEEP_PLOT_FOR_SEC-i <<  "seconds \r";
-              this_thread::sleep_for( chrono::seconds(1) );
-            }
-          #endif
-
-          delete wg;
-          delete src;
-          delete eq;
-        }
-        catch ( exception &exc )
-        {
-          cerr << exc.what() << endl;
-          delete wg;
-          delete src;
-          delete eq;
-          return 1;
-        }
-        catch (...)
-        {
-          cerr << "An unrecognized exception occured!\n";
-          delete src;
-          delete wg;
-          delete eq;
-          return 1;
-        }
-
-        clog << "The simulation ended successfully\n";
-        allUIDs.push_back( ctl.getUID() );
+        clog << "Exporting results...\n";
+        wg.save( ctl );
+        ctl.save();
+        clog << "Finished exporting\n";
+        intensity = arma::abs( wg.getSolver().getSolution() );
+        break;
       }
-    }
-  }
+      case Mode_t::CURVED_CYLCRD:
+      {
+        clog << "Solving curved waveguide in cylindrical coordinates\n";
+        params["xmin"] = -params["width"];
+        params["xmax"] = 2.0*params["width"];
+        params["zmax"] /= ( params["radius"]*1E6 ); // Convert to radians
+        CurvedWGCylCrd wg;
+        commonSetup( wg, params );
+        CylindricalParaxialEquation eq;
+        eq.setRadiusOfCurvature( params["radius"]*1E6 );
+        solver.setEquation( eq );
+        wg.setCladding( cladding );
+        wg.setSolver( solver );
+        wg.setBoundaryConditions( pw );
+        wg << amplitude << phase << ef << ei << ep << ff;
+        clog << "Solving equation...";
+        wg.solve();
+        clog << " done\n";
+        clog << "Exporting results...\n";
+        wg.save( ctl );
+        ctl.save();
+        clog << "Finished exporting\n";
+        intensity = arma::abs( wg.getSolver().getSolution() );
+        break;
+      }
+      case Mode_t::CURVED:
+      {
+        clog << "Curved waveguide in cartesian coordinates\n";
+        CurvedWaveGuideFD wg;
+        params["xmax"] = params["width"] + xMargin;
+        params["xmin"] = -0.5*params["zmax"]*params["zmax"]/(params["radius"]*1E6) - xMargin;
+        commonSetup( wg, params );
+        wg.setCladding( cladding );
+        ParaxialEquation eq;
+        solver.setEquation( eq ),
+        wg.setSolver( solver );
+        wg.setBoundaryConditions( pw );
+        wg << amplitude << phase << ef << ei << ep << ff;
+        if ( useBorderTracker ) wg.useBorderTracker();
 
-  if ( dumpUIDstoFile )
-  {
-    string uidFname = "data/allUIDs.txt";
-    ofstream out( uidFname.c_str() );
-    for ( unsigned int i=0; i<allUIDs.size(); i++ )
-    {
-      out << allUIDs[i] << endl;
+        clog << "Solving system...";
+        wg.solve();
+        clog << " done\n";
+        clog << "Exporting results...\n";
+        if (!useBorderTracker) wg.extractWGBorders();
+        wg.save( ctl );
+        ctl.save();
+        clog << "Finished exporting results\n";
+        intensity = arma::abs( wg.getSolver().getSolution() );
+        break;
+      }
+      default:
+        clog << "Mode not recognized\n";
     }
-    out.close();
-    clog << "UIDs for sweep written to " << uidFname << endl;
+
+    #ifdef VISUALIZE_PATTERN
+      clog << "Visualizing waveguide intensity\n";
+      visa::WindowHandler plots;
+      plots.addPlot("Intensity");
+      plots.get("Intensity").fillVertexArray( intensity );
+      plots.show();
+      for ( unsigned int i=0;i<KEEP_PLOT_FOR_SEC;i++ )
+      {
+        plots.show();
+        clog << "Closes in " << KEEP_PLOT_FOR_SEC-i <<  "seconds \r";
+        this_thread::sleep_for( chrono::seconds(1) );
+      }
+    #endif
+  }
+  catch ( exception &exc )
+  {
+    cerr << exc.what() << endl;
+    return 1;
+  }
+  catch (...)
+  {
+    cerr << "An unrecognized exception occured!\n";
+    return 1;
   }
   return 0;
 }

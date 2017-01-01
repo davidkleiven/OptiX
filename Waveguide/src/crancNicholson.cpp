@@ -35,7 +35,7 @@ void CrankNicholson::solveStep( unsigned int iz )
 
   for ( unsigned int ix=0; ix<Nx; ix++ )
   {
-    double x = xmin + static_cast<double>(ix)*stepX; // Initial X
+    double x = guide->getX( ix );
     double xPrevShifted = x;
     double xShifted = x;
     if ( bTr != NULL )
