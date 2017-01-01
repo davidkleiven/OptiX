@@ -43,8 +43,8 @@ void commonSetup( CurvedWaveGuideFD &wg, const map<string, double> &params )
   wg.setWaveLength( params.at("wavelength") );
   double stepX = (params.at("xmax") - params.at("xmin"))/params.at("Nx");
   double stepZ = (params.at("zmax") - params.at("zmin"))/params.at("Nz");
-  wg.setTransverseDiscretization( params.at("xmin"), params.at("xmax"), stepX);
-  wg.setLongitudinalDiscretization( params.at("zmin"), params.at("zmax"), stepZ);
+  wg.setTransverseDiscretization( params.at("xmin"), params.at("xmax"), stepX, params.at("downSamplingX") );
+  wg.setLongitudinalDiscretization( params.at("zmin"), params.at("zmax"), stepZ, params.at("downSamplingZ") );
 }
 
 /** Setup the plane wave function */
@@ -70,8 +70,8 @@ int main( int argc, char **argv )
   params["incAngle"] = 0.0;            // In deg
   params["xmin"] = 0.0;
   params["xmax"] = 0.0;
-  params["downSamplingX"] = 1.0;
-  params["downSamplingZ"] = 1.0;
+  params["downSamplingX"] = 10.0;
+  params["downSamplingZ"] = 10.0;
   params["wglength"] = 1.1*params["zmax"];
   Mode_t mode = Mode_t::NONE;
 

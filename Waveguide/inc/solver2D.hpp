@@ -71,6 +71,12 @@ public:
   /** Perform one step */
   void step();
 
+  /** Filter and downsample in the longitudinal direction */
+  void filterInLongitudinalDirection();
+
+  /** Down sample in longitudinal direction */
+  void downSampleLongitudinalDirection();
+
   /** Reset the counter */
   void reset(){ currentStep = 1; };
 
@@ -103,9 +109,6 @@ protected:
 
   /** Copies the solution in to the solution matrix */
   void copyCurrentSolution( unsigned int step );
-
-  /** Filter and downsample in the longitudinal direction */
-  void filterInLongitudinalDirection();
 
   /** Solve one step */
   virtual void solveStep( unsigned int step ) = 0;

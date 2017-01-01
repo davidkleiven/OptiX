@@ -219,6 +219,7 @@ void Solver2D::solve()
     step();
   }
   filterInLongitudinalDirection();
+  downSampleLongitudinalDirection();
 }
 
 void Solver2D::step()
@@ -243,4 +244,21 @@ void Solver2D::initValuesFromWaveGuide()
   stepZ = guide->longitudinalDiscretization().step;
   zmin = guide->longitudinalDiscretization().min;
   wavenumber = guide->getWavenumber();
+}
+
+void Solver2D::downSampleLongitudinalDirection()
+{
+  unsigned int Nz = guide->nodeNumberLongitudinal()/guide->longitudinalDiscretization().downsamplingRatio;
+  arma::cx_mat *copy = new arma::cx_mat( solution->n_rows, Nz );
+  double delta = static_cast<double>( solution->n_cols )/static_cast<double>( Nz );
+  for ( unsigned int iz=0;iz<Nz;iz++ )
+  {
+    unsigned int indx = iz*delta+delta/2.0;
+    for ( unsigned int ix=0;ix<copy->n_rows;ix++ )
+    {
+      (*copy)(ix,iz) = (*solution)(ix,indx);
+    }
+  }
+  delete solution;
+  solution = copy;
 }

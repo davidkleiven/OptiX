@@ -203,6 +203,8 @@ void CurvedWaveGuideFD::solve()
     step();
     transmittivity.compute( getZ(n) );
   }
+  solver->filterInLongitudinalDirection();
+  solver->downSampleLongitudinalDirection();
 }
 
 void CurvedWaveGuideFD::save( ControlFile &ctl )
