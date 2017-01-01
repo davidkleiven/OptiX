@@ -3,7 +3,8 @@
 #include <hdf5_hl.h>
 
 using namespace std;
-void IncidentAngleLengthSweep::processFarField()
+
+void IncidentAngleLengthSweep::processStep( double z )
 {
   if ( currentTheta >= nTheta )
   {
@@ -11,35 +12,42 @@ void IncidentAngleLengthSweep::processFarField()
     return;
   }
 
-  double z = wg.longitudinalDiscretization().max;
-  if ( z < Lmin )
-  {
-    throw (runtime_error("The minimum distance given is smaller than the maximum value in the discretization!"));
-  }
-  double dz = (z-Lmin)/static_cast<double>(Nlengths);
+  if ( ( z < nextZ ) || ( currentLengthIter >= Nlengths ) ) return;
+  arma::vec farF;
+  ff.result( wg.getSolver(), farF );
+
+  // TODO: Move to set lmin
+  //double z = wg.longitudinalDiscretization().max;
+  //if ( z < Lmin )
+  //{
+    //throw (runtime_error("The minimum distance given is smaller than the maximum value in the discretization!"));
+  //}
+
   /** Initialize the storage space */
   if ( data.size() == 0 )
   {
     data.resize( Nlengths );
-    for ( unsigned int i=0;i<Nlengths;i++ )
-    {
-      int n = angleIndx( 1.3*thetaMax );
-      data[i].length = z-i*dz;
-      data[i].farField.set_size( 2*n+1, nTheta );
-    }
+    data[currentLengthIter].length = z;
   }
 
   /** Compute far field based on the at several positions */
-  for ( unsigned int i=0;i<Nlengths;i++ )
+  data[currentLengthIter].farField.set_size( farF.n_elem, nTheta );
+  data[currentLengthIter].length = z;
+  for ( unsigned int j=0;j<farF.n_elem;j++ )
   {
-    wg.computeFarField( fftSignalLength, z-i*dz );
-    unsigned int n = data[i].farField.n_rows/2;
-    for ( unsigned int j=0;j<2*n;j++ )
-    {
-      data[i].farField(j, currentTheta) = wg.getFarField()(fftSignalLength/2-n+j);
-    }
+    data[currentLengthIter].farField(j, currentTheta) = farF(j);
   }
-  currentTheta++; // Proceed to the next angle
+
+  double lengthStep = (zmax-Lmin)/static_cast<double>(Nlengths);
+  nextZ += lengthStep;
+  currentLengthIter++;
+}
+
+void IncidentAngleLengthSweep::proceedToNextAngle()
+{
+  nextZ = Lmin;
+  currentLengthIter = 0;
+  currentTheta++;
 }
 
 void IncidentAngleLengthSweep::save( const string &fname ) const

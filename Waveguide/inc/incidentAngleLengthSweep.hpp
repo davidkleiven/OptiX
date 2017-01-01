@@ -19,7 +19,7 @@ public:
   IncidentAngleLengthSweep(){};
 
   /** Set minium length to compute far field (maximum is given by incident angle's waveguide length)*/
-  void setLmin( double lmin ){ Lmin=lmin; };
+  void setLmin( double lmin ){ Lmin=lmin; nextZ=lmin; };
 
   /** Set number of lengths for which the far field should be computed */
   void setNumberOfLengths( unsigned int N ){ Nlengths=N; };
@@ -29,10 +29,15 @@ public:
 private:
   double Lmin{2.0};
   double Nlengths{100};
+  unsigned int currentLengthIter{0};
   std::vector<FarFieldDataset> data;
   unsigned int currentTheta{0};
+  double nextZ;
 
   /** Compute far field at base on the field from several locations */
-  virtual void processFarField() override;
+  virtual void processStep( double z ) override;
+
+  /** Called when the solver proceeds to the next angle */
+  virtual void proceedToNextAngle() override;
 };
 #endif

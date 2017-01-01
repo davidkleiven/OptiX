@@ -14,39 +14,7 @@ typedef complex<double> cdouble;
 cdouble IMAG_UNIT(0.0,1.0);
 CrankNicholson::~CrankNicholson(){};
 
-void CrankNicholson::initValuesFromWaveGuide()
-{
-  if ( guide == NULL )
-  {
-    throw( runtime_error("No waveguide specified!"));
-  }
-  Nx = guide->nodeNumberTransverse();
-  Nz = guide->nodeNumberLongitudinal();
-  stepX = guide->transverseDiscretization().step;
-  xmin = guide->transverseDiscretization().min;
-  stepZ = guide->longitudinalDiscretization().step;
-  zmin = guide->longitudinalDiscretization().min;
-  wavenumber = guide->getWavenumber();
-}
-void CrankNicholson::solve()
-{
-  if ( eq == NULL )
-  {
-    throw ( runtime_error("No paraxial equation object given!") );
-  }
-
-  // Assert that the solution matrix is allocated
-  assert( solution != NULL );
-  assert( guide != NULL );
-
-  initValuesFromWaveGuide();
-  for ( unsigned int iz=1;iz<Nz;iz++ )
-  {
-    solveCurrent( iz );
-  }
-}
-
-void CrankNicholson::solveCurrent( unsigned int iz )
+void CrankNicholson::solveStep( unsigned int iz )
 {
   assert( iz>=1 );
   cdouble *subdiag = new cdouble[Nx-1];
@@ -67,7 +35,7 @@ void CrankNicholson::solveCurrent( unsigned int iz )
 
   for ( unsigned int ix=0; ix<Nx; ix++ )
   {
-    double x = xmin + static_cast<double>(ix)*stepX; // Initial X
+    double x = guide->getX( ix );
     double xPrevShifted = x;
     double xShifted = x;
     if ( bTr != NULL )
@@ -110,9 +78,9 @@ void CrankNicholson::solveCurrent( unsigned int iz )
     }
     else
     {
-      left = ix > 0 ? (*solution)(ix-1,iz-1):guide->transverseBC(z-stepZ, WaveGuideFDSimulation::Boundary_t::BOTTOM);
-      center = (*solution)(ix, iz-1);
-      right = ix < Nx-1 ? (*solution)(ix+1,iz-1):guide->transverseBC(z-stepZ, WaveGuideFDSimulation::Boundary_t::TOP);
+      left = ix > 0 ? (*prevSolution)(ix-1):guide->transverseBC(z-stepZ, WaveGuideFDSimulation::Boundary_t::BOTTOM);
+      center = (*prevSolution)(ix);
+      right = ix < Nx-1 ? (*prevSolution)(ix+1):guide->transverseBC(z-stepZ, WaveGuideFDSimulation::Boundary_t::TOP);
     }
 
     if ( ix > 0 )
@@ -154,7 +122,7 @@ void CrankNicholson::solveCurrent( unsigned int iz )
   // Copy solution to matrix
   for ( unsigned int ix=0;ix<Nx;ix++ )
   {
-    (*solution)(ix,iz) = diag[ix];
+    (*currentSolution)(ix) = diag[ix];
   }
 
   delete [] rhs;

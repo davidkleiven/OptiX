@@ -48,6 +48,9 @@ public:
   /** Get a pointer to the border tracker */
   BorderTracker* getBorderTracker() override { return bTracker; };
 
+  /** Get pointer to const border tracker */
+  const BorderTracker* getBorderTracker() const { return bTracker; };
+
   // Virtual methods
 
   /** Fill JSON object with parameters specific to this class */

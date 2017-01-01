@@ -5,6 +5,7 @@
 #include "cladding.hpp"
 #include "paraxialEquation.hpp"
 #include "crankNicholson.hpp"
+#include "postProcessMod.hpp"
 #include <visa/visa.hpp>
 #include <armadillo>
 #include <set>
@@ -87,7 +88,10 @@ private:
   unsigned int displayEvery{10};
 protected:
   /** Called during the solve process. Childs may want to process the far fields differently */
-  virtual void processFarField(){};
+  virtual void processStep( double z ){};
+
+  /** Is called when the iteration to next angle is done */
+  virtual void proceedToNextAngle(){};
   StraightWG2D wg;
   unsigned int fftSignalLength{65536};
   unsigned int nTheta{1};
@@ -96,11 +100,16 @@ protected:
   bool generateUID{true};
   unsigned int uid{0};
   std::string plotname;
+  post::FarField ff;
+  double dz, zmax;
 
   /** Index in the FFT array corresponding to the exity angle in degree */
   unsigned int angleIndx( double angle ) const;
 
   /** Angle in degree corresponding to FFT index indx=(-N/2,N/2)*/
   double angleDeg( int indx ) const;
+
+  /** Initialize members */
+  void init();
 };
 #endif

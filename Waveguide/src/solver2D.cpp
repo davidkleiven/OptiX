@@ -13,6 +13,8 @@ Solver2D::~Solver2D()
   {
     delete solution;
   }
+  if ( prevSolution != NULL ) delete prevSolution;
+  if ( currentSolution != NULL ) delete currentSolution;
 }
 
 void Solver2D::setSimulator( ParaxialSimulation &wg )
@@ -21,7 +23,19 @@ void Solver2D::setSimulator( ParaxialSimulation &wg )
   unsigned int Nx = guide->nodeNumberTransverse();
   unsigned int Nz = guide->nodeNumberLongitudinal();
   if ( solution != NULL ) delete solution;
-  solution = new arma::cx_mat(Nx,Nz);
+  if ( prevSolution != NULL ) delete prevSolution;
+  if ( currentSolution != NULL ) delete currentSolution;
+  unsigned int downSampledNx = Nx/guide->transverseDiscretization().downsamplingRatio;
+  solution = new arma::cx_mat(downSampledNx,Nz);
+  prevSolution = new arma::cx_vec(Nx);
+  currentSolution = new arma::cx_vec(Nx);
+
+  if ( downSampledNx != Nx )
+  {
+    filter.setSourceSize( Nx );
+    filter.setTargetSize( downSampledNx );
+    filter.computeFilterCoefficients( kernel );
+  }
 }
 
 void Solver2D::setLeftBC( const cdouble values[] )
@@ -33,8 +47,9 @@ void Solver2D::setLeftBC( const cdouble values[] )
 
   for ( unsigned int i=0;i<guide->nodeNumberTransverse();i++)
   {
-    (*solution)(i,0) = values[i];
+    (*currentSolution)(i) = values[i];
   }
+  copyCurrentSolution(0);
 }
 
 void Solver2D::setXBC( const cdouble valuesTop[], const cdouble valuesBottom[] )
@@ -137,4 +152,113 @@ void Solver2D::getPhase( arma::mat &phase ) const
       phase(ix,iz) = arg( (*solution)(ix,iz) );
     }
   }
+}
+
+void Solver2D::copyCurrentSolution( unsigned int step )
+{
+  // Copy results to the previous array
+  for ( unsigned int i=0;i<currentSolution->n_elem;i++ )
+  {
+    (*prevSolution)(i) = (*currentSolution)(i);
+  }
+
+  if ( solution->n_rows != currentSolution->n_elem )
+  {
+      filter.filterArray<arma::cx_vec, cdouble>( *currentSolution );
+  }
+
+  // Downsample array
+  double delta = static_cast<double>( currentSolution->n_elem )/static_cast<double>( solution->n_rows );
+  for ( unsigned int i=0;i<solution->n_rows;i++ )
+  {
+    (*solution)(i,step) = (*currentSolution)(delta*i);
+  }
+}
+
+void Solver2D::filterInLongitudinalDirection()
+{
+  if ( guide->longitudinalDiscretization().downsamplingRatio == 1 ) return;
+
+  unsigned int downSampledNz = solution->n_cols/guide->longitudinalDiscretization().downsamplingRatio;
+  filter.setTargetSize( downSampledNz );
+  filter.setSourceSize( solution->n_cols );
+
+  // Filter the matrix
+  for ( unsigned int i=0;i<solution->n_rows;i++ )
+  {
+    arma::subview_row<cdouble> row = solution->row(i);
+    filter.filterArray<arma::subview_row<cdouble>, cdouble>( row );
+  }
+
+  arma::cx_mat *downSampledMatrix = new arma::cx_mat( solution->n_rows, downSampledNz );
+  double delta = static_cast<double>( solution->n_rows )/static_cast<double>( downSampledNz );
+
+  for ( unsigned int i=0;i<downSampledNz;i++ )
+  {
+    for ( unsigned int j=0;j<solution->n_rows;j++ )
+    {
+      (*downSampledMatrix)(j,i) = (*solution)(j, delta*i);
+    }
+  }
+}
+
+void Solver2D::solve()
+{
+  if ( eq == NULL )
+  {
+    throw ( runtime_error("No paraxial equation object given!") );
+  }
+
+  // Assert that the solution matrix is allocated
+  assert( solution != NULL );
+  assert( guide != NULL );
+
+  initValuesFromWaveGuide();
+  for ( unsigned int iz=1;iz<Nz;iz++ )
+  {
+    step();
+  }
+  filterInLongitudinalDirection();
+  downSampleLongitudinalDirection();
+}
+
+void Solver2D::step()
+{
+  if ( currentStep == 1 ) initValuesFromWaveGuide();
+
+  solveStep( currentStep );
+  copyCurrentSolution( currentStep );
+  currentStep++;
+}
+
+void Solver2D::initValuesFromWaveGuide()
+{
+  if ( guide == NULL )
+  {
+    throw( runtime_error("No waveguide specified!"));
+  }
+  Nx = guide->nodeNumberTransverse();
+  Nz = guide->nodeNumberLongitudinal();
+  stepX = guide->transverseDiscretization().step;
+  xmin = guide->transverseDiscretization().min;
+  stepZ = guide->longitudinalDiscretization().step;
+  zmin = guide->longitudinalDiscretization().min;
+  wavenumber = guide->getWavenumber();
+}
+
+void Solver2D::downSampleLongitudinalDirection()
+{
+  unsigned int Nz = guide->nodeNumberLongitudinal()/guide->longitudinalDiscretization().downsamplingRatio;
+  arma::cx_mat *copy = new arma::cx_mat( solution->n_rows, Nz );
+  double delta = static_cast<double>( solution->n_cols )/static_cast<double>( Nz );
+  for ( unsigned int iz=0;iz<Nz;iz++ )
+  {
+    unsigned int indx = iz*delta+delta/2.0;
+    for ( unsigned int ix=0;ix<copy->n_rows;ix++ )
+    {
+      (*copy)(ix,iz) = (*solution)(ix,indx);
+    }
+  }
+  delete solution;
+  solution = copy;
 }

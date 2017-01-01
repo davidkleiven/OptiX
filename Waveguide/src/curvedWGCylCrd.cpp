@@ -1,9 +1,12 @@
 #include "curvedWGCylCrd.hpp"
 #include <cmath>
+#include <iostream>
+
+using namespace std;
 
 bool CurvedWGCylCrd::isInsideGuide( double r, double theta ) const
 {
-  return ((r > 0) && (r < width));
+  return ((r > 0.0) && (r < width));
 }
 
 bool CurvedWGCylCrd::waveguideEnded( double r, double theta ) const

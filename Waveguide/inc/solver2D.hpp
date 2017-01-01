@@ -4,6 +4,8 @@
 #include <complex>
 #include <json/writer.h>
 #include <armadillo>
+#include <visa/gaussianKernel.hpp>
+#include <visa/lowPassFilter.hpp>
 
 class WaveGuideFDSimulation;
 class ParaxialEquation;
@@ -60,9 +62,26 @@ public:
   /** Set boundary condition at x=xmin and x=xmax */
   void setXBC( const cdouble valuesTop[], const cdouble valuesBottom[] ); // BC at top (x=xmax) and bottom (x=xmin)
 
+  /** Get last solution. NOTE: Return prev solution as this is not filtered */
+  arma::cx_vec& getLastSolution() const { return *prevSolution; };
+
+  /** Run simulation */
+  void solve();
+
+  /** Perform one step */
+  void step();
+
+  /** Filter and downsample in the longitudinal direction */
+  void filterInLongitudinalDirection();
+
+  /** Down sample in longitudinal direction */
+  void downSampleLongitudinalDirection();
+
+  /** Reset the counter */
+  void reset(){ currentStep = 1; };
+
   // Virtual functions
   /** Pure virtual function for solving the system */
-  virtual void solve() = 0;
 
   /** Fill JSON object with parameters specific to this class */
   virtual void fillInfo( Json::Value &obj ) const;
@@ -71,11 +90,33 @@ protected:
   ParaxialSimulation *guide;
   const ParaxialEquation *eq{NULL};
   arma::cx_mat *solution{NULL};
+  arma::cx_vec *prevSolution{NULL};
+  arma::cx_vec *currentSolution{NULL};
+  unsigned int currentStep{1};
+
+  unsigned int Nx{0};
+  unsigned int Nz{0};
+  double stepX{1.0}, stepZ{1.0};
+  double xmin{0.0};
+  double zmin{0.0};
+  double wavenumber{1.0};
 
   /** Get the solution */
   arma::cx_mat& getSolution( unsigned int iz ) { return *solution; };
 
   /** Get solution, rear or imaginary part specified by comp */
   void realOrImagPart( double *solution, Comp_t comp ) const;
+
+  /** Copies the solution in to the solution matrix */
+  void copyCurrentSolution( unsigned int step );
+
+  /** Solve one step */
+  virtual void solveStep( unsigned int step ) = 0;
+
+  /** Set the required parameters from the waveguide object */
+  void initValuesFromWaveGuide();
+
+  visa::GaussianKernel kernel;
+  visa::LowPassFilter filter;
 };
 #endif
