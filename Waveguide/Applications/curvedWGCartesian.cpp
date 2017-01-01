@@ -193,7 +193,7 @@ int main( int argc, char **argv )
       {
         clog << "Curved waveguide in cartesian coordinates\n";
         CurvedWaveGuideFD wg;
-        params["xmax"] = xMargin;
+        params["xmax"] = params["width"] + xMargin;
         params["xmin"] = -0.5*params["zmax"]*params["zmax"]/(params["radius"]*1E6) - xMargin;
         commonSetup( wg, params );
         wg.setCladding( cladding );
