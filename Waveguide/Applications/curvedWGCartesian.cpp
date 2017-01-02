@@ -73,6 +73,7 @@ int main( int argc, char **argv )
   params["downSamplingX"] = 10.0;
   params["downSamplingZ"] = 10.0;
   params["wglength"] = 1.1*params["zmax"];
+  params["padLength"] = 131072;
   Mode_t mode = Mode_t::NONE;
 
   bool useBorderTracker = false;
