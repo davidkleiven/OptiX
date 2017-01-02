@@ -21,7 +21,7 @@ def main( argv ):
         if ( arg.find("--file=") != -1 ):
             fname = arg.split("--file=")[1]
         elif ( arg.find("--help") != -1 ):
-            print MSG
+            print (MSG)
             return 0
         else:
             print ("Unknown argument %s"%(arg))
@@ -34,7 +34,7 @@ def main( argv ):
         param = json.load(infile)
         infile.close()
     except Exception as exc:
-        print str(exc)
+        print ( str(exc) )
         print ("Error when opening/parsing file %s"%(fname))
         return 0
 
