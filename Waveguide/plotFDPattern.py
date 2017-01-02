@@ -1,4 +1,6 @@
 import sys
+from PLOD import controlGUI as cg
+import tkinter as tk
 import subprocess
 sys.path.append("../FresnelFDTD")
 import mplLaTeX as ml
@@ -18,7 +20,7 @@ from scipy import interpolate
 import transmission as trans
 import waveguideBorder as wgb
 
-def plot2D(data, stat, borders, field=None, phase=None):
+def plot2D(data, stat, borders, control, field=None, phase=None):
     colormap="viridis"
     print ("Plotting the full matrix...")
     '''
@@ -67,15 +69,8 @@ def plot2D(data, stat, borders, field=None, phase=None):
         borders.visualize( ax )
     #fname = "Figures/contourLinScale%d%s.jpeg"%(stat["UID"], appendName)
     fname = "Figures/contourLinScale%d%s.svg"%(stat["UID"], appendName)
-    fig.savefig(fname, bbox_inches="tight", dpi=800)
-    print ("Figure written to %s"%(fname))
-    if ( fname.find(".svg") != -1 ):
-        psname = fname[:-3]+"pdf"
-        subprocess.call(["inkscape", "--export-pdf=%s"%(psname), "--export-latex", fname])
-        print ("PDF exported to %s"%(psname))
+    control.attach( fig, ax, fname )
 
-
-    plt.clf()
     frac = 1E-8
     maxval = np.max(np.abs(data)**2)
     maxval=1E-1
@@ -83,88 +78,48 @@ def plot2D(data, stat, borders, field=None, phase=None):
     minval=1E-6
     #maxval = 1E-3 # T. Salditt et. al maxwav
 
-    fig = plt.figure()
-    ax = fig.add_subplot(1,1,1)
-    im = ax.imshow(dataNorm, extent=extent, cmap=colormap, aspect=1.0, origin="lower", norm=mpl.colors.LogNorm(minval, maxval))
-    ax.set_xlabel(zlabel)
-    ax.set_ylabel(xlabel)
-    ax.autoscale(False)
-    fig.colorbar(im)
+    fig2 = plt.figure()
+    ax2 = fig2.add_subplot(1,1,1)
+    im = ax2.imshow(dataNorm, extent=extent, cmap=colormap, aspect=1.0, origin="lower", norm=mpl.colors.LogNorm(minval, maxval))
+    ax2.set_xlabel(zlabel)
+    ax2.set_ylabel(xlabel)
+    ax2.autoscale(False)
+    fig2.colorbar(im)
     if ( not borders is None ):
         borders.visualize( ax )
-    ax.set_aspect( np.abs( (extent[1]-extent[0])/(extent[3]-extent[2]) ))
+    ax2.set_aspect( np.abs( (extent[1]-extent[0])/(extent[3]-extent[2]) ))
     #fname = "Figures/contourLogScale%d%s.jpeg"%(stat["UID"], appendName)
     fname = "Figures/contourLogScale%d%s.svg"%(stat["UID"], appendName)
-    fig.savefig(fname, bbox_inches="tight")
-    if ( fname.find(".svg") != -1 ):
-        psname = fname[:-3]+"pdf"
-        subprocess.call(["inkscape", "--export-pdf=%s"%(psname), "--export-latex", fname])
-        print ("PDF exported to %s"%(psname))
+    control.attach( fig2, ax2, fname )
 
-    plt.show()
-    print ("Figure written to %s"%(fname))
-
-    plt.clf()
     if ( not field is None ):
-        fig = plt.figure()
-        ax = fig.add_subplot(1,1,1)
-        im = ax.imshow(field, extent=extent, cmap=colormap, aspect=1.0, origin="lower")
-        ax.set_xlabel(zlabel)
-        ax.set_ylabel(xlabel)
-        fig.colorbar( im )
-        ax.autoscale(False)
+        fig3 = plt.figure()
+        ax3 = fig3.add_subplot(1,1,1)
+        im = ax3.imshow(field, extent=extent, cmap=colormap, aspect=1.0, origin="lower")
+        ax3.set_xlabel(zlabel)
+        ax3.set_ylabel(xlabel)
+        fig3.colorbar( im )
+        ax3.autoscale(False)
         if ( not borders is None ):
             borders.visualize( ax )
-        ax.set_aspect( np.abs( (extent[1]-extent[0])/(extent[3]-extent[2]) ))
+        ax3.set_aspect( np.abs( (extent[1]-extent[0])/(extent[3]-extent[2]) ))
         fname = "Figures/fieldLinScale%d.jpeg"%(stat["UID"])
-        plt.show()
-        fig.savefig(fname, bbox_inches="tight", dpi=800)
-        print ("Figure written to %s"%(fname))
+        control.attach( fig3, ax3, fname )
 
     if ( not phase is None ):
         #phase[np.abs(data)**2 < 1E-7] = np.NaN
-        fig = plt.figure()
-        ax = fig.add_subplot(1,1,1)
-        im = ax.imshow(phase, extent=extent, cmap="viridis", aspect=1.0, origin="lower")
-        ax.set_xlabel(zlabel)
-        ax.set_ylabel(xlabel)
-        fig.colorbar( im )
-        ax.autoscale(False)
+        fig4 = plt.figure()
+        ax4 = fig4.add_subplot(1,1,1)
+        im = ax4.imshow(phase, extent=extent, cmap="viridis", aspect=1.0, origin="lower")
+        ax4.set_xlabel(zlabel)
+        ax4.set_ylabel(xlabel)
+        fig4.colorbar( im )
+        ax4.autoscale(False)
         if ( not borders is None ):
             borders.visualize( ax )
-        ax.set_aspect( np.abs( (extent[1]-extent[0])/(extent[3]-extent[2]) ))
+        ax4.set_aspect( np.abs( (extent[1]-extent[0])/(extent[3]-extent[2]) ))
         fname = "Figures/phase%d.jpeg"%(stat["UID"])
-        plt.savefig(fname, bbox_inches="tight", dpi=800)
-        print ("Figure written to %s"%(fname))
-
-def plot2Dsparse( x, z, intensity, stat ):
-    print ("Using sparse plotting by triangulation...")
-    #trianulation = tri.Triangulation( z/1000.0, x )
-    zInterp = np.linspace(np.min(z), np.max(z), 501)
-    xInterp = np.linspace(np.min(x), np.max(x), 501)
-    Z, X = np.meshgrid( zInterp, xInterp )
-
-    intensityInterp = interpolate.griddata( np.vstack((z,x)).T, intensity, (Z,X), method="linear")
-    print ("Interpolation...")
-    plt.clf()
-    plt.contourf( Z/1000.0, X, intensityInterp**2, cmap="gist_heat")
-    plt.xlabel("\$z\$ (\$\mathrm{\mu m}\$)")
-    plt.ylabel("\$x\$ (nm)")
-    plt.colorbar()
-    fname = "Figures/contourLinScale.jpeg"
-    fig.savefig(fname, bbox_inches="tight", dpi=800)
-    print ("Figure written to %s"%(fname))
-
-    '''
-    plt.clf()
-    plt.tricontour( trianulation, intensity**2, cmap="gist_heat", norm=mpl.colors.LogNorm(np.min(intensity**2), np.max(intensity**2)))
-    plt.xlabel("\$z\$ (\$\mathrm{\mu m}\$)")
-    plt.ylabel("\$x\$ (nm)")
-    plt.colorbar()
-    fname = "Figures/contourLogScale.jpeg"
-    plt.savefig(fname, bbox_inches="tight", dpi=800)
-    print ("Figure written to %s"%(fname))
-    '''
+        control.attach( fig4, ax4, fname )
 
 def plotWG( x, z ):
     fig = plt.figure()
@@ -212,6 +167,8 @@ def main(argv):
         print ("No json file specified")
         return 1
 
+    root = tk.Tk()
+    control = cg.Control( root )
     try:
         infile = open(fname, "r")
         stat = json.load(infile)
@@ -245,7 +202,7 @@ def main(argv):
         with h5.File(stat["datafile"], 'r') as hf:
             phaseData = np.array( hf.get("phase") )
     except Exception as exc:
-        print str(exc)
+        print ( str(exc) )
         phaseData = None
 
     borders = None
@@ -259,24 +216,10 @@ def main(argv):
     except:
         print ("Borders were not found!")
 
-    '''
-    if ( np.min(xInside) > stat["xDiscretization"]["min"]):
-        x0 = stat["xDiscretization"]["min"]
-    else:
-        x0 = np.min(xInside)
-    stat["x0"] = x0
-    '''
+
     stat["x0"] = stat["xDiscretization"]["min"]
 
-    if ( stat["sparseSave"] ):
-        plot2Dsparse( xVal, zVal, intensity, stat )
-    else:
-        #data = data.T # Transpose the dataset
-        #fieldData = fieldData.T
-        #if ( not phaseData is None ):
-            #phaseData = phaseData.T
-        plot2D( data, stat, borders, field=fieldData, phase=phaseData )
-    #plotWG( xInside-x0, zInside )
+    plot2D( data, stat, borders, control, field=fieldData, phase=phaseData )
 
     # Plot transmission. Put in try catch as some of the simulaitons do not compute the transmission
     try:
@@ -286,10 +229,11 @@ def main(argv):
             zmin = float( dset.attrs.get("zmin") )
             zmax = float( dset.attrs.get("zmax") )
             uid = int( dset.attrs.get("uid") )
-        trans.plotTransmission( data, zmin, zmax, uid )
+        trans.plotTransmission( data, zmin, zmax, uid, control )
     except Exception as exc:
-        print str(exc)
+        print ( str(exc) )
         print ("Error when plotting transmission")
+    root.mainloop()
 
 if __name__ == "__main__":
     main(sys.argv[1:])

@@ -86,7 +86,7 @@ class ExitFields(ComparePlots):
         fig.savefig(self.figname, bbox_inches="tight")
         print ("Figure written to %s"%(self.figname))
 
-def plotTransmission( data, zmin, zmax, uid ):
+def plotTransmission( data, zmin, zmax, uid, control ):
     z = np.linspace( zmin, zmax, len(data))
     fitStart = int( 3*len(data)/4 )
     slope, interscept, rvalue, pvalue, stderr = stats.linregress( z[fitStart:], np.log(data[fitStart:]) )
@@ -101,5 +101,4 @@ def plotTransmission( data, zmin, zmax, uid ):
     ax.set_xlabel("$z$ (mm)")
     ax.set_ylabel("$\ln T$")
     fname = "Figures/transmission%d.pdf"%(uid)
-    fig.savefig(fname, bbox_inches="tight")
-    print ("Figure written to %s"%(fname))
+    control.attach( fig, ax, fname )
