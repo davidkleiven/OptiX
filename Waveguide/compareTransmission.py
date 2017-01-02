@@ -1,8 +1,8 @@
 import sys
-#sys.path.append("../FresnelFDTD")
+import tkinter as tk
+from PLOD import controlGUI as cg
 sys.path.append("../")
 import colorScheme as cs
-#import mplLaTeX as ml
 import matplotlib as mpl
 mpl.rcParams["svg.fonttype"] = "none"
 mpl.rcParams["font.size"] = 28
@@ -27,6 +27,8 @@ def main( argv ):
             print ("Unknown argument %s"%(arg))
             return 0
 
+    root = tk.Tk()
+    control = cg( root )
     try:
         infile = open(fname,'r')
         param = json.load(infile)
@@ -94,14 +96,8 @@ def main( argv ):
     ax.set_ylabel("\$\ln Transmission \$")
     ax.legend(loc="upper right", frameon=False, labelspacing=0.05)
     fname = "Figures/"+param["figurename"]
-    fig.savefig(fname, bbox_inches="tight")
-    print ("Figure written to %s"%(fname))
-
-    if ( fname[-3:] == "svg"):
-        psname = fname[:-3]+"ps"
-        subprocess.call(["inkscape", "--export-ps=%s"%(psname), "--export-latex", fname])
-	print ("PS version written to %s"%(psname))
-    plt.show()
+    control.attach( fig, ax fname )
+    root.mainloop()
 
 if __name__ == "__main__":
     main(sys.argv[1:])
