@@ -55,7 +55,7 @@ def main( argv ):
             stat = json.load(infile)
             infile.close()
         except Exception as exc:
-            print str(exc)
+            print ( str(exc) )
             print ("Error when opening/parsing file %s"%(ctlfile))
             return 0
 
