@@ -1,13 +1,9 @@
 import sys
+from PLOD import controlGUI as cg
+import tkinter as tk
 sys.path.append("../FresnelFDTD")
 sys.path.append("../")
 sys.path.append("Scripting/")
-#import mplLaTeX as ml
-import matplotlib as mpl
-#mpl.rcParams.update(ml.params)
-mpl.rcParams["svg.fonttype"] = "none"
-mpl.rcParams["font.size"] = 36
-mpl.rcParams["axes.unicode_minus"]=False
 import numpy as np
 import json
 import h5py as h5
@@ -51,6 +47,8 @@ def main( argv ):
             print ("Unknown argument %s"%(arg))
             return
 
+    root = tk.Tk()
+    control = cg.Control( root )
     if ( fname == "" ):
         print ("No file name specified")
         return
@@ -113,75 +111,33 @@ def main( argv ):
         color = "black"
         uselegend = False
 
-    print ("Type any non numeric entry to quit")
-    while ( not happy ):
-        fig.clf()
-        ax = fig.add_subplot(1,1,1)
-        ax.xaxis.set_major_locator(yloc)
-        start = np.argmin( np.abs(angle-angMin))
-        end = np.argmin( np.abs(angle-angMax))
-        ff = farField[start:end]
-        print ff
-        ang = angle[start:end]
-        ax.plot(ang, ff**2, color=color, label="WG")
-        refPlot.fit( np.linspace(q[start],q[end],len(ff)), ff**2 )
-        refPlot.normalize( ff**2 )
-        ax = refPlot.plot( ax, q[start], q[end] )
-        if ( uselog ):
-            ax.set_yscale("log")
-        ax.set_xlabel("Exit angle (deg)")
-        ax.set_ylabel("Intensity (a.u.)")
-        ax.set_ylim(bottom=1E-6*np.max(ff**2))
-        if ( uselegend ):
-            ax.legend(loc="upper right", labelspacing=0.01, frameon=False)
-        plt.show( block=False )
-        angMin = raw_input("Min angle:")
-        angMax = raw_input("Max angle:")
-        try:
-            angMin = float(angMin)
-            angMax = float(angMax)
-        except:
-            happy = True
+    ax = fig.add_subplot(1,1,1)
+    ax.plot(angle, farField**2, color=color, label="WG")
+    refPlot.fit( np.linspace(q[0],q[-1],len(farField)), farField**2 )
+    refPlot.normalize( farField**2 )
+    ax = refPlot.plot( ax, q[0], q[-1] )
+    ax.set_xlabel("Exit angle (deg)")
+    ax.set_ylabel("Intensity (a.u.)")
+    ax.set_ylim(bottom=1E-6*np.max(farField**2))
+    if ( uselegend ):
+        ax.legend(loc="upper right", labelspacing=0.01, frameon=False)
+
     fname = "Figures/farField%d.svg"%(uid)
-    psname = "Figures/farField%d.ps"%(uid)
-    fig.savefig(fname, bbox_inches="tight")
-    subprocess.call(["inkscape", "--export-ps=%s"%(psname), "--export-latex", fname])
-    print ("Figure written to %s"%(fname))
-    plt.close()
+    control.attach( fig, ax, fname )
 
     # Plot the exit field
-    indx = np.argmax(np.abs(exitField))
     x = np.linspace(xmin, xmax, len(exitField))
 
-    fig = plt.figure()
-    ax = fig.add_subplot(1,1,1)
-    happy = False
-    start = 0
-    end = -1
-    while ( not happy ):
-        fig.clf()
-        ax = fig.add_subplot(1,1,1)
-        xx = x[start:end]
-        ef = exitField[start:end]
-        ax.plot( xx, ef, color="black")
-        ax.set_xlabel("$x$ (nm)")
-        ax.set_ylabel("Field (a.u.)")
-        plt.show( block=False )
-        xmin = raw_input("Minval: ")
-        xmax = raw_input("Maxval: ")
-        try:
-            xmin = float(xmin)
-            xmax = float(xmax)
-            start = np.argmin( np.abs(x-xmin))
-            end = np.argmin( np.abs(x-xmax))
-        except:
-            happy = True
+    fig2 = plt.figure()
+    ax2 = fig2.add_subplot(1,1,1)
+    ax2 = fig2.add_subplot(1,1,1)
+    ax2.plot( x, exitField, color="black")
+    ax2.set_xlabel("$x$ (nm)")
+    ax2.set_ylabel("Field (a.u.)")
 
     fname = "Figures/exitField%d.svg"%(uid)
-    fig.savefig(fname, bbox_inches="tight")
-    psname = "Figures/exitField%d.ps"%(uid)
-    subprocess.call(["inkscape", "--export-ps=%s"%(psname), "--export-latex", fname])
-    print ("Figure written to %s"%(fname))
+    control.attach( fig2, ax2, fname )
+    root.mainloop()
 
 if __name__ == "__main__":
     main( sys.argv[1:])
