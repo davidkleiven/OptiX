@@ -29,6 +29,7 @@ public:
 };
 
 using namespace std;
+typedef visa::Colormaps::Colormap_t cmap_t;
 int main( int argc, char** argv )
 {
   srand(time(0));
@@ -113,8 +114,11 @@ int main( int argc, char** argv )
 
     #ifdef VISUALIZE_INTENSITY
       arma::mat intensity = propagator.getIntensity();
+      //cmap_t cmap = cmap_t::VIRIDIS;
+      cmap_t cmap = cmap_t::NIPY_SPECTRAL;
       visa::WindowHandler plots;
       plots.addPlot("Intensity");
+      plots.get("Intensity").setCmap( cmap );
       plots.get("Intensity").fillVertexArray( intensity );
       plots.show();
       for ( unsigned int i=0;i<KEEP_PLOT_FOR_SEC;i++ )

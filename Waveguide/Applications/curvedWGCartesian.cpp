@@ -56,6 +56,8 @@ void setupPW( PlaneWave &pw, const map<string,double> &params )
 }
 
 /** Main function */
+typedef visa::Colormaps::Colormap_t cmap_t;
+
 int main( int argc, char **argv )
 {
   map<string,double> params;
@@ -204,6 +206,7 @@ int main( int argc, char **argv )
       clog << "Visualizing waveguide intensity\n";
       visa::WindowHandler plots;
       plots.addPlot("Intensity");
+      plots.get("Intensity").setCmap( cmap_t::NIPY_SPECTRAL );
       plots.get("Intensity").fillVertexArray( intensity );
       plots.show();
       for ( unsigned int i=0;i<KEEP_PLOT_FOR_SEC;i++ )
