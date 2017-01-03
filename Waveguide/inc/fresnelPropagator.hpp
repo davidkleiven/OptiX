@@ -37,6 +37,9 @@ public:
 
   /** Set the pad factor. Size of the padded signal is padFactor*2^{floor(log2(original signal size))} */
   void setPadFactor( unsigned int factor ){ padFactor = factor; };
+
+  /** Get the resulting intensity */
+  const arma::mat& getIntensity() const { return *intensity; };
 private:
   void step();
 

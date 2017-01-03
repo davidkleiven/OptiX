@@ -6,6 +6,13 @@
 #include <H5Cpp.h>
 #include <cmath>
 #include <ctime>
+#include <visa/visa.hpp>
+#include <pei/dialogBox.hpp>
+#include <map>
+#include <thread>
+#include <chrono>
+#define VISUALIZE_INTENSITY
+#define KEEP_PLOT_FOR_SEC 5
 
 class StepSource
 {
@@ -27,11 +34,16 @@ int main( int argc, char** argv )
   srand(time(0));
   const double PI = acos(-1.0);
   string paramFname("");
-  double zmax=1.0;
-  unsigned int nSteps=0;
-  bool runDemo = false;
-  double xmin, xmax;
-  unsigned int Nx=0;
+  map<string,double> params;
+  params["zmax"] = 1.0;
+  params["nSteps"] = 100;
+  params["xmin"] = -100.0;
+  params["xmax"] = 100.0;
+  params["Nx"] = 100;
+
+  pei::DialogBox box( params );
+  box.show();
+
   /********* PARSE COMMANDLINE ARGUMENTS **************************************/
   for ( unsigned int i=1;i<argc;i++ )
   {
@@ -43,32 +55,9 @@ int main( int argc, char** argv )
     else if ( arg.find("--help") != string::npos )
     {
       cout << "Usage: ./fresnelProp.out --params=<fname> --help\n";
-      cout << "params: The far field file containing both exit field amplitude and phase\n";
-      cout << "zmax: Maximum position in um\n";
-      cout << "nsteps: Number of steps\n";
-      cout << "xdisc: xmin,xmax,Nx\n";
-      cout << "demo: Run the demo with a step function amplitude\n";
+      cout << "params: The HDF5 file containing both exit field amplitude and phase\n";
       cout << "help: Print this message\n";
       return 0;
-    }
-    else if ( arg.find("--nsteps=") != string::npos )
-    {
-      stringstream ss;
-      ss << arg.substr(9);
-      ss >> nSteps;
-    }
-    else if ( arg.find("--zmax=") != string::npos )
-    {
-      stringstream ss;
-      ss << arg.substr(7);
-      ss >> zmax;
-    }
-    else if ( arg.find("--xdisc=") != string::npos )
-    {
-      stringstream ss;
-      ss << arg.substr(8);
-      char comma;
-      ss >> xmin >> comma >> xmax >> comma >> Nx;
     }
     else
     {
@@ -77,54 +66,26 @@ int main( int argc, char** argv )
     }
   }
 
-  if ( nSteps == 0)
+  if ( static_cast<int>(params["nSteps"]+0.5) == 0)
   {
     cout << "Number of steps specified is zero!\n";
     return 1;
   }
 
-  if ( Nx == 0 )
+  if (  static_cast<int>( params["Nx"] + 0.5 ) == 0 )
   {
     cout << "No transverse discretization given!\n";
     return 1;
   }
 
-  /********* END COMMANDLINE ARGUMENTS ****************************************/
   StepSource source;
   source.xmin = -30.0;
   source.xmax = 30.0;
   ExitFieldSource efSource;
 
-  /*
-  Json::Value params;
-  Json::Reader reader;
-  ifstream infile(paramFname.c_str());
-  if ( !infile.good() )
-  {
-    cout << "Error when reading the parameter file\n";
-    return 1;
-  }
-  reader.parse(infile, params);
-  infile.close();
-  */
-
-  // Open HDf5 file
-  /*
-  double xmin = params["xmin"].asDouble();
-  double xmax = params["xmax"].asDouble();
-  double dz = params["dz"].asDouble();
-  unsigned int nTrans = params["nTransversePoints"].asInt();
-  unsigned int nSteps = params["nPropagationSteps"].asInt();
-
-  double wav = params["wavelength"].asDouble();
-  bool runDemo = params["rundemo"].asBool();
-  */
-
   double wav;
   try
   {
-    if ( !runDemo )
-    {
       H5::H5File file(paramFname, H5F_ACC_RDONLY );
       H5::DataSet farField = file.openDataSet("farField");
       H5::Attribute attr = farField.openAttribute("wavenumber");
@@ -132,7 +93,6 @@ int main( int argc, char** argv )
       attr.read(type, &wav);
       wav = 2.0*PI/wav;
       efSource.load( file );
-    }
   }
   catch( H5::Exception &exc )
   {
@@ -143,21 +103,27 @@ int main( int argc, char** argv )
   FresnelPropagator propagator;
   try
   {
-    propagator.setWavelength(wav);
-    if ( runDemo )
-    {
-      propagator.setInitialConditions( source );
-    }
-    else
-    {
-      propagator.setTransverseDiscretization( xmin, xmax, Nx );
-      propagator.setInitialConditions( efSource );
-    }
-
-    propagator.setStepsize( zmax/nSteps );
-    propagator.propagate( nSteps );
+    propagator.setWavelength( wav );
+    propagator.setTransverseDiscretization( params.at("xmin"), params.at("xmax"), params.at("Nx") );
+    propagator.setInitialConditions( efSource );
+    propagator.setStepsize( params.at("zmax")/params.at("nSteps") );
+    propagator.propagate( params.at("nSteps") );
     string fname("data/fresnelProp");
     propagator.save( fname );
+
+    #ifdef VISUALIZE_INTENSITY
+      arma::mat intensity = propagator.getIntensity();
+      visa::WindowHandler plots;
+      plots.addPlot("Intensity");
+      plots.get("Intensity").fillVertexArray( intensity );
+      plots.show();
+      for ( unsigned int i=0;i<KEEP_PLOT_FOR_SEC;i++ )
+      {
+        plots.show();
+        clog << "Closes in " << KEEP_PLOT_FOR_SEC-i <<  "seconds \r";
+        this_thread::sleep_for( chrono::seconds(1) );
+      }
+    #endif
   }
   catch ( exception &exc )
   {
