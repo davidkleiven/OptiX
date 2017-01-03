@@ -4,7 +4,8 @@ cmake_minimum_required (VERSION 2.6)
 include_directories(inc)
 include_directories(/usr/include/jsoncpp)
 add_subdirectory(src)
-include_directories(/usr/local/lib)
+include_directories( /usr/local/include )
+link_directories( /usr/local/lib )
 
 # Find required packages
 find_package( LAPACK REQUIRED )
@@ -72,6 +73,27 @@ find_path( HARMINV_HEADER harminv.h )
 if ( NOT HARMINV_HEADER )
   MESSAGE(FATAL_ERROR "Did not find the harminv header file!")
 endif( NOT HARMINV_HEADER )
+
+# Find the PEI library
+find_library( PEI_LIB pei )
+set( LIB ${LIB} ${PEI_LIB} )
+if ( NOT PEI_LIB )
+  MESSAGE( FATAL_ERROR "Did not find the pei library!")
+endif ( NOT PEI_LIB )
+find_path( PEI_HEADER pei/ )
+if ( NOT PEI_HEADER )
+  MESSAGE( FATAL_ERROR "Did not find the pei headers!")
+endif ( NOT PEI_HEADER )
+
+set ( FLTK_SKIP_FLUID True )
+find_package( FLTK REQUIRED )
+find_package( OpenGL REQUIRED )
+
+include_directories( FLTK_INCLUDE_DIR )
+set( LIB ${LIB} ${FLTK_BASE_LIBRARY} )
+set( LIB ${LIB} ${FLTK_GL_LIBRARY} )
+set( LIB ${LIB} ${FLTK_FORMS_LIBRARY} )
+
 
 # Add executables
 add_executable( curvedWG.out Applications/curvedWGCartesian.cpp )

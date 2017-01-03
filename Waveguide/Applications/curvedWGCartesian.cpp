@@ -23,6 +23,7 @@
 #include <visa/visa.hpp>
 #include <chrono>
 #include <thread>
+#include <pei/dialogBox.hpp>
 #define KEEP_PLOT_FOR_SEC 6
 #define VISUALIZE_PATTERN
 
@@ -74,46 +75,24 @@ int main( int argc, char **argv )
   params["downSamplingZ"] = 10.0;
   params["wglength"] = 1.1*params["zmax"];
   params["padLength"] = 131072;
+  params["mode"] = 2.0;
+  params["borderTracker"] = 0;
   Mode_t mode = Mode_t::NONE;
 
-  bool useBorderTracker = false;
+  pei::DialogBox box( params );
+  box.show();
 
-  /*********** PARSE COMMANDLINE ARGUMENTS ************************************/
-  for ( unsigned int i=1;i<argc; i++ )
-  {
-    string arg(argv[i]);
-    if ( arg.find("--help") != string::npos )
-    {
-      cout << "Usage: ./curvedWG.out [--help, --mode=<run number> --brdtrack]\n";
-      cout << "help: Print this message\n";
-      cout << "mode:\n";
-      cout << "    1: Straight\n";
-      cout << "    2: Curved waveguide in cylindrical coordinates\n";
-      cout << "    3: Curved waveguide in cartesian coordinates\n";
-      cout << "brdtrack: Use the border tracker. Only have effect if using cartesian coordinates\n";
-      return 0;
-    }
-    else if ( arg.find("--mode=") != string::npos )
-    {
-      stringstream ss;
-      unsigned int intMode;
-      ss << arg.substr(7);
-      ss >> intMode;
-      if ( intMode == 1 ) mode = Mode_t::STRAIGHT;
-      else if ( intMode == 2 ) mode = Mode_t::CURVED_CYLCRD;
-      else if ( intMode == 3 ) mode = Mode_t::CURVED;
-    }
-    else if ( arg.find("--brdtrack") != string::npos )
-    {
-      useBorderTracker = true;
-    }
-    else
-    {
-      cout << "Unknown argument " << arg << endl;
-      return 0;
-    }
-  }
-  /****************** END COMMANDLINE ARGUMENTS *******************************/
+  bool useBorderTracker = static_cast<int>( params["borderTracker"]+0.5 );
+  unsigned int intMode = static_cast<unsigned int>( params["mode"]+0.5 );
+  if ( intMode == 1 ) mode = Mode_t::STRAIGHT;
+  else if ( intMode == 2 ) mode = Mode_t::CURVED_CYLCRD;
+  else if ( intMode == 3 ) mode = Mode_t::CURVED;
+
+  cout << "Mode description:\n";
+  cout << "    1: Straight\n";
+  cout << "    2: Curved waveguide in cylindrical coordinates\n";
+  cout << "    3: Curved waveguide in cartesian coordinates\n";
+  cout << "brdtrack: Use the border tracker. Only have effect if using cartesian coordinates\n";
 
   Cladding cladding;
   double delta = 4.14E-5; // Default value
