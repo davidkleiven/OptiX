@@ -10,6 +10,7 @@
 class WaveGuideFDSimulation;
 class ParaxialEquation;
 class ParaxialSimulation;
+class BoundaryCondition;
 
 typedef std::complex<double> cdouble;
 
@@ -27,6 +28,8 @@ public:
 
   /** Set waveguide to operate on */
   void setSimulator( ParaxialSimulation &guide );
+
+  const ParaxialSimulation& getSimulator() const { return *guide; };
 
   /** Set paraxial equation to solve */
   void setEquation( const ParaxialEquation &equation ){ eq = &equation; };
@@ -80,6 +83,9 @@ public:
   /** Reset the counter */
   void reset(){ currentStep = 1; };
 
+  /** Sets the transverse boundary conditions */
+  void addBoundaryCondition( const BoundaryCondition &bCond ){ bc = &bCond; };
+
   // Virtual functions
   /** Pure virtual function for solving the system */
 
@@ -92,6 +98,7 @@ protected:
   arma::cx_mat *solution{NULL};
   arma::cx_vec *prevSolution{NULL};
   arma::cx_vec *currentSolution{NULL};
+  const BoundaryCondition *bc{NULL};
   unsigned int currentStep{1};
 
   unsigned int Nx{0};
