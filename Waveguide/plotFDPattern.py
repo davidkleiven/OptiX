@@ -22,6 +22,7 @@ import waveguideBorder as wgb
 
 def plot2D(data, stat, borders, control, field=None, phase=None):
     colormap="viridis"
+    colormap="nipy_spectral"
     print ("Plotting the full matrix...")
     '''
     x = np.linspace(stat["xDiscretization"]["min"], stat["xDiscretization"]["max"], data.shape[0])
@@ -73,9 +74,9 @@ def plot2D(data, stat, borders, control, field=None, phase=None):
 
     frac = 1E-8
     maxval = np.max(np.abs(data)**2)
-    maxval=1E-1
+    #maxval=1E-1
     minval = frac*maxval
-    minval=1E-6
+    #minval=1E-6
     #maxval = 1E-3 # T. Salditt et. al maxwav
 
     fig2 = plt.figure()
@@ -110,7 +111,7 @@ def plot2D(data, stat, borders, control, field=None, phase=None):
         #phase[np.abs(data)**2 < 1E-7] = np.NaN
         fig4 = plt.figure()
         ax4 = fig4.add_subplot(1,1,1)
-        im = ax4.imshow(phase, extent=extent, cmap="viridis", aspect=1.0, origin="lower")
+        im = ax4.imshow(phase, extent=extent, cmap=colormap, aspect=1.0, origin="lower")
         ax4.set_xlabel(zlabel)
         ax4.set_ylabel(xlabel)
         fig4.colorbar( im )
