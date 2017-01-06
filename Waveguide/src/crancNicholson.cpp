@@ -6,6 +6,7 @@
 #include "paraxialEquation.hpp"
 #include "borderTracker.hpp"
 #include <cassert>
+#include "boundaryCondition.hpp"
 
 using namespace std;
 
@@ -78,9 +79,11 @@ void CrankNicholson::solveStep( unsigned int iz )
     }
     else
     {
-      left = ix > 0 ? (*prevSolution)(ix-1):guide->transverseBC(z-stepZ, WaveGuideFDSimulation::Boundary_t::BOTTOM);
+      //left = ix > 0 ? (*prevSolution)(ix-1):guide->transverseBC(z-stepZ, WaveGuideFDSimulation::Boundary_t::BOTTOM);
+      left = ix > 0 ? (*prevSolution)(ix-1):bc->fixedField(x,z);
       center = (*prevSolution)(ix);
-      right = ix < Nx-1 ? (*prevSolution)(ix+1):guide->transverseBC(z-stepZ, WaveGuideFDSimulation::Boundary_t::TOP);
+      //right = ix < Nx-1 ? (*prevSolution)(ix+1):guide->transverseBC(z-stepZ, WaveGuideFDSimulation::Boundary_t::TOP);
+      right = ix < Nx-1 ? (*prevSolution)(ix+1):bc->fixedField(x,z);
     }
 
     if ( ix > 0 )
@@ -92,8 +95,9 @@ void CrankNicholson::solveStep( unsigned int iz )
     {
       //rhs[ix] = guide->transverseBC(z, WaveGuideFDSimulation::Boundary_t::BOTTOM)*Hminus*gval +\
       guide->transverseBC(z-stepZ, WaveGuideFDSimulation::Boundary_t::BOTTOM)*HminusPrev*gvalPrev; // Make sure that it is not a random value
-      rhs[ix] = guide->transverseBC(z, WaveGuideFDSimulation::Boundary_t::BOTTOM)*Hminus*gval +\
-      left*HminusPrev*gvalPrev; // Make sure that it is not a random value
+      rhs[ix] = bc->fixedField(x,z)*Hminus*gval + left*HminusPrev*gvalPrev;
+
+      diag[ix] -= 0.25*IMAG_UNIT*rho*bc->neighbourCoupling( *this, x, z );
     }
 
     if ( ix < Nx-1 )
@@ -105,8 +109,10 @@ void CrankNicholson::solveStep( unsigned int iz )
     {
       //rhs[ix] += ( guide->transverseBC(z, WaveGuideFDSimulation::Boundary_t::TOP)*Hpluss*gval + \
       guide->transverseBC(z-stepZ, WaveGuideFDSimulation::Boundary_t::TOP)*HplussPrev*gvalPrev );
-      rhs[ix] += ( guide->transverseBC(z, WaveGuideFDSimulation::Boundary_t::TOP)*Hpluss*gval + \
+      rhs[ix] += ( bc->fixedField(x,z)*Hpluss*gval + \
       right*HplussPrev*gvalPrev );
+
+      diag[ix] -= 0.25*IMAG_UNIT*rho*bc->neighbourCoupling( *this, x, z );
     }
 
     rhs[ix] *=  (0.25*IMAG_UNIT*rho);

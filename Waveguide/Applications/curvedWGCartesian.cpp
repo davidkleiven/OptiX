@@ -24,6 +24,7 @@
 #include <chrono>
 #include <thread>
 #include <pei/dialogBox.hpp>
+#include "transparentBoundaryCondition.hpp"
 #define KEEP_PLOT_FOR_SEC 6
 #define VISUALIZE_PATTERN
 
@@ -116,6 +117,7 @@ int main( int argc, char **argv )
   CrankNicholson solver;
   arma::mat intensity; // Matrix used for visualization
   double xMargin = 0.01E3;
+  TransparentBC bc;
 
   try
   {
@@ -130,6 +132,7 @@ int main( int argc, char **argv )
         commonSetup( wg, params );
         ParaxialEquation eq;
         solver.setEquation( eq );
+        solver.addBoundaryCondition( bc );
         wg.setCladding( cladding );
         wg.setSolver( solver );
         wg.setBoundaryConditions( pw );

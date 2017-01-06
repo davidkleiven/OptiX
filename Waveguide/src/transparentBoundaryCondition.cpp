@@ -1,5 +1,9 @@
 #include "transparentBoundaryCondition.hpp"
 #include "solver2D.hpp"
+#include "paraxialSimulation.hpp"
+#include <iostream>
+
+using namespace std;
 
 TransparentBC::TransparentBC():BoundaryCondition("TransparentBC"){};
 
@@ -13,13 +17,13 @@ cdouble TransparentBC::neighbourCoupling( const Solver2D &solver, double x, doub
   if ( abs(x-xmin) < abs(x-xmax) )
   {
     // Lower boundary --> smallest induces
-    ratio = solver->getLastSolution()(0)/solver->getLastSolution(1);
+    ratio = solver.getLastSolution()(0)/solver.getLastSolution()(1);
   }
   else
   {
     // Upper boundary --> largest indices
-    unsigned int length = solver->getLastSolution().n_elem;
-    ratio = solver->getLastSolution()(length-1)/solver->getLastSolution(length-2);
+    unsigned int length = solver.getLastSolution().n_elem;
+    ratio = solver.getLastSolution()(length-1)/solver.getLastSolution()(length-2);
   }
 
   cdouble im(0.0,1.0);

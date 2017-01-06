@@ -7,5 +7,5 @@ class TransparentBC: public BoundaryCondition
 public:
   TransparentBC();
   virtual cdouble neighbourCoupling( const Solver2D &solver, double x, double z ) const override;
-}
+};
 #endif
