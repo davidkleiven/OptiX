@@ -1,11 +1,18 @@
 cmake_minimum_required (VERSION 2.6)
 
+project( Waveguide )
+set( CMAKE_CXX_STANDARD 11 )
+
 # Add libraries
 include_directories(inc)
 include_directories(/usr/include/jsoncpp)
 add_subdirectory(src)
 include_directories( /usr/local/include )
+include_directories( /usr/lib/x86_64-linux-gnu/hdf5/serial/include )
+
 link_directories( /usr/local/lib )
+link_directories( /usr/lib/x86_64-linux-gnu )
+set( CMAKE_LIBRARY_PATH /usr/lib/x86_64-linux-gnu )
 
 # Find required packages
 find_package( LAPACK REQUIRED )
@@ -20,6 +27,7 @@ find_package( GSL REQUIRED )
 include_directories(${GSL_INCLUDE_DIR})
 set(LIB ${LIB} ${GSL_LIBRARIES})
 
+set(CMAKE_INCLUDE_PATH "/usr/include/jsoncpp")
 find_package( jsoncpp REQUIRED )
 include_directories(${JSONCPP_INCLUDE_DIR})
 set(LIB ${LIB} ${JSONCPP_LIBRARIES})
@@ -39,13 +47,15 @@ find_package( ZLIB REQUIRED )
 include_directories(${ZLIB_INCLUDE_DIR})
 set(LIB ${LIB} ${ZLIB_LIBRARIES})
 
-find_package( HDF5 REQUIRED )
+find_package( HDF5 REQUIRED COMPONENTS C CXX HL)
 include_directories(${HDF5_INCLUDE_DIR})
-set(LIB ${LIB} ${HDF5_LIBRARIES} ${HDF5_HL_LIBRARIES})
+MESSAGE( STATUS ${HDF5_CXX_LIBRARIES})
+set(LIB ${LIB} ${HDF5_LIBRARIES} ${HDF5_HL_LIBRARIES} ${HDF5_CXX_LIBRARIES})
 
+set(CMAKE_INCLUDE_PATH "/usr/include")
 find_package( Armadillo REQUIRED )
-include_directories(${Armadillo_INCLUDE_DIR})
-set(LIB ${LIB} ${Armadillo_LIBRARIES})
+include_directories(${ARMADILLO_INCLUDE_DIRS})
+set(LIB ${LIB} ${ARMADILLO_LIBRARIES})
 
 find_package( SFML REQUIRED )
 include_directories(${SFML_INCLUDE_DIR})
@@ -86,7 +96,26 @@ if ( NOT PEI_HEADER )
 endif ( NOT PEI_HEADER )
 
 set ( FLTK_SKIP_FLUID True )
-find_package( FLTK REQUIRED )
+set( CMAKE_LIBRARY_PATH "/usr/lib/x86_64-linux-gnu")
+#find_package( FLTK REQUIRED )
+
+# Manual find the FLTK libraries
+find_library( FLTK_BASE_LIBRARY fltk )
+if( NOT FLTK_BASE_LIBRARY )
+  MESSAGE( FATAL_ERROR "Did not find the fltk library")
+endif()
+find_library( FLTK_GL_LIBRARY fltk_gl)
+if ( NOT FLTK_GL_LIBRARY )
+  MESSAGE( FATAL_ERROR "Did not find the fltk_gl library!")
+endif()
+find_library( FLTK_FORMS fltk_forms )
+if ( NOT FLTK_FORMS )
+  MESSAGE( FATAL_ERROR "Did not find the fltk_forms library!")
+endif()
+find_library( FLTK_IMAGE_LIBRARY fltk_images)
+if ( NOT FLTK_IMAGE_LIBRARY)
+  MESSAGE( FATAL_ERROR "Did not find the fltk_images library!")
+endif()
 find_package( OpenGL REQUIRED )
 
 include_directories( FLTK_INCLUDE_DIR )
@@ -124,9 +153,12 @@ add_executable( testSaveArmaMat.out unittest/testSaveArmamat.cpp )
 target_link_libraries( testSaveArmaMat.out ${LIB} src )
 
 # Compile unittests
-find_package( Boost COMPONENTS system filesystem unit_test_framework REQUIRED )
+find_package( Boost COMPONENTS system filesystem unit_test_framework )
 include_directories( ${Boost_INCLUDE_DIRS} )
 link_directories( ${Boost_LIBRARY_DIRS} )
-add_executable( alltests.out unittest/alltests.cpp unittest/curvedWaveGuide2DTest.cpp unittest/testMatrixBuild.cpp
-unittest/thomasAlgTest.cpp unittest/waveGuideRadiusCurvatureTest.cpp )
-target_link_libraries( alltests.out ${LIB} src ${Boost_FILESYSTEM_LIBRARY} ${Boost_FILESYSTEM_LIBRARY} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} )
+
+if ( BOOST_FOUND )
+  add_executable( alltests.out unittest/alltests.cpp unittest/curvedWaveGuide2DTest.cpp unittest/testMatrixBuild.cpp
+  unittest/thomasAlgTest.cpp unittest/waveGuideRadiusCurvatureTest.cpp )
+  target_link_libraries( alltests.out ${LIB} src ${Boost_FILESYSTEM_LIBRARY} ${Boost_FILESYSTEM_LIBRARY} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} )
+endif()
