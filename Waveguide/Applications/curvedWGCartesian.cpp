@@ -24,7 +24,6 @@
 #include <chrono>
 #include <thread>
 #include <pei/dialogBox.hpp>
-#include "transparentBoundaryCondition.hpp"
 #define KEEP_PLOT_FOR_SEC 6
 #define VISUALIZE_PATTERN
 
