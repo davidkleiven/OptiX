@@ -123,7 +123,7 @@ public:
   // Virtual methods
   /** Run simulation */
   virtual void solve();
-  
+
   /** Set incident field */
   virtual void setBoundaryConditions( const ParaxialSource& src ); // This function should fill the boundary
 
@@ -132,12 +132,6 @@ public:
 
   /** Initialize. Relevant if loading an old solution */
   virtual void init( const ControlFile &ctl ){}; // TODO: Implement this
-
-  /** Get the boundary condition at the specified boundary */
-  virtual cdouble transverseBC( double z, Boundary_t bnd ) const{ return 0.0; };
-
-  /** Get transverse boundary condition at position z. Can be used if is equal on x=xmin and x=xmax*/
-  virtual cdouble transverseBC( double z ) const{ return 0.0; };
 
   /** Get the material properties */
   virtual void getXrayMatProp( double x, double z, double &delta, double &beta ) const{ delta=0.0; beta=0.0; };

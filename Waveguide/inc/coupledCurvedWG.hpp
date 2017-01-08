@@ -27,9 +27,6 @@ public:
   /** Set the position where the waveguide coupling to the other starts. This can be used to ensure that the direct beam only enters one of the waveguides */
   void setStartCoupler( double start ){ startCoupler = start; };
 
-  /** Specifies the boundary conditions at x = +-L, where the simulation domain is -L < x < L */
-  cdouble transverseBC( double z, WaveGuideFDSimulation::Boundary_t bnd) const override;
-
   /** Get the first waveguide */
   CurvedWaveGuideFD& getWg1() { return *wg1; };
 

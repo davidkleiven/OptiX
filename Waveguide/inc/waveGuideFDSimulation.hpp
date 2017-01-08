@@ -59,12 +59,6 @@ public:
   /** Initialize. Relevant if loading an old solution */
   virtual void init( const ControlFile &ctl ) override{}; // TODO: Implement this
 
-  /** Get the boundary condition at the specified boundary */
-  virtual cdouble transverseBC( double z, Boundary_t bnd ) const override;
-
-  /** Get transverse boundary condition at position z. Can be used if is equal on x=xmin and x=xmax*/
-  virtual cdouble transverseBC( double z ) const override;
-
   /** Checks if the given point is inside the waveguide */
   virtual bool isInsideGuide( double x, double z ) const { return true; };
   // Refractive index: n = 1 - delta + i*beta

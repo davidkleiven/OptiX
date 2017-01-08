@@ -71,7 +71,7 @@ void BorderTracker::threePointStencil( unsigned int centerIndx, unsigned int iz,
   //cerr << currentIteration << " " << indx << " " << accumulatedPixelShift.back() << endl;
   if ( ( indx-1 < 0 ) || ( indx-1 > maxIndx ) )
   {
-    left = wg->transverseBC(z);
+    left = 0.0;
   }
   else
   {
@@ -80,7 +80,7 @@ void BorderTracker::threePointStencil( unsigned int centerIndx, unsigned int iz,
   //cerr << "left\n";
   if (( indx < 0 ) || ( indx > maxIndx ))
   {
-    center = wg->transverseBC(z);
+    center = 0.0;
   }
   else
   {
@@ -89,7 +89,7 @@ void BorderTracker::threePointStencil( unsigned int centerIndx, unsigned int iz,
   //cerr << "center\n";
   if (( indx +1 < 0 ) || ( indx+1 > maxIndx ))
   {
-    right = wg->transverseBC(z);
+    right = 0.0;
   }
   else
   {

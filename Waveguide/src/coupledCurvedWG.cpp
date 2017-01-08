@@ -64,12 +64,3 @@ void CoupledCurvedWG::init( const ControlFile &ctl )
     separation = ctl.get()["separation"].asDouble();
     startCoupler = ctl.get()["couplerStart"].asDouble();
 }
-
-cdouble CoupledCurvedWG::transverseBC( double z, WaveGuideFDSimulation::Boundary_t bnd ) const
-{
-  if ( crd == Coordinate_t::CYLINDRICAL )
-  {
-    return WaveGuideFDSimulation::transverseBC( wg1->getRadiusOfCurvature()*z, bnd );
-  }
-  return WaveGuideFDSimulation::transverseBC( z, bnd );
-}

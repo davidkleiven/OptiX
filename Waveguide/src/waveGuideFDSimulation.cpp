@@ -265,35 +265,6 @@ void WaveGuideFDSimulation::getXrayMatProp( double x, double z, double &delta, d
   beta = cladding->getBeta();
 }
 
-cdouble WaveGuideFDSimulation::transverseBC( double z, Boundary_t bnd ) const
-{
-  assert( cladding != NULL );
-
-  // TODO: Use the getXrayMatProp() function instead
-  double delta = cladding->getDelta();
-  double beta = cladding->getBeta();
-  cdouble im(0.0,1.0);
-  double x = 0.0;
-  if ( bnd == Boundary_t::TOP )
-  {
-    x = xDisc->max;
-  }
-  else if ( bnd == Boundary_t::BOTTOM )
-  {
-    x = xDisc->min;
-  }
-  else
-  {
-    throw (runtime_error("Boundary has to be either TOP or BOTTOM!"));
-  }
-  return src->get(x,0.0)*exp(-beta*wavenumber*z)*exp(-im*delta*wavenumber*z);
-}
-
-cdouble WaveGuideFDSimulation::transverseBC( double z ) const
-{
-  return this->transverseBC( z, WaveGuideFDSimulation::Boundary_t::BOTTOM );
-}
-
 void WaveGuideFDSimulation::useBorderTracker()
 {
   if ( bTracker != NULL ) delete bTracker;
