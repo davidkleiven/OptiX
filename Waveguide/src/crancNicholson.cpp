@@ -138,7 +138,7 @@ void CrankNicholson::applyBC( cdouble subdiag[], cdouble diag[], cdouble rhs[] )
 
 void CrankNicholson::applyTBC( cdouble subdiag[], cdouble diag[], cdouble rhs[] )
 {
-  const double ZERO = 1E-5;
+  const double ZERO = 1E-16;
   if ( abs( getLastSolution()(1) ) > ZERO )
   {
     applyTBCOneSide(subdiag, diag, rhs, 0, 1);
@@ -161,8 +161,6 @@ void CrankNicholson::applyTBCOneSide( cdouble subdiag[], cdouble diag[], cdouble
     kdx.real(0.0);
   }
 
-  double sign = guide->getX(outer) > guide->getX(inner) ? 1.0:-1.0;
-
-  diag[outer] -= 0.25*im*rho*Hminus*gval*exp(im*kdx*sign);
-  rhs[outer] += 0.25*im*rho*HminusPrev*gvalPrev*exp(im*kdx*sign)*getLastSolution()(outer);
+  diag[outer] -= 0.25*im*rho*Hminus*gval*exp(im*kdx);
+  rhs[outer] += 0.25*im*rho*HminusPrev*gvalPrev*exp(im*kdx)*getLastSolution()(outer);
 }
