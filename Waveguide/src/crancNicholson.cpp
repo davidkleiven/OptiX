@@ -79,46 +79,30 @@ void CrankNicholson::solveStep( unsigned int iz )
     }
     else
     {
-      //left = ix > 0 ? (*prevSolution)(ix-1):guide->transverseBC(z-stepZ, WaveGuideFDSimulation::Boundary_t::BOTTOM);
-      left = ix > 0 ? (*prevSolution)(ix-1):bc->fixedField(x,z);
+      if ( ix > 0 )
+      {
+        left = (*prevSolution)(ix-1);
+      }
+      else
+      {
+        left = 0.0;
+      }
       center = (*prevSolution)(ix);
-      //right = ix < Nx-1 ? (*prevSolution)(ix+1):guide->transverseBC(z-stepZ, WaveGuideFDSimulation::Boundary_t::TOP);
-      right = ix < Nx-1 ? (*prevSolution)(ix+1):bc->fixedField(x,z);
+      if ( ix < Nx-1 )
+      {
+        right = (*prevSolution)(ix+1);
+      }
+      else
+      {
+        right = 0.0;
+      }
     }
 
-    if ( ix > 0 )
-    {
-      //rhs[ix] = (*solution)(ix-1,iz-1)*Hminus*gval;
-      rhs[ix] = left*Hminus*gval;
-    }
-    else
-    {
-      //rhs[ix] = guide->transverseBC(z, WaveGuideFDSimulation::Boundary_t::BOTTOM)*Hminus*gval +\
-      guide->transverseBC(z-stepZ, WaveGuideFDSimulation::Boundary_t::BOTTOM)*HminusPrev*gvalPrev; // Make sure that it is not a random value
-      rhs[ix] = bc->fixedField(x,z)*Hminus*gval + left*HminusPrev*gvalPrev;
-
-      diag[ix] -= 0.25*IMAG_UNIT*rho*bc->neighbourCoupling( *this, x, z );
-    }
-
-    if ( ix < Nx-1 )
-    {
-      //rhs[ix] += (*solution)(ix+1,iz-1)*HplussPrev*gvalPrev;
-      rhs[ix] += right*HplussPrev*gvalPrev;
-    }
-    else
-    {
-      //rhs[ix] += ( guide->transverseBC(z, WaveGuideFDSimulation::Boundary_t::TOP)*Hpluss*gval + \
-      guide->transverseBC(z-stepZ, WaveGuideFDSimulation::Boundary_t::TOP)*HplussPrev*gvalPrev );
-      rhs[ix] += ( bc->fixedField(x,z)*Hpluss*gval + \
-      right*HplussPrev*gvalPrev );
-
-      diag[ix] -= 0.25*IMAG_UNIT*rho*bc->neighbourCoupling( *this, x, z );
-    }
+    rhs[ix] = left*HminusPrev*gvalPrev;
+    rhs[ix] += right*HplussPrev*gvalPrev;
 
     rhs[ix] *=  (0.25*IMAG_UNIT*rho);
-    //rhs[ix] -= 0.25*(*solution)(ix,iz-1)*IMAG_UNIT*rho*(HplussPrev+HminusPrev)*gval;
     rhs[ix] -= 0.25*center*IMAG_UNIT*rho*(HplussPrev+HminusPrev)*gval;
-    //rhs[ix] += (1.0*fvalPrev - 0.5*(betaPrev*r + IMAG_UNIT*deltaPrev*r) )*(*solution)(ix,iz-1);
     rhs[ix] += (1.0*fvalPrev - 0.5*(betaPrev*r + IMAG_UNIT*deltaPrev*r) )*center;
   }
 
