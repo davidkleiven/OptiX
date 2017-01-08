@@ -24,8 +24,22 @@ public:
 protected:
   ThomasAlgorithm matrixSolver;
 
+  /** Parameters used internally, but needs to be shared between member functions */
+  double Hpluss, Hminus, gval, HplussPrev, HminusPrev, gvalPrev, rho;
+
+  bool printBC{true};
+
   /** Performs one iteration */
   void solveCurrent( unsigned int iz );
+
+  /** Apply boundary condition to the solution matrix */
+  void applyBC( cdouble subdiag[], cdouble diag[], cdouble rhs[] );
+
+  /** Apply transparent boundary conditions */
+  void applyTBC( cdouble subdiag[], cdouble diag[], cdouble rhs[] );
+
+  /** Apply TBC on the side of the matrix/right hand side */
+  void applyTBCOneSide( cdouble subdiag[], cdouble diag[], cdouble rhs[], unsigned int outer, unsigned int inner );
 };
 
 #endif

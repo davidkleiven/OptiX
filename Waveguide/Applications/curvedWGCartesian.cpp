@@ -132,7 +132,7 @@ int main( int argc, char **argv )
         commonSetup( wg, params );
         ParaxialEquation eq;
         solver.setEquation( eq );
-        solver.addBoundaryCondition( bc );
+        solver.setBoundaryCondition( Solver2D::BC_t::TRANSPARENT );
         wg.setCladding( cladding );
         wg.setSolver( solver );
         wg.setBoundaryConditions( pw );

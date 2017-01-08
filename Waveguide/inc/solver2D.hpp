@@ -20,6 +20,10 @@ class Solver2D
 public:
   /** Enum for real or imaginary components */
   enum class Comp_t{REAL,IMAG};
+
+  /** Enum for supported boundary conditions */
+  enum class BC_t{DIRICHLET,TRANSPARENT};
+
   Solver2D( const char* name ):name(name){};
   virtual ~Solver2D();
 
@@ -83,6 +87,9 @@ public:
   /** Reset the counter */
   void reset(){ currentStep = 1; };
 
+  /** Set which boundary conditions to use. Dirichlet is default */
+  void setBoundaryCondition( BC_t bc ){ boundaryCondition = bc; };
+
   /** Sets the transverse boundary conditions */
   void addBoundaryCondition( const BoundaryCondition &bCond ){ bc = &bCond; };
 
@@ -107,6 +114,7 @@ protected:
   double xmin{0.0};
   double zmin{0.0};
   double wavenumber{1.0};
+  BC_t boundaryCondition{BC_t::DIRICHLET};
 
   /** Get the solution */
   arma::cx_mat& getSolution( unsigned int iz ) { return *solution; };
