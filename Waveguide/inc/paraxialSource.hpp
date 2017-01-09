@@ -18,6 +18,9 @@ public:
   /** Set the wavenumber in nm^{-1} */
   void setWavenumber( double k ){ wavenumber = k; };
 
+  /** Get the wavenumber */
+  double getWavenumber() const;
+
   /** Set the wavelength in nano meters */
   void setWavelength( double lambda );
 

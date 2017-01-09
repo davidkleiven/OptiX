@@ -12,9 +12,6 @@ class CurvedWGCylCrd: public CurvedWaveGuideFD
 public:
   CurvedWGCylCrd(): CurvedWaveGuideFD("CurvedWGCylCrd"){};
 
-  /** Returns the boundary condition at r=rmin and r=rmax (assumed to be the same on both locations)*/
-  cdouble transverseBC( double z, WaveGuideFDSimulation::Boundary_t bnd ) const override;
-
   /** Fill JSON object with information relevant for this geometry */
   virtual void fillInfo( Json::Value &obj ) const override;
 protected:

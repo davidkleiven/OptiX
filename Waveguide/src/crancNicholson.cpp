@@ -6,6 +6,7 @@
 #include "paraxialEquation.hpp"
 #include "borderTracker.hpp"
 #include <cassert>
+#include "boundaryCondition.hpp"
 
 using namespace std;
 
@@ -22,7 +23,7 @@ void CrankNicholson::solveStep( unsigned int iz )
   cdouble *diag = new cdouble[Nx];
 
   // Two useful dimensionless numbers
-  double rho = stepZ/(wavenumber*stepX*stepX);
+  rho = stepZ/(wavenumber*stepX*stepX);
   double r = wavenumber*stepZ;
 
   double z = zmin + static_cast<double>(iz)*stepZ;
@@ -49,9 +50,9 @@ void CrankNicholson::solveStep( unsigned int iz )
     guide->getXrayMatProp( xShifted, z, delta, beta );
     guide->getXrayMatProp( xPrevShifted, z-stepZ, deltaPrev, betaPrev);
 
-    double Hpluss = eq->H(xShifted+0.5*stepX,z);
-    double Hminus = eq->H(xShifted-0.5*stepX,z);
-    double gval = eq->G(xShifted,z);
+    Hpluss = eq->H(xShifted+0.5*stepX,z);
+    Hminus = eq->H(xShifted-0.5*stepX,z);
+    gval = eq->G(xShifted,z);
     double fval = eq->F(xShifted,z);
     double jval = eq->J(xShifted,z);
     double jvalPrev = eq->J(xPrevShifted,z-stepZ);
@@ -65,9 +66,9 @@ void CrankNicholson::solveStep( unsigned int iz )
       subdiag[ix] = -0.25*IMAG_UNIT*rho*Hminus*gval;
     }
 
-    double HplussPrev = eq->H(xPrevShifted+0.5*stepX,z-stepZ);
-    double HminusPrev = eq->H(xPrevShifted-0.5*stepX,z-stepZ);
-    double gvalPrev = eq->G(xPrevShifted,z-stepZ);
+    HplussPrev = eq->H(xPrevShifted+0.5*stepX,z-stepZ);
+    HminusPrev = eq->H(xPrevShifted-0.5*stepX,z-stepZ);
+    gvalPrev = eq->G(xPrevShifted,z-stepZ);
     double fvalPrev = eq->F(xPrevShifted,z-stepZ);
 
     // Fill right hand side
@@ -78,43 +79,34 @@ void CrankNicholson::solveStep( unsigned int iz )
     }
     else
     {
-      left = ix > 0 ? (*prevSolution)(ix-1):guide->transverseBC(z-stepZ, WaveGuideFDSimulation::Boundary_t::BOTTOM);
+      if ( ix > 0 )
+      {
+        left = (*prevSolution)(ix-1);
+      }
+      else
+      {
+        left = 0.0;
+      }
       center = (*prevSolution)(ix);
-      right = ix < Nx-1 ? (*prevSolution)(ix+1):guide->transverseBC(z-stepZ, WaveGuideFDSimulation::Boundary_t::TOP);
+      if ( ix < Nx-1 )
+      {
+        right = (*prevSolution)(ix+1);
+      }
+      else
+      {
+        right = 0.0;
+      }
     }
 
-    if ( ix > 0 )
-    {
-      //rhs[ix] = (*solution)(ix-1,iz-1)*Hminus*gval;
-      rhs[ix] = left*Hminus*gval;
-    }
-    else
-    {
-      //rhs[ix] = guide->transverseBC(z, WaveGuideFDSimulation::Boundary_t::BOTTOM)*Hminus*gval +\
-      guide->transverseBC(z-stepZ, WaveGuideFDSimulation::Boundary_t::BOTTOM)*HminusPrev*gvalPrev; // Make sure that it is not a random value
-      rhs[ix] = guide->transverseBC(z, WaveGuideFDSimulation::Boundary_t::BOTTOM)*Hminus*gval +\
-      left*HminusPrev*gvalPrev; // Make sure that it is not a random value
-    }
-
-    if ( ix < Nx-1 )
-    {
-      //rhs[ix] += (*solution)(ix+1,iz-1)*HplussPrev*gvalPrev;
-      rhs[ix] += right*HplussPrev*gvalPrev;
-    }
-    else
-    {
-      //rhs[ix] += ( guide->transverseBC(z, WaveGuideFDSimulation::Boundary_t::TOP)*Hpluss*gval + \
-      guide->transverseBC(z-stepZ, WaveGuideFDSimulation::Boundary_t::TOP)*HplussPrev*gvalPrev );
-      rhs[ix] += ( guide->transverseBC(z, WaveGuideFDSimulation::Boundary_t::TOP)*Hpluss*gval + \
-      right*HplussPrev*gvalPrev );
-    }
+    rhs[ix] = left*HminusPrev*gvalPrev;
+    rhs[ix] += right*HplussPrev*gvalPrev;
 
     rhs[ix] *=  (0.25*IMAG_UNIT*rho);
-    //rhs[ix] -= 0.25*(*solution)(ix,iz-1)*IMAG_UNIT*rho*(HplussPrev+HminusPrev)*gval;
     rhs[ix] -= 0.25*center*IMAG_UNIT*rho*(HplussPrev+HminusPrev)*gval;
-    //rhs[ix] += (1.0*fvalPrev - 0.5*(betaPrev*r + IMAG_UNIT*deltaPrev*r) )*(*solution)(ix,iz-1);
     rhs[ix] += (1.0*fvalPrev - 0.5*(betaPrev*r + IMAG_UNIT*deltaPrev*r) )*center;
   }
+
+  applyBC( subdiag, diag, rhs );
 
   // Solve the tridiagonal system
   matrixSolver.solve( diag, subdiag, rhs, Nx);
@@ -128,4 +120,47 @@ void CrankNicholson::solveStep( unsigned int iz )
   delete [] rhs;
   delete [] subdiag;
   delete [] diag;
+}
+
+void CrankNicholson::applyBC( cdouble subdiag[], cdouble diag[], cdouble rhs[] )
+{
+  switch ( boundaryCondition )
+  {
+    case BC_t::TRANSPARENT:
+      if ( printBC ) clog << "Using transparent BC\n";
+      applyTBC( subdiag, diag, rhs );
+      break;
+    default:
+      if ( printBC ) clog << "Using default Dirichlet boundary condition\n";
+  }
+  printBC = false;
+}
+
+void CrankNicholson::applyTBC( cdouble subdiag[], cdouble diag[], cdouble rhs[] )
+{
+  const double ZERO = 1E-16;
+  if ( abs( getLastSolution()(1) ) > ZERO )
+  {
+    applyTBCOneSide(subdiag, diag, rhs, 0, 1);
+  }
+
+  unsigned int N = getLastSolution().n_elem;
+  if ( abs( getLastSolution()(N-2) ) > ZERO )
+  {
+    applyTBCOneSide( subdiag, diag, rhs, N-1, N-2 );
+  }
+}
+
+void CrankNicholson::applyTBCOneSide( cdouble subdiag[], cdouble diag[], cdouble rhs[], unsigned int outer, unsigned int inner )
+{
+  cdouble im(0.0,1.0);
+  cdouble ratio = getLastSolution()(outer)/getLastSolution()(inner);
+  cdouble kdx = log( ratio )/im;
+  if ( kdx.real() < 0.0 )
+  {
+    kdx.real(0.0);
+  }
+
+  diag[outer] -= 0.25*im*rho*Hminus*gval*exp(im*kdx);
+  rhs[outer] += 0.25*im*rho*HminusPrev*gvalPrev*exp(im*kdx)*getLastSolution()(outer);
 }

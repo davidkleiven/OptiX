@@ -16,12 +16,6 @@ public:
 
   /** Set the cylinder material */
   void setMaterial( const char* name );
-
-  /** Set the transverse boundary conditions. Here this is simple a planewave */
-  cdouble transverseBC( double z ) const override { return 1.0; };
-
-  /** Override the transverse boundary conditions */
-  cdouble transverseBC( double z, Boundary_t bnd ) const override { return 1.0; };
 private:
   double x0{0.0};
   double z0{0.0};

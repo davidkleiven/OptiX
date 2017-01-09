@@ -10,6 +10,7 @@
 class WaveGuideFDSimulation;
 class ParaxialEquation;
 class ParaxialSimulation;
+class BoundaryCondition;
 
 typedef std::complex<double> cdouble;
 
@@ -19,6 +20,10 @@ class Solver2D
 public:
   /** Enum for real or imaginary components */
   enum class Comp_t{REAL,IMAG};
+
+  /** Enum for supported boundary conditions */
+  enum class BC_t{DIRICHLET,TRANSPARENT};
+
   Solver2D( const char* name ):name(name){};
   virtual ~Solver2D();
 
@@ -27,6 +32,8 @@ public:
 
   /** Set waveguide to operate on */
   void setSimulator( ParaxialSimulation &guide );
+
+  const ParaxialSimulation& getSimulator() const { return *guide; };
 
   /** Set paraxial equation to solve */
   void setEquation( const ParaxialEquation &equation ){ eq = &equation; };
@@ -80,6 +87,12 @@ public:
   /** Reset the counter */
   void reset(){ currentStep = 1; };
 
+  /** Set which boundary conditions to use. Dirichlet is default */
+  void setBoundaryCondition( BC_t bc ){ boundaryCondition = bc; };
+
+  /** Sets the transverse boundary conditions */
+  void addBoundaryCondition( const BoundaryCondition &bCond ){ bc = &bCond; };
+
   // Virtual functions
   /** Pure virtual function for solving the system */
 
@@ -92,6 +105,7 @@ protected:
   arma::cx_mat *solution{NULL};
   arma::cx_vec *prevSolution{NULL};
   arma::cx_vec *currentSolution{NULL};
+  const BoundaryCondition *bc{NULL};
   unsigned int currentStep{1};
 
   unsigned int Nx{0};
@@ -100,6 +114,7 @@ protected:
   double xmin{0.0};
   double zmin{0.0};
   double wavenumber{1.0};
+  BC_t boundaryCondition{BC_t::DIRICHLET};
 
   /** Get the solution */
   arma::cx_mat& getSolution( unsigned int iz ) { return *solution; };

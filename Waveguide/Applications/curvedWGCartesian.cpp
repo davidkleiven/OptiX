@@ -114,6 +114,7 @@ int main( int argc, char **argv )
   PlaneWave pw;
   setupPW( pw, params );
   CrankNicholson solver;
+  solver.setBoundaryCondition( Solver2D::BC_t::TRANSPARENT );
   arma::mat intensity; // Matrix used for visualization
   double xMargin = 0.01E3;
 
