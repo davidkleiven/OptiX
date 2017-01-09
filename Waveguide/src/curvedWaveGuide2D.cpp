@@ -21,12 +21,18 @@ using namespace std;
 
 CurvedWaveGuideFD::CurvedWaveGuideFD(): WaveGuideFDSimulation("CurvedWaveGuide2D")
 {
-  transmittivity.linkWaveguide( *this );
+  transmittivity = new post::Transmittivity();
+  transmittivity->linkWaveguide( *this );
 }
 
 CurvedWaveGuideFD::CurvedWaveGuideFD( const char *name): WaveGuideFDSimulation(name)
 {
-  transmittivity.linkWaveguide( *this );
+  transmittivity->linkWaveguide( *this );
+}
+
+CurvedWaveGuideFD::~CurvedWaveGuideFD()
+{
+  if ( transmittivity != NULL ) delete transmittivity;
 }
 
 bool CurvedWaveGuideFD::isInsideGuide( double x, double z ) const
@@ -201,7 +207,7 @@ void CurvedWaveGuideFD::solve()
   for ( unsigned int n=1;n<nodeNumberLongitudinal();n++ )
   {
     step();
-    transmittivity.compute( getZ(n) );
+    transmittivity->compute( getZ(n) );
   }
   solver->filterInLongitudinalDirection();
   solver->downSampleLongitudinalDirection();
@@ -210,6 +216,6 @@ void CurvedWaveGuideFD::solve()
 void CurvedWaveGuideFD::save( ControlFile &ctl )
 {
   ParaxialSimulation::save( ctl );
-  arma::vec res = transmittivity.get();
+  arma::vec res = transmittivity->get();
   saveArmaVec( res, "transmittivity", commonAttributes );
 }

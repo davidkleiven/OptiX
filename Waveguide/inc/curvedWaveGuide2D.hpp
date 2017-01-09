@@ -16,6 +16,8 @@ class CurvedWaveGuideFD: public WaveGuideFDSimulation
 public:
   CurvedWaveGuideFD();
 
+  virtual ~CurvedWaveGuideFD();
+
   /** Set the radius of curvature in nano meters */
   void setRadiusOfCurvature( double newR ) { R = newR; };
 
@@ -36,6 +38,9 @@ public:
 
   /** Returns the weight factor if a smoothed refractive index profile is used for instance to mimic roughness */
   double smoothedWG( double x, double z ) const;
+
+  /** Returns the transmittivity module */
+  const post::Transmittivity& getTransmittivity() { return *transmittivity; };
 
   /** Use a smoothed refractive index profile */
   void useSmoothedWG(){ useSmoothed=true; };
@@ -74,6 +79,6 @@ protected:
   double R;
   double width;
   bool useSmoothed{false};
-  post::Transmittivity transmittivity;
+  post::Transmittivity *transmittivity{NULL};
 };
 #endif

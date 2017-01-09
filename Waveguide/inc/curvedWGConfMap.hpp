@@ -13,8 +13,9 @@ public:
 
   /** True if the position is inside the waveguide */
   virtual bool isInsideGuide( double u, double v ) const override;
-
 protected:
+  CurvedWGConfMap( const char* name ): CurvedWaveGuideFD(name){};
+
   /** Returns the start position of the waveguide */
   virtual double waveGuideStartX( double v ) const override;
 
