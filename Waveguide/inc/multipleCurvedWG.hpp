@@ -22,6 +22,9 @@ public:
   /** Initializes the simulation */
   void init( const std::map<std::string,double> &params );
 
+  /** Returns the intensity */
+  const arma::mat& getIntensity() const { return *intensity; };
+  
   /** Solve the system */
   virtual void solve() override;
 private:
