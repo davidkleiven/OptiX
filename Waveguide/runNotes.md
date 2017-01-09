@@ -190,3 +190,4 @@
 662488 | Incident angle sweep, L=0.97 mm, no alocohol | Does not match the measurements |
 22011 | Incident angle sweep, L=0.99 mm, no alcohol | Does not match the measurements |
 473762 | Incident angle sweep, L=0.975, no alcohol | Does not match the measurements |
+732187 | Curved waveguide L=4mm | Looks good |

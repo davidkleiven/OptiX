@@ -13,6 +13,7 @@
 #include "gaussianWG.hpp"
 #include "linearRampWG.hpp"
 #include "postProcessMod.hpp"
+#include "curvedWGConfMap.hpp"
 #include <map>
 #include <complex>
 #include <stdexcept>
@@ -33,7 +34,7 @@ typedef complex<double> cdouble;
 
 enum class Source_t {PLANE, GAUSSIAN};
 enum class WGProfile_t {STEP, GAUSSIAN, LINEAR_RAMP};
-enum class Mode_t {STRAIGHT, CURVED, CURVED_CYLCRD, NONE};
+enum class Mode_t {STRAIGHT, CURVED, CURVED_CYLCRD, CURVED_CONF_MAP, NONE};
 
 /** Function for the common setup for the wave guide */
 void commonSetup( CurvedWaveGuideFD &wg, const map<string, double> &params )
@@ -89,6 +90,7 @@ int main( int argc, char **argv )
   if ( intMode == 1 ) mode = Mode_t::STRAIGHT;
   else if ( intMode == 2 ) mode = Mode_t::CURVED_CYLCRD;
   else if ( intMode == 3 ) mode = Mode_t::CURVED;
+  else if ( intMode == 4 ) mode = Mode_t::CURVED_CONF_MAP;
 
   cout << "Mode description:\n";
   cout << "    1: Straight\n";
@@ -187,6 +189,31 @@ int main( int argc, char **argv )
         wg.setBoundaryConditions( pw );
         wg << amplitude << phase << ef << ei << ep << ff;
         if ( useBorderTracker ) wg.useBorderTracker();
+
+        clog << "Solving system...";
+        wg.solve();
+        clog << " done\n";
+        clog << "Exporting results...\n";
+        if (!useBorderTracker) wg.extractWGBorders();
+        wg.save( ctl );
+        ctl.save();
+        clog << "Finished exporting results\n";
+        intensity = arma::abs( wg.getSolver().getSolution() );
+        break;
+      }
+      case Mode_t::CURVED_CONF_MAP:
+      {
+        clog << "Curved waveguide in uv-plane\n";
+        CurvedWGConfMap wg;
+        params["xmax"] = params["width"];
+        params["xmin"] = -2.0*params["width"];
+        commonSetup( wg, params );
+        wg.setCladding( cladding );
+        ParaxialEquation eq;
+        solver.setEquation( eq );
+        wg.setSolver( solver );
+        wg.setBoundaryConditions( pw );
+        wg << amplitude << phase << ef << ei << ep << ff;
 
         clog << "Solving system...";
         wg.solve();
