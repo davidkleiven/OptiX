@@ -17,3 +17,4 @@ src/Makefile
 src/cmake_install.cmake
 src/libsrc.a
 Makefile
+*.csv
