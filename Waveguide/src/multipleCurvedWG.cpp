@@ -1,10 +1,10 @@
 #include "multipleCurvedWG.hpp"
-#include "curvedWGConfMapGuideToGuide.hpp"
 #include <json/reader.h>
 #include <stdexcept>
 #include <fstream>
 #include <cmath>
 #include <cassert>
+#include "curvedWGConfMap.hpp"
 using namespace std;
 
 MultipleCurvedWG::~MultipleCurvedWG()

@@ -2,7 +2,6 @@
 #define MULTIPLE_CURVED_WG_H
 #include "paraxialSimulation.hpp"
 #include "paraxialEquation.hpp"
-#include "paraxialEqNegative.hpp"
 #include "crankNicholson.hpp"
 #include "planeWave.hpp"
 #include "cladding.hpp"
@@ -33,7 +32,6 @@ private:
   std::vector<CurvedWGConfMap*> *waveguides{NULL};
   std::vector<double> angles;
   ParaxialEquation eq;
-  ParaxialEqNegative eqNeg;
   CrankNicholson solver;
   PlaneWave pw;
   FixedValuesSource fsource;
