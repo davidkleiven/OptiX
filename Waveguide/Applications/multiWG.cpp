@@ -1,6 +1,7 @@
 #include <visa/visa.hpp>
 #include <pei/dialogBox.hpp>
 #include "multipleCurvedWG.hpp"
+#include "controlFile.hpp"
 #include <map>
 #include <string>
 #include <chrono>
@@ -62,6 +63,10 @@ int main ( int argc, char** argv )
     simulation.loadWaveguides( geofile );
     simulation.init( params );
     simulation.solve();
+
+    ControlFile ctl("data/multipleWG");
+    simulation.save( ctl );
+    ctl.save();
     arma::mat intensity = simulation.getIntensity();
     visa::WindowHandler plots;
     plots.addPlot("Intensity");

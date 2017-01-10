@@ -19,7 +19,10 @@ MultipleCurvedWG::~MultipleCurvedWG()
   }
   if ( intensity != NULL ) delete intensity;
   if ( transmittivity != NULL ) delete transmittivity;
+  if ( solver != NULL ) delete solver;
+  if ( src != NULL ) delete src;
 }
+
 void MultipleCurvedWG::loadWaveguides( const string &jsonfname )
 {
   Json::Value root;
@@ -63,6 +66,8 @@ void MultipleCurvedWG::init( const map<string,double> &params )
     throw ( runtime_error("Waveguides needs to be loaded before the init function is called!") );
   }
 
+  solver = new CrankNicholson();
+  PlaneWave* pw = new PlaneWave();
   double xmin = -2.0*params.at("width");
   double xmax = 2.0*params.at("width");
   double zmin = 0.0;
@@ -87,15 +92,17 @@ void MultipleCurvedWG::init( const map<string,double> &params )
 
   this->setTransverseDiscretization( xmin, xmax, params.at("stepX"), params.at("downSamplingX") );
   this->setLongitudinalDiscretization( 0.0, zmin+length, params.at("stepZ"), params.at("downSamplingZ") );
+  this->setWaveLength( params.at("wavelength") );
 
-  solver.setEquation( eq );
-  solver.setBoundaryCondition( Solver2D::BC_t::TRANSPARENT );
-  (*waveguides)[0]->setSolver( solver );
+  solver->setEquation( eq );
+  solver->setBoundaryCondition( Solver2D::BC_t::TRANSPARENT );
+  (*waveguides)[0]->setSolver( *solver );
   unsigned int Nx = (*waveguides)[0]->nodeNumberTransverse();
 
   transmittivity = new arma::vec( totalNz, arma::fill::zeros );
   intensity = new arma::mat( Nx/params.at("downSamplingX"), totalNz/params.at("downSamplingZ"), arma::fill::zeros );
-  pw.setWavelength( params.at("wavelength") );
+  pw->setWavelength( params.at("wavelength") );
+  src = pw;
 }
 
 void MultipleCurvedWG::solve()
@@ -109,17 +116,17 @@ void MultipleCurvedWG::solve()
   for ( auto wg=waveguides->begin();wg != waveguides->end(); ++wg )
   {
     clog << "Running waveguide " << counter++ << endl;
-    solver.reset();
+    solver->reset();
 
     if ( (*wg)->getSign() != prevSign )
     {
       flipWrtCenterOfWG( endSolution );
     }
 
-    (*wg)->setSolver( solver );
+    (*wg)->setSolver( *solver );
     if ( wg == waveguides->begin() )
     {
-      (*wg)->setBoundaryConditions( pw );
+      (*wg)->setBoundaryConditions(*src );
     }
     else
     {
@@ -131,7 +138,7 @@ void MultipleCurvedWG::solve()
     (*wg)->solve();
     processSolution( **wg );
 
-    endSolution = solver.getLastSolution();
+    endSolution = solver->getLastSolution();
     prevSign = (*wg)->getSign();
 
     // Just to be 100 % sure that the address does not change when reallocation is needed
@@ -149,11 +156,11 @@ void MultipleCurvedWG::processSolution( CurvedWGConfMap &wg )
 
   // Set the upper limit
   unsigned int NcInt = intensity->n_cols;
-  unsigned int NcSol = solver.getSolution().n_cols;
+  unsigned int NcSol = solver->getSolution().n_cols;
   unsigned int nmax = NcInt > NcSol+NzNextFillStartIntensity ? NcSol:NcInt-NzNextFillStartIntensity;
 
   // Get a copy of the solution
-  arma::mat intensitySolution =  abs( solver.getSolution() );
+  arma::mat intensitySolution =  abs( solver->getSolution() );
   if ( wg.getSign() == -1 )
   {
     flipWrtCenterOfWG( intensitySolution );
@@ -209,4 +216,24 @@ void MultipleCurvedWG::flipWrtCenterOfWG( arma::mat &mat ) const
   {
     flipWrtCenterOfWG( mat.colptr(i), mat.n_rows );
   }
+}
+
+void MultipleCurvedWG::save( ControlFile &ctl )
+{
+  commonAttributes.push_back( makeAttr("nWaveguides", waveguides->size() ));
+  for ( unsigned int i=0;i<waveguides->size();i++ )
+  {
+    stringstream ss;
+    ss << "R" << i;
+    commonAttributes.push_back( makeAttr(ss.str().c_str(), (*waveguides)[i]->getRadiusOfCurvature()*(*waveguides)[i]->getSign() ));
+    ss.clear();
+    ss.str("");
+    ss << "angle" << i;
+    commonAttributes.push_back( makeAttr(ss.str().c_str(), angles[i]) );
+  }
+
+  ParaxialSimulation::save( ctl );
+
+  saveArmaMat( *intensity, "amplitude", commonAttributes );
+  saveArmaVec( *transmittivity, "transmittivity", commonAttributes );
 }

@@ -6,6 +6,7 @@
 #include "planeWave.hpp"
 #include "cladding.hpp"
 #include "fixedValuesSource.hpp"
+#include "controlFile.hpp"
 #include <string>
 #include <vector>
 #include <map>
@@ -28,12 +29,13 @@ public:
 
   /** Solve the system */
   virtual void solve() override;
+
+  /** Save run */
+  virtual void save( ControlFile &ctl ) override;
 private:
   std::vector<CurvedWGConfMap*> *waveguides{NULL};
   std::vector<double> angles;
   ParaxialEquation eq;
-  CrankNicholson solver;
-  PlaneWave pw;
   FixedValuesSource fsource;
   Cladding cladding;
   arma::mat *intensity;
