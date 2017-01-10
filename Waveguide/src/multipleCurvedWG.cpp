@@ -47,11 +47,9 @@ void MultipleCurvedWG::loadWaveguides( const string &jsonfname )
     }
     else
     {
-      int sign = radius/(*waveguides)[0]->getRadiusOfCurvature() > 0.0 ? 1:-1;
-
-      CurvedWGConfMapGuideToGuide *newwg = new CurvedWGConfMapGuideToGuide();
+      int sign = radius > 0.0 ? 1:-1;
+      CurvedWGConfMap *newwg = new CurvedWGConfMap();
       newwg->setSign( sign );
-      newwg->setTargetRadius( (*waveguides)[0]->getRadiusOfCurvature() );
       waveguides->push_back( newwg );
     }
     waveguides->back()->setRadiusOfCurvature( abs(radius) );
@@ -82,16 +80,21 @@ void MultipleCurvedWG::init( const map<string,double> &params )
     (*waveguides)[i]->setLongitudinalDiscretization( zmin, zmin+length, params.at("stepZ"), params.at("downSamplingZ") );
     (*waveguides)[i]->setTransverseDiscretization( xmin, xmax, params.at("stepX"), params.at("downSamplingX") );
     (*waveguides)[i]->setCladding( cladding );
+    (*waveguides)[i]->setWaveLength( params.at("wavelength") );
 
     totalNz += (*waveguides)[i]->nodeNumberLongitudinal();
   }
+
+  this->setTransverseDiscretization( xmin, xmax, params.at("stepX"), params.at("downSamplingX") );
+  this->setLongitudinalDiscretization( 0.0, zmin+length, params.at("stepZ"), params.at("downSamplingZ") );
+
   solver.setEquation( eq );
   solver.setBoundaryCondition( Solver2D::BC_t::TRANSPARENT );
   (*waveguides)[0]->setSolver( solver );
   unsigned int Nx = (*waveguides)[0]->nodeNumberTransverse();
 
-  transmittivity = new arma::vec( totalNz );
-  intensity = new arma::mat( Nx/params.at("downSamplingX"), totalNz/params.at("downSamplingZ") );
+  transmittivity = new arma::vec( totalNz, arma::fill::zeros );
+  intensity = new arma::mat( Nx/params.at("downSamplingX"), totalNz/params.at("downSamplingZ"), arma::fill::zeros );
   pw.setWavelength( params.at("wavelength") );
 }
 
@@ -102,10 +105,17 @@ void MultipleCurvedWG::solve()
 
   fsource.setData( &endSolution ); // Stores a pointer to the endSolution array
   unsigned int counter = 0;
+  int prevSign = 1;
   for ( auto wg=waveguides->begin();wg != waveguides->end(); ++wg )
   {
     clog << "Running waveguide " << counter++ << endl;
     solver.reset();
+
+    if ( (*wg)->getSign() != prevSign )
+    {
+      flipWrtCenterOfWG( endSolution );
+    }
+
     (*wg)->setSolver( solver );
     if ( wg == waveguides->begin() )
     {
@@ -122,7 +132,9 @@ void MultipleCurvedWG::solve()
     processSolution( **wg );
 
     endSolution = solver.getLastSolution();
-    // Just to be 100 % sure that the address does not change
+    prevSign = (*wg)->getSign();
+
+    // Just to be 100 % sure that the address does not change when reallocation is needed
     assert( endSolutonAddress == &endSolution );
   }
 
@@ -139,14 +151,23 @@ void MultipleCurvedWG::processSolution( CurvedWGConfMap &wg )
   unsigned int NcInt = intensity->n_cols;
   unsigned int NcSol = solver.getSolution().n_cols;
   unsigned int nmax = NcInt > NcSol+NzNextFillStartIntensity ? NcSol:NcInt-NzNextFillStartIntensity;
+
+  // Get a copy of the solution
+  arma::mat intensitySolution =  abs( solver.getSolution() );
+  if ( wg.getSign() == -1 )
+  {
+    flipWrtCenterOfWG( intensitySolution );
+  }
+
   // Copy intensity
   for ( unsigned int i=0;i<nmax;i++ )
   {
     for ( unsigned int j=0;j<intensity->n_rows;j++ )
     {
-      (*intensity)(j,i+NzNextFillStartIntensity) = abs( solver.getSolution()(j,i) );
+      (*intensity)(j,i+NzNextFillStartIntensity) = intensitySolution(j,i);
     }
   }
+
   NzNextFillStartIntensity += nmax;
 
   unsigned int thisTransSize = transmittivity->size();
@@ -158,4 +179,35 @@ void MultipleCurvedWG::processSolution( CurvedWGConfMap &wg )
     (*transmittivity)(i+NzNextFillStartTrans) = wg.getTransmittivity().get()[i];
   }
   NzNextFillStartTrans += nmax;
+}
+
+template<class elemType>
+void MultipleCurvedWG::flipWrtCenterOfWG( elemType array[], unsigned int N ) const
+{
+  double center = -(*waveguides)[0]->getWidth()/2.0;
+
+  double xmin = xDisc->min;
+  double xmax = xDisc->max;
+  double step = xDisc->step*xDisc->downsamplingRatio;
+  unsigned int ic = (center-xmin)/step;
+  unsigned int nflips = ic > N/2 ? N-ic:ic;
+  for ( unsigned int i=1;i<nflips;i++ )
+  {
+    elemType copy = array[ic+i];
+    array[ic+i] = array[ic-i];
+    array[ic-i] = copy;
+  }
+}
+
+void MultipleCurvedWG::flipWrtCenterOfWG( arma::cx_vec &vec ) const
+{
+  flipWrtCenterOfWG( vec.memptr(), vec.n_elem );
+}
+
+void MultipleCurvedWG::flipWrtCenterOfWG( arma::mat &mat ) const
+{
+  for ( unsigned int i=0;i<mat.n_cols;i++ )
+  {
+    flipWrtCenterOfWG( mat.colptr(i), mat.n_rows );
+  }
 }

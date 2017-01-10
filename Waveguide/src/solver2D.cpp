@@ -162,7 +162,7 @@ void Solver2D::copyCurrentSolution( unsigned int step )
     (*prevSolution)(i) = (*currentSolution)(i);
   }
 
-  if ( solution->n_rows != currentSolution->n_elem )
+  if ( guide->transverseDiscretization().downsamplingRatio > 1 )
   {
       filter.filterArray<arma::cx_vec, cdouble>( *currentSolution );
   }
@@ -191,7 +191,8 @@ void Solver2D::filterInLongitudinalDirection()
   }
 
   arma::cx_mat *downSampledMatrix = new arma::cx_mat( solution->n_rows, downSampledNz );
-  double delta = static_cast<double>( solution->n_rows )/static_cast<double>( downSampledNz );
+  double delta = static_cast<double>( solution->n_cols )/static_cast<double>( downSampledNz );
+  //double delta = static_cast<double>( solution->n_rows )/static_cast<double>( downSampledNz );
 
   for ( unsigned int i=0;i<downSampledNz;i++ )
   {

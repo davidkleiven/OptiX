@@ -10,6 +10,7 @@
 
 using namespace std;
 
+typedef visa::Colormaps::Colormap_t cmap_t;
 int main ( int argc, char** argv )
 {
   string geofile("");
@@ -64,6 +65,7 @@ int main ( int argc, char** argv )
     arma::mat intensity = simulation.getIntensity();
     visa::WindowHandler plots;
     plots.addPlot("Intensity");
+    plots.get("Intensity").setCmap( cmap_t::NIPY_SPECTRAL );
     plots.get("Intensity").fillVertexArray( intensity );
     plots.show();
     for ( unsigned int i=0;i<KEEP_PLOT_FOR_SEC;i++ )

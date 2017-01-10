@@ -2,6 +2,7 @@
 #define MULTIPLE_CURVED_WG_H
 #include "paraxialSimulation.hpp"
 #include "paraxialEquation.hpp"
+#include "paraxialEqNegative.hpp"
 #include "crankNicholson.hpp"
 #include "planeWave.hpp"
 #include "cladding.hpp"
@@ -32,6 +33,7 @@ private:
   std::vector<CurvedWGConfMap*> *waveguides{NULL};
   std::vector<double> angles;
   ParaxialEquation eq;
+  ParaxialEqNegative eqNeg;
   CrankNicholson solver;
   PlaneWave pw;
   FixedValuesSource fsource;
@@ -40,6 +42,14 @@ private:
   arma::vec *transmittivity;
   unsigned int NzNextFillStartIntensity{0};
   unsigned int NzNextFillStartTrans{0};
+
+  template<class elemType>
+  void flipWrtCenterOfWG( elemType vec[], unsigned int N ) const;
+
+  void flipWrtCenterOfWG( arma::cx_vec &vec ) const;
+
+  void flipWrtCenterOfWG( arma::mat &mat ) const;
+  //void flipWrtCenterOfWG( arma::mat &mat ) const;
 
   void processSolution( CurvedWGConfMap &wg );
 };

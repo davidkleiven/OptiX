@@ -30,3 +30,8 @@ bool CurvedWGConfMap::isInsideGuide( double u, double v ) const
 {
   return ( u > -width ) && ( u < 0.0 );
 }
+
+void CurvedWGConfMap::setSign( int newsign )
+{
+  sign = newsign > 0 ? 1:-1;
+}

@@ -13,7 +13,7 @@ public:
   virtual cdouble get( double x, double z ) const override;
 
   /** Set limits */
-  void setLimits( double xmin, double xmax ){ xmin=xmin; xmax=xmax; };
+  void setLimits( double xminNew, double xmaxNew ){ xmin=xminNew; xmax=xmaxNew; };
 
   /** Set the values*/
   void setData( const arma::cx_vec *data ){ values = data; };

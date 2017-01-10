@@ -1,5 +1,8 @@
 #include "fixedValuesSource.hpp"
 #include <cassert>
+#include <iostream>
+
+using namespace std;
 
 cdouble FixedValuesSource::get( double x, double z ) const
 {
