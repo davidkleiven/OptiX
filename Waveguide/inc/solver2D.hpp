@@ -25,6 +25,9 @@ public:
   enum class BC_t{DIRICHLET,TRANSPARENT};
 
   Solver2D( const char* name ):name(name){};
+  Solver2D( const Solver2D &other ) = delete;
+  Solver2D& operator =( Solver2D &other ) = delete;
+
   virtual ~Solver2D();
 
   /** Get the name of the solution */

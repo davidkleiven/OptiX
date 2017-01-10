@@ -30,6 +30,9 @@ public:
   /** Available boundaries in 2D */
   enum class Boundary_t {TOP, BOTTOM, LEFT, RIGHT};
   explicit ParaxialSimulation( const char* name );
+  ParaxialSimulation( const ParaxialSimulation &other ) = delete;
+  ParaxialSimulation& operator =( const ParaxialSimulation other ) = delete;
+
   virtual ~ParaxialSimulation();
 
   /** Set the transverse discretization */

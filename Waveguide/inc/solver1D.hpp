@@ -12,6 +12,8 @@ class Solver1D
 {
   public:
     Solver1D( const char* name ): name(name), solution(new arma::mat()){};
+    Solver1D( const Solver1D &other ) = delete;
+    Solver1D& operator =( Solver1D &other ) = delete;
     virtual ~Solver1D();
     virtual void solve() = 0;
 
