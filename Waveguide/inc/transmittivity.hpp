@@ -11,6 +11,8 @@ namespace post
   {
   public:
     Transmittivity();
+    Transmittivity( const Transmittivity &other );
+    Transmittivity operator =(const Transmittivity &other );
     ~Transmittivity();
 
     /** Links a waveguide instance to the transmittivity computation */

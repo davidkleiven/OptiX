@@ -7,6 +7,21 @@
 using namespace std;
 post::Transmittivity::Transmittivity(): transmission(new vector<double>()){};
 
+post::Transmittivity::Transmittivity( const post::Transmittivity &other ):
+guide(other.guide), intensityAtZero(other.intensityAtZero), computeIntensityAtZero(other.computeIntensityAtZero),
+transmission(NULL)
+{
+  if ( other.transmission != NULL )
+  {
+    transmission = new vector<double>(*other.transmission);
+  }
+}
+
+post::Transmittivity post::Transmittivity::operator =( const post::Transmittivity &other )
+{
+  return post::Transmittivity(other);
+}
+
 post::Transmittivity::~Transmittivity()
 {
   delete transmission;
@@ -32,7 +47,7 @@ void post::Transmittivity::compute( double z )
   unsigned int wgStart = 0;
   unsigned int wgEnd = 0;
   unsigned int zIndx;
-  
+
   // Integrate across waveguide
   if ( computeIntensityAtZero )
   {

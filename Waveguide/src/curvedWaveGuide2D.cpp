@@ -19,15 +19,26 @@
 
 using namespace std;
 
-CurvedWaveGuideFD::CurvedWaveGuideFD(): WaveGuideFDSimulation("CurvedWaveGuide2D")
+CurvedWaveGuideFD::CurvedWaveGuideFD(): CurvedWaveGuideFD("CurvedWaveGuide2D"){};
+
+CurvedWaveGuideFD::CurvedWaveGuideFD( const char *name): WaveGuideFDSimulation(name), \
+transmittivity( new post::Transmittivity() )
 {
-  transmittivity = new post::Transmittivity();
   transmittivity->linkWaveguide( *this );
 }
 
-CurvedWaveGuideFD::CurvedWaveGuideFD( const char *name): WaveGuideFDSimulation(name)
+CurvedWaveGuideFD::CurvedWaveGuideFD( const CurvedWaveGuideFD &other ):
+R(other.R), width(other.width), useSmoothed(other.useSmoothed), transmittivity(NULL)
 {
-  transmittivity->linkWaveguide( *this );
+  if ( other.transmittivity != NULL )
+  {
+    transmittivity = new post::Transmittivity( *other.transmittivity );
+  }
+}
+
+CurvedWaveGuideFD CurvedWaveGuideFD::operator =( const CurvedWaveGuideFD &other )
+{
+  return CurvedWaveGuideFD(other);
 }
 
 CurvedWaveGuideFD::~CurvedWaveGuideFD()

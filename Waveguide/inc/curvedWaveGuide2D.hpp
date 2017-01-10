@@ -15,6 +15,8 @@ class CurvedWaveGuideFD: public WaveGuideFDSimulation
 {
 public:
   CurvedWaveGuideFD();
+  CurvedWaveGuideFD( const CurvedWaveGuideFD &other );
+  CurvedWaveGuideFD operator =(const CurvedWaveGuideFD &other );
 
   virtual ~CurvedWaveGuideFD();
 
