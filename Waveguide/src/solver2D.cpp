@@ -182,6 +182,7 @@ void Solver2D::filterInLongitudinalDirection()
   unsigned int downSampledNz = solution->n_cols/guide->longitudinalDiscretization().downsamplingRatio;
   filter.setTargetSize( downSampledNz );
   filter.setSourceSize( solution->n_cols );
+  filter.computeFilterCoefficients( kernel );
 
   // Filter the matrix
   for ( unsigned int i=0;i<solution->n_rows;i++ )
