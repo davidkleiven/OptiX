@@ -188,8 +188,7 @@ void MultipleCurvedWG::flipWrtCenterOfWG( elemType array[], unsigned int N ) con
 
   double xmin = xDisc->min;
   double xmax = xDisc->max;
-  double step = xDisc->step*xDisc->downsamplingRatio;
-  unsigned int ic = (center-xmin)/step;
+  unsigned int ic = (center-xmin)*N/(xmax-xmin);
   unsigned int nflips = ic > N/2 ? N-ic:ic;
   for ( unsigned int i=1;i<nflips;i++ )
   {
