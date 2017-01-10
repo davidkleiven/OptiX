@@ -5,6 +5,7 @@
 #include "crankNicholson.hpp"
 #include "planeWave.hpp"
 #include "cladding.hpp"
+#include "fixedValuesSource.hpp"
 #include <string>
 #include <vector>
 #include <map>
@@ -24,7 +25,7 @@ public:
 
   /** Returns the intensity */
   const arma::mat& getIntensity() const { return *intensity; };
-  
+
   /** Solve the system */
   virtual void solve() override;
 private:
@@ -33,6 +34,7 @@ private:
   ParaxialEquation eq;
   CrankNicholson solver;
   PlaneWave pw;
+  FixedValuesSource fsource;
   Cladding cladding;
   arma::mat *intensity;
   arma::vec *transmittivity;

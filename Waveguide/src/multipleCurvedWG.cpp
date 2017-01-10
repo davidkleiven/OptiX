@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <fstream>
 #include <cmath>
+#include <cassert>
 using namespace std;
 
 MultipleCurvedWG::~MultipleCurvedWG()
@@ -36,13 +37,10 @@ void MultipleCurvedWG::loadWaveguides( const string &jsonfname )
   infile.close();
 
   waveguides = new vector<CurvedWGConfMap*>;
-
-  Json::Value entries = root["waveguides"];
-  double prevRadius;
-  for ( unsigned int i=0;i<entries.size();i++ )
+  for ( unsigned int i=0;i<root["waveguides"].size();i++ )
   {
-    double radius = entries[i]["radius"].asDouble()*1E6;
-    angles.push_back( entries[i]["angle"].asDouble() );
+    double radius = root["waveguides"][i]["radius"].asDouble()*1E6;
+    angles.push_back( root["waveguides"][i]["angle"].asDouble() );
     if ( i == 0 )
     {
       waveguides->push_back( new CurvedWGConfMap() );
@@ -70,7 +68,7 @@ void MultipleCurvedWG::init( const map<string,double> &params )
   double xmin = -2.0*params.at("width");
   double xmax = 2.0*params.at("width");
   double zmin = 0.0;
-  double zmax = 0.0;
+  double length = 0.0;
   const double PI = acos(-1.0);
   unsigned int totalNz = 0;
   cladding.setRefractiveIndex( params.at("delta"), params.at("beta") );
@@ -78,10 +76,10 @@ void MultipleCurvedWG::init( const map<string,double> &params )
   for ( unsigned int i=0;i<waveguides->size();i++ )
   {
     if ( i == 0 ) zmin = 0.0;
-    else zmin = zmax;
-    zmax = (angles[i]*PI/180.0)*(*waveguides)[i]->getRadiusOfCurvature();
+    else zmin = length;
+    length = (angles[i]*PI/180.0)*(*waveguides)[i]->getRadiusOfCurvature();
     (*waveguides)[i]->setWidth( params.at("width") );
-    (*waveguides)[i]->setLongitudinalDiscretization( zmin, zmax, params.at("stepZ"), params.at("downSamplingZ") );
+    (*waveguides)[i]->setLongitudinalDiscretization( zmin, zmin+length, params.at("stepZ"), params.at("downSamplingZ") );
     (*waveguides)[i]->setTransverseDiscretization( xmin, xmax, params.at("stepX"), params.at("downSamplingX") );
     (*waveguides)[i]->setCladding( cladding );
 
@@ -100,8 +98,14 @@ void MultipleCurvedWG::init( const map<string,double> &params )
 void MultipleCurvedWG::solve()
 {
   arma::cx_vec endSolution;
+  arma::cx_vec *endSolutonAddress = &endSolution;
+
+  fsource.setData( &endSolution ); // Stores a pointer to the endSolution array
+  unsigned int counter = 0;
   for ( auto wg=waveguides->begin();wg != waveguides->end(); ++wg )
   {
+    clog << "Running waveguide " << counter++ << endl;
+    solver.reset();
     (*wg)->setSolver( solver );
     if ( wg == waveguides->begin() )
     {
@@ -109,16 +113,28 @@ void MultipleCurvedWG::solve()
     }
     else
     {
-      solver.setLeftBC( endSolution.memptr() );
+      double xmin = (*wg)->transverseDiscretization().min;
+      double xmax = (*wg)->transverseDiscretization().max;
+      fsource.setLimits( xmin, xmax );
+      (*wg)->setBoundaryConditions( fsource );
     }
     (*wg)->solve();
     processSolution( **wg );
-    endSolution = solver.getSolution();
+
+    endSolution = solver.getLastSolution();
+    // Just to be 100 % sure that the address does not change
+    assert( endSolutonAddress == &endSolution );
   }
+
+  // Set data to NULL pointer since the endSolution vector goes out of scope
+  fsource.setData( NULL );
 }
 
 void MultipleCurvedWG::processSolution( CurvedWGConfMap &wg )
 {
+  assert( intensity != NULL );
+  assert( transmittivity != NULL );
+
   // Set the upper limit
   unsigned int NcInt = intensity->n_cols;
   unsigned int NcSol = solver.getSolution().n_cols;
@@ -139,7 +155,7 @@ void MultipleCurvedWG::processSolution( CurvedWGConfMap &wg )
 
   for ( unsigned int i=0;i<nmax;i++ )
   {
-    transmittivity[i+NzNextFillStartTrans] = wg.getTransmittivity().get()[i];
+    (*transmittivity)(i+NzNextFillStartTrans) = wg.getTransmittivity().get()[i];
   }
   NzNextFillStartTrans += nmax;
 }

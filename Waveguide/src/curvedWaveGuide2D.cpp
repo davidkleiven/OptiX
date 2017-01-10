@@ -14,6 +14,7 @@
 //#include "source.hpp"
 #include "gaussianBeam.hpp"
 #include "planeWave.hpp"
+#include <cassert>
 
 #define PROJECTION_DEBUG
 
@@ -214,6 +215,7 @@ void CurvedWaveGuideFD::getXrayMatProp( double x, double z, double &delta, doubl
 void CurvedWaveGuideFD::solve()
 {
   verifySolverReady();
+  assert( transmittivity != NULL );
   // Start from 1 as the first step is the initial conditions
   for ( unsigned int n=1;n<nodeNumberLongitudinal();n++ )
   {
