@@ -5,6 +5,7 @@
 #include <string>
 #include <chrono>
 #include <thread>
+#include <iostream>
 #define KEEP_PLOT_FOR_SEC 6
 
 using namespace std;
@@ -45,9 +46,14 @@ int main ( int argc, char** argv )
   params["beta"] = 4.45E-6;
   params["stepX"] = 0.5;
   params["stepZ"] = 80.0;
+  params["downSamplingZ"] = 10.0;
+  params["downSamplingX"] = 10;
+  params["width"] = 100.0;
 
-  pei::DialogBox dialog( params );
-  dialog.show();
+  {
+    pei::DialogBox dialog( params );
+    dialog.show();
+  }
 
   MultipleCurvedWG simulation;
   try
@@ -55,7 +61,6 @@ int main ( int argc, char** argv )
     simulation.loadWaveguides( geofile );
     simulation.init( params );
     simulation.solve();
-
     arma::mat intensity = simulation.getIntensity();
     visa::WindowHandler plots;
     plots.addPlot("Intensity");
