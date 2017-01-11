@@ -35,6 +35,44 @@ class Drawer:
         self.colors = ["#e41a1c", "#377eb8", "#4daf4a", "#984ea3", "#ff7f00", "#ffff33", "#a65628", "#f781bf", "#999999"]
         self.current = 0
         self.currentCurvature = "concave"
+        self.ax.set_axis_bgcolor( "#404040" )
+        self.fig.canvas.set_window_title("Wave Guide Geometry ")
+        self.fig.patch.set_visible(False)
+        self.annotations = []
+
+
+    def customizePlot( self ):
+        self.ax.spines["left"].set_position("zero")
+        self.ax.spines["right"].set_color("none")
+        self.ax.spines["left"].set_smart_bounds(True)
+        self.ax.spines["bottom"].set_smart_bounds(True)
+        self.ax.yaxis.set_ticks_position("left")
+        self.ax.xaxis.set_ticks_position("top")
+        self.ax.yaxis.set_ticks([])
+        self.ax.xaxis.set_ticks([])
+
+        dx = self.xmax - self.xmin
+        dy = self.ymax - self.ymin
+        ypos = self.ymax - 0.1*dy
+        xpos = self.xmin + 0.05*dx
+        self.annotations.append( self.ax.annotate(s="%.1f mm"%(dx), xy=(self.xmin, ypos), xytext=((self.xmax+self.xmin)*0.5, ypos),
+        xycoords="data", fontsize=28, color="white") )
+
+        self.annotations.append(
+        self.ax.annotate(s="",xy=(self.xmin, ypos), xytext=(self.xmax, ypos),
+        arrowprops={"arrowstyle":"<->", "edgecolor":"white"} )
+        )
+
+        self.annotations.append(
+        self.ax.annotate(s="%d um"%(dy*1000.0), xy=(xpos, self.ymin), xytext=(xpos, (self.ymax+self.ymin)*0.5),
+        xycoords="data", fontsize=28, color="white")
+        )
+
+        self.annotations.append(
+        self.ax.annotate(s="",xy=(xpos, self.ymin), xytext=(xpos, self.ymax),
+        arrowprops={"arrowstyle":"<->", "edgecolor":"white"} )
+        )
+
 
     def getCenter( self, R ):
         if ( self.currentCurvature == "concave" ):
@@ -57,7 +95,6 @@ class Drawer:
         self.currentCurvature = curvature
         # Compute center
         self.getCenter( R )
-        print (self.xc, self.yc)
 
         # Set slope to the end point
         if ( curvature == "concave" ):
@@ -70,14 +107,13 @@ class Drawer:
 
         x = np.linspace( self.x0, x1, 100 )
         y = self.getY( R, x )
-        self.ax.plot( x, y, lw=10, color=self.colors[self.current%len(self.colors)] )
+        self.ax.plot( x, y, lw=15, color=self.colors[self.current%len(self.colors)] )
 
         # Update slope
 
         # Set new start points
         self.x0 = x1
         self.y0 = y1
-        #print ( self.x0, self.y0)
 
         if ( np.min(y) < self.ymin ):
             self.ymin = np.min(y)
@@ -98,8 +134,12 @@ class Drawer:
         self.current += 1
 
     def show( self ):
+        for an in self.annotations:
+            an.remove()
+        self.annotations = []
         self.ax.set_xlim(self.xmin, self.xmax)
         self.ax.set_ylim( self.ymin, self.ymax )
+        self.customizePlot()
         self.fig.show()
         plt.show()
         #plt.show( block=False )
