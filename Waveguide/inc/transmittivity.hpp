@@ -11,6 +11,8 @@ namespace post
   {
   public:
     Transmittivity();
+    Transmittivity( const Transmittivity &other );
+    Transmittivity operator =(const Transmittivity &other );
     ~Transmittivity();
 
     /** Links a waveguide instance to the transmittivity computation */
@@ -21,6 +23,9 @@ namespace post
 
     /** Returns the result */
     const std::vector<double>& get() const { return *transmission; };
+
+    /** Returns the intensity at zero */
+    double getIntensityAtZero() const { return intensityAtZero; };
   private:
     const CurvedWaveGuideFD* guide;
     std::vector<double> *transmission;

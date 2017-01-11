@@ -14,19 +14,37 @@
 //#include "source.hpp"
 #include "gaussianBeam.hpp"
 #include "planeWave.hpp"
+#include <cassert>
 
 #define PROJECTION_DEBUG
 
 using namespace std;
 
-CurvedWaveGuideFD::CurvedWaveGuideFD(): WaveGuideFDSimulation("CurvedWaveGuide2D")
+CurvedWaveGuideFD::CurvedWaveGuideFD(): CurvedWaveGuideFD("CurvedWaveGuide2D"){};
+
+CurvedWaveGuideFD::CurvedWaveGuideFD( const char *name): WaveGuideFDSimulation(name), \
+transmittivity( new post::Transmittivity() )
 {
-  transmittivity.linkWaveguide( *this );
+  transmittivity->linkWaveguide( *this );
 }
 
-CurvedWaveGuideFD::CurvedWaveGuideFD( const char *name): WaveGuideFDSimulation(name)
+CurvedWaveGuideFD::CurvedWaveGuideFD( const CurvedWaveGuideFD &other ):
+R(other.R), width(other.width), useSmoothed(other.useSmoothed), transmittivity(NULL)
 {
-  transmittivity.linkWaveguide( *this );
+  if ( other.transmittivity != NULL )
+  {
+    transmittivity = new post::Transmittivity( *other.transmittivity );
+  }
+}
+
+CurvedWaveGuideFD CurvedWaveGuideFD::operator =( const CurvedWaveGuideFD &other )
+{
+  return CurvedWaveGuideFD(other);
+}
+
+CurvedWaveGuideFD::~CurvedWaveGuideFD()
+{
+  if ( transmittivity != NULL ) delete transmittivity;
 }
 
 bool CurvedWaveGuideFD::isInsideGuide( double x, double z ) const
@@ -197,11 +215,12 @@ void CurvedWaveGuideFD::getXrayMatProp( double x, double z, double &delta, doubl
 void CurvedWaveGuideFD::solve()
 {
   verifySolverReady();
+  assert( transmittivity != NULL );
   // Start from 1 as the first step is the initial conditions
   for ( unsigned int n=1;n<nodeNumberLongitudinal();n++ )
   {
     step();
-    transmittivity.compute( getZ(n) );
+    transmittivity->compute( getZ(n) );
   }
   solver->filterInLongitudinalDirection();
   solver->downSampleLongitudinalDirection();
@@ -210,6 +229,6 @@ void CurvedWaveGuideFD::solve()
 void CurvedWaveGuideFD::save( ControlFile &ctl )
 {
   ParaxialSimulation::save( ctl );
-  arma::vec res = transmittivity.get();
+  arma::vec res = transmittivity->get();
   saveArmaVec( res, "transmittivity", commonAttributes );
 }

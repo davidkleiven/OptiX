@@ -8,13 +8,21 @@ class CurvedWGConfMap: public CurvedWaveGuideFD
 public:
   CurvedWGConfMap(): CurvedWaveGuideFD("CurvedWGConfMap"){};
 
+    /** Set the sign of the curvature */
+    void setSign( int newSign );
+
+    /** Get the propagation direction */
+    int getSign() const { return sign; };
+
   /** Return the spatial varying refractive index. The waveguide occupies the region [-width,0.0] */
   virtual void getXrayMatProp( double u, double v, double &delta, double &beta ) const override;
 
   /** True if the position is inside the waveguide */
   virtual bool isInsideGuide( double u, double v ) const override;
-
 protected:
+  int sign{1};
+  CurvedWGConfMap( const char* name ): CurvedWaveGuideFD(name){};
+
   /** Returns the start position of the waveguide */
   virtual double waveGuideStartX( double v ) const override;
 

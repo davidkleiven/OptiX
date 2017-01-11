@@ -5,6 +5,7 @@ set( SOURCES cladding.cpp waveGuide.cpp waveGuideRadiusCurvature.cpp numerovSolv
 					beamSplitter.cpp gaussianWG.cpp linearRampWG.cpp fresnelPropagator.cpp exitFieldSource.cpp
 					incidentAngleSweep.cpp borderTracker.cpp paraxialSimulation.cpp h5Attribute.cpp
 				  refractiveIndex.cpp incidentAngleLengthSweep.cpp cylinder2D.cpp postProcessMod.cpp farFieldPost.cpp
-				transmittivity.cpp curvedWGConfMap.cpp)
+				  transmittivity.cpp curvedWGConfMap.cpp multipleCurvedWG.cpp
+			    fixedValuesSource.cpp )
 
 add_library( src STATIC ${SOURCES} )

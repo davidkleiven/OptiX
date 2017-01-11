@@ -201,7 +201,10 @@ def main(argv):
     phaseData = None
     try:
         with h5.File(stat["datafile"], 'r') as hf:
-            phaseData = np.array( hf.get("phase") )
+            if ( "phase" in hf.keys() ):
+                phaseData = np.array( hf.get("phase") )
+            else:
+                phaseData = None
     except Exception as exc:
         print ( str(exc) )
         phaseData = None

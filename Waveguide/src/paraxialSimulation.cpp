@@ -350,7 +350,7 @@ void ParaxialSimulation::setBoundaryConditions( const ParaxialSource &source )
   vector<cdouble> values(Nx, 1.0);
   for ( unsigned int i=0;i<Nx;i++ )
   {
-    double x = xDisc->min + i*xDisc->step;
+    double x = getX(i);
     values[i] = src->get( x, 0.0 );
   }
   solver->setLeftBC(&values[0]);

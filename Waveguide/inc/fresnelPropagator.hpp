@@ -11,6 +11,8 @@ class FresnelPropagator
 {
 public:
   FresnelPropagator(){};
+  FresnelPropagator( const FresnelPropagator &other ) = delete;
+  FresnelPropagator& operator =( const FresnelPropagator other ) = delete;
   ~FresnelPropagator();
 
   /** Propagates the field a Nsteps */
