@@ -34,27 +34,38 @@ class Drawer:
         self.isFirst = True
         self.colors = ["#e41a1c", "#377eb8", "#4daf4a", "#984ea3", "#ff7f00", "#ffff33", "#a65628", "#f781bf", "#999999"]
         self.current = 0
+        self.currentCurvature = "concave"
 
     def getCenter( self, R ):
-        self.yc = self.y0 - R/np.sqrt( 1 + self.tanAlpha**2 )
-        self.xc = self.x0 + (self.y0-self.yc)*self.tanAlpha
+        if ( self.currentCurvature == "concave" ):
+            self.yc = self.y0 - R/np.sqrt( 1 + self.tanAlpha**2 )
+            self.xc = self.x0 + (self.y0-self.yc)*self.tanAlpha
+        else:
+            self.yc = self.y0 + R/np.sqrt( 1 + self.tanAlpha**2 )
+            self.xc = self.x0 + (self.y0-self.yc)*self.tanAlpha
         return (self.xc,self.yc)
 
     def slope( self, x1, y1 ):
         return -(x1-self.xc)/(y1-self.yc)
 
     def getY( self, R, x ):
-        return self.yc + np.sqrt( R*R - (x-self.xc)**2 )
+        if ( self.currentCurvature == "concave" ):
+            return self.yc + np.sqrt( R*R - (x-self.xc)**2 )
+        return self.yc - np.sqrt( R*R - (x-self.xc)**2 )
 
-    def addArc( self, R, angle ):
+    def addArc( self, R, angle, curvature ):
+        self.currentCurvature = curvature
         # Compute center
         self.getCenter( R )
         print (self.xc, self.yc)
 
         # Set slope to the end point
-        self.tanAlpha = -np.tan( -np.arctan(self.tanAlpha) + angle*np.pi/180.0 )
-        print ( self.tanAlpha )
-        y1 = self.yc + R/np.sqrt( 1.0 + self.tanAlpha**2 )
+        if ( curvature == "concave" ):
+            self.tanAlpha = -np.tan( -np.arctan(self.tanAlpha) + angle*np.pi/180.0 )
+            y1 = self.yc + R/np.sqrt( 1.0 + self.tanAlpha**2 )
+        else:
+            self.tanAlpha = -np.tan( - np.arctan(self.tanAlpha) - angle*np.pi/180.0 )
+            y1 = self.yc - R/np.sqrt( 1.0 + self.tanAlpha**2 )
         x1 = self.xc - (y1-self.yc)*self.tanAlpha
 
         x = np.linspace( self.x0, x1, 100 )

@@ -8,6 +8,10 @@ class WgEntry:
         self.rIn = tk.Entry( self.master, width=10 )
         self.angleLabel = tk.Label( self.master, text="angle:")
         self.angleIn = tk.Entry( self.master, width=10 )
+        self.curvature = tk.StringVar( self.master )
+        self.availableCurvature = ["concave", "convex"]
+        self.curvature.set( self.availableCurvature[0] )
+        self.curvatureMenu = tk.OptionMenu( self.master, self.curvature, *self.availableCurvature )
 
         # Insert default values
         self.rIn.insert( tk.END, 40.0 )
@@ -18,6 +22,7 @@ class WgEntry:
         self.rIn.grid(row=row, column=1)
         self.angleLabel.grid(row=row, column=2)
         self.angleIn.grid(row=row, column=3)
+        self.curvatureMenu.grid(row=row, column=4)
 
     def destroy( self ):
         self.rLabel.destroy()
@@ -54,7 +59,8 @@ class Editor:
 
     def show( self ):
         for i in range(self.showCount, len(self.wgs) ):
-            self.drawer.addArc( float( self.wgs[self.showCount].rIn.get() ), float( self.wgs[self.showCount].angleIn.get() ) )
+            self.drawer.addArc( float( self.wgs[i].rIn.get() ), float( self.wgs[i].angleIn.get() ),
+                              self.wgs[i].curvature.get() )
             self.showCount += 1
         self.drawer.show()
 
