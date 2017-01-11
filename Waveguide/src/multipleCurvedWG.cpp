@@ -181,9 +181,11 @@ void MultipleCurvedWG::processSolution( CurvedWGConfMap &wg )
   unsigned int computedTransSize = wg.getTransmittivity().get().size();
   nmax = thisTransSize > computedTransSize+NzNextFillStartTrans ? computedTransSize:thisTransSize-NzNextFillStartTrans;
 
+  double intensityAtZero = (*waveguides)[0]->getTransmittivity().getIntensityAtZero();
   for ( unsigned int i=0;i<nmax;i++ )
   {
-    (*transmittivity)(i+NzNextFillStartTrans) = wg.getTransmittivity().get()[i];
+    double normalization = wg.getTransmittivity().getIntensityAtZero()/intensityAtZero;
+    (*transmittivity)(i+NzNextFillStartTrans) = wg.getTransmittivity().get()[i]*normalization;
   }
   NzNextFillStartTrans += nmax;
 }
