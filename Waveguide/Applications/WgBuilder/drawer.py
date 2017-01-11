@@ -1,5 +1,7 @@
 import tkinter as tk
 import numpy as np
+from matplotlib import pyplot as plt
+from matplotlib import patches as ptc
 
 class Arc:
     def __init__(self):
@@ -10,69 +12,83 @@ class Arc:
 
     def endPoint( self ):
         x1 = self.R*np.sin( self.angle*np.pi/180.0 )
-        y1 = self.R-self.R*np.cos( self.angle*np.pi/180.0 )
+        y1 = self.R*( 1.0-np.cos( self.angle*np.pi/180.0 ) )
+        y1 = self.R*2.0*np.sin(0.5*self.angle*np.pi/180.0)**2
         return x1, y1
 
 class Drawer:
-    def __init__( self, master ):
-        self.frame = tk.Frame(master)
-        self.frame.grid(row=0,column=1)
-        self.dim=400
-        self.extentX = 0.0
-        self.extentY = 0.0
-        self.initRadius = 1.0
-        self.canvas = tk.Canvas( self.frame, width=self.dim, height=self.dim, bg="black" )
-        self.canvas.pack()
-        self.arcs = []
-        self.sqSize = 2.0
+    def __init__( self ):
+        self.fig = plt.figure()
+        self.ax = self.fig.add_subplot(1,1,1)
+        self.x0 = 0.0
+        self.y0 = 0.0
+        self.xc = 0.0
+        self.yc = 0.0
+        self.xmin = 0.0
+        self.xmax = 0.0
+        self.ymin = 0.0
+        self.ymax = 0.0
+        self.tanAlpha = 0.0
+        self.angle = 90.0
+        self.ax.plot([0,0],[0,0])
+        self.isFirst = True
         self.colors = ["#e41a1c", "#377eb8", "#4daf4a", "#984ea3", "#ff7f00", "#ffff33", "#a65628", "#f781bf", "#999999"]
+        self.current = 0
 
-        # Arc layout
-        self.style = "arc"
-        self.outline = "white"
+    def getCenter( self, R ):
+        self.yc = self.y0 - R/np.sqrt( 1 + self.tanAlpha**2 )
+        self.xc = self.x0 + (self.y0-self.yc)*self.tanAlpha
+        return (self.xc,self.yc)
 
-    def crdToPixX( self, x ):
-        return x*self.dim/self.extentX
+    def slope( self, x1, y1 ):
+        return -(x1-self.xc)/(y1-self.yc)
 
-    def crdToPixY( self, y ):
-        return y*self.dim/self.extentY
+    def getY( self, R, x ):
+        return self.yc + np.sqrt( R*R - (x-self.xc)**2 )
 
     def addArc( self, R, angle ):
-        arc = Arc()
-        arc.R = R
-        arc.angle = angle
-        if ( len(self.arcs) == 0 ):
-            arc.x0 = 0.0
-            arc.y0 = 0.0
-        else:
-            arc.x0, arc.y0 = self.arcs[-1].endPoint()
-            arc.x0 += self.arcs[-1].x0
-            arc.y0 += self.arcs[-1].y0
+        # Compute center
+        self.getCenter( R )
+        print (self.xc, self.yc)
 
-        self.arcs.append(arc)
+        # Set slope to the end point
+        self.tanAlpha = -np.tan( -np.arctan(self.tanAlpha) + angle*np.pi/180.0 )
+        print ( self.tanAlpha )
+        y1 = self.yc + R/np.sqrt( 1.0 + self.tanAlpha**2 )
+        x1 = self.xc - (y1-self.yc)*self.tanAlpha
 
-    def setExtent( self ):
-        self.extentX = 0
-        self.extentY = 0
-        for arc in self.arcs:
-            x1, y1 = arc.endPoint()
-            if ( arc.x0+x1 > self.extentX ):
-                self.extentX = arc.x0+x1
+        x = np.linspace( self.x0, x1, 100 )
+        y = self.getY( R, x )
+        self.ax.plot( x, y, lw=10, color=self.colors[self.current%len(self.colors)] )
 
-            if ( arc.y0+y1 > self.extentY ):
-                self.extentY = arc.y0+y1
+        # Update slope
 
-    def draw( self ):
-        self.setExtent()
-        self.canvas.create_rectangle( 0, 0, self.dim, self.dim, fill="black")
-        counter = 0
-        for arc in self.arcs:
-            x1, y1 = arc.endPoint()
-            x0 = self.crdToPixX( arc.x0 )
-            y0 = self.crdToPixY( arc.y0 )
-            x1 = self.crdToPixX( arc.x0+x1 )
-            y1 = self.crdToPixY( arc.y0+y1 )
+        # Set new start points
+        self.x0 = x1
+        self.y0 = y1
+        #print ( self.x0, self.y0)
 
-            print (x0, y0, x1, y1)
-            self.canvas.create_line(x0, y0, x1, y1, fill=self.colors[counter%len(self.colors)], width=6)
-            counter += 1
+        if ( np.min(y) < self.ymin ):
+            self.ymin = np.min(y)
+        if ( np.max(y) > self.ymax ):
+            self.ymax = np.max(y)
+
+        if ( np.min(x) < self.xmin ):
+            self.xmin = np.min(x)
+        if ( np.max(x) > self.xmax ):
+            self.xmax = np.max(x)
+
+        if ( self.isFirst ):
+            self.xmin = np.min(x)
+            self.xmax = np.max(x)
+            self.ymin = np.min(y)
+            self.ymax = np.max(y)
+            self.isFirst = False
+        self.current += 1
+
+    def show( self ):
+        self.ax.set_xlim(self.xmin, self.xmax)
+        self.ax.set_ylim( self.ymin, self.ymax )
+        self.fig.show()
+        plt.show()
+        #plt.show( block=False )

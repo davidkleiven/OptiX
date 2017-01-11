@@ -29,7 +29,7 @@ class Editor:
     def __init__( self, master ):
         self.frame = tk.Frame(master)
         self.frame.grid(row=0,column=0)
-        self.drawer = draw.Drawer( master )
+        self.drawer = draw.Drawer()
 
         self.wgs = []
         self.wgs.append( WgEntry(self.frame) )
@@ -39,6 +39,7 @@ class Editor:
         self.showButton = tk.Button( self.frame, text="Show", command=self.show )
         self.saveButton = tk.Button( self.frame, text="Save", command=self.save)
         self.pack()
+        self.showCount = 0
 
     def addWG( self ):
         self.wgs.append( WgEntry(self.frame) )
@@ -52,10 +53,10 @@ class Editor:
         self.pack()
 
     def show( self ):
-        self.drawer.arcs = []
-        for wg in self.wgs:
-            self.drawer.addArc( float( wg.rIn.get() ), float( wg.angleIn.get() ))
-        self.drawer.draw()
+        for i in range(self.showCount, len(self.wgs) ):
+            self.drawer.addArc( float( self.wgs[self.showCount].rIn.get() ), float( self.wgs[self.showCount].angleIn.get() ) )
+            self.showCount += 1
+        self.drawer.show()
 
     def save( self ):
         print ("Not implemented yet!")
