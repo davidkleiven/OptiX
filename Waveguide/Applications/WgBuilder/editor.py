@@ -1,4 +1,5 @@
 import tkinter as tk
+import drawer as draw
 
 class WgEntry:
     def __init__(self, master):
@@ -24,21 +25,23 @@ class WgEntry:
         self.angleLabel.destroy()
         self.angleIn.destroy()
 
-class Editor(tk.Frame):
+class Editor:
     def __init__( self, master ):
-        tk.Frame.__init__(self, master)
+        self.frame = tk.Frame(master)
+        self.frame.grid(row=0,column=0)
+        self.drawer = draw.Drawer( master )
 
         self.wgs = []
-        self.wgs.append( WgEntry(self.master) )
+        self.wgs.append( WgEntry(self.frame) )
 
-        self.addButton = tk.Button( self.master, text="AddWG", command=self.addWG )
-        self.removeButton = tk.Button( self.master, text="Remove last WG", command=self.removeLastWG )
-        self.showButton = tk.Button( self.master, text="Show", command=self.show )
-        self.saveButton = tk.Button( self.master, text="Save", command=self.save)
+        self.addButton = tk.Button( self.frame, text="AddWG", command=self.addWG )
+        self.removeButton = tk.Button( self.frame, text="Remove last WG", command=self.removeLastWG )
+        self.showButton = tk.Button( self.frame, text="Show", command=self.show )
+        self.saveButton = tk.Button( self.frame, text="Save", command=self.save)
         self.pack()
 
     def addWG( self ):
-        self.wgs.append( WgEntry(self.master) )
+        self.wgs.append( WgEntry(self.frame) )
         self.pack()
 
     def removeLastWG( self ):
@@ -49,7 +52,10 @@ class Editor(tk.Frame):
         self.pack()
 
     def show( self ):
-        print ("Not implemented yet!")
+        self.drawer.arcs = []
+        for wg in self.wgs:
+            self.drawer.addArc( float( wg.rIn.get() ), float( wg.angleIn.get() ))
+        self.drawer.draw()
 
     def save( self ):
         print ("Not implemented yet!")
@@ -63,4 +69,3 @@ class Editor(tk.Frame):
         self.removeButton.grid(row=curRow, column=1)
         self.showButton.grid(row=curRow, column=2)
         self.saveButton.grid(row=curRow, column=3)
-        self.grid(row=0, column=0)
