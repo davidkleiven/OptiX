@@ -1,0 +1,8 @@
+{
+  "waveguides":[
+    {
+      "radius":40.0,
+      "angle":0.5
+    }
+  ]
+}
