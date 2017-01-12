@@ -156,12 +156,15 @@ protected:
   std::string name;
   const ParaxialSource* src{NULL};
   H5::H5File* file{NULL};
+  H5::Group *maingroup{NULL};
+  std::string groupname{"/data/"};
   std::vector<std::string> dsetnames;
   bool solverInitializedViaInit{false};
   bool saveColorPlot{true};
   FarFieldParameters farParam;
   std::vector<H5Attr> commonAttributes;
   std::vector<post::PostProcessingModule*> postProcess;
+  int uid{0};
 
   /** Get exit field */
   void getExitField( arma::cx_vec &vec ) const;
@@ -198,5 +201,8 @@ protected:
 
   /** Checks that the solver is ready */
   void verifySolverReady() const;
+
+  /** Set group attributes */
+  void setGroupAttributes();
 };
 #endif

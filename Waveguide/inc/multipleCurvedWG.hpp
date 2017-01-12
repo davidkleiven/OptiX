@@ -42,6 +42,8 @@ private:
   arma::vec *transmittivity;
   unsigned int NzNextFillStartIntensity{0};
   unsigned int NzNextFillStartTrans{0};
+  std::string imagefile;
+  std::string geometryfile;
 
   /** Flips array with respect to the center of the waveguide */
   template<class elemType>
