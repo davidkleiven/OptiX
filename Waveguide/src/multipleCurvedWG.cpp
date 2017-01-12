@@ -26,6 +26,7 @@ MultipleCurvedWG::~MultipleCurvedWG()
 
 void MultipleCurvedWG::loadWaveguides( const string &jsonfname )
 {
+  geometryfile = jsonfname;
   Json::Value root;
   Json::Reader reader;
   ifstream infile;
@@ -39,6 +40,8 @@ void MultipleCurvedWG::loadWaveguides( const string &jsonfname )
   }
   reader.parse( infile, root );
   infile.close();
+
+  imagefile = root["figname"].asString();
 
   waveguides = new vector<CurvedWGConfMap*>;
   for ( unsigned int i=0;i<root["waveguides"].size();i++ )
@@ -112,6 +115,11 @@ void MultipleCurvedWG::init( const map<string,double> &params )
   intensity = new arma::mat( Nx/params.at("downSamplingX"), totalNz/params.at("downSamplingZ"), arma::fill::zeros );
   pw->setWavelength( params.at("wavelength") );
   src = pw;
+
+  // Add some post processing module to the last waveguide
+  farfield.setPadLength( pow(2,17) );
+  farfield.setAngleRange( -1.0, 1.0 );
+  *waveguides->back() << farfield << exitfield << exPhase;
 }
 
 void MultipleCurvedWG::solve()
@@ -233,22 +241,50 @@ void MultipleCurvedWG::flipWrtCenterOfWG( arma::mat &mat ) const
 
 void MultipleCurvedWG::save( ControlFile &ctl )
 {
-  commonAttributes.push_back( makeAttr("nWaveguides", waveguides->size() ));
+  ParaxialSimulation::save( ctl );
+  assert( maingroup != NULL );
+
+  // Add radii and angles attributes
+  hsize_t size = waveguides->size();
+  H5::DataSpace attribSpace( 1, &size );
+  H5::Attribute att = maingroup->createAttribute( "radius", H5::PredType::NATIVE_DOUBLE, attribSpace );
+
+  vector<double> radii;
   for ( unsigned int i=0;i<waveguides->size();i++ )
   {
-    stringstream ss;
-    ss << "R" << i;
-    commonAttributes.push_back( makeAttr(ss.str().c_str(), (*waveguides)[i]->getRadiusOfCurvature() ));
-    ss.clear();
-    ss.str("");
-    ss << "angle" << i;
-    commonAttributes.push_back( makeAttr(ss.str().c_str(), angles[i]) );
+    radii.push_back( (*waveguides)[i]->getRadiusOfCurvature()/1E6 );
   }
 
-  ParaxialSimulation::save( ctl );
+  att.write( H5::PredType::NATIVE_DOUBLE, &radii[0] );
 
+  att = maingroup->createAttribute( "angles", H5::PredType::NATIVE_DOUBLE, attribSpace );
+  att.write( H5::PredType::NATIVE_DOUBLE, &angles[0] );
+
+  // Add filenames read from the json geometry files
+  H5::DataSpace stringDs( H5S_SCALAR );
+  H5::StrType strdatatype( H5::PredType::C_S1, 256 );
+  att = maingroup->createAttribute( "image", strdatatype, stringDs );
+  att.write( strdatatype, imagefile );
+
+  att = maingroup->createAttribute( "geofile", strdatatype, stringDs );
+  att.write( strdatatype, geometryfile );
+
+  // Store data
   saveArmaMat( *intensity, "amplitude", commonAttributes );
   saveArmaVec( *transmittivity, "transmittivity", commonAttributes );
+
+  // Get the far field
+  arma::vec res;
+  farfield.result( waveguides->back()->getSolver(), res );
+  vector<H5Attr> additionalAttrib;
+  farfield.addAttrib( additionalAttrib );
+  saveArmaVec( res, farfield.getName().c_str(), additionalAttrib );
+
+  exitfield.result( waveguides->back()->getSolver(), res );
+  saveArmaVec( res, exitfield.getName().c_str() );
+
+  exPhase.result( waveguides->back()->getSolver(), res );
+  saveArmaVec( res, exPhase.getName().c_str() );
 }
 
 double MultipleCurvedWG::phaseDifference( const CurvedWGConfMap &source, const CurvedWGConfMap &target ) const

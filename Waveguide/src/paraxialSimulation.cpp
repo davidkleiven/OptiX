@@ -29,6 +29,7 @@ ParaxialSimulation::~ParaxialSimulation()
   }
   if ( farFieldModulus != NULL ) delete farFieldModulus;
   if ( file != NULL ) delete file;
+  if ( maingroup != NULL ) delete maingroup;
 }
 
 void ParaxialSimulation::solve()
@@ -128,21 +129,13 @@ void ParaxialSimulation::save( ControlFile &ctl )
   vector<string> dsets;
   if ( file != NULL ) delete file;
   file = new H5::H5File( h5fname.c_str(), H5F_ACC_TRUNC );
-
-  // Fill attrs
-  commonAttributes.push_back( makeAttr("xmin",xDisc->min) );
-  commonAttributes.push_back( makeAttr("xmax", xDisc->max) );
-  commonAttributes.push_back( makeAttr("zmin", zDisc->min) );
-  commonAttributes.push_back( makeAttr("zmax", zDisc->max) );
-  commonAttributes.push_back( makeAttr("wavenumber", wavenumber) );
-  int uid = ctl.getUID();
-  commonAttributes.push_back( makeAttr("uid", uid) );
-
-  unsigned int currentNumberOfAttrs = commonAttributes.size();
+  maingroup = new H5::Group( file->createGroup(groupname+"/") );
+  setGroupAttributes();
 
   // Save all results from all the post processing modules
   for ( unsigned int i=0;i<postProcess.size();i++ )
   {
+    vector<H5Attr> attrib;
     arma::vec res1D;
     arma::mat res2D;
     postProcess[i]->result( *solver, res1D );
@@ -151,13 +144,12 @@ void ParaxialSimulation::save( ControlFile &ctl )
     switch ( postProcess[i]->getReturnType() )
     {
       case ( post::PostProcessingModule::ReturnType_t::vector1D ):
-        saveArmaVec( res1D, postProcess[i]->getName().c_str(), commonAttributes );
+        saveArmaVec( res1D, postProcess[i]->getName().c_str(), attrib );
         break;
       case ( post::PostProcessingModule::ReturnType_t::matrix2D ):
-        saveArmaMat( res2D, postProcess[i]->getName().c_str(), commonAttributes );
+        saveArmaMat( res2D, postProcess[i]->getName().c_str(), attrib );
         break;
     }
-    commonAttributes.resize( currentNumberOfAttrs );
     clog << "Dataset " << postProcess[i]->getName() << " added to HDF5 file\n";
   }
 
@@ -248,7 +240,8 @@ double ParaxialSimulation::getX( int ix ) const
 
 void ParaxialSimulation::saveArmaMat( arma::mat &matrix, const char* dsetname )
 {
-  saveArmaMat( matrix, dsetname, commonAttributes );
+  vector<H5Attr> dummy;
+  saveArmaMat( matrix, dsetname, dummy );
 }
 
 void ParaxialSimulation::saveArmaMat( arma::mat &matrix, const char* dsetname, const vector<H5Attr> &attrs )
@@ -257,8 +250,10 @@ void ParaxialSimulation::saveArmaMat( arma::mat &matrix, const char* dsetname, c
   hsize_t fdim[2] = {matrix.n_rows, matrix.n_cols};
   H5::DataSpace dataspace( 2, fdim );
 
+  string name(groupname);
+  name += dsetname;
   // Create dataset
-  H5::DataSet ds( file->createDataSet(dsetname, H5::PredType::NATIVE_DOUBLE, dataspace) );
+  H5::DataSet ds( file->createDataSet(name, H5::PredType::NATIVE_DOUBLE, dataspace) );
   H5::DataSpace attribSpace(H5S_SCALAR);
   for ( unsigned int i=0;i<attrs.size();i++ )
   {
@@ -296,9 +291,11 @@ void ParaxialSimulation::saveArmaVec( const arma::vec &vec, const char* dsetname
   hsize_t fdim = vec.n_elem;
   H5::DataSpace dataspace( 1, &fdim );
 
+  string name(groupname);
+  name += dsetname;
   // Create dataset
   H5::DataSpace attribSpace(H5S_SCALAR);
-  H5::DataSet ds( file->createDataSet(dsetname, H5::PredType::NATIVE_DOUBLE, dataspace) );
+  H5::DataSet ds( file->createDataSet(name, H5::PredType::NATIVE_DOUBLE, dataspace) );
 
   for ( unsigned int i=0;i<attrs.size();i++ )
   {
@@ -318,12 +315,14 @@ void ParaxialSimulation::saveArmaVec( const arma::vec &vec, const char* dsetname
 
 void ParaxialSimulation::saveVec( const vector<double> &vec, const char* dsetname )
 {
+  string name(groupname);
+  name += dsetname;
   // Create dataspace
   hsize_t fdim = vec.size();
   H5::DataSpace dataspace( 1, &fdim );
 
   // Create dataset
-  H5::DataSet dataset( file->createDataSet(dsetname, H5::PredType::NATIVE_DOUBLE, dataspace) );
+  H5::DataSet dataset( file->createDataSet(name, H5::PredType::NATIVE_DOUBLE, dataspace) );
 
   // Write to file
   dataset.write( &vec[0], H5::PredType::NATIVE_DOUBLE );
@@ -383,4 +382,31 @@ ParaxialSimulation& ParaxialSimulation::operator << (post::FarField &ff )
   ff.linkParaxialSim( *this );
   postProcess.push_back( &ff );
   return *this;
+}
+
+void ParaxialSimulation::setGroupAttributes()
+{
+  if ( maingroup == NULL ) return;
+
+  // Create a dataspace
+  H5::DataSpace attribSpace(H5S_SCALAR);
+
+  // Write first attribute
+  H5::Attribute att = maingroup->createAttribute( "xmin", H5::PredType::NATIVE_DOUBLE, attribSpace );
+  att.write( H5::PredType::NATIVE_DOUBLE, &xDisc->min );
+
+  att = maingroup->createAttribute( "xmax", H5::PredType::NATIVE_DOUBLE, attribSpace );
+  att.write( H5::PredType::NATIVE_DOUBLE, &xDisc->max );
+
+  att = maingroup->createAttribute( "zmin", H5::PredType::NATIVE_DOUBLE, attribSpace );
+  att.write( H5::PredType::NATIVE_DOUBLE, &zDisc->min );
+
+  att = maingroup->createAttribute( "zmax", H5::PredType::NATIVE_DOUBLE, attribSpace );
+  att.write( H5::PredType::NATIVE_DOUBLE, &zDisc->max );
+
+  att = maingroup->createAttribute( "uid", H5::PredType::NATIVE_INT, attribSpace );
+  att.write( H5::PredType::NATIVE_INT, &uid );
+
+  att = maingroup->createAttribute( "wavenumber", H5::PredType::NATIVE_DOUBLE, attribSpace );
+  att.write( H5::PredType::NATIVE_DOUBLE, &wavenumber );
 }

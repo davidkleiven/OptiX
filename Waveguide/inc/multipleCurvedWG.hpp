@@ -7,6 +7,7 @@
 #include "cladding.hpp"
 #include "fixedValuesSource.hpp"
 #include "controlFile.hpp"
+#include "postProcessMod.hpp"
 #include <string>
 #include <vector>
 #include <map>
@@ -42,6 +43,11 @@ private:
   arma::vec *transmittivity;
   unsigned int NzNextFillStartIntensity{0};
   unsigned int NzNextFillStartTrans{0};
+  std::string imagefile;
+  std::string geometryfile;
+  post::FarField farfield;
+  post::ExitField exitfield;
+  post::ExitPhase exPhase;
 
   /** Flips array with respect to the center of the waveguide */
   template<class elemType>
