@@ -1,5 +1,7 @@
 import tkinter as tk
 import drawer as draw
+import json
+import numpy as np
 
 class WgEntry:
     def __init__(self, master):
@@ -39,6 +41,10 @@ class Editor:
         self.wgs = []
         self.wgs.append( WgEntry(self.frame) )
 
+        self.fnameEntry = tk.Entry( self.frame, width=10 )
+        self.fnameEntryLabel = tk.Label( self.frame, text="Geofile" )
+        self.fnameEntry.insert( tk.END, "InputFiles/waveguideGeometry%d.json"%( np.random.rand()*10000 ) )
+
         self.addButton = tk.Button( self.frame, text="AddWG", command=self.addWG )
         self.removeButton = tk.Button( self.frame, text="Remove last WG", command=self.removeLastWG )
         self.showButton = tk.Button( self.frame, text="Show", command=self.show )
@@ -58,14 +64,37 @@ class Editor:
         self.pack()
 
     def show( self ):
-        for i in range(self.showCount, len(self.wgs) ):
+        self.drawer.reset()
+        for i in range(0, len(self.wgs) ):
             self.drawer.addArc( float( self.wgs[i].rIn.get() ), float( self.wgs[i].angleIn.get() ),
                               self.wgs[i].curvature.get() )
             self.showCount += 1
         self.drawer.show()
 
     def save( self ):
-        print ("Not implemented yet!")
+        fname = str( self.fnameEntry.get() )
+        if ( fname[-4:] != "json" ):
+            print ("File extension has to be .json!")
+            return
+
+        self.drawer.save( fname )
+        geo = {}
+        geo["figname"] = self.drawer.createFigname( fname )
+        geo["geofile"] = fname
+        geo["waveguides"] = []
+
+        for wg in self.wgs:
+            wgDict = {}
+            wgDict["radius"] = float( wg.rIn.get() )
+            wgDict["angle"] = float( wg.angleIn.get() )
+            wgDict["curvature"] = wg.curvature.get()
+            geo["waveguides"].append(wgDict)
+
+        json_data = json.dumps( geo, indent=2, sort_keys=True )
+        outfile = open( fname, 'w' )
+        outfile.write( json_data )
+        outfile.close()
+        print ( "Geometry written to %s"%(fname) )
 
     def pack( self ):
         for row in range(0, len(self.wgs)):

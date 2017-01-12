@@ -39,6 +39,7 @@ class Drawer:
         self.fig.canvas.set_window_title("Wave Guide Geometry ")
         self.fig.patch.set_visible(False)
         self.annotations = []
+        self.wgs = []
 
 
     def customizePlot( self ):
@@ -73,7 +74,6 @@ class Drawer:
         arrowprops={"arrowstyle":"<->", "edgecolor":"white"} )
         )
 
-
     def getCenter( self, R ):
         if ( self.currentCurvature == "concave" ):
             self.yc = self.y0 - R/np.sqrt( 1 + self.tanAlpha**2 )
@@ -107,7 +107,7 @@ class Drawer:
 
         x = np.linspace( self.x0, x1, 100 )
         y = self.getY( R, x )
-        self.ax.plot( x, y, lw=15, color=self.colors[self.current%len(self.colors)] )
+        self.wgs.append( self.ax.plot( x, y, lw=15, color=self.colors[self.current%len(self.colors)] ) )
 
         # Update slope
 
@@ -133,13 +133,39 @@ class Drawer:
             self.isFirst = False
         self.current += 1
 
-    def show( self ):
+    def reset( self ):
         for an in self.annotations:
             an.remove()
+
         self.annotations = []
+        for line in self.ax.lines:
+            line.remove()
+        self.x0 = 0.0
+        self.y0 = 0.0
+        self.tanAlpha = 0.0
+        self.current = 0
+        self.xmin = 0.0
+        self.ymin = 0.0
+        self.xmax = 0.0
+        self.ymax = 0.0
+        self.ax.lines = []
+        plt.draw()
+
+    def show( self ):
         self.ax.set_xlim(self.xmin, self.xmax)
         self.ax.set_ylim( self.ymin, self.ymax )
         self.customizePlot()
         self.fig.show()
         plt.show()
-        #plt.show( block=False )
+
+    def createFigname( self, fname ):
+        figname = fname.split("/")[-1]
+        figname = "Figures/"+figname
+        figname = figname.split(".")[0]
+        figname += ".jpeg"
+        return figname
+
+    def save( self, fname ):
+        figname = self.createFigname( fname )
+        self.fig.savefig( figname, dpi=600 )
+        print ("Image saved in %s"%(figname))
