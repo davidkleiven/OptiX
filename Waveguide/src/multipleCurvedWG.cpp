@@ -7,6 +7,7 @@
 #include "curvedWGConfMap.hpp"
 using namespace std;
 
+const double PI = acos(-1.0);
 MultipleCurvedWG::~MultipleCurvedWG()
 {
   if ( waveguides != NULL )
@@ -44,15 +45,23 @@ void MultipleCurvedWG::loadWaveguides( const string &jsonfname )
   {
     double radius = root["waveguides"][i]["radius"].asDouble()*1E6;
     angles.push_back( root["waveguides"][i]["angle"].asDouble() );
+    string curvature = root["waveguides"][i]["curvature"].asString();
     if ( i == 0 )
     {
       waveguides->push_back( new CurvedWGConfMap() );
     }
     else
     {
-      int sign = radius > 0.0 ? 1:-1;
       CurvedWGConfMap *newwg = new CurvedWGConfMap();
-      newwg->setSign( sign );
+      typedef CurvedWGConfMap::Curvature_t curv_t;
+      if ( curvature == "convex" )
+      {
+        newwg->setCurvature( curv_t::CONVEX );
+      }
+      else
+      {
+        newwg->setCurvature( curv_t::CONCAVE );
+      }
       waveguides->push_back( newwg );
     }
     waveguides->back()->setRadiusOfCurvature( abs(radius) );
@@ -112,16 +121,11 @@ void MultipleCurvedWG::solve()
 
   fsource.setData( &endSolution ); // Stores a pointer to the endSolution array
   unsigned int counter = 0;
-  int prevSign = 1;
+  cdouble im(0.0,1.0);
   for ( auto wg=waveguides->begin();wg != waveguides->end(); ++wg )
   {
     clog << "Running waveguide " << counter++ << endl;
     solver->reset();
-
-    if ( (*wg)->getSign() != prevSign )
-    {
-      flipWrtCenterOfWG( endSolution );
-    }
 
     (*wg)->setSolver( *solver );
     if ( wg == waveguides->begin() )
@@ -133,13 +137,20 @@ void MultipleCurvedWG::solve()
       double xmin = (*wg)->transverseDiscretization().min;
       double xmax = (*wg)->transverseDiscretization().max;
       fsource.setLimits( xmin, xmax );
+
+      if ( (*wg)->getCurvature() != (*(wg-1))->getCurvature() )
+      {
+        flipWrtCenterOfWG( endSolution );
+        double phaseShift = phaseDifference( **(wg-1), **wg );
+        endSolution *= exp( im*wavenumber*phaseShift );
+      }
+
       (*wg)->setBoundaryConditions( fsource );
     }
     (*wg)->solve();
     processSolution( **wg );
 
     endSolution = solver->getLastSolution();
-    prevSign = (*wg)->getSign();
 
     // Just to be 100 % sure that the address does not change when reallocation is needed
     assert( endSolutonAddress == &endSolution );
@@ -161,7 +172,7 @@ void MultipleCurvedWG::processSolution( CurvedWGConfMap &wg )
 
   // Get a copy of the solution
   arma::mat intensitySolution =  abs( solver->getSolution() );
-  if ( wg.getSign() == -1 )
+  if ( wg.getCurvature() == CurvedWGConfMap::Curvature_t::CONVEX )
   {
     flipWrtCenterOfWG( intensitySolution );
   }
@@ -227,7 +238,7 @@ void MultipleCurvedWG::save( ControlFile &ctl )
   {
     stringstream ss;
     ss << "R" << i;
-    commonAttributes.push_back( makeAttr(ss.str().c_str(), (*waveguides)[i]->getRadiusOfCurvature()*(*waveguides)[i]->getSign() ));
+    commonAttributes.push_back( makeAttr(ss.str().c_str(), (*waveguides)[i]->getRadiusOfCurvature() ));
     ss.clear();
     ss.str("");
     ss << "angle" << i;
@@ -238,4 +249,19 @@ void MultipleCurvedWG::save( ControlFile &ctl )
 
   saveArmaMat( *intensity, "amplitude", commonAttributes );
   saveArmaVec( *transmittivity, "transmittivity", commonAttributes );
+}
+
+double MultipleCurvedWG::phaseDifference( const CurvedWGConfMap &source, const CurvedWGConfMap &target ) const
+{
+  double r1 = source.getRadiusOfCurvature();
+  double r2 = target.getRadiusOfCurvature();
+  double distSource = source.longitudinalDiscretization().max;
+
+  double phase = 0.0;
+  if ( source.getCurvature() != target.getCurvature() )
+  {
+    phase = PI;
+  }
+  phase += (1.0 - r2/r1)*distSource;
+  return phase;
 }

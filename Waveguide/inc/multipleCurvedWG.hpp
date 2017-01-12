@@ -43,13 +43,18 @@ private:
   unsigned int NzNextFillStartIntensity{0};
   unsigned int NzNextFillStartTrans{0};
 
+  /** Flips array with respect to the center of the waveguide */
   template<class elemType>
   void flipWrtCenterOfWG( elemType vec[], unsigned int N ) const;
 
+  /** Flips Armadillo vector with respect to the center of the waveguide */
   void flipWrtCenterOfWG( arma::cx_vec &vec ) const;
 
+  /** Flips Armadillo matrix with respect to the center of the waveguide */
   void flipWrtCenterOfWG( arma::mat &mat ) const;
-  //void flipWrtCenterOfWG( arma::mat &mat ) const;
+
+  /** Computes the required phase difference between two waveguides */
+  double phaseDifference( const CurvedWGConfMap &source, const CurvedWGConfMap &target ) const;
 
   void processSolution( CurvedWGConfMap &wg );
 };
