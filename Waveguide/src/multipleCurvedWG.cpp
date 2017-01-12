@@ -115,6 +115,11 @@ void MultipleCurvedWG::init( const map<string,double> &params )
   intensity = new arma::mat( Nx/params.at("downSamplingX"), totalNz/params.at("downSamplingZ"), arma::fill::zeros );
   pw->setWavelength( params.at("wavelength") );
   src = pw;
+
+  // Add some post processing module to the last waveguide
+  farfield.setPadLength( pow(2,17) );
+  farfield.setAngleRange( -1.0, 1.0 );
+  *waveguides->back() << farfield << exitfield << exPhase;
 }
 
 void MultipleCurvedWG::solve()
@@ -237,6 +242,7 @@ void MultipleCurvedWG::flipWrtCenterOfWG( arma::mat &mat ) const
 void MultipleCurvedWG::save( ControlFile &ctl )
 {
   ParaxialSimulation::save( ctl );
+  assert( maingroup != NULL );
 
   // Add radii and angles attributes
   hsize_t size = waveguides->size();
@@ -266,6 +272,19 @@ void MultipleCurvedWG::save( ControlFile &ctl )
   // Store data
   saveArmaMat( *intensity, "amplitude", commonAttributes );
   saveArmaVec( *transmittivity, "transmittivity", commonAttributes );
+
+  // Get the far field
+  arma::vec res;
+  farfield.result( waveguides->back()->getSolver(), res );
+  vector<H5Attr> additionalAttrib;
+  farfield.addAttrib( additionalAttrib );
+  saveArmaVec( res, farfield.getName().c_str(), additionalAttrib );
+
+  exitfield.result( waveguides->back()->getSolver(), res );
+  saveArmaVec( res, exitfield.getName().c_str() );
+
+  exPhase.result( waveguides->back()->getSolver(), res );
+  saveArmaVec( res, exPhase.getName().c_str() );
 }
 
 double MultipleCurvedWG::phaseDifference( const CurvedWGConfMap &source, const CurvedWGConfMap &target ) const
