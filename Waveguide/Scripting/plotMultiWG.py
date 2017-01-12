@@ -26,20 +26,17 @@ def main( argv ):
 
     multiplot = mp.MultiWGPlot()
     with h5.File( fname, 'r' ) as hf:
-        dset = hf.get("amplitude")
-        multiplot.zmin = dset.attrs.get("zmin")
-        multiplot.zmax = dset.attrs.get("zmax")
-        multiplot.xmin = dset.attrs.get("xmin")
-        multiplot.xmax = dset.attrs.get("xmax")
-        multiplot.R = np.zeros( int(dset.attrs.get("nWaveguides")) )
-        multiplot.angles = np.zeros( len(multiplot.R) )
-        uid = dset.attrs.get("uid")
-        for i in range(0, len(multiplot.R)):
-            multiplot.R[i] = dset.attrs.get( "R%d"%(i) )
-            multiplot.angles[i] = dset.attrs.get( "angle%d"%(i) )
+        group = hf.get("/data")
+        multiplot.zmin = group.attrs.get("zmin")
+        multiplot.zmax = group.attrs.get("zmax")
+        multiplot.xmin = group.attrs.get("xmin")
+        multiplot.xmax = group.attrs.get("xmax")
+        multiplot.R = np.array( group.attrs.get("radius") )
+        multiplot.angles = np.array( group.attrs.get("angles"))
+        uid = group.attrs.get("uid")
 
-        intensity = np.array( dset )
-        transmittivity = np.array( hf.get("transmittivity") )
+        intensity = np.array( hf.get("/data/amplitude") )
+        transmittivity = np.array( hf.get("/data/transmittivity") )
 
     # Plot the datasets
     root = tk.Tk()
