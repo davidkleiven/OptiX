@@ -20,44 +20,26 @@ from scipy import interpolate
 import transmission as trans
 import waveguideBorder as wgb
 
-def plot2D(data, stat, borders, control, field=None, phase=None):
+def plot2D(data, xmin, xmax, zmin, zmax, uid, borders, control, field=None, phase=None):
     colormap="viridis"
     colormap="nipy_spectral"
-    print ("Plotting the full matrix...")
-    '''
-    x = np.linspace(stat["xDiscretization"]["min"], stat["xDiscretization"]["max"], data.shape[0])
-    x -= stat["x0"]
-    z = np.linspace(stat["zDiscretization"]["min"], stat["zDiscretization"]["max"], data.shape[1])
-    Z,X = np.meshgrid(z,x)
-    '''
+
+    zmin /= 1E6
+    zmax /= 1E6
+
+    zlabel = "\$ v (\SI{}{\milli\meter}\)$"
+    xlabel = "\$u (\SI{}{\\nano\meter})\$"
 
     normalize = True
     appendName = ""
     if ( normalize ):
         appendName = "normalized"
 
-    try:
-        crd = stat["waveguide"]["crd"]
-    except:
-        crd="cartesian"
-
-    if ( crd == "cylindrical" ):
-        zmin = stat["zDiscretization"]["min"]*stat["waveguide"]["RadiusOfCurvature"]/1000.0
-        zmax = stat["zDiscretization"]["max"]*stat["waveguide"]["RadiusOfCurvature"]/1000.0
-        zlabel = "\$R\\theta (\SI{}{\mircro\meter})\$"
-        xlabel = "\$r\$ (nm)"
-    else:
-        zmin = stat["zDiscretization"]["min"]/1000.0
-        zmax = stat["zDiscretization"]["max"]/1000.0
-        zlabel = "\$z\$ (\$\micro\$m)"
-        xlabel = "\$x\$ (nm)"
-
-    extent = [zmin, zmax, stat["xDiscretization"]["min"], stat["xDiscretization"]["max"]]
+    extent = [zmin, zmax, xmin, xmax]
     dataNorm = np.abs(data)**2
     if ( normalize ):
         dataNorm /= np.max(dataNorm)
 
-    k = 2.0*np.pi/0.1569
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
     im = ax.imshow(dataNorm, extent=extent, cmap=colormap, aspect=1.0, origin ="lower")
@@ -69,7 +51,7 @@ def plot2D(data, stat, borders, control, field=None, phase=None):
     if ( not borders is None ):
         borders.visualize( ax )
     #fname = "Figures/contourLinScale%d%s.jpeg"%(stat["UID"], appendName)
-    fname = "Figures/contourLinScale%d%s.svg"%(stat["UID"], appendName)
+    fname = "Figures/contourLinScale%d%s.svg"%(uid, appendName)
     control.attach( fig, ax, fname )
 
     frac = 1E-8
@@ -89,8 +71,7 @@ def plot2D(data, stat, borders, control, field=None, phase=None):
     if ( not borders is None ):
         borders.visualize( ax )
     ax2.set_aspect( np.abs( (extent[1]-extent[0])/(extent[3]-extent[2]) ))
-    #fname = "Figures/contourLogScale%d%s.jpeg"%(stat["UID"], appendName)
-    fname = "Figures/contourLogScale%d%s.svg"%(stat["UID"], appendName)
+    fname = "Figures/contourLogScale%d%s.svg"%(uid, appendName)
     control.attach( fig2, ax2, fname )
 
     if ( not field is None ):
@@ -104,7 +85,7 @@ def plot2D(data, stat, borders, control, field=None, phase=None):
         if ( not borders is None ):
             borders.visualize( ax )
         ax3.set_aspect( np.abs( (extent[1]-extent[0])/(extent[3]-extent[2]) ))
-        fname = "Figures/fieldLinScale%d.jpeg"%(stat["UID"])
+        fname = "Figures/fieldLinScale%d.jpeg"%(uid)
         control.attach( fig3, ax3, fname )
 
     if ( not phase is None ):
@@ -119,7 +100,7 @@ def plot2D(data, stat, borders, control, field=None, phase=None):
         if ( not borders is None ):
             borders.visualize( ax )
         ax4.set_aspect( np.abs( (extent[1]-extent[0])/(extent[3]-extent[2]) ))
-        fname = "Figures/phase%d.jpeg"%(stat["UID"])
+        fname = "Figures/phase%d.jpeg"%(uid)
         control.attach( fig4, ax4, fname )
 
 def plotWG( x, z ):
@@ -170,45 +151,28 @@ def main(argv):
 
     root = tk.Tk()
     control = cg.Control( root )
-    try:
-        infile = open(fname, "r")
-        stat = json.load(infile)
-    except:
-        print("Could not open file %s"%(fname))
-        return 1
 
-    try:
-        val = stat["sparseSave"]
-    except:
-        stat["sparseSave"] = False
+    zmin = 0.0
+    zmax = 0.0
+    uid = 0
+    with h5.File( fname, "r") as hf:
+        group = hf.get("/data")
+        data = np.array( hf.get("/data/amplitude") )
+        if ( "/data/phase" in hf.keys() ):
+            phaseData = np.array( hf.get("/data/phase") )
+        else:
+            phaseData = None
+        if ( "/data/transmittivity" in hf.keys() ):
+            transData = np.array( hf.get("/data/transmittivity") )
+        else:
+            transData = None
+        zmin = group.attrs.get("zmin")
+        zmax = group.attrs.get("zmax")
+        xmin = group.attrs.get("xmin")
+        xmax = group.attrs.get("xmax")
+        uid = group.attrs.get("uid")
 
-    if ( stat["sparseSave"] ):
-        with h5.File(stat["datafile"], 'r') as hf:
-            xVal = np.array( hf.get("x") )
-            zVal = np.array( hf.get("z") )
-            intensity = np.array( hf.get("intensity") )
-    else:
-        with h5.File(stat["datafile"], "r") as hf:
-            data = np.array( hf.get("amplitude") )
-
-    fieldData = None
-    try:
-        with h5.File(stat["datafile"], 'r') as hf:
-            fieldData = np.array( hf.get("amplitude") )
-    except:
-        fieldData = None
-
-    phaseData = None
-    try:
-        with h5.File(stat["datafile"], 'r') as hf:
-            if ( "phase" in hf.keys() ):
-                phaseData = np.array( hf.get("phase") )
-            else:
-                phaseData = None
-    except Exception as exc:
-        print ( str(exc) )
-        phaseData = None
-
+    # TODO: Fix the borders!
     borders = None
     try:
         crdsyst = stat["crd"]
@@ -220,23 +184,13 @@ def main(argv):
     except:
         print ("Borders were not found!")
 
+    plot2D( data, xmin, xmax, zmin, zmax, uid, borders, control, field=None, phase=phaseData )
+    if ( not transData is None ):
+        # Due to downsampling and merging of some datasets there can be some elements that are not set
+        # Quick fix: Just remove, say, the last 5 elements of the array
+        transData = transData[:-5]
+        trans.plotTransmission( transData, zmin, zmax, uid, control )
 
-    stat["x0"] = stat["xDiscretization"]["min"]
-
-    plot2D( data, stat, borders, control, field=fieldData, phase=phaseData )
-
-    # Plot transmission. Put in try catch as some of the simulaitons do not compute the transmission
-    try:
-        with h5.File(stat["datafile"], 'r') as hf:
-            dset = hf.get("transmittivity")
-            data = np.array( dset )
-            zmin = float( dset.attrs.get("zmin") )
-            zmax = float( dset.attrs.get("zmax") )
-            uid = int( dset.attrs.get("uid") )
-        trans.plotTransmission( data, zmin, zmax, uid, control )
-    except Exception as exc:
-        print ( str(exc) )
-        print ("Error when plotting transmission")
     root.mainloop()
 
 if __name__ == "__main__":

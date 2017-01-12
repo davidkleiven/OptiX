@@ -309,5 +309,14 @@ cdouble WaveGuideFDSimulation::padExitField( double x, double z ) const
   double delta = cladding->getDelta();
   double beta = cladding->getBeta();
   cdouble im(0.0,1.0);
-  return src->get(x,0.0)*exp(-beta*wavenumber*z)*exp(-im*delta*wavenumber*z);
+  //return src->get(x,0.0)*exp(-beta*wavenumber*z)*exp(-im*delta*wavenumber*z);
+  // TODO: Is it a better option?
+  if ( abs(x-xDisc->min) > abs( x-xDisc->max ) )
+  {
+    // Closest to the upper edge
+    unsigned int length = solver->getSolution().n_rows;
+    return solver->getSolution()(length-1);
+  }
+  // Closest to the lower edge
+  return solver->getSolution()(0);
 }
