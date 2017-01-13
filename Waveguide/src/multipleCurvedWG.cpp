@@ -90,8 +90,6 @@ void MultipleCurvedWG::init( const map<string,double> &params )
 
   for ( unsigned int i=0;i<waveguides->size();i++ )
   {
-    if ( i == 0 ) zmin = 0.0;
-    else zmin = length;
     length = (angles[i]*PI/180.0)*(*waveguides)[i]->getRadiusOfCurvature();
     (*waveguides)[i]->setWidth( params.at("width") );
     (*waveguides)[i]->setLongitudinalDiscretization( zmin, zmin+length, params.at("stepZ"), params.at("downSamplingZ") );
@@ -100,10 +98,13 @@ void MultipleCurvedWG::init( const map<string,double> &params )
     (*waveguides)[i]->setWaveLength( params.at("wavelength") );
 
     totalNz += (*waveguides)[i]->nodeNumberLongitudinal();
+    zmin += length;
   }
 
   this->setTransverseDiscretization( xmin, xmax, params.at("stepX"), params.at("downSamplingX") );
-  this->setLongitudinalDiscretization( 0.0, zmin+length, params.at("stepZ"), params.at("downSamplingZ") );
+
+  // NOTE: Now zmin is equal to the total length of the waveguide
+  this->setLongitudinalDiscretization( 0.0, zmin, params.at("stepZ"), params.at("downSamplingZ") );
   this->setWaveLength( params.at("wavelength") );
 
   solver->setEquation( eq );

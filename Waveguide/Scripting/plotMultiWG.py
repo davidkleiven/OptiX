@@ -37,15 +37,21 @@ def main( argv ):
 
         intensity = np.array( hf.get("/data/amplitude") )
         transmittivity = np.array( hf.get("/data/transmittivity") )
+        if ( "image" in group.attrs.keys() ):
+            multiplot.miniatyrGeo = group.attrs.get( "image" )
 
+    multiplot.miniatyr = False
     # Plot the datasets
     root = tk.Tk()
     ctl = cg.Control( root )
     fig, ax = multiplot.plotIntensity( intensity )
-    ctl.attach( fig, ax, "Figures/multiWGIntensity%d"%(uid))
+    ctl.attach( fig, ax, "Figures/multiWGIntensity%d.svg"%(uid))
+
+    figLog, axLog = multiplot.plotIntensity( intensity, scale="log" )
+    ctl.attach( figLog, axLog, "Figures/multiWGIntensityLog%d.svg"%(uid))
 
     figT, axT = multiplot.plotTransmittivity( transmittivity )
-    ctl.attach( figT, axT, "Figures/multiWGTransmittivity%d"%(uid))
+    ctl.attach( figT, axT, "Figures/multiWGTransmittivity%d.svg"%(uid))
     root.mainloop()
 
 if __name__ == "__main__":

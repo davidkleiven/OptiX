@@ -1,5 +1,9 @@
 import numpy as np
+import matplotlib as mpl
 from matplotlib import pyplot as plt
+from matplotlib import offsetbox
+from os import path
+from mpl_toolkits.axes_grid import inset_locator as inl
 
 class MultiWGPlot:
     def __init__( self ):
@@ -10,6 +14,8 @@ class MultiWGPlot:
         self.zmin = 0.0
         self.zmax = 1.0
         self.cmap = "nipy_spectral"
+        self.miniatyrGeo = ""
+        self.miniatyr = True
 
         # Define some units
         self.nm = 1.0
@@ -19,8 +25,9 @@ class MultiWGPlot:
     def drawSeparationLines(self, ax, color ):
         # Set separation lines
         assert( len(self.R) == len(self.angles))
+        endpos = 0.0
         for i in range(0, len(self.R)-1):
-            endpos = self.R[i]*self.mm*self.angles[i]*np.pi/180.0
+            endpos += self.R[i]*self.angles[i]*np.pi/180.0
             ax.axvline( endpos, ls="--", color=color, lw=2)
         return ax
 
@@ -30,7 +37,7 @@ class MultiWGPlot:
         extent = [self.zmin*self.mm, self.zmax*self.mm, self.xmin, self.xmax]
         if ( scale == "log" ):
             maxval = np.max(intensity)
-            minval = 1E-8*maxval
+            minval = 1E-5*maxval
             im = ax.imshow( intensity, extent=extent, origin="lower", cmap=self.cmap, norm=mpl.colors.LogNorm(minval,maxval) )
         else:
             im = ax.imshow( intensity, extent=extent, origin="lower", cmap=self.cmap )
@@ -40,6 +47,8 @@ class MultiWGPlot:
         ax.set_xlabel("Arclength (\$\SI{}{\milli\meter}\$)")
         ax.set_ylabel("Transverse position (\$\SI{}{\\nano\meter}\$)")
         fig.colorbar( im )
+        if ( self.miniatyr ):
+            fig = self.addMiniatyrGeometry( fig, ax )
         return fig, self.drawSeparationLines( ax, "white" )
 
     def plotTransmittivity(self, trans ):
@@ -49,4 +58,25 @@ class MultiWGPlot:
         ax.plot( z, np.log(trans), color="black", lw=2)
         ax.set_xlabel("Arclength (\$\SI{}{\milli\meter}\$)")
         ax.set_ylabel("ln( Transmittivity )")
+        ax.spines["right"].set_visible( False )
+        ax.spines["top"].set_visible( False )
+        ax.yaxis.set_ticks_position('left')
+        ax.xaxis.set_ticks_position('bottom')
+        if ( self.miniatyr ):
+            fig = self.addMiniatyrGeometry( fig, ax )
         return fig, self.drawSeparationLines( ax, "#2b8cbe")
+
+    def addMiniatyrGeometry( self, fig, ax ):
+        if ( not path.exists( self.miniatyrGeo ) ):
+            print ("Could not find image file containing the geometry!")
+            return
+        xmin, xmax = ax.get_xlim()
+        ymin, ymax = ax.get_ylim()
+        im = plt.imread( self.miniatyrGeo, format="png" )
+        width = 0.5
+        height = 0.4
+        rect = [0.4, 0.55, 0.35, 0.35]
+        newax = fig.add_axes( rect, frameon=False )
+        newax.imshow( im )
+        newax.axis("off")
+        return fig
