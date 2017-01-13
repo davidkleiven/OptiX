@@ -155,6 +155,7 @@ void MultipleCurvedWG::solve()
       }
 
       (*wg)->setBoundaryConditions( fsource );
+      solver->setLeftBC( endSolution.memptr() ); // Override the fixed value source
     }
     (*wg)->solve();
     processSolution( **wg );
