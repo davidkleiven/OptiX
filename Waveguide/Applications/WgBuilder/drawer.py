@@ -35,7 +35,8 @@ class Drawer:
         self.colors = ["#e41a1c", "#377eb8", "#4daf4a", "#984ea3", "#ff7f00", "#ffff33", "#a65628", "#f781bf", "#999999"]
         self.current = 0
         self.currentCurvature = "concave"
-        self.ax.set_axis_bgcolor( "#404040" )
+        self.bgcolor = "#404040"
+        self.ax.set_axis_bgcolor( self.bgcolor )
         self.fig.canvas.set_window_title("Wave Guide Geometry ")
         self.fig.patch.set_visible(False)
         self.annotations = []
@@ -167,5 +168,5 @@ class Drawer:
 
     def save( self, fname ):
         figname = self.createFigname( fname )
-        self.fig.savefig( figname, dpi=600, bbox_inches="tight" )
+        self.fig.savefig( figname, facecolor=self.bgcolor )
         print ("Image saved in %s"%(figname))
