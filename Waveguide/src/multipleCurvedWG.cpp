@@ -290,6 +290,7 @@ void MultipleCurvedWG::save( ControlFile &ctl )
 
 double MultipleCurvedWG::phaseDifference( const CurvedWGConfMap &source, const CurvedWGConfMap &target ) const
 {
+  return 0.0; // Phase difference has no effect
   double r1 = source.getRadiusOfCurvature();
   double r2 = target.getRadiusOfCurvature();
   double distSource = source.longitudinalDiscretization().max;
