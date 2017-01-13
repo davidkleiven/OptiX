@@ -167,5 +167,5 @@ class Drawer:
 
     def save( self, fname ):
         figname = self.createFigname( fname )
-        self.fig.savefig( figname, dpi=600, transparent=True, bbo_inches="tight" )
+        self.fig.savefig( figname, dpi=600, bbox_inches="tight" )
         print ("Image saved in %s"%(figname))
