@@ -1,6 +1,8 @@
 import numpy as np
 from matplotlib import pyplot as plt
+from matplotlib import offsetbox
 from os import path
+from mpl_toolkits.axes_grid import inset_locator as inl
 
 class MultiWGPlot:
     def __init__( self ):
@@ -21,8 +23,9 @@ class MultiWGPlot:
     def drawSeparationLines(self, ax, color ):
         # Set separation lines
         assert( len(self.R) == len(self.angles))
+        endpos = 0.0
         for i in range(0, len(self.R)-1):
-            endpos = self.R[i]*self.mm*self.angles[i]*np.pi/180.0
+            endpos += self.R[i]*self.angles[i]*np.pi/180.0
             ax.axvline( endpos, ls="--", color=color, lw=2)
         return ax
 
@@ -42,7 +45,7 @@ class MultiWGPlot:
         ax.set_xlabel("Arclength (\$\SI{}{\milli\meter}\$)")
         ax.set_ylabel("Transverse position (\$\SI{}{\\nano\meter}\$)")
         fig.colorbar( im )
-        self.addMiniatyrGeometry( fig, ax )
+        fig, ax = self.addMiniatyrGeometry( fig, ax )
         return fig, self.drawSeparationLines( ax, "white" )
 
     def plotTransmittivity(self, trans ):
@@ -55,16 +58,25 @@ class MultiWGPlot:
         return fig, self.drawSeparationLines( ax, "#2b8cbe")
 
     def addMiniatyrGeometry( self, fig, ax ):
-        if ( !path.exists( self.miniatyrGeo ) ):
+        if ( not path.exists( self.miniatyrGeo ) ):
             print ("Could not find image file containing the geometry!")
             return
         xmin, xmax = ax.get_xlim()
         ymin, ymax = ax.get_ylim()
-        im = plt.imread( self.miniatyrGeo )
-        width = 0.3*(xmax-xmin)
-        height = 0.25*(ymax-ymin)
-
-        newax = fig.axes( [xmax-width, ymax-height, width, height] )
+        im = plt.imread( self.miniatyrGeo, format="png" )
+        #ax.imshow( im )
+        imgbox = offsetbox.OffsetImage( im, zoom=0.002)
+        newax = inl.inset_axes( ax, width="40%", height="40%", loc=1)
         newax.imshow( im )
-        newax.axes("off")
-        return fig
+        newax.axis("off")
+        #ab = offsetbox.AnnotationBbox( imgbox, )
+        #ax.add_artist( imgbox )
+        #width = 0.3*(xmax-xmin)
+        #height = 0.25*(ymax-ymin)
+        #rect = [xmax-width, ymax.height, width, height]
+
+
+        #newax = fig.axes( [xmax-width, ymax-height, width, height] )
+        #newax.imshow( im )
+        #newax.axes("off")
+        return fig, ax
