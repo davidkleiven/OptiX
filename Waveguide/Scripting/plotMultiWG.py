@@ -37,6 +37,8 @@ def main( argv ):
 
         intensity = np.array( hf.get("/data/amplitude") )
         transmittivity = np.array( hf.get("/data/transmittivity") )
+        if ( "image" in group.attrs.keys() ):
+            multiplot.miniatyrGeo = group.attrs.get( "image" )
 
     # Plot the datasets
     root = tk.Tk()

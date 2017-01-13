@@ -54,24 +54,24 @@ class Drawer:
 
         dx = self.xmax - self.xmin
         dy = self.ymax - self.ymin
-        ypos = self.ymax - 0.1*dy
-        xpos = self.xmin + 0.05*dx
-        self.annotations.append( self.ax.annotate(s="%.1f mm"%(dx), xy=(self.xmin, ypos), xytext=((self.xmax+self.xmin)*0.5, ypos),
-        xycoords="data", fontsize=28, color="white") )
+        ypos = self.ymax - 0.15*dy
+        xpos = self.xmin + 0.08*dx
+        self.annotations.append( self.ax.annotate(s="%.1f mm"%(dx), xy=(self.xmin, ypos), xytext=((self.xmax+self.xmin)*0.25, ypos),
+        xycoords="data", fontsize=58, color="white") )
 
         self.annotations.append(
         self.ax.annotate(s="",xy=(self.xmin, ypos), xytext=(self.xmax, ypos),
-        arrowprops={"arrowstyle":"<->", "edgecolor":"white"} )
+        arrowprops={"arrowstyle":"|-|", "edgecolor":"white", "lw":7})
         )
 
         self.annotations.append(
         self.ax.annotate(s="%d um"%(dy*1000.0), xy=(xpos, self.ymin), xytext=(xpos, (self.ymax+self.ymin)*0.5),
-        xycoords="data", fontsize=28, color="white")
+        xycoords="data", fontsize=58, color="white")
         )
 
         self.annotations.append(
         self.ax.annotate(s="",xy=(xpos, self.ymin), xytext=(xpos, self.ymax),
-        arrowprops={"arrowstyle":"<->", "edgecolor":"white"} )
+        arrowprops={"arrowstyle":"|-|", "edgecolor":"white", "lw":7} )
         )
 
     def getCenter( self, R ):
@@ -162,10 +162,10 @@ class Drawer:
         figname = fname.split("/")[-1]
         figname = "Figures/"+figname
         figname = figname.split(".")[0]
-        figname += ".jpeg"
+        figname += ".png"
         return figname
 
     def save( self, fname ):
         figname = self.createFigname( fname )
-        self.fig.savefig( figname, dpi=600 )
+        self.fig.savefig( figname, dpi=600, transparent=True, bbo_inches="tight" )
         print ("Image saved in %s"%(figname))

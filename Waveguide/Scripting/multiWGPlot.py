@@ -1,5 +1,6 @@
 import numpy as np
 from matplotlib import pyplot as plt
+from os import path
 
 class MultiWGPlot:
     def __init__( self ):
@@ -10,6 +11,7 @@ class MultiWGPlot:
         self.zmin = 0.0
         self.zmax = 1.0
         self.cmap = "nipy_spectral"
+        self.miniatyrGeo = ""
 
         # Define some units
         self.nm = 1.0
@@ -40,6 +42,7 @@ class MultiWGPlot:
         ax.set_xlabel("Arclength (\$\SI{}{\milli\meter}\$)")
         ax.set_ylabel("Transverse position (\$\SI{}{\\nano\meter}\$)")
         fig.colorbar( im )
+        self.addMiniatyrGeometry( fig, ax )
         return fig, self.drawSeparationLines( ax, "white" )
 
     def plotTransmittivity(self, trans ):
@@ -50,3 +53,18 @@ class MultiWGPlot:
         ax.set_xlabel("Arclength (\$\SI{}{\milli\meter}\$)")
         ax.set_ylabel("ln( Transmittivity )")
         return fig, self.drawSeparationLines( ax, "#2b8cbe")
+
+    def addMiniatyrGeometry( self, fig, ax ):
+        if ( !path.exists( self.miniatyrGeo ) ):
+            print ("Could not find image file containing the geometry!")
+            return
+        xmin, xmax = ax.get_xlim()
+        ymin, ymax = ax.get_ylim()
+        im = plt.imread( self.miniatyrGeo )
+        width = 0.3*(xmax-xmin)
+        height = 0.25*(ymax-ymin)
+
+        newax = fig.axes( [xmax-width, ymax-height, width, height] )
+        newax.imshow( im )
+        newax.axes("off")
+        return fig
