@@ -10,10 +10,12 @@
 #include <cassert>
 #include <cmath>
 #include "paraxialSource.hpp"
+#include "arraySource.hpp"
 #include "h5Attribute.hpp"
 #include <limits>
 #include <stdexcept>
 #include <utility>
+#include <sstream>
 
 using namespace std;
 const double PI = acos(-1.0);
@@ -353,6 +355,20 @@ void ParaxialSimulation::setBoundaryConditions( const ParaxialSource &source )
     values[i] = src->get( x, 0.0 );
   }
   solver->setLeftBC(&values[0]);
+}
+
+void ParaxialSimulation::setBoundaryConditions( const ArraySource &source )
+{
+  src = &source;
+  if ( source.getVec().n_elem != nodeNumberTransverse() )
+  {
+    stringstream msg;
+    msg << "The size of the given array does not match the number of transverse nodes! ";
+    msg << "Required size: " << nodeNumberTransverse();
+    msg << " Given size: " << source.getVec().n_elem;
+    throw ( runtime_error( msg.str() ) );
+  }
+  solver->setLeftBC( source.getVec().memptr() );
 }
 
 double ParaxialSimulation::getEnergy() const

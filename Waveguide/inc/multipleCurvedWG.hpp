@@ -5,7 +5,7 @@
 #include "crankNicholson.hpp"
 #include "planeWave.hpp"
 #include "cladding.hpp"
-#include "fixedValuesSource.hpp"
+#include "arraySource.hpp"
 #include "controlFile.hpp"
 #include "postProcessMod.hpp"
 #include <string>
@@ -37,7 +37,7 @@ private:
   std::vector<CurvedWGConfMap*> *waveguides{NULL};
   std::vector<double> angles;
   ParaxialEquation eq;
-  FixedValuesSource fsource;
+  ArraySource fsource;
   Cladding cladding;
   arma::mat *intensity;
   arma::vec *transmittivity;

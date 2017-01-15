@@ -145,7 +145,6 @@ void MultipleCurvedWG::solve()
     {
       double xmin = (*wg)->transverseDiscretization().min;
       double xmax = (*wg)->transverseDiscretization().max;
-      fsource.setLimits( xmin, xmax );
 
       if ( (*wg)->getCurvature() != (*(wg-1))->getCurvature() )
       {
@@ -155,7 +154,6 @@ void MultipleCurvedWG::solve()
       }
 
       (*wg)->setBoundaryConditions( fsource );
-      solver->setLeftBC( endSolution.memptr() ); // Override the fixed value source
     }
     (*wg)->solve();
     processSolution( **wg );

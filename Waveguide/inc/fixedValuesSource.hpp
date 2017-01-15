@@ -17,7 +17,8 @@ public:
 
   /** Set the values*/
   void setData( const arma::cx_vec *data ){ values = data; };
-private:
+protected:
+  FixedValuesSource( const char* name ): ParaxialSource(name){};
   bool limitsSet{false};
   unsigned int indx( double x ) const;
   double getX( unsigned int n ) const;

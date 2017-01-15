@@ -13,6 +13,7 @@ class Solver2D;
 class ControlFile;
 class ParaxialSource;
 class BorderTracker;
+class ArraySource;
 
 /** Struct storing the discretization parameters */
 struct Disctretization
@@ -128,7 +129,10 @@ public:
   virtual void solve();
 
   /** Set incident field */
-  virtual void setBoundaryConditions( const ParaxialSource& src ); // This function should fill the boundary
+  virtual void setBoundaryConditions( const ParaxialSource& src );
+
+  /** Sets the initial field from an array of values. Note the length of array needs to exactly match the number of transverse nodes */
+  void setBoundaryConditions( const ArraySource &src );
 
   /** Fill JSON object with parameters specific to this class */
   virtual void fillInfo( Json::Value &obj ) const {};
