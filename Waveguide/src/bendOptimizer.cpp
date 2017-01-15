@@ -1,5 +1,6 @@
 #include "bendOptimizer.hpp"
 #include <cassert>
+#include <json/writer.h>
 
 using namespace std;
 
@@ -103,6 +104,7 @@ void BendOptimizer::optimize()
     if ( status == GSL_SUCCESS )
     {
       clog << "Converged to minimum!\n";
+      clog << "Best transmission: " << -gsl_multimin_fminimizer_minimum( minimizer ) << endl;
       return;
     }
     transmittivity.push_back( -gsl_multimin_fminimizer_minimum( minimizer ) );
@@ -111,4 +113,19 @@ void BendOptimizer::optimize()
   gsl_multimin_fminimizer_free( minimizer );
   gsl_vector_free( stepsize );
   clog << "The maximum number of iterations was reached!\n";
+}
+
+void BendOptimizer::save( const char* fname ) const
+{
+  Json::StyledWriter sw;
+  ofstream out(fname);
+  if ( !out.good() )
+  {
+    cout << "Could not open file " << fname << endl;
+    return;
+  }
+
+  out << sw.write( geometry );
+  out.close();
+  clog << "Results written to " << fname << endl;
 }

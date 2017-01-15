@@ -18,6 +18,9 @@ public:
 
   /** Run the optimization */
   void optimize();
+
+  /** Saves a JSON file with the optimal parameters */
+  void save( const char* fname ) const;
 private:
   MultipleCurvedWG wgs;
   Json::Value geometry;

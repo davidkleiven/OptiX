@@ -32,6 +32,7 @@ int main( int argc, char** argv )
   {
     bend.init( params );
     bend.optimize();
+    bend.save( "data/optimalBend.json" );
   }
   catch ( exception &exc )
   {
