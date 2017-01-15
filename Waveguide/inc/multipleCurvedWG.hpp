@@ -32,6 +32,9 @@ public:
   /** Returns the intensity */
   const arma::mat& getIntensity() const { return *intensity; };
 
+  /** Get the transmittivity */
+  const arma::vec& getTransmittivity() const { return *transmittivity; };
+
   /** Solve the system */
   virtual void solve() override;
 

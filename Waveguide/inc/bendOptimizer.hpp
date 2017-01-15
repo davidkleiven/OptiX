@@ -5,6 +5,7 @@
 #include <string>
 #include <gsl/gsl_multimin.h>
 #include <gsl/gsl_vector.h>
+#include <vector>
 
 class BendOptimizer
 {
@@ -14,14 +15,15 @@ public:
 
   /** Initialize the simulation */
   void init( const std::map<std::string, double> &parameters );
+
+  /** Run the optimization */
+  void optimize();
 private:
   MultipleCurvedWG wgs;
   Json::Value geometry;
   const std::map<std::string, double> *params;
   const gsl_multimin_fminimizer_type *T{ gsl_multimin_fminimizer_nmsimplex2 };
-  gsl_multimin_fminimizer *minimizer{NULL};
   gsl_vector *variables{NULL};
-  gsl_multimin_function optFunction;
   static double targetFunction( const gsl_vector *variables, void *par );
 
   /** Populates a JSON object based on the values in the GSL vector */
@@ -29,5 +31,6 @@ private:
 
   /** Populates a GSL vector based on the values in the JSON object */
   void populateGSLVector();
+  std::vector<double> transmittivity; // Track the transmittivity to study the sensitivity
 };
 #endif
