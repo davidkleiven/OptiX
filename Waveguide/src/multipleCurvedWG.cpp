@@ -40,6 +40,10 @@ void MultipleCurvedWG::loadWaveguides( const string &jsonfname )
   }
   reader.parse( infile, root );
   infile.close();
+  loadWaveguides( root );
+}
+void MultipleCurvedWG::loadWaveguides( const Json::Value &root )
+{
 
   imagefile = root["figname"].asString();
 

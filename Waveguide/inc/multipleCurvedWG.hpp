@@ -11,6 +11,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <json/reader.h>
 
 class CurvedWGConfMap;
 class MultipleCurvedWG: public ParaxialSimulation
@@ -21,6 +22,9 @@ public:
 
   /** Loads the geometry from a JSON file */
   void loadWaveguides( const std::string &jsonfname );
+
+  /** Initialize the waveguides from a JSON object */
+  void loadWaveguides( const Json::Value &root );
 
   /** Initializes the simulation */
   void init( const std::map<std::string,double> &params );
