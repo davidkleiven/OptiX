@@ -97,6 +97,7 @@ void BendOptimizer::optimize()
 
   for ( unsigned int iter=0; iter<params->at("maxIter");iter++ )
   {
+    clog << "Iteration " << iter << " of maximum " << params->at("maxIter") << endl;
     int status = gsl_multimin_fminimizer_iterate( minimizer );
 
     if ( status == GSL_SUCCESS )
