@@ -48,11 +48,12 @@ include_directories(${ZLIB_INCLUDE_DIR})
 set(LIB ${LIB} ${ZLIB_LIBRARIES})
 
 find_package( HDF5 REQUIRED COMPONENTS C CXX HL)
-include_directories(${HDF5_INCLUDE_DIR})
-MESSAGE( STATUS ${HDF5_CXX_LIBRARIES})
+include_directories( ${HDF5_INCLUDE_DIRS} )
+
+MESSAGE( STATUS ${HDF5_INCLUDE_DIRS} )
 set(LIB ${LIB} ${HDF5_LIBRARIES} ${HDF5_HL_LIBRARIES} ${HDF5_CXX_LIBRARIES})
 
-set(CMAKE_INCLUDE_PATH "/usr/include")
+#set(CMAKE_INCLUDE_PATH "/usr/include")
 find_package( Armadillo REQUIRED )
 include_directories(${ARMADILLO_INCLUDE_DIRS})
 set(LIB ${LIB} ${ARMADILLO_LIBRARIES})

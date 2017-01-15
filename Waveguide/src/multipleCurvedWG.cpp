@@ -145,7 +145,6 @@ void MultipleCurvedWG::solve()
     {
       double xmin = (*wg)->transverseDiscretization().min;
       double xmax = (*wg)->transverseDiscretization().max;
-      fsource.setLimits( xmin, xmax );
 
       if ( (*wg)->getCurvature() != (*(wg-1))->getCurvature() )
       {
@@ -290,6 +289,7 @@ void MultipleCurvedWG::save( ControlFile &ctl )
 
 double MultipleCurvedWG::phaseDifference( const CurvedWGConfMap &source, const CurvedWGConfMap &target ) const
 {
+  return 0.0; // Phase difference has no effect
   double r1 = source.getRadiusOfCurvature();
   double r2 = target.getRadiusOfCurvature();
   double distSource = source.longitudinalDiscretization().max;
