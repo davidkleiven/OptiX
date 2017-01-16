@@ -47,7 +47,9 @@ void MultipleCurvedWG::loadWaveguides( const Json::Value &root )
 
   imagefile = root["figname"].asString();
 
+  if ( waveguides != NULL ) delete waveguides;
   waveguides = new vector<CurvedWGConfMap*>;
+
   for ( unsigned int i=0;i<root["waveguides"].size();i++ )
   {
     double radius = root["waveguides"][i]["radius"].asDouble()*1E6;
@@ -82,8 +84,11 @@ void MultipleCurvedWG::init( const map<string,double> &params )
     throw ( runtime_error("Waveguides needs to be loaded before the init function is called!") );
   }
 
+  if ( solver != NULL ) delete solver;
   solver = new CrankNicholson();
+
   PlaneWave* pw = new PlaneWave();
+
   double xmin = -2.0*params.at("width");
   double xmax = 2.0*params.at("width");
   double zmin = 0.0;
@@ -116,9 +121,15 @@ void MultipleCurvedWG::init( const map<string,double> &params )
   (*waveguides)[0]->setSolver( *solver );
   unsigned int Nx = (*waveguides)[0]->nodeNumberTransverse();
 
+  if ( transmittivity != NULL ) delete transmittivity;
   transmittivity = new arma::vec( totalNz, arma::fill::zeros );
+
+  if ( intensity != NULL ) delete intensity;
   intensity = new arma::mat( Nx/params.at("downSamplingX"), totalNz/params.at("downSamplingZ"), arma::fill::zeros );
+
   pw->setWavelength( params.at("wavelength") );
+
+  if ( src != NULL ) delete src;
   src = pw;
 
   // Add some post processing module to the last waveguide
@@ -161,7 +172,6 @@ void MultipleCurvedWG::solve()
     }
     (*wg)->solve();
     processSolution( **wg );
-
     endSolution = solver->getLastSolution();
 
     // Just to be 100 % sure that the address does not change when reallocation is needed
@@ -211,6 +221,7 @@ void MultipleCurvedWG::processSolution( CurvedWGConfMap &wg )
     (*transmittivity)(i+NzNextFillStartTrans) = wg.getTransmittivity().get()[i]*normalization;
   }
   NzNextFillStartTrans += nmax;
+  lastElemSet = NzNextFillStartTrans-1;
 }
 
 template<class elemType>
@@ -305,4 +316,12 @@ double MultipleCurvedWG::phaseDifference( const CurvedWGConfMap &source, const C
   }
   phase += (1.0 - r2/r1)*distSource;
   return phase;
+}
+
+void MultipleCurvedWG::reset()
+{
+  NzNextFillStartTrans = 0;
+  NzNextFillStartIntensity = 0;
+  lastElemSet = 0;
+  angles.clear();
 }

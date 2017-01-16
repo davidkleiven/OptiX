@@ -1,6 +1,7 @@
 #include "bendOptimizer.hpp"
 #include <cassert>
 #include <json/writer.h>
+#include <iostream>
 
 using namespace std;
 
@@ -37,7 +38,7 @@ void BendOptimizer::populateJSON( const gsl_vector *vec )
   {
     double radius = gsl_vector_get( vec, i );
     radius = radius > 1E-5 ? radius:1E-5;
-
+    cout << radius << " ";
     geometry["waveguides"][i]["radius"] = radius;
     if ( i < nGuides-1 )
     {
@@ -45,13 +46,17 @@ void BendOptimizer::populateJSON( const gsl_vector *vec )
       angle = angle > 0.0 ? angle:0.0;
       geometry["waveguides"][i]["angle"] = angle;
       totAngle += angle;
+      cout << angle << " ";
     }
     else
     {
       geometry["waveguides"][i]["angle"] = params->at("totalDeflectionAngle") - totAngle;
       assert( params->at("totalDeflectionAngle") - totAngle >= 0.0 );
+      cout << geometry["waveguides"][i]["angle"];
     }
+
   }
+  cout << endl;
 }
 
 void BendOptimizer::populateGSLVector()
@@ -72,13 +77,14 @@ void BendOptimizer::populateGSLVector()
 double BendOptimizer::targetFunction( const gsl_vector *vec, void *par )
 {
   BendOptimizer* self = static_cast<BendOptimizer*>( par );
+  self->wgs.reset();
   self->populateJSON( vec );
   self->wgs.loadWaveguides( self->geometry );
   self->wgs.init( *self->params );
   self->wgs.solve();
 
   // Maxmimize transmittivity <=> minimize -transmittivity
-  return -self->wgs.getTransmittivity()( self->wgs.getTransmittivity().n_elem-1 );
+  return -self->wgs.getEndTransmittivity();
 }
 
 void BendOptimizer::optimize()
@@ -89,9 +95,14 @@ void BendOptimizer::optimize()
   optFunction.params = this;
   gsl_multimin_fminimizer *minimizer = gsl_multimin_fminimizer_alloc( T, variables->size );
   gsl_vector *stepsize = gsl_vector_alloc( variables->size );
-  for ( unsigned int i=0;i<variables->size; i++ )
+  unsigned int nGuides = geometry["waveguides"].size();
+  for ( unsigned int i=0;i<nGuides; i++ )
   {
-    gsl_vector_set( stepsize, i, 1.0 );
+    gsl_vector_set( stepsize, i, geometry["waveguides"][0]["radius"].asDouble()/2.0 );
+    if ( i < nGuides-1 )
+    {
+      gsl_vector_set( stepsize, i+nGuides, params->at("totalDeflectionAngle")/8.0 );
+    }
   }
 
   gsl_multimin_fminimizer_set( minimizer, &optFunction, variables, stepsize );
@@ -101,6 +112,9 @@ void BendOptimizer::optimize()
     clog << "Iteration " << iter << " of maximum " << params->at("maxIter") << endl;
     int status = gsl_multimin_fminimizer_iterate( minimizer );
 
+    double size = gsl_multimin_fminimizer_size ( minimizer );
+    status = gsl_multimin_test_size (size, 1e-2);
+
     if ( status == GSL_SUCCESS )
     {
       clog << "Converged to minimum!\n";
@@ -108,6 +122,7 @@ void BendOptimizer::optimize()
       return;
     }
     transmittivity.push_back( -gsl_multimin_fminimizer_minimum( minimizer ) );
+    clog << "Transmittivity: " << transmittivity.back() << endl;
   }
 
   gsl_multimin_fminimizer_free( minimizer );
