@@ -132,6 +132,7 @@ void ParaxialSimulation::save( ControlFile &ctl )
   if ( file != NULL ) delete file;
   file = new H5::H5File( h5fname.c_str(), H5F_ACC_TRUNC );
   maingroup = new H5::Group( file->createGroup(groupname+"/") );
+  uid = ctl.getUID();
   setGroupAttributes();
 
   // Save all results from all the post processing modules
