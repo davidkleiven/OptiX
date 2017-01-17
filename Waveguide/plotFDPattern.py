@@ -27,7 +27,7 @@ def plot2D(data, xmin, xmax, zmin, zmax, uid, borders, control, field=None, phas
     zmin /= 1E6
     zmax /= 1E6
 
-    zlabel = "\$ v (\SI{}{\milli\meter}\)$"
+    zlabel = "\$ v (\SI{}{\milli\meter})\$"
     xlabel = "\$u (\SI{}{\\nano\meter})\$"
 
     normalize = True
