@@ -20,7 +20,7 @@ protected:
 
   bool callInit{true};
 
-  arma::cx_vec *filterSignal{new arma::cx_vec()};
+  arma::cx_vec *filterSignal{NULL};
 
   /** Kernel function */
   cdouble kernel( double kx ) const;

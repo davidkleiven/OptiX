@@ -164,7 +164,7 @@ void Solver2D::copyCurrentSolution( unsigned int step )
 
   if ( guide->transverseDiscretization().downsamplingRatio > 1 )
   {
-      filter.filterArray<arma::cx_vec, cdouble>( *currentSolution );
+      filter.filterArray<arma::cx_vec, cdouble>( signalToFilter() );
   }
 
   // Downsample array
