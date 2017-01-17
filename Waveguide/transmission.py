@@ -100,5 +100,5 @@ def plotTransmission( data, zmin, zmax, uid, control ):
     ax.plot( zFit/1E6, fit, 'k')
     ax.set_xlabel("$z$ (mm)")
     ax.set_ylabel("$\ln T$")
-    fname = "Figures/transmission%d.pdf"%(uid)
+    fname = "Figures/transmission%d.svg"%(uid)
     control.attach( fig, ax, fname )
