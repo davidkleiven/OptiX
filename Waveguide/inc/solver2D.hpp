@@ -134,6 +134,9 @@ protected:
   /** Set the required parameters from the waveguide object */
   void initValuesFromWaveGuide();
 
+  /** Return the last element in the solution that should be included in the filtering */
+  virtual arma::cx_vec& signalToFilter() const { return *currentSolution; };
+
   visa::GaussianKernel kernel;
   visa::LowPassFilter filter;
 };
