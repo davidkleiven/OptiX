@@ -2,6 +2,7 @@
 #include "cladding.hpp"
 #include "curvedWaveGuide2D.hpp"
 #include "crankNicholson.hpp"
+#include "fftSolver2D.hpp"
 #include "controlFile.hpp"
 #include "straightWG2D.hpp"
 #include "paraxialSource.hpp"
@@ -34,7 +35,7 @@ typedef complex<double> cdouble;
 
 enum class Source_t {PLANE, GAUSSIAN};
 enum class WGProfile_t {STEP, GAUSSIAN, LINEAR_RAMP};
-enum class Mode_t {STRAIGHT, CURVED, CURVED_CYLCRD, CURVED_CONF_MAP, NONE};
+enum class Mode_t {STRAIGHT, CURVED, CURVED_CYLCRD, CURVED_CONF_MAP, FFT_CARTESIAN, NONE};
 
 /** Function for the common setup for the wave guide */
 void commonSetup( CurvedWaveGuideFD &wg, const map<string, double> &params )
@@ -91,6 +92,7 @@ int main( int argc, char **argv )
   else if ( intMode == 2 ) mode = Mode_t::CURVED_CYLCRD;
   else if ( intMode == 3 ) mode = Mode_t::CURVED;
   else if ( intMode == 4 ) mode = Mode_t::CURVED_CONF_MAP;
+  else if ( intMode == 5 ) mode = Mode_t::FFT_CARTESIAN;
 
   cout << "Mode description:\n";
   cout << "    1: Straight\n";
@@ -226,8 +228,32 @@ int main( int argc, char **argv )
         intensity = arma::abs( wg.getSolver().getSolution() );
         break;
       }
-      default:
-        clog << "Mode not recognized\n";
+      case Mode_t::FFT_CARTESIAN:
+      {
+        clog << "Curved waveguide in cartesian coordinates\n";
+        CurvedWaveGuideFD wg;
+        params["xmax"] = params["width"] + xMargin;
+        params["xmin"] = -0.5*params["zmax"]*params["zmax"]/(params["radius"]*1E6) - xMargin;
+        commonSetup( wg, params );
+        wg.setCladding( cladding );
+        FFTSolver2D fftSolver;
+        wg.setSolver( fftSolver );
+        wg.setBoundaryConditions( pw );
+        wg << amplitude << phase << ef << ei << ep << ff;
+
+        clog << "Solving system...";
+        wg.solve();
+        clog << " done\n";
+        clog << "Exporting results...\n";
+        if (!useBorderTracker) wg.extractWGBorders();
+        wg.save( ctl );
+        ctl.save();
+        clog << "Finished exporting results\n";
+        intensity = arma::abs( wg.getSolver().getSolution() );
+        break;
+      }
+        default:
+          clog << "Mode not recognized\n";
     }
 
     #ifdef VISUALIZE_PATTERN
