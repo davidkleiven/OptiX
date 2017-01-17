@@ -156,6 +156,9 @@ target_link_libraries( testSaveArmaMat.out ${LIB} src )
 add_executable( multiWG.out Applications/multiWG.cpp )
 target_link_libraries( multiWG.out ${LIB} src )
 
+add_executable( optimizeBend.out Applications/optimizeBend.cpp )
+target_link_libraries( optimizeBend.out ${LIB} src )
+
 # Compile unittests
 find_package( Boost COMPONENTS system filesystem unit_test_framework )
 include_directories( ${Boost_INCLUDE_DIRS} )

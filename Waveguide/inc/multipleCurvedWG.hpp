@@ -11,6 +11,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <json/reader.h>
 
 class CurvedWGConfMap;
 class MultipleCurvedWG: public ParaxialSimulation
@@ -22,11 +23,23 @@ public:
   /** Loads the geometry from a JSON file */
   void loadWaveguides( const std::string &jsonfname );
 
+  /** Initialize the waveguides from a JSON object */
+  void loadWaveguides( const Json::Value &root );
+
   /** Initializes the simulation */
   void init( const std::map<std::string,double> &params );
 
   /** Returns the intensity */
   const arma::mat& getIntensity() const { return *intensity; };
+
+  /** Get the transmittivity */
+  const arma::vec& getTransmittivity() const { return *transmittivity; };
+
+  /** Returns the transmittivity at the end */
+  double getEndTransmittivity() const{ return (*transmittivity)[lastElemSet]; };
+
+  /** Resets the simulation */
+  void reset();
 
   /** Solve the system */
   virtual void solve() override;
@@ -39,10 +52,11 @@ private:
   ParaxialEquation eq;
   ArraySource fsource;
   Cladding cladding;
-  arma::mat *intensity;
-  arma::vec *transmittivity;
+  arma::mat *intensity{NULL};
+  arma::vec *transmittivity{NULL};
   unsigned int NzNextFillStartIntensity{0};
   unsigned int NzNextFillStartTrans{0};
+  unsigned int lastElemSet{0};
   std::string imagefile;
   std::string geometryfile;
   post::FarField farfield;
