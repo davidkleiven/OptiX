@@ -83,6 +83,15 @@ int main( int argc, char **argv )
   params["borderTracker"] = 0;
   Mode_t mode = Mode_t::NONE;
 
+  cout << "Mode description:\n";
+  cout << "    1: Straight\n";
+  cout << "    2: Curved waveguide in cylindrical coordinates\n";
+  cout << "    3: Curved waveguide in cartesian coordinates\n";
+  cout << "    4: Curved waveguide using conformal map\n";
+  cout << "    5: Curved waveguide in cartesian coordinates using FFT solver\n";
+  cout << "brdtrack: Use the border tracker. Only have effect if using cartesian coordinates\n";
+  cout << flush;
+
   pei::DialogBox box( params );
   box.show();
 
@@ -93,12 +102,6 @@ int main( int argc, char **argv )
   else if ( intMode == 3 ) mode = Mode_t::CURVED;
   else if ( intMode == 4 ) mode = Mode_t::CURVED_CONF_MAP;
   else if ( intMode == 5 ) mode = Mode_t::FFT_CARTESIAN;
-
-  cout << "Mode description:\n";
-  cout << "    1: Straight\n";
-  cout << "    2: Curved waveguide in cylindrical coordinates\n";
-  cout << "    3: Curved waveguide in cartesian coordinates\n";
-  cout << "brdtrack: Use the border tracker. Only have effect if using cartesian coordinates\n";
 
   Cladding cladding;
   double delta = 4.14E-5; // Default value

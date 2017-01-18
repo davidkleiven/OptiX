@@ -31,7 +31,7 @@ void FFTSolver2D::init()
 
 cdouble FFTSolver2D::kernel( double kx ) const
 {
-  cdouble A( 0.0, 0.5/wavenumber );
+  cdouble A( 0.0, 0.5*stepZ/wavenumber );
   return exp( -A*kx*kx );
 }
 

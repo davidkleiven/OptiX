@@ -168,10 +168,10 @@ void Solver2D::copyCurrentSolution( unsigned int step )
   }
 
   // Downsample array
-  double delta = static_cast<double>( currentSolution->n_elem )/static_cast<double>( solution->n_rows );
+  double delta = static_cast<double>( signalToFilter().n_elem )/static_cast<double>( solution->n_rows );
   for ( unsigned int i=0;i<solution->n_rows;i++ )
   {
-    (*solution)(i,step) = (*currentSolution)(delta*i);
+    (*solution)(i,step) = signalToFilter()(delta*i);
   }
 }
 
