@@ -190,5 +190,6 @@
 662488 | Incident angle sweep, L=0.97 mm, no alocohol | Does not match the measurements |
 22011 | Incident angle sweep, L=0.99 mm, no alcohol | Does not match the measurements |
 473762 | Incident angle sweep, L=0.975, no alcohol | Does not match the measurements |
-732187 | Curved waveguide L=4mm | Looks good |
+732187 | Curved waveguide L=4mm | Looks good, error in the HDF5 format UID was not stored |
 219886 | S-waveguide R=40mm | Looks good |
+502938 | Curved waveguide L=4mm | Looks good |

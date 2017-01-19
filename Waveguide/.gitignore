@@ -18,3 +18,4 @@ src/cmake_install.cmake
 src/libsrc.a
 Makefile
 *.csv
+InputFiles/waveguideGeometry*.json
