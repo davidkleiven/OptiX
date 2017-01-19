@@ -9,18 +9,11 @@ class FFTSolver2D: public Solver2D
 {
 public:
   FFTSolver2D(): Solver2D("FFTSolver2D"){};
-  virtual ~FFTSolver2D();
 
+  /** Propagate the beam one step */
   void solveStep( unsigned int step ) override;
 protected:
   unsigned int initialLength{0};
-
-  /** Void init */
-  void init();
-
-  bool callInit{true};
-
-  arma::cx_vec *filterSignal{NULL};
 
   /** Kernel function */
   cdouble kernel( double kx ) const;
@@ -33,8 +26,5 @@ protected:
 
   /** Return the spatial frequency corresponding to indx */
   double spatialFreq( unsigned int indx, unsigned int size ) const;
-
-  /** Return the part of the signal that should be included in the final solution */
-  virtual arma::cx_vec& signalToFilter() const override;
 };
 #endif
