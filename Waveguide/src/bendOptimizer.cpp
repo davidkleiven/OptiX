@@ -2,8 +2,10 @@
 #include <cassert>
 #include <json/writer.h>
 #include <iostream>
+#include <cmath>
 
 using namespace std;
+const double PI = acos(-1.0);
 
 BendOptimizer::~BendOptimizer()
 {
@@ -13,13 +15,23 @@ void BendOptimizer::init( const map<string,double> &parameters )
 {
   params = &parameters;
   geometry["waveguides"] = Json::Value( Json::arrayValue );
+  double rmax = 40.0;
+
+  if ( params->at("nWaveguides") < 2.0 )
+  {
+    throw ( runtime_error("There has to be at least 2 waveguide segments!") );
+  }
+
+  double anglemax = params->at("totalDeflectionAngle")/(params->at("nWaveguides") - 1.0 );
+  arclengths.resize( params->at("nWaveguides") );
   for ( unsigned int i=0;i<params->at("nWaveguides");i++ )
   {
     Json::Value val;
-    val["radius"] = 40.0;
+    val["radius"] = uniform()*rmax;
     val["curvature"] = "concave";
-    val["angle"] = params->at("totalDeflectionAngle")/params->at("nWaveguides");
+    val["angle"] = uniform()*anglemax;
     geometry["waveguides"].append( val );
+    arclengths[i] = val["radius"].asDouble()*val["angle"].asDouble()*PI/180.0;
   }
   variables = gsl_vector_alloc( 2*params->at("nWaveguides")-1 );
   populateGSLVector();
@@ -37,15 +49,21 @@ void BendOptimizer::populateJSON( const gsl_vector *vec )
   for ( unsigned int i=0;i<nGuides;i++ )
   {
     double radius = gsl_vector_get( vec, i );
-    radius = radius > 1E-5 ? radius:1E-5;
+    radius = radius > 1.0 ? radius:1.0;
     cout << radius << " ";
     geometry["waveguides"][i]["radius"] = radius;
     if ( i < nGuides-1 )
     {
       double angle =  gsl_vector_get( vec, i+nGuides );
+
+      // Check that the angle is positive
       angle = angle > 0.0 ? angle:0.0;
-      geometry["waveguides"][i]["angle"] = angle;
+      double totDefAng = params->at("totalDeflectionAngle");
+
+      // Check that the total deflection angle does not exceed the predefined deflection
+      angle = totAngle+angle > totDefAng ? totDefAng-totAngle:angle;
       totAngle += angle;
+      geometry["waveguides"][i]["angle"] = angle;
       cout << angle << " ";
     }
     else
@@ -78,13 +96,22 @@ double BendOptimizer::targetFunction( const gsl_vector *vec, void *par )
 {
   BendOptimizer* self = static_cast<BendOptimizer*>( par );
   self->wgs.reset();
+
   self->populateJSON( vec );
+  double change = self->accumulatedRelativeArcLengthChange();
   self->wgs.loadWaveguides( self->geometry );
   self->wgs.init( *self->params );
+
+  if ( ( change < 0.05 ) )
+  {
+    // If none of the waveguide arclengths change by more than 5% there will be no change in transmittivity
+    return self->prevRunResult;
+  }
   self->wgs.solve();
 
   // Maxmimize transmittivity <=> minimize -transmittivity
-  return -self->wgs.getEndTransmittivity();
+  self->prevRunResult = -self->wgs.getEndTransmittivity();
+  return self->prevRunResult;
 }
 
 void BendOptimizer::optimize()
@@ -143,4 +170,27 @@ void BendOptimizer::save( const char* fname ) const
   out << sw.write( geometry );
   out.close();
   clog << "Results written to " << fname << endl;
+}
+
+double BendOptimizer::uniform()
+{
+  return  static_cast<double>(rand())/static_cast<double>(RAND_MAX);
+}
+
+double BendOptimizer::accumulatedRelativeArcLengthChange() const
+{
+  double accumulatedRelativeChange = 0.0;
+  double totAngle = 0.0;
+  for ( unsigned int i=0;i<arclengths.size();i++ )
+  {
+    double newR = geometry["waveguides"][i]["radius"].asDouble();
+    double newAngle = geometry["waveguides"][i]["angle"].asDouble();
+    accumulatedRelativeChange += abs( arcLength(newR, newAngle) - arclengths[i])/arclengths[i];
+  }
+  return accumulatedRelativeChange;
+}
+
+double BendOptimizer::arcLength( double r, double thetaDeg )
+{
+  return r*thetaDeg*PI/180.0;
 }
