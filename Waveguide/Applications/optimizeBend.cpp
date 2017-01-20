@@ -3,11 +3,14 @@
 #include <map>
 #include <string>
 #include <stdexcept>
+#include <ctime>
+#include <cstdlib>
 
 using namespace std;
 
 int main( int argc, char** argv )
 {
+  srand( time(0) );
   cout << "Downsampling Z should not be modified as this will only slow down the simulation!\n";
 
   map<string,double> params;
