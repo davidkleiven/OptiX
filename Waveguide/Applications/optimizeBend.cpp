@@ -13,6 +13,16 @@ int main( int argc, char** argv )
   srand( time(0) );
   cout << "Downsampling Z should not be modified as this will only slow down the simulation!\n";
 
+  bool usegui = true;
+  for ( unsigned int i=1;i<argc;i++ )
+  {
+    string arg(argv[i]);
+    if ( arg.find("--nogui") != string::npos )
+    {
+      usegui = false;
+    }
+  }
+
   map<string,double> params;
   params["wavelength"] = 0.1569;
   params["delta"] = 4.14E-5;
@@ -25,10 +35,13 @@ int main( int argc, char** argv )
   params["nWaveguides"] = 3;
   params["Rmin"] = 0.01;
   params["maxIter"] = 1000;
-  params["totalDeflectionAngle"] = 20.0;
+  params["totalDeflectionAngle"] = 15.0;
 
-  pei::DialogBox box( params );
-  box.show();
+  if ( usegui )
+  {
+    pei::DialogBox box( params );
+    box.show();
+  }
 
   BendOptimizer bend;
   try
