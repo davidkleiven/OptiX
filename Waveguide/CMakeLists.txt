@@ -124,6 +124,17 @@ set( LIB ${LIB} ${FLTK_BASE_LIBRARY} )
 set( LIB ${LIB} ${FLTK_GL_LIBRARY} )
 set( LIB ${LIB} ${FLTK_FORMS_LIBRARY} )
 
+# Find the FFTW3 library
+find_library( FFTW_LIB fftw3 )
+if ( NOT FFTW_LIB )
+  MESSAGE( FATAL_ERROR "Could not find the FFTW library")
+endif()
+find_path( FFTW_INC fftw3.h)
+if ( NOT FFTW_INC )
+  MESSAGE( FATAL_ERROR "Could not find the FFTW3 headers!")
+endif()
+set( LIB ${LIB} ${FFTW_LIB} )
+include_directories( FFTW_INC )
 
 # Add executables
 add_executable( curvedWG.out Applications/curvedWGCartesian.cpp )
