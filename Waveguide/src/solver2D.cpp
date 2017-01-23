@@ -19,7 +19,7 @@ Solver2D::~Solver2D()
 
 void Solver2D::setSimulator( ParaxialSimulation &wg )
 {
-  guide = &wg;
+  Solver::setSimulator( wg );
   unsigned int Nx = guide->nodeNumberTransverse();
   unsigned int Nz = guide->nodeNumberLongitudinal();
   if ( solution != NULL ) delete solution;

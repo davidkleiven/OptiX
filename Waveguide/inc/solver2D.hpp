@@ -6,6 +6,7 @@
 #include <armadillo>
 #include <visa/gaussianKernel.hpp>
 #include <visa/lowPassFilter.hpp>
+#include "solver.hpp"
 
 class WaveGuideFDSimulation;
 class ParaxialEquation;
@@ -15,7 +16,7 @@ class BoundaryCondition;
 typedef std::complex<double> cdouble;
 
 /** Base class for the 2D solvers */
-class Solver2D
+class Solver2D: public Solver
 {
 public:
   /** Enum for real or imaginary components */
@@ -24,28 +25,23 @@ public:
   /** Enum for supported boundary conditions */
   enum class BC_t{DIRICHLET,TRANSPARENT};
 
-  Solver2D( const char* name ):name(name){};
+  Solver2D( const char* name ):Solver(name){};
   Solver2D( const Solver2D &other ) = delete;
   Solver2D& operator =( Solver2D &other ) = delete;
 
   virtual ~Solver2D();
 
-  /** Get the name of the solution */
-  std::string getName() const { return name; };
-
-  /** Set waveguide to operate on */
-  void setSimulator( ParaxialSimulation &guide );
-
-  const ParaxialSimulation& getSimulator() const { return *guide; };
-
   /** Set paraxial equation to solve */
   void setEquation( const ParaxialEquation &equation ){ eq = &equation; };
+
+  /** Set the simulator */
+  void setSimulator( ParaxialSimulation &newGuide ) override;
 
   /** Get the solution. Depricated */
   const arma::cx_mat& getSolution( unsigned int iz ) const { return *solution; }; // Depricated. iz is not used.
 
   /** Get the solution */
-  const arma::cx_mat& getSolution() const { return *solution; };
+  const arma::cx_mat& getSolution() const override { return *solution; };
 
   /** Import solution from HDF5 file */
   bool importHDF5( const std::string &fname );
@@ -79,7 +75,7 @@ public:
   void solve();
 
   /** Perform one step */
-  void step();
+  void step() override;
 
   /** Filter and downsample in the longitudinal direction */
   void filterInLongitudinalDirection();
@@ -102,8 +98,6 @@ public:
   /** Fill JSON object with parameters specific to this class */
   virtual void fillInfo( Json::Value &obj ) const;
 protected:
-  std::string name;
-  ParaxialSimulation *guide;
   const ParaxialEquation *eq{NULL};
   arma::cx_mat *solution{NULL};
   arma::cx_vec *prevSolution{NULL};
