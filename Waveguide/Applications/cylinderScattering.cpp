@@ -30,6 +30,11 @@ int main( int argc, char **argv )
   double dz = (zmax-zmin)/Nz;
 
   post::Phase phase;
+  post::Intensity amplitude;
+  post::ExitField ef;
+  post::ExitIntensity ei;
+  post::ExitPhase ep;
+  post::FarField ff;
   Cylinder2D cylinderSim(x0,z0,radius);
   try
   {
@@ -52,6 +57,7 @@ int main( int argc, char **argv )
     post::FarField ff;
     ff.setAngleRange( -0.1, 0.1 );
     ff.setPadLength( 262144 );
+    cylinderSim << amplitude << phase << ef << ei << ep << ff;
     cylinderSim.save( ctl );
 
     visa::WindowHandler plots;
