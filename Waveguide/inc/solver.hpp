@@ -1,6 +1,8 @@
 #ifndef SOLVER_BASE_CLASS_H
 #define SOLVER_BASE_CLASS_H
 #include <armadillo>
+#include <visa/gaussianKernel.hpp>
+#include <visa/lowPassFilter.hpp>
 
 class ParaxialSimulation;
 
@@ -28,6 +30,8 @@ public:
 protected:
   std::string name;
   ParaxialSimulation *guide{NULL};
+  visa::GaussianKernel kernel;
+  visa::LowPassFilter filter;
 };
 
 #endif

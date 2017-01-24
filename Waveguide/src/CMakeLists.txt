@@ -6,6 +6,6 @@ set( SOURCES cladding.cpp waveGuide.cpp waveGuideRadiusCurvature.cpp numerovSolv
 					incidentAngleSweep.cpp borderTracker.cpp paraxialSimulation.cpp h5Attribute.cpp
 				  refractiveIndex.cpp incidentAngleLengthSweep.cpp cylinder2D.cpp postProcessMod.cpp farFieldPost.cpp
 				  transmittivity.cpp curvedWGConfMap.cpp multipleCurvedWG.cpp
-				fixedValuesSource.cpp bendOptimizer.cpp fftSolver2D.cpp solver.cpp )
+				fixedValuesSource.cpp bendOptimizer.cpp fftSolver2D.cpp solver.cpp solver3D.cpp )
 
 add_library( src STATIC ${SOURCES} )

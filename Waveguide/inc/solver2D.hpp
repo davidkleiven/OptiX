@@ -4,8 +4,6 @@
 #include <complex>
 #include <json/writer.h>
 #include <armadillo>
-#include <visa/gaussianKernel.hpp>
-#include <visa/lowPassFilter.hpp>
 #include "solver.hpp"
 
 class WaveGuideFDSimulation;
@@ -130,8 +128,5 @@ protected:
 
   /** Return the last element in the solution that should be included in the filtering */
   virtual arma::cx_vec& signalToFilter() const { return *currentSolution; };
-
-  visa::GaussianKernel kernel;
-  visa::LowPassFilter filter;
 };
 #endif
