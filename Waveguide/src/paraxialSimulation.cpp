@@ -141,10 +141,14 @@ void ParaxialSimulation::save( ControlFile &ctl )
     vector<H5Attr> attrib;
     arma::vec res1D;
     arma::mat res2D;
+    arma::cube res3D;
+
+    // Get the result. No two of these functions will always be empty!
     postProcess[i]->result( *solver, res1D );
     postProcess[i]->result( *solver, res2D );
+    postProcess[i]->result( *solver, res3D );
     postProcess[i]->addAttrib( commonAttributes );
-    switch ( postProcess[i]->getReturnType() )
+    switch ( postProcess[i]->getReturnType( *solver ) )
     {
       case ( post::PostProcessingModule::ReturnType_t::vector1D ):
         saveArmaVec( res1D, postProcess[i]->getName().c_str(), attrib );

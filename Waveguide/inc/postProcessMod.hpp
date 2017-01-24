@@ -7,30 +7,30 @@ namespace post
 {
 
 /** Module that gives the intensity of the solution */
-class Intensity: public post::PostProcessingModule
+class Intensity: public post::FieldQuantity
 {
 public:
-  Intensity(): post::PostProcessingModule("amplitude", ReturnType_t::matrix2D){};
+  Intensity(): post::FieldQuantity("amplitude"){};
 
   /** Amplitude of the solution */
   virtual void result( const Solver &solver, arma::mat &res ) override;
 };
 
 /** Module that returns the phase of the solution */
-class Phase: public PostProcessingModule
+class Phase: public FieldQuantity
 {
 public:
-  Phase(): post::PostProcessingModule("phase", ReturnType_t::matrix2D){};
+  Phase(): post::FieldQuantity("phase"){};
 
   /** Phase of the solution */
   virtual void result( const Solver &solver, arma::mat &res ) override;
 };
 
 /** Module that computes the far field intensity pattern */
-class FarField: public post::PostProcessingModule
+class FarField: public post::ProjectionQuantity
 {
 public:
-  FarField(): post::PostProcessingModule("farField", ReturnType_t::vector1D){};
+  FarField(): post::ProjectionQuantity("farField"){};
 
   /** Amplitude of the far field */
   virtual void result( const Solver &solver, arma::vec &res ) override;
@@ -59,30 +59,30 @@ private:
 };
 
 /** Module that returns the real part of the exit field */
-class ExitField: public post::PostProcessingModule
+class ExitField: public post::ProjectionQuantity
 {
 public:
-  ExitField():post::PostProcessingModule("exitField", ReturnType_t::vector1D){};
+  ExitField():post::ProjectionQuantity("exitField"){};
 
   /** Returns the real part of the exit field*/
   virtual void result( const Solver &solver, arma::vec &res ) override;
 };
 
 /** Module that returns the exit amplitude */
-class ExitIntensity: public post::PostProcessingModule
+class ExitIntensity: public post::ProjectionQuantity
 {
 public:
-  ExitIntensity(): post::PostProcessingModule("exitIntensity", ReturnType_t::vector1D){};
+  ExitIntensity(): post::ProjectionQuantity("exitIntensity"){};
 
   /** Returns the exit amplitude */
   virtual void result( const Solver &solver, arma::vec &res ) override;
 };
 
 /** Module for computing exit phase */
-class ExitPhase: public post::PostProcessingModule
+class ExitPhase: public post::ProjectionQuantity
 {
 public:
-  ExitPhase(): post::PostProcessingModule("exitPhase", ReturnType_t::vector1D){};
+  ExitPhase(): post::ProjectionQuantity("exitPhase"){};
 
   /** Returns the phase at the exit */
   virtual void result( const Solver &solver, arma::vec &res ) override;
