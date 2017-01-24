@@ -193,3 +193,4 @@
 732187 | Curved waveguide L=4mm | Looks good, error in the HDF5 format UID was not stored |
 219886 | S-waveguide R=40mm | Looks good |
 502938 | Curved waveguide L=4mm | Looks good |
+839906 | 2D WG FFT solver example | Same results as with FD |

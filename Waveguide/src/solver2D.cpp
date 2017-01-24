@@ -218,11 +218,6 @@ void Solver2D::solve()
     throw ( runtime_error("No paraxial equation object given!") );
   }
 
-  if ( bc == NULL )
-  {
-    throw ( runtime_error("No boundary conditions given!") );
-  }
-
   // Assert that the solution matrix is allocated
   assert( solution != NULL );
   assert( guide != NULL );

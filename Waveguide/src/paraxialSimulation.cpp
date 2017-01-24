@@ -147,7 +147,7 @@ void ParaxialSimulation::save( ControlFile &ctl )
     postProcess[i]->result( *solver, res1D );
     postProcess[i]->result( *solver, res2D );
     postProcess[i]->result( *solver, res3D );
-    postProcess[i]->addAttrib( commonAttributes );
+    postProcess[i]->addAttrib( attrib );
     switch ( postProcess[i]->getReturnType( *solver ) )
     {
       case ( post::PostProcessingModule::ReturnType_t::vector1D ):

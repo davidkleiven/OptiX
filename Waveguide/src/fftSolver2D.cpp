@@ -42,7 +42,6 @@ void FFTSolver2D::refraction( unsigned int step )
     double delta, beta;
     double x = guide->getX(i);
     guide->getXrayMatProp( x, z, delta, beta );
-
     // FFTW3: Divide by length to normalize
     double normalization = prevSolution->n_elem;
     //normalization = 1.0;

@@ -38,7 +38,7 @@ public:
   virtual const arma::cx_mat& getLastSolution3D() const;
 
   /** Solves the entire system */
-  void solve(){};
+  virtual void solve(){}; // This can be implemented at this level
 
   /** Propagates the solution one step */
   virtual void step() = 0;

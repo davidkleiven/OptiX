@@ -1,6 +1,7 @@
 #include "cylinder2D.hpp"
 #include "refractiveIndex.hpp"
 #include <cmath>
+#include <iostream>
 
 using namespace std;
 Cylinder2D::Cylinder2D( double x0, double z0, double radius ):ParaxialSimulation("Cylinder2D"), \

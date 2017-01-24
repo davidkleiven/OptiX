@@ -86,9 +86,6 @@ public:
   /** Set which boundary conditions to use. Dirichlet is default */
   void setBoundaryCondition( BC_t bc ){ boundaryCondition = bc; };
 
-  /** Sets the transverse boundary conditions */
-  void addBoundaryCondition( const BoundaryCondition &bCond ){ bc = &bCond; };
-
   // Virtual functions
   /** Pure virtual function for solving the system */
 
@@ -99,7 +96,6 @@ protected:
   arma::cx_mat *solution{NULL};
   arma::cx_vec *prevSolution{NULL};
   arma::cx_vec *currentSolution{NULL};
-  const BoundaryCondition *bc{NULL};
   unsigned int currentStep{1};
 
   unsigned int Nx{0};
