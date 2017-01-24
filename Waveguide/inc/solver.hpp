@@ -10,7 +10,11 @@ class ParaxialSimulation;
 class Solver
 {
 public:
-  Solver( const char* name ): name(name){};
+  enum class Dimension_t{TWO_D, THREE_D};
+  Solver( const char* name,  Dimension_t dim ): name(name), dim(dim){};
+
+  /** Get the dimension of which the solver domain */
+  Dimension_t getDim() const { return dim; };
 
   /** Get the name of the solution */
   std::string getName() const { return name; };
@@ -54,6 +58,7 @@ public:
   /** Downsamples the solution in the longitudinal direction */
   virtual void downSampleLongitudinalDirection(){};
 protected:
+  Dimension_t dim;
   std::string name;
   ParaxialSimulation *guide{NULL};
   visa::GaussianKernel kernel;

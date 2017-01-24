@@ -23,7 +23,7 @@ public:
   /** Enum for supported boundary conditions */
   enum class BC_t{DIRICHLET,TRANSPARENT};
 
-  Solver2D( const char* name ):Solver(name){};
+  Solver2D( const char* name ):Solver(name, Dimension_t::TWO_D){};
   Solver2D( const Solver2D &other ) = delete;
   Solver2D& operator =( Solver2D &other ) = delete;
 

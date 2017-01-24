@@ -8,7 +8,7 @@ class ParaxialSimulation;
 class Solver3D: public Solver
 {
 public:
-  Solver3D( const char* name ):Solver(name){};
+  Solver3D( const char* name ):Solver(name, Dimension_t::THREE_D){};
   void setSimulator( ParaxialSimulation &sim ) override;
 
 protected:
