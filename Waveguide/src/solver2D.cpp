@@ -164,7 +164,8 @@ void Solver2D::copyCurrentSolution( unsigned int step )
 
   if ( guide->transverseDiscretization().downsamplingRatio > 1 )
   {
-      filter.filterArray<arma::cx_vec, cdouble>( signalToFilter() );
+      visa::ArmaGetter<cdouble,visa::ArmaMatrix_t::VECTOR> getter;
+      filter.filterArray( signalToFilter(), getter );
   }
 
   // Downsample array
@@ -184,11 +185,11 @@ void Solver2D::filterInLongitudinalDirection()
   filter.setSourceSize( solution->n_cols );
   filter.computeFilterCoefficients( kernel );
 
+  visa::ArmaGetter<cdouble, visa::ArmaMatrix_t::ROW> getter;
   // Filter the matrix
   for ( unsigned int i=0;i<solution->n_rows;i++ )
   {
-    arma::subview_row<cdouble> row = solution->row(i);
-    filter.filterArray<arma::subview_row<cdouble>, cdouble>( row );
+    filter.filterArray( *solution, getter );
   }
 
   arma::cx_mat *downSampledMatrix = new arma::cx_mat( solution->n_rows, downSampledNz );
