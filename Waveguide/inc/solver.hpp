@@ -21,12 +21,38 @@ public:
   /** Get the simulator */
   const ParaxialSimulation& getSimulator() const { return *guide; };
 
-  /** Get solution */
+  /** Get solution 3D  */
   virtual const arma::cx_cube& getSolution3D() const;
+
+  /** Get solution 2D */
   virtual const arma::cx_mat& getSolution() const;
+
+  /** Get last solution 2D */
+  virtual const arma::cx_vec& getLastSolution() const;
+
+  /** Get last solution 3D */
+  virtual const arma::cx_mat& getLastSolution3D() const;
+
+  /** Solves the entire system */
+  void solve(){};
 
   /** Propagates the solution one step */
   virtual void step() = 0;
+
+  /** Resets the solver and makes it ready for a new simulation */
+  virtual void reset(){};
+
+  /** Sets the initial conditions 2D */
+  virtual void setInitialConditions( const arma::cx_vec &vec ){};
+
+  /** Set initial conditions 3D */
+  virtual void setInitialConditions( const arma::cx_mat &mat ){};
+
+  /** Filters the solution in the longitudinal direction */
+  virtual void filterInLongitudinalDirection(){};
+
+  /** Downsamples the solution in the longitudinal direction */
+  virtual void downSampleLongitudinalDirection(){};
 protected:
   std::string name;
   ParaxialSimulation *guide{NULL};

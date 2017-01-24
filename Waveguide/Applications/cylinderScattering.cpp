@@ -29,6 +29,7 @@ int main( int argc, char **argv )
   double dx = (xmax-xmin)/Nx;
   double dz = (zmax-zmin)/Nz;
 
+  post::Phase phase;
   Cylinder2D cylinderSim(x0,z0,radius);
   try
   {
@@ -62,7 +63,7 @@ int main( int argc, char **argv )
     plots.get("Intensity").fillVertexArray( solution );
     plots.get("Phase").setColorMax(3.14159);
     plots.get("Phase").setColorMin(-3.14159);
-    cylinderSim.getSolver().getPhase(solution);
+    phase.result( solver, solution );
     plots.get("Phase").fillVertexArray(solution);
 
     plots.show();

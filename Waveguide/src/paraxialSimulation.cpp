@@ -103,7 +103,7 @@ unsigned int ParaxialSimulation::nodeNumberLongitudinal() const
   return ( zDisc->max - zDisc->min)/zDisc->step + 1.0;
 }
 
-void ParaxialSimulation::setSolver( Solver2D &solv )
+void ParaxialSimulation::setSolver( Solver &solv )
 {
   if ( solverInitializedViaInit )
   {
@@ -349,13 +349,13 @@ void ParaxialSimulation::setBoundaryConditions( const ParaxialSource &source )
 {
   src = &source;
   unsigned int Nx = nodeNumberTransverse();
-  vector<cdouble> values(Nx, 1.0);
+  arma::cx_vec values(Nx, 1.0);
   for ( unsigned int i=0;i<Nx;i++ )
   {
     double x = getX(i);
     values[i] = src->get( x, 0.0 );
   }
-  solver->setLeftBC(&values[0]);
+  solver->setInitialConditions( values );
 }
 
 void ParaxialSimulation::setBoundaryConditions( const ArraySource &source )
@@ -369,7 +369,7 @@ void ParaxialSimulation::setBoundaryConditions( const ArraySource &source )
     msg << " Given size: " << source.getVec().n_elem;
     throw ( runtime_error( msg.str() ) );
   }
-  solver->setLeftBC( source.getVec().memptr() );
+  solver->setInitialConditions( source.getVec() );
 }
 
 double ParaxialSimulation::getEnergy() const

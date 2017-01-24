@@ -1,6 +1,6 @@
 #include "postProcessMod.hpp"
 #include "paraxialSimulation.hpp"
-#include "solver2D.hpp"
+#include "solver.hpp"
 #include <cmath>
 
 using namespace std;
@@ -12,7 +12,7 @@ void post::FarField::setAngleRange( double angMin, double angMax )
   phiMax = angMax;
 }
 
-void post::FarField::result( const Solver2D &solver, arma::vec &res )
+void post::FarField::result( const Solver &solver, arma::vec &res )
 {
   // Extract the last column of the solution matrix
   arma::cx_vec exitField = solver.getLastSolution();

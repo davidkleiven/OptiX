@@ -59,9 +59,8 @@ public:
   /** Get the phase of the solution in matrix */
   void getPhase( arma::mat &phase ) const;
 
-  // Set boundary condition at z=0
   /** Set boundary condition at z = 0*/
-  void setLeftBC( const cdouble values[] );
+  void setInitialConditions( const arma::cx_vec &vec ) override;
 
   /** Set boundary condition at x=xmin and x=xmax */
   void setXBC( const cdouble valuesTop[], const cdouble valuesBottom[] ); // BC at top (x=xmax) and bottom (x=xmin)
@@ -76,10 +75,10 @@ public:
   void step() override;
 
   /** Filter and downsample in the longitudinal direction */
-  void filterInLongitudinalDirection();
+  void filterInLongitudinalDirection() override;
 
   /** Down sample in longitudinal direction */
-  void downSampleLongitudinalDirection();
+  void downSampleLongitudinalDirection() override;
 
   /** Reset the counter */
   void reset(){ currentStep = 1; };
@@ -125,6 +124,9 @@ protected:
 
   /** Set the required parameters from the waveguide object */
   void initValuesFromWaveGuide();
+
+  /** Set values at z = 0 */
+  void setLeftBC( const cdouble values[] );
 
   /** Return the last element in the solution that should be included in the filtering */
   virtual arma::cx_vec& signalToFilter() const { return *currentSolution; };

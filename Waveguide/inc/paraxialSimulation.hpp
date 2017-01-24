@@ -9,7 +9,7 @@
 #include "postProcessing.hpp"
 #include "postProcessMod.hpp"
 #include <vector>
-class Solver2D;
+class Solver;
 class ControlFile;
 class ParaxialSource;
 class BorderTracker;
@@ -81,8 +81,8 @@ public:
   /** Set wavelength in nm */
   void setWaveLength( double lambda );
 
-  /** Set 2D solver */
-  void setSolver( Solver2D &solv );
+  /** Set solver */
+  void setSolver( Solver &solv );
 
   /** Get name of the waveguide simulation */
   std::string getName() const { return name; };
@@ -109,7 +109,7 @@ public:
   void getExitField( arma::vec &vec ) const;
 
   /** Get 2D solver */
-  const Solver2D& getSolver() const { return *solver; };
+  const Solver& getSolver() const { return *solver; };
 
   /** Get the array index closest to x, z */
   void closestIndex( double x, double z, unsigned int &ix, unsigned int &iz ) const;
@@ -153,7 +153,7 @@ public:
   /** Pad the exit signal */
   virtual cdouble padExitField( double x, double z ) const { return farParam.padValue; };
 protected:
-  Solver2D *solver{NULL};
+  Solver *solver{NULL};
   Disctretization *xDisc; // Transverse
   Disctretization *zDisc; // Along optical axis
   arma::vec *farFieldModulus{NULL};

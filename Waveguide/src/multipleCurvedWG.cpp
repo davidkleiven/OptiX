@@ -85,7 +85,7 @@ void MultipleCurvedWG::init( const map<string,double> &params )
   }
 
   if ( solver != NULL ) delete solver;
-  solver = new CrankNicholson();
+  CrankNicholson *cnSolver = new CrankNicholson();
 
   PlaneWave* pw = new PlaneWave();
 
@@ -116,8 +116,9 @@ void MultipleCurvedWG::init( const map<string,double> &params )
   this->setLongitudinalDiscretization( 0.0, zmin, params.at("stepZ"), params.at("downSamplingZ") );
   this->setWaveLength( params.at("wavelength") );
 
-  solver->setEquation( eq );
-  solver->setBoundaryCondition( Solver2D::BC_t::TRANSPARENT );
+  cnSolver->setEquation( eq );
+  cnSolver->setBoundaryCondition( Solver2D::BC_t::TRANSPARENT );
+  solver = cnSolver;
   (*waveguides)[0]->setSolver( *solver );
   unsigned int Nx = (*waveguides)[0]->nodeNumberTransverse();
 

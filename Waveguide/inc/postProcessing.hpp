@@ -4,7 +4,7 @@
 #include <armadillo>
 #include "h5Attribute.hpp"
 
-class Solver2D;
+class Solver;
 namespace post
 {
 class PostProcessingModule
@@ -14,8 +14,9 @@ public:
   PostProcessingModule(const char* name, ReturnType_t type ):name(name), returnType(type){};
 
   /** Returns the result */
-  virtual void result( const Solver2D& solver, arma::mat& res ){};
-  virtual void result( const Solver2D& solver, arma::vec& res ){};
+  virtual void result( const Solver& solver, arma::cube& res ){};
+  virtual void result( const Solver& solver, arma::mat& res ){};
+  virtual void result( const Solver& solver, arma::vec& res ){};
 
   /** Add attribute to an external array */
   virtual void addAttrib( std::vector<H5Attr> &attrs ) const{};

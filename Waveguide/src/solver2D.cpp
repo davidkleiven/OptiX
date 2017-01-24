@@ -38,6 +38,12 @@ void Solver2D::setSimulator( ParaxialSimulation &wg )
   }
 }
 
+void Solver2D::setInitialConditions( const arma::cx_vec &vec )
+{
+  // Unnecessary layer, but carries over from early development
+  setLeftBC( vec.memptr() );
+}
+
 void Solver2D::setLeftBC( const cdouble values[] )
 {
   if ( solution == NULL )
