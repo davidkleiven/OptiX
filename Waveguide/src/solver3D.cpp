@@ -33,14 +33,20 @@ void Solver3D::setSimulator( ParaxialSimulation &sim )
 
 void Solver3D::filterTransverse( arma::cx_mat &mat )
 {
+  assert( Nx == Ny ); // If this is the case, the filter coefficients does not need to be recomputed
+
+  visa::ArmaGetter<cdouble, visa::ArmaMatrix_t::COL> colGetter;
   for ( unsigned int i=0;i<mat.n_rows;i++ )
   {
-    filter.filterArray<arma::cx_vec, cdouble>( mat.col(i) );
+    colGetter.fixedIndx = i;
+    filter.filterArray( mat, colGetter );
   }
 
+  visa::ArmaGetter<cdouble, visa::ArmaMatrix_t::ROW> rowGetter;
   for ( unsigned int i=0;i<mat.n_cols;i++ )
   {
-    filter.filterArray<arma::cx_vec, cdouble>( mat.row(i) );
+    rowGetter.fixedIndx = i;
+    filter.filterArray( mat, rowGetter );
   }
 }
 
@@ -75,7 +81,7 @@ void Solver3D::copyCurrentSolution( unsigned int step )
   {
     for ( unsigned int j=0;j<solution->n_cols;j++ )
     {
-      (*solution)(i,j,step) = currentSolution( i*stepX, j*stepY );
+      (*solution)(i,j,step) = (*currentSolution)( i*deltaX, j*deltaY );
     }
   }
 }

@@ -142,6 +142,7 @@ public:
 
   /** Get the material properties */
   virtual void getXrayMatProp( double x, double z, double &delta, double &beta ) const{ delta=0.0; beta=0.0; };
+  virtual void getXrayMatProp( double x, double y, double z, double &delta, double &beta ) const{ delta=0.0; beta=0.0; };
 
   /** Save results to HDF5 files */
   virtual void save( ControlFile &ctl );

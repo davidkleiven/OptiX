@@ -8,10 +8,10 @@ class ParaxialSimulation;
 class Solver3D: public Solver
 {
 public:
-  Solver3D();
+  Solver3D( const char* name ):Solver(name){};
   void setSimulator( ParaxialSimulation &sim ) override;
 
-private:
+protected:
   arma::cx_cube *solution{NULL};
   arma::cx_mat *currentSolution{NULL};
   arma::cx_mat *prevSolution{NULL};
@@ -22,6 +22,7 @@ private:
   /** Filter the transverse signal */
   void filterTransverse( arma::cx_mat &mat );
 
-  void copySolution();
+  /** Copy the current solution to the previous array */
+  void copyCurrentSolution( unsigned int step );
 };
 #endif
