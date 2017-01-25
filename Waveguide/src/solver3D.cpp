@@ -124,3 +124,8 @@ void Solver3D::solve()
   //filterInLongitudinalDirection();
   //downSampleLongitudinalDirection();
 }
+
+const arma::cx_cube& Solver3D::getSolution3D() const
+{
+  return *solution;
+}

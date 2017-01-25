@@ -302,7 +302,7 @@ void WaveGuideFDSimulation::save( ControlFile &ctl )
       saveArray( vec, dsetnames.back().c_str() );
       dsetnames.push_back( uzname.str() );
       vec = iter->z2;
-      saveArray( iter->z2, dsetnames.back().c_str() );
+      saveArray( vec, dsetnames.back().c_str() );
     }
   }
 }

@@ -24,8 +24,8 @@ void SaveTest::save( ControlFile &ctl )
   printMatrices();
   string fname("data/testArmaMatrixSave.h5");
   file = new H5::H5File( fname.c_str(), H5F_ACC_TRUNC );
-  saveArmaMat( matrix, "matrix" );
-  saveArmaMat( matrix2, "matrix2" );
+  saveArray( matrix, "matrix" );
+  saveArray( matrix2, "matrix2" );
   clog << "File written to " << fname << endl;
 }
 

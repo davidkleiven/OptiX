@@ -21,6 +21,9 @@ public:
 
   /** Solve the entire system */
   virtual void solve() override;
+
+  /** Returns the complex solution */
+  virtual const arma::cx_cube& getSolution3D() const override;
 protected:
   arma::cx_cube *solution{NULL};
   arma::cx_mat *currentSolution{NULL};
