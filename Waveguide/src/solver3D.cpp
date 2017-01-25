@@ -85,3 +85,42 @@ void Solver3D::copyCurrentSolution( unsigned int step )
     }
   }
 }
+
+void Solver3D::setInitialConditions( const arma::cx_mat &values )
+{
+
+  if (( currentSolution == NULL ) || ( prevSolution == NULL ) || ( solution == NULL ))
+  {
+    throw ( runtime_error("The function setSimulator needs to be called before setInitialConditions!") );
+  }
+
+  if (( values.n_rows != currentSolution->n_rows ) || ( values.n_cols != currentSolution->n_cols ))
+  {
+    stringstream ss;
+    ss << "Dimension of matrices does not match!\n";
+    ss << "Given: Nrows: " << values.n_rows << " Ncols: " << values.n_cols;
+    ss << "\nRequired: Nrows: " << currentSolution->n_rows << " Ncols: " << currentSolution->n_cols;
+    throw( runtime_error( ss.str() ) );
+  }
+
+  (*currentSolution) = values;
+  copyCurrentSolution( 0 );
+}
+
+void Solver3D::step()
+{
+  solveStep( currentStep );
+  copyCurrentSolution( currentStep++ );
+}
+
+void Solver3D::solve()
+{
+  for ( unsigned int i=1;i<guide->nodeNumberLongitudinal();i++ )
+  {
+    step();
+  }
+
+  // TODO: Should one support downsampling in 3D. This will require an extra copy
+  //filterInLongitudinalDirection();
+  //downSampleLongitudinalDirection();
+}

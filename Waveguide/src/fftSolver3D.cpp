@@ -5,6 +5,15 @@ using namespace std;
 
 const double PI = acos(-1.0);
 
+FFTSolver3D::~FFTSolver3D()
+{
+  if ( planInitialized )
+  {
+    fftw_destroy_plan( ftforw );
+    fftw_destroy_plan( ftback );
+  }
+}
+
 cdouble FFTSolver3D::kernel( double kx, double ky ) const
 {
   double dz = guide->longitudinalDiscretization().step;

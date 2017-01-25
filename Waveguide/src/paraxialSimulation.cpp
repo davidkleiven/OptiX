@@ -316,13 +316,36 @@ void ParaxialSimulation::setBoundaryConditions( const ParaxialSource &source )
 {
   src = &source;
   unsigned int Nx = nodeNumberTransverse();
-  arma::cx_vec values(Nx, 1.0);
-  for ( unsigned int i=0;i<Nx;i++ )
+
+  typedef ParaxialSource::Dim_t Dim_t;
+  switch ( source.getDim() )
   {
-    double x = getX(i);
-    values[i] = src->get( x, 0.0 );
+    case Dim_t::TWO_D:
+    {
+      arma::cx_vec values(Nx, 1.0);
+      for ( unsigned int i=0;i<Nx;i++ )
+      {
+        double x = getX(i);
+        values[i] = src->get( x, 0.0 );
+      }
+      solver->setInitialConditions( values );
+      break;
+    }
+    case Dim_t::THREE_D:
+    {
+      arma::cx_mat values(Nx, Nx);
+      for ( unsigned int i=0;i<Nx;i++ )
+      {
+        double x = getX(i);
+        for ( unsigned int j=0;j<Nx;j++ )
+        {
+          double y = getX(j);
+          values(j,i) = src->get(x,y,0.0);
+        }
+      }
+      solver->setInitialConditions( values );
+    }
   }
-  solver->setInitialConditions( values );
 }
 
 void ParaxialSimulation::setBoundaryConditions( const ArraySource &source )

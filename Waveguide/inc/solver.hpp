@@ -25,6 +25,9 @@ public:
   /** Get the simulator */
   const ParaxialSimulation& getSimulator() const { return *guide; };
 
+  /** Reset the counter */
+  virtual void reset(){ currentStep = 1; };
+
   /** Get solution 3D  */
   virtual const arma::cx_cube& getSolution3D() const;
 
@@ -43,9 +46,6 @@ public:
   /** Propagates the solution one step */
   virtual void step() = 0;
 
-  /** Resets the solver and makes it ready for a new simulation */
-  virtual void reset(){};
-
   /** Sets the initial conditions 2D */
   virtual void setInitialConditions( const arma::cx_vec &vec ){};
 
@@ -63,6 +63,7 @@ protected:
   ParaxialSimulation *guide{NULL};
   visa::GaussianKernel kernel;
   visa::LowPassFilter filter;
+  unsigned int currentStep{1};
 };
 
 #endif

@@ -10,10 +10,14 @@ typedef std::complex<double> cdouble;
 class ParaxialSource
 {
 public:
+  enum class Dim_t {TWO_D, THREE_D};
   ParaxialSource( const char* name ):name(name){};
 
   /** Evaluate the source at position x and z */
-  virtual cdouble get( double x, double z ) const = 0;
+  virtual cdouble get( double x, double z ) const;
+
+  /** Get function in 3D */
+  virtual cdouble get( double x, double y, double z ) const;
 
   /** Set the wavenumber in nm^{-1} */
   void setWavenumber( double k ){ wavenumber = k; };
@@ -30,6 +34,12 @@ public:
   /** Set the overall constant amplitude factor */
   void setAmplitude( double amp ){ amplitude = amp; };
 
+  /** Set the dimension, 2D is default */
+  void setDim( Dim_t newdim ){ dim = newdim; };
+
+  /** Get the dimension */
+  Dim_t getDim() const { return dim; };
+
   /** Get the name of the source */
   std::string getName() const { return name; };
 
@@ -43,6 +53,7 @@ protected:
   double z0{0.0};
   double x0{0.0};
   double amplitude{1.0};
+  Dim_t dim{Dim_t::TWO_D};
 private:
   std::string name;
 };

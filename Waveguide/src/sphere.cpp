@@ -1,6 +1,7 @@
 #include "sphere.hpp"
+#include "refractiveIndex.hpp"
 
-Sphere::Sphere( const Point3D &inCenter, double radius ): radius(radius)
+Sphere::Sphere( const Point3D &inCenter, double radius ): ParaxialSimulation("SingleSphere"), radius(radius)
 {
   center.x = inCenter.x;
   center.y = inCenter.y;

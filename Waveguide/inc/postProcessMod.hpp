@@ -14,6 +14,9 @@ public:
 
   /** Amplitude of the solution */
   virtual void result( const Solver &solver, arma::mat &res ) override;
+
+  /** Amplitude of the solution 3D version */
+  virtual void result( const Solver &solver, arma::cube &res ) override;
 };
 
 /** Module that returns the phase of the solution */
@@ -24,6 +27,9 @@ public:
 
   /** Phase of the solution */
   virtual void result( const Solver &solver, arma::mat &res ) override;
+
+  /** Phase of the solution 3D version */
+  virtual void result( const Solver &solver, arma::cube &res ) override;
 };
 
 /** Module that computes the far field intensity pattern */
@@ -66,6 +72,9 @@ public:
 
   /** Returns the real part of the exit field*/
   virtual void result( const Solver &solver, arma::vec &res ) override;
+
+  /** Exit field, 3D version */
+  virtual void result( const Solver &solver, arma::mat &res ) override;
 };
 
 /** Module that returns the exit amplitude */
@@ -76,6 +85,9 @@ public:
 
   /** Returns the exit amplitude */
   virtual void result( const Solver &solver, arma::vec &res ) override;
+
+  /** Exit amplitude 3D version */
+  virtual void result( const Solver &solver, arma::mat &res ) override;
 };
 
 /** Module for computing exit phase */
@@ -86,6 +98,9 @@ public:
 
   /** Returns the phase at the exit */
   virtual void result( const Solver &solver, arma::vec &res ) override;
+
+  /** Returns the phase at the exit, 3D version */
+  virtual void result( const Solver &solver, arma::mat &res ) override;
 };
 
 };

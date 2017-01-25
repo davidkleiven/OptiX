@@ -80,9 +80,6 @@ public:
   /** Down sample in longitudinal direction */
   void downSampleLongitudinalDirection() override;
 
-  /** Reset the counter */
-  void reset(){ currentStep = 1; };
-
   /** Set which boundary conditions to use. Dirichlet is default */
   void setBoundaryCondition( BC_t bc ){ boundaryCondition = bc; };
 
@@ -96,7 +93,6 @@ protected:
   arma::cx_mat *solution{NULL};
   arma::cx_vec *prevSolution{NULL};
   arma::cx_vec *currentSolution{NULL};
-  unsigned int currentStep{1};
 
   unsigned int Nx{0};
   unsigned int Nz{0};
