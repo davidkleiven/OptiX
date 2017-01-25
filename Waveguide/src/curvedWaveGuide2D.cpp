@@ -230,5 +230,5 @@ void CurvedWaveGuideFD::save( ControlFile &ctl )
 {
   ParaxialSimulation::save( ctl );
   arma::vec res = transmittivity->get();
-  saveArmaVec( res, "transmittivity", commonAttributes );
+  saveArray( res, "transmittivity", commonAttributes );
 }

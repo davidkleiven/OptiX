@@ -21,7 +21,7 @@ void post::ExitField::result( const Solver &solver, arma::vec &res )
 
 void post::ExitIntensity::result( const Solver &solver, arma::vec &res )
 {
-  res = arma::abs( solver.getSolution().col(solver.getSolution().n_cols-1) );
+  res = arma::pow( arma::abs( solver.getSolution().col(solver.getSolution().n_cols-1) ), 2 );
 }
 
 void post::ExitPhase::result( const Solver &solver, arma::vec &res )

@@ -25,7 +25,7 @@ int main( int argc, char **argv )
   double xmax = 4.0*radius;
   double zmin = 0.0;
   double zmax = 4.0*radius;
-  unsigned int Nx = 1000;
+  unsigned int Nx = 1024;
   unsigned int Nz = 1000;
   double dx = (xmax-xmin)/Nx;
   double dz = (zmax-zmin)/Nz;
@@ -36,6 +36,7 @@ int main( int argc, char **argv )
   post::ExitIntensity ei;
   post::ExitPhase ep;
   post::FarField ff;
+
   Cylinder2D cylinderSim(x0,z0,radius);
   try
   {
@@ -57,7 +58,6 @@ int main( int argc, char **argv )
     clog << "done\n";
     ControlFile ctl("data/cylinder");
 
-    post::FarField ff;
     ff.setAngleRange( -0.1, 0.1 );
     ff.setPadLength( 262144 );
     cylinderSim << amplitude << phase << ef << ei << ep << ff;
