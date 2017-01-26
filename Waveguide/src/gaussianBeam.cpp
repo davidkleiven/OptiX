@@ -36,6 +36,12 @@ cdouble GaussianBeam::get( double x, double z ) const
   return amplitude*waistRatio*gaussianFactor*phaseFactor;
 }
 
+cdouble GaussianBeam::get( double x, double y, double z ) const
+{
+  double gaussY = exp( -pow(y/spotSize(z-z0),2) );
+  return get(x,z)*gaussY;
+}
+
 double GaussianBeam::beamDivergence() const
 {
   return getWavelength()/(PI*waist);

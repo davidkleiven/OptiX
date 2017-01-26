@@ -3,6 +3,7 @@
 #include "solver3D.hpp"
 #include <complex>
 #include <fftw3.h>
+#include <visa/visa.hpp>
 
 typedef std::complex<double> cdouble;
 class FFTSolver3D: public Solver3D
@@ -13,6 +14,12 @@ public:
 
   /** Propgate one step */
   void solveStep( unsigned int step );
+
+  /** A call to this before solving will visualize the real space intensity on each iteration */
+  void visualizeRealSpace();
+
+  /** A call to this before solving will visualize the fourier intensity on each iteration */
+  void visualizeFourierSpace();
 private:
   /** The convolution kernel */
   cdouble kernel( double kx, double ky ) const;
@@ -24,6 +31,7 @@ private:
   fftw_complex *prev{NULL};
   fftw_plan ftforw;
   fftw_plan ftback;
+  visa::WindowHandler plots;
   bool planInitialized{false};
 
   /** Diffraction step */
@@ -31,5 +39,8 @@ private:
 
   /** Refraction step */
   void refraction( unsigned int step );
+
+  bool visRealSpace{false};
+  bool visFourierSpace{false};
 };
 #endif

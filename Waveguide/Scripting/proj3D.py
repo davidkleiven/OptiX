@@ -1,5 +1,6 @@
 import sys
 from scipy import ndimage as nd
+from matplotlib import pyplot as plt
 
 class Limits:
     def __init__( self ):
@@ -21,7 +22,7 @@ class Plotter3D:
         self.name = ""
 
     def centerOfMass( self ):
-        self.center = ndimage.measurements.center_of_mass( self.data )
+        self.center = nd.measurements.center_of_mass( self.data )
 
     def aspectRatio( self, extent ):
         return ( extent[1] - extent[0] )/( extent[3] - extent[2])

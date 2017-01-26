@@ -1,6 +1,7 @@
 #include "sphere.hpp"
 #include "planeWave.hpp"
 #include "paraxialEquation.hpp"
+#include "gaussianBeam.hpp"
 #include "crankNicholson.hpp"
 #include "controlFile.hpp"
 #include "postProcessMod.hpp"
@@ -58,6 +59,7 @@ int main( int argc, char **argv )
   Sphere sphere( center, r );
   try
   {
+
     sphere.setWaveLength( params.at("wavelength") );
     sphere.setMaterial( "SiO2" );
     sphere.setTransverseDiscretization( xmin, xmax, dx, 1 );
@@ -66,9 +68,17 @@ int main( int argc, char **argv )
     pw.setWavelength( params.at("wavelength") );
     pw.setDim( ParaxialSource::Dim_t::THREE_D );
 
+    GaussianBeam gbeam;
+    gbeam.setWavelength( params.at("wavelength") );
+    gbeam.setDim( ParaxialSource::Dim_t::THREE_D );
+    gbeam.setWaist( r );
+
     FFTSolver3D solver;
+    solver.visualizeRealSpace();
+    //solver.visualizeFourierSpace();
+
     sphere.setSolver( solver );
-    sphere.setBoundaryConditions( pw );
+    sphere.setBoundaryConditions( gbeam );
     clog << "Solving system...";
     sphere.solve();
     clog << "done\n";

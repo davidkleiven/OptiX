@@ -55,11 +55,11 @@ void Solver3D::copyCurrentSolution( unsigned int step )
   assert( currentSolution->n_rows == prevSolution->n_rows );
   assert( currentSolution->n_cols == prevSolution->n_cols );
 
-  for ( unsigned int i=0;i<currentSolution->n_rows; i++ )
+  for ( unsigned int i=0;i<currentSolution->n_cols; i++ )
   {
-    for ( unsigned int j=0;j<currentSolution->n_cols;j++ )
+    for ( unsigned int j=0;j<currentSolution->n_rows;j++ )
     {
-      (*prevSolution)(i,j) = (*currentSolution)(i,j);
+      (*prevSolution)(j,i) = (*currentSolution)(j,i);
     }
   }
 

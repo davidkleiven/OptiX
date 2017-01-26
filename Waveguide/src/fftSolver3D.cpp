@@ -1,10 +1,11 @@
 #include "fftSolver3D.hpp"
 #include <cmath>
+#include <visa/visa.hpp>
 #include "paraxialSimulation.hpp"
 using namespace std;
 
 const double PI = acos(-1.0);
-
+typedef visa::Colormaps::Colormap_t cmap_t;
 FFTSolver3D::~FFTSolver3D()
 {
   if ( planInitialized )
@@ -52,7 +53,15 @@ void FFTSolver3D::solveStep( unsigned int step )
 void FFTSolver3D::propagate()
 {
   // NOTE: FFTW assumes row-major ordering, while Armadillo uses column major
-  fftw_execute( ftforw );
+  fftw_execute( ftforw ); // prev --> current
+
+  if ( visFourierSpace )
+  {
+    arma::mat fourierIntensity = arma::abs(*currentSolution );
+    plots.get("FourierIntensity").fillVertexArray( fourierIntensity );
+    plots.show();
+  }
+
   for ( unsigned int i=0;i<currentSolution->n_cols;i++ )
   {
     double kx = spatialFreq( i, currentSolution->n_cols );
@@ -63,7 +72,7 @@ void FFTSolver3D::propagate()
     }
   }
 
-  fftw_execute( ftback );
+  fftw_execute( ftback ); // current --> prev
 }
 
 void FFTSolver3D::refraction( unsigned int step )
@@ -84,7 +93,34 @@ void FFTSolver3D::refraction( unsigned int step )
       // FFTW3: Divide by length to normalize
       double normalization = prevSolution->n_rows*prevSolution->n_cols;
       //normalization = 1.0;
-      (*currentSolution)[i] = (*prevSolution)[i]*exp( -wavenumber*(beta+im*delta)*stepZ )/normalization;
+      (*currentSolution)(j,i) = (*prevSolution)(j,i)*exp( -wavenumber*(beta+im*delta)*stepZ )/normalization;
     }
   }
+
+
+  if ( visRealSpace )
+  {
+    arma::mat values = arma::abs( *currentSolution );
+    plots.get("Intensity").clear();
+    plots.get("Intensity").fillVertexArray( values );
+    values = arma::arg( *currentSolution );
+    plots.get("Phase").clear();
+    plots.get("Phase").fillVertexArray( values );
+    plots.show();
+  }
+}
+
+void FFTSolver3D::visualizeRealSpace()
+{
+  visRealSpace = true;
+  plots.addPlot("Intensity");
+  plots.addPlot("Phase");
+  plots.get("Intensity").setCmap( cmap_t::NIPY_SPECTRAL );
+  plots.get("Phase").setCmap( cmap_t::NIPY_SPECTRAL );
+}
+
+void FFTSolver3D::visualizeFourierSpace()
+{
+  visFourierSpace = true;
+  plots.addPlot("FourierIntensity");
 }

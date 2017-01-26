@@ -11,6 +11,9 @@ public:
   /** Evaluate the beam at position x, z. Both in nano meters */
   cdouble get( double x, double z ) const override final;
 
+  /** Gaussian beam in 3D */
+  cdouble get( double x, double y, double z ) const override final;
+
   /** Sets the waist in nano meter */
   void setWaist( double w ){ waist = w; };
 

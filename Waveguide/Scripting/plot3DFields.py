@@ -3,6 +3,7 @@ import tkinter as tk
 import proj3D
 import h5py as h5
 from PLOD import controlGUI as cg
+import numpy as np
 
 def main( argv ):
     fname = ""
@@ -26,12 +27,23 @@ def main( argv ):
 
     with h5.File( fname, 'r' ) as hf:
         group = hf.get("/data")
-        ampPlot.data = np.array( hf.get("/data/amplitde") )
-        phasePlot.data = np.array( hf.get("/data/phase") )
+        ampPlot.data = np.array( hf.get("/data/amplitude") )
+        #phasePlot.data = np.array( hf.get("/data/phase") )
+        lim.zmin = group.attrs.get("zmin")
+        lim.zmax = group.attrs.get("zmax")
+        lim.xmin = group.attrs.get("xmin")
+        lim.xmax = group.attrs.get("xmax")
+        lim.ymin = lim.xmin
+        lim.ymax = lim.xmax
+        #lim.ymin = group.attrs.get("ymin")
+        #lim.ymax = group.attrs.get("ymax")
 
+    ampPlot.limits = lim
+
+    print (ampPlot.data)
     # Compute center of mass
     ampPlot.centerOfMass()
-    phasePlot.centerOfMass()
+    #phasePlot.centerOfMass()
 
     root = tk.Tk()
     control = cg.Control( root )
