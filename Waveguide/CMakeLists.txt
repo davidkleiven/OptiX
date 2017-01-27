@@ -2,6 +2,7 @@ cmake_minimum_required (VERSION 2.6)
 
 project( Waveguide )
 set( CMAKE_CXX_STANDARD 11 )
+#add_definitions( -DARMA_NO_DEBUG )
 
 # Add libraries
 include_directories(inc)

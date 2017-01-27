@@ -20,6 +20,13 @@ public:
 
   /** A call to this before solving will visualize the fourier intensity on each iteration */
   void visualizeFourierSpace();
+
+  /** Set the maximum and minimum value in the intensity visualization */
+  void setIntensityMinMax( double min, double max );
+
+  /** Set the maximum and minimum value in the phase visualization */
+  void setPhaseMinMax( double min, double max );
+
 private:
   /** The convolution kernel */
   cdouble kernel( double kx, double ky ) const;

@@ -71,11 +71,13 @@ int main( int argc, char **argv )
     GaussianBeam gbeam;
     gbeam.setWavelength( params.at("wavelength") );
     gbeam.setDim( ParaxialSource::Dim_t::THREE_D );
-    gbeam.setWaist( r );
+    gbeam.setWaist( 4.0*r );
 
     FFTSolver3D solver;
     solver.visualizeRealSpace();
     //solver.visualizeFourierSpace();
+    solver.setIntensityMinMax( 0.0, 1.0 );
+    solver.setPhaseMinMax( 0.0, 1.5 );
 
     sphere.setSolver( solver );
     sphere.setBoundaryConditions( gbeam );
@@ -91,8 +93,11 @@ int main( int argc, char **argv )
     ctl.save();
 
     visa::WindowHandler plots;
+    typedef visa::Colormaps::Colormap_t cmap_t;
     plots.addPlot("Intensity");
     plots.addPlot("Phase");
+    plots.get("Intensity").setCmap( cmap_t::NIPY_SPECTRAL );
+    plots.get("Phase").setCmap( cmap_t::NIPY_SPECTRAL );
     unsigned int sliceNumber = params.at("Nz")/2;
     arma::mat solution = arma::abs( sphere.getSolver().getSolution3D().slice(sliceNumber) );
     plots.get("Intensity").fillVertexArray( solution );

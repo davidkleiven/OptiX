@@ -101,10 +101,8 @@ void FFTSolver3D::refraction( unsigned int step )
   if ( visRealSpace )
   {
     arma::mat values = arma::abs( *currentSolution );
-    plots.get("Intensity").clear();
     plots.get("Intensity").fillVertexArray( values );
-    values = arma::arg( *currentSolution );
-    plots.get("Phase").clear();
+    values = -arma::arg( *currentSolution );
     plots.get("Phase").fillVertexArray( values );
     plots.show();
   }
@@ -123,4 +121,14 @@ void FFTSolver3D::visualizeFourierSpace()
 {
   visFourierSpace = true;
   plots.addPlot("FourierIntensity");
+}
+
+void FFTSolver3D::setIntensityMinMax( double min, double max )
+{
+  plots.get("Intensity").setColorLim( min, max );
+}
+
+void FFTSolver3D::setPhaseMinMax( double min, double max )
+{
+  plots.get("Phase").setColorLim( min, max );
 }
