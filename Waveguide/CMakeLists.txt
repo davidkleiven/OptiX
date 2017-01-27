@@ -3,7 +3,7 @@ cmake_minimum_required (VERSION 2.6)
 project( Waveguide )
 set( CMAKE_CXX_STANDARD 11 )
 #add_definitions( -DARMA_NO_DEBUG )
-set( CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGE} "-fopenmp")
+set( CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-fopenmp")
 
 # Add libraries
 include_directories(inc)
