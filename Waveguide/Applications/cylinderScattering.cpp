@@ -4,6 +4,7 @@
 #include "crankNicholson.hpp"
 #include "controlFile.hpp"
 #include "postProcessMod.hpp"
+#include "fftSolver2D.hpp"
 #include <iostream>
 #include <visa/visa.hpp>
 #include <armadillo>
@@ -20,25 +21,34 @@ int main( int argc, char **argv )
   double z0 = 2.0*radius;
   double wavelength = 0.1569;
   //wavelength = 0.5;
-  double xmin = -1.5*radius;
-  double xmax = 1.5*radius;
+  double xmin = -4.0*radius;
+  double xmax = 4.0*radius;
   double zmin = 0.0;
   double zmax = 4.0*radius;
-  unsigned int Nx = 1000;
+  unsigned int Nx = 1024;
   unsigned int Nz = 1000;
   double dx = (xmax-xmin)/Nx;
   double dz = (zmax-zmin)/Nz;
+
+  post::Phase phase;
+  post::Intensity amplitude;
+  post::ExitField ef;
+  post::ExitIntensity ei;
+  post::ExitPhase ep;
+  post::FarField ff;
 
   Cylinder2D cylinderSim(x0,z0,radius);
   try
   {
     cylinderSim.setWaveLength( wavelength );
     cylinderSim.setMaterial( "SiO2" );
-    cylinderSim.setTransverseDiscretization( xmin, xmax, dx );
-    cylinderSim.setLongitudinalDiscretization( zmin, zmax, dz );
+    cylinderSim.setTransverseDiscretization( xmin, xmax, dx, 1 );
+    cylinderSim.setLongitudinalDiscretization( zmin, zmax, dz, 1 );
     PlaneWave pw;
     pw.setWavelength( wavelength );
-    CrankNicholson solver;
+    //CrankNicholson solver;
+    //solver.setBoundaryCondition( Solver2D::BC_t::TRANSPARENT );
+    FFTSolver2D solver;
     ParaxialEquation eq;
     solver.setEquation(eq);
     cylinderSim.setSolver( solver );
@@ -48,21 +58,18 @@ int main( int argc, char **argv )
     clog << "done\n";
     ControlFile ctl("data/cylinder");
 
-    post::FarField ff;
     ff.setAngleRange( -0.1, 0.1 );
     ff.setPadLength( 262144 );
+    cylinderSim << amplitude << phase << ef << ei << ep << ff;
     cylinderSim.save( ctl );
+    ctl.save();
 
     visa::WindowHandler plots;
     plots.addPlot("Intensity");
     plots.addPlot("Phase");
-    plots.get("Intensity").setColorMax(1.0);
-    plots.get("Intensity").setColorMin(0.99);
     arma::mat solution = arma::abs( cylinderSim.getSolver().getSolution() );
     plots.get("Intensity").fillVertexArray( solution );
-    plots.get("Phase").setColorMax(3.14159);
-    plots.get("Phase").setColorMin(-3.14159);
-    cylinderSim.getSolver().getPhase(solution);
+    phase.result( solver, solution );
     plots.get("Phase").fillVertexArray(solution);
 
     plots.show();

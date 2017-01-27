@@ -4,8 +4,7 @@
 #include <complex>
 #include <json/writer.h>
 #include <armadillo>
-#include <visa/gaussianKernel.hpp>
-#include <visa/lowPassFilter.hpp>
+#include "solver.hpp"
 
 class WaveGuideFDSimulation;
 class ParaxialEquation;
@@ -15,7 +14,7 @@ class BoundaryCondition;
 typedef std::complex<double> cdouble;
 
 /** Base class for the 2D solvers */
-class Solver2D
+class Solver2D: public Solver
 {
 public:
   /** Enum for real or imaginary components */
@@ -24,28 +23,23 @@ public:
   /** Enum for supported boundary conditions */
   enum class BC_t{DIRICHLET,TRANSPARENT};
 
-  Solver2D( const char* name ):name(name){};
+  Solver2D( const char* name ):Solver(name, Dimension_t::TWO_D){};
   Solver2D( const Solver2D &other ) = delete;
   Solver2D& operator =( Solver2D &other ) = delete;
 
   virtual ~Solver2D();
 
-  /** Get the name of the solution */
-  std::string getName() const { return name; };
-
-  /** Set waveguide to operate on */
-  void setSimulator( ParaxialSimulation &guide );
-
-  const ParaxialSimulation& getSimulator() const { return *guide; };
-
   /** Set paraxial equation to solve */
   void setEquation( const ParaxialEquation &equation ){ eq = &equation; };
+
+  /** Set the simulator */
+  void setSimulator( ParaxialSimulation &newGuide ) override;
 
   /** Get the solution. Depricated */
   const arma::cx_mat& getSolution( unsigned int iz ) const { return *solution; }; // Depricated. iz is not used.
 
   /** Get the solution */
-  const arma::cx_mat& getSolution() const { return *solution; };
+  const arma::cx_mat& getSolution() const override { return *solution; };
 
   /** Import solution from HDF5 file */
   bool importHDF5( const std::string &fname );
@@ -65,9 +59,8 @@ public:
   /** Get the phase of the solution in matrix */
   void getPhase( arma::mat &phase ) const;
 
-  // Set boundary condition at z=0
   /** Set boundary condition at z = 0*/
-  void setLeftBC( const cdouble values[] );
+  void setInitialConditions( const arma::cx_vec &vec ) override;
 
   /** Set boundary condition at x=xmin and x=xmax */
   void setXBC( const cdouble valuesTop[], const cdouble valuesBottom[] ); // BC at top (x=xmax) and bottom (x=xmin)
@@ -79,22 +72,16 @@ public:
   void solve();
 
   /** Perform one step */
-  void step();
+  void step() override;
 
   /** Filter and downsample in the longitudinal direction */
-  void filterInLongitudinalDirection();
+  void filterInLongitudinalDirection() override;
 
   /** Down sample in longitudinal direction */
-  void downSampleLongitudinalDirection();
-
-  /** Reset the counter */
-  void reset(){ currentStep = 1; };
+  void downSampleLongitudinalDirection() override;
 
   /** Set which boundary conditions to use. Dirichlet is default */
   void setBoundaryCondition( BC_t bc ){ boundaryCondition = bc; };
-
-  /** Sets the transverse boundary conditions */
-  void addBoundaryCondition( const BoundaryCondition &bCond ){ bc = &bCond; };
 
   // Virtual functions
   /** Pure virtual function for solving the system */
@@ -102,14 +89,10 @@ public:
   /** Fill JSON object with parameters specific to this class */
   virtual void fillInfo( Json::Value &obj ) const;
 protected:
-  std::string name;
-  ParaxialSimulation *guide;
   const ParaxialEquation *eq{NULL};
   arma::cx_mat *solution{NULL};
   arma::cx_vec *prevSolution{NULL};
   arma::cx_vec *currentSolution{NULL};
-  const BoundaryCondition *bc{NULL};
-  unsigned int currentStep{1};
 
   unsigned int Nx{0};
   unsigned int Nz{0};
@@ -134,10 +117,10 @@ protected:
   /** Set the required parameters from the waveguide object */
   void initValuesFromWaveGuide();
 
+  /** Set values at z = 0 */
+  void setLeftBC( const cdouble values[] );
+
   /** Return the last element in the solution that should be included in the filtering */
   virtual arma::cx_vec& signalToFilter() const { return *currentSolution; };
-
-  visa::GaussianKernel kernel;
-  visa::LowPassFilter filter;
 };
 #endif

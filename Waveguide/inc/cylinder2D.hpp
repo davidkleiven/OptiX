@@ -12,7 +12,7 @@ public:
   Cylinder2D( double x0, double z0, double radius );
 
   /** Return the material properties of the cylinder */
-  void getXrayMatProp( double x, double z, double &delta, double &beta ) const override;
+  virtual void getXrayMatProp( double x, double z, double &delta, double &beta ) const override;
 
   /** Set the cylinder material */
   void setMaterial( const char* name );

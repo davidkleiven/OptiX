@@ -8,6 +8,11 @@ cdouble PlaneWave::get( double x, double z ) const
   return amplitude*exp(im*wavenumber*x*sin(angleWithZAxis)-im*wavenumber*z0);
 }
 
+cdouble PlaneWave::get( double x, double y, double z ) const
+{
+  return get( x, z );
+}
+
 void PlaneWave::setAngleDeg( double angle )
 {
   angleWithZAxis = angle*PI/180.0;

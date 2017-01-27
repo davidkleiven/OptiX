@@ -2,6 +2,7 @@ cmake_minimum_required (VERSION 2.6)
 
 project( Waveguide )
 set( CMAKE_CXX_STANDARD 11 )
+#add_definitions( -DARMA_NO_DEBUG )
 
 # Add libraries
 include_directories(inc)
@@ -169,6 +170,9 @@ target_link_libraries( multiWG.out ${LIB} src )
 
 add_executable( optimizeBend.out Applications/optimizeBend.cpp )
 target_link_libraries( optimizeBend.out ${LIB} src )
+
+add_executable( sphereScat.out Applications/sphereScattering.cpp )
+target_link_libraries( sphereScat.out ${LIB} src )
 
 # Compile unittests
 find_package( Boost COMPONENTS system filesystem unit_test_framework )

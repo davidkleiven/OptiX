@@ -293,13 +293,16 @@ void WaveGuideFDSimulation::save( ControlFile &ctl )
       arma::vec vec(iter->x1);
       unsigned int rank = 1;
       dsetnames.push_back( bxname.str() );
-      saveVec( iter->x1, dsetnames.back().c_str() );
+      saveArray( vec, dsetnames.back().c_str() );
       dsetnames.push_back( bzname.str() );
-      saveVec( iter->z1, dsetnames.back().c_str() );
+      vec = iter->z1;
+      saveArray( vec, dsetnames.back().c_str() );
       dsetnames.push_back( uxname.str() );
-      saveVec( iter->x2, dsetnames.back().c_str() );
+      vec = iter->x2;
+      saveArray( vec, dsetnames.back().c_str() );
       dsetnames.push_back( uzname.str() );
-      saveVec( iter->z2, dsetnames.back().c_str() );
+      vec = iter->z2;
+      saveArray( vec, dsetnames.back().c_str() );
     }
   }
 }

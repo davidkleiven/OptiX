@@ -85,7 +85,7 @@ void MultipleCurvedWG::init( const map<string,double> &params )
   }
 
   if ( solver != NULL ) delete solver;
-  solver = new CrankNicholson();
+  CrankNicholson *cnSolver = new CrankNicholson();
 
   PlaneWave* pw = new PlaneWave();
 
@@ -116,8 +116,9 @@ void MultipleCurvedWG::init( const map<string,double> &params )
   this->setLongitudinalDiscretization( 0.0, zmin, params.at("stepZ"), params.at("downSamplingZ") );
   this->setWaveLength( params.at("wavelength") );
 
-  solver->setEquation( eq );
-  solver->setBoundaryCondition( Solver2D::BC_t::TRANSPARENT );
+  cnSolver->setEquation( eq );
+  cnSolver->setBoundaryCondition( Solver2D::BC_t::TRANSPARENT );
+  solver = cnSolver;
   (*waveguides)[0]->setSolver( *solver );
   unsigned int Nx = (*waveguides)[0]->nodeNumberTransverse();
 
@@ -285,21 +286,21 @@ void MultipleCurvedWG::save( ControlFile &ctl )
   att.write( strdatatype, geometryfile );
 
   // Store data
-  saveArmaMat( *intensity, "amplitude", commonAttributes );
-  saveArmaVec( *transmittivity, "transmittivity", commonAttributes );
+  saveArray( *intensity, "amplitude", commonAttributes );
+  saveArray( *transmittivity, "transmittivity", commonAttributes );
 
   // Get the far field
   arma::vec res;
   farfield.result( waveguides->back()->getSolver(), res );
   vector<H5Attr> additionalAttrib;
   farfield.addAttrib( additionalAttrib );
-  saveArmaVec( res, farfield.getName().c_str(), additionalAttrib );
+  saveArray( res, farfield.getName().c_str(), additionalAttrib );
 
   exitfield.result( waveguides->back()->getSolver(), res );
-  saveArmaVec( res, exitfield.getName().c_str() );
+  saveArray( res, exitfield.getName().c_str() );
 
   exPhase.result( waveguides->back()->getSolver(), res );
-  saveArmaVec( res, exPhase.getName().c_str() );
+  saveArray( res, exPhase.getName().c_str() );
 }
 
 double MultipleCurvedWG::phaseDifference( const CurvedWGConfMap &source, const CurvedWGConfMap &target ) const

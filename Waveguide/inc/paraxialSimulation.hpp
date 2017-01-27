@@ -9,7 +9,7 @@
 #include "postProcessing.hpp"
 #include "postProcessMod.hpp"
 #include <vector>
-class Solver2D;
+class Solver;
 class ControlFile;
 class ParaxialSource;
 class BorderTracker;
@@ -81,8 +81,8 @@ public:
   /** Set wavelength in nm */
   void setWaveLength( double lambda );
 
-  /** Set 2D solver */
-  void setSolver( Solver2D &solv );
+  /** Set solver */
+  void setSolver( Solver &solv );
 
   /** Get name of the waveguide simulation */
   std::string getName() const { return name; };
@@ -109,7 +109,7 @@ public:
   void getExitField( arma::vec &vec ) const;
 
   /** Get 2D solver */
-  const Solver2D& getSolver() const { return *solver; };
+  const Solver& getSolver() const { return *solver; };
 
   /** Get the array index closest to x, z */
   void closestIndex( double x, double z, unsigned int &ix, unsigned int &iz ) const;
@@ -142,6 +142,7 @@ public:
 
   /** Get the material properties */
   virtual void getXrayMatProp( double x, double z, double &delta, double &beta ) const{ delta=0.0; beta=0.0; };
+  virtual void getXrayMatProp( double x, double y, double z, double &delta, double &beta ) const{ delta=0.0; beta=0.0; };
 
   /** Save results to HDF5 files */
   virtual void save( ControlFile &ctl );
@@ -152,7 +153,7 @@ public:
   /** Pad the exit signal */
   virtual cdouble padExitField( double x, double z ) const { return farParam.padValue; };
 protected:
-  Solver2D *solver{NULL};
+  Solver *solver{NULL};
   Disctretization *xDisc; // Transverse
   Disctretization *zDisc; // Along optical axis
   arma::vec *farFieldModulus{NULL};
@@ -179,20 +180,11 @@ protected:
   /** Extra calling */
   virtual void saveSpecialDatasets( hid_t file_id, std::vector<std::string> &dset ) const{};
 
-  /** Add armadillo matrix to HDF5 file. The matrix is internally transposed, but on return it is simular to the original */
-  void saveArmaMat( arma::mat &matrix, const char* dsetname, const std::vector<H5Attr> &attr );
+  template <class arrayType>
+  void saveArray( arrayType &array, const char* dsetname, const std::vector<H5Attr> &attr );
 
-  /** Add armadillo matrix to HDF5 using the common attributes */
-  void saveArmaMat( arma::mat &matrix, const char* dsetname );
-
-  /** Add armadillo vector to HDF5 */
-  void saveArmaVec( const arma::vec &vec, const char* dsetname, const std::vector<H5Attr> &attr );
-
-  /** Add armadillo vector to HDF5 using the default attributes */
-  void saveArmaVec( const arma::vec &vec, const char* dsetname );
-
-  /** Add STL vector to HDF5 */
-  void saveVec( const std::vector<double> &vec, const char* dsetname );
+  template <class arrayType>
+  void saveArray( arrayType &array, const char* dsetname );
 
   /** Add attribute to dataset */
   void addAttribute( H5::DataSet &ds, const char* name, double value );

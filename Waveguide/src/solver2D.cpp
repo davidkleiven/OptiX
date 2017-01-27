@@ -19,7 +19,7 @@ Solver2D::~Solver2D()
 
 void Solver2D::setSimulator( ParaxialSimulation &wg )
 {
-  guide = &wg;
+  Solver::setSimulator( wg );
   unsigned int Nx = guide->nodeNumberTransverse();
   unsigned int Nz = guide->nodeNumberLongitudinal();
   if ( solution != NULL ) delete solution;
@@ -36,6 +36,12 @@ void Solver2D::setSimulator( ParaxialSimulation &wg )
     filter.setTargetSize( downSampledNx );
     filter.computeFilterCoefficients( kernel );
   }
+}
+
+void Solver2D::setInitialConditions( const arma::cx_vec &vec )
+{
+  // Unnecessary layer, but carries over from early development
+  setLeftBC( vec.memptr() );
 }
 
 void Solver2D::setLeftBC( const cdouble values[] )
@@ -210,11 +216,6 @@ void Solver2D::solve()
   if ( eq == NULL )
   {
     throw ( runtime_error("No paraxial equation object given!") );
-  }
-
-  if ( bc == NULL )
-  {
-    throw ( runtime_error("No boundary conditions given!") );
   }
 
   // Assert that the solution matrix is allocated

@@ -12,6 +12,7 @@
 #include "paraxialSource.hpp"
 #include "arraySource.hpp"
 #include "h5Attribute.hpp"
+#include "hdf5DataspaceCreator.hpp"
 #include <limits>
 #include <stdexcept>
 #include <utility>
@@ -103,7 +104,7 @@ unsigned int ParaxialSimulation::nodeNumberLongitudinal() const
   return ( zDisc->max - zDisc->min)/zDisc->step + 1.0;
 }
 
-void ParaxialSimulation::setSolver( Solver2D &solv )
+void ParaxialSimulation::setSolver( Solver &solv )
 {
   if ( solverInitializedViaInit )
   {
@@ -141,16 +142,23 @@ void ParaxialSimulation::save( ControlFile &ctl )
     vector<H5Attr> attrib;
     arma::vec res1D;
     arma::mat res2D;
-    postProcess[i]->result( *solver, res1D );
-    postProcess[i]->result( *solver, res2D );
-    postProcess[i]->addAttrib( commonAttributes );
-    switch ( postProcess[i]->getReturnType() )
+    arma::cube res3D;
+
+    // Get the result. No two of these functions will always be empty
+    postProcess[i]->addAttrib( attrib );
+    switch ( postProcess[i]->getReturnType( *solver ) )
     {
       case ( post::PostProcessingModule::ReturnType_t::vector1D ):
-        saveArmaVec( res1D, postProcess[i]->getName().c_str(), attrib );
+        postProcess[i]->result( *solver, res1D );
+        saveArray( res1D, postProcess[i]->getName().c_str(), attrib );
         break;
       case ( post::PostProcessingModule::ReturnType_t::matrix2D ):
-        saveArmaMat( res2D, postProcess[i]->getName().c_str(), attrib );
+        postProcess[i]->result( *solver, res2D );
+        saveArray( res2D, postProcess[i]->getName().c_str(), attrib );
+        break;
+      case ( post::PostProcessingModule::ReturnType_t::cube3D ):
+        postProcess[i]->result( *solver, res3D );
+        saveArray( res3D, postProcess[i]->getName().c_str(), attrib );
         break;
     }
     clog << "Dataset " << postProcess[i]->getName() << " added to HDF5 file\n";
@@ -241,17 +249,22 @@ double ParaxialSimulation::getX( int ix ) const
   return xDisc->min + ix*xDisc->step;
 }
 
-void ParaxialSimulation::saveArmaMat( arma::mat &matrix, const char* dsetname )
+template <class arrayType>
+void ParaxialSimulation::saveArray( arrayType &matrix, const char* dsetname )
 {
   vector<H5Attr> dummy;
-  saveArmaMat( matrix, dsetname, dummy );
+  saveArray( matrix, dsetname, dummy );
 }
 
-void ParaxialSimulation::saveArmaMat( arma::mat &matrix, const char* dsetname, const vector<H5Attr> &attrs )
+template <class arrayType>
+void ParaxialSimulation::saveArray( arrayType &matrix, const char* dsetname, const vector<H5Attr> &attrs )
 {
   // Create dataspace
-  hsize_t fdim[2] = {matrix.n_rows, matrix.n_cols};
-  H5::DataSpace dataspace( 2, fdim );
+  hsize_t fdim[3];
+  DataspaceCreator<arrayType> dsinfo;
+  dsinfo.setDims( matrix, fdim );
+
+  H5::DataSpace dataspace( dsinfo.rank, fdim );
 
   string name(groupname);
   name += dsetname;
@@ -273,63 +286,17 @@ void ParaxialSimulation::saveArmaMat( arma::mat &matrix, const char* dsetname, c
     }
   }
 
-  // Transpose the matrix inplace
-  arma::inplace_trans( matrix ); // Uses a greedy algorithm
-
   // Write to file
   ds.write( matrix.memptr(), H5::PredType::NATIVE_DOUBLE );
-
-  // Transpose the matrix back
-  arma::inplace_trans( matrix );
 }
 
-void ParaxialSimulation::saveArmaVec( const arma::vec &vec, const char* dsetname )
-{
-  saveArmaVec( vec, dsetname, commonAttributes );
-}
-
-void ParaxialSimulation::saveArmaVec( const arma::vec &vec, const char* dsetname, const vector<H5Attr> &attrs )
-{
-  // Create dataspace
-  hsize_t fdim = vec.n_elem;
-  H5::DataSpace dataspace( 1, &fdim );
-
-  string name(groupname);
-  name += dsetname;
-  // Create dataset
-  H5::DataSpace attribSpace(H5S_SCALAR);
-  H5::DataSet ds( file->createDataSet(name, H5::PredType::NATIVE_DOUBLE, dataspace) );
-
-  for ( unsigned int i=0;i<attrs.size();i++ )
-  {
-    H5::Attribute att = ds.createAttribute( attrs[i].name.c_str(), attrs[i].dtype, attribSpace );
-    if ( attrs[i].dtype == H5::PredType::NATIVE_INT )
-    {
-      int value = attrs[i].value;
-      att.write( H5::PredType::NATIVE_INT, &value );
-    }
-    double value = attrs[i].value;
-    att.write( H5::PredType::NATIVE_DOUBLE, &value );
-  }
-
-  // Write to file
-  ds.write( vec.memptr(), H5::PredType::NATIVE_DOUBLE );
-}
-
-void ParaxialSimulation::saveVec( const vector<double> &vec, const char* dsetname )
-{
-  string name(groupname);
-  name += dsetname;
-  // Create dataspace
-  hsize_t fdim = vec.size();
-  H5::DataSpace dataspace( 1, &fdim );
-
-  // Create dataset
-  H5::DataSet dataset( file->createDataSet(name, H5::PredType::NATIVE_DOUBLE, dataspace) );
-
-  // Write to file
-  dataset.write( &vec[0], H5::PredType::NATIVE_DOUBLE );
-}
+// Pre-fine allowed template types
+template void ParaxialSimulation::saveArray<arma::vec>( arma::vec &matrix, const char* dsetname, const vector<H5Attr> &attrs );
+template void ParaxialSimulation::saveArray<arma::mat>( arma::mat &matrix, const char* dsetname, const vector<H5Attr> &attrs );
+template void ParaxialSimulation::saveArray<arma::cube>( arma::cube &matrix, const char* dsetname, const vector<H5Attr> &attrs );
+template void ParaxialSimulation::saveArray<arma::vec>( arma::vec &matrix, const char* dsetname );
+template void ParaxialSimulation::saveArray<arma::mat>( arma::mat &matrix, const char* dsetname );
+template void ParaxialSimulation::saveArray<arma::cube>( arma::cube &m, const char* dsetname );
 
 void ParaxialSimulation::addAttribute( H5::DataSet &ds, const char* name, double value )
 {
@@ -349,13 +316,36 @@ void ParaxialSimulation::setBoundaryConditions( const ParaxialSource &source )
 {
   src = &source;
   unsigned int Nx = nodeNumberTransverse();
-  vector<cdouble> values(Nx, 1.0);
-  for ( unsigned int i=0;i<Nx;i++ )
+
+  typedef ParaxialSource::Dim_t Dim_t;
+  switch ( source.getDim() )
   {
-    double x = getX(i);
-    values[i] = src->get( x, 0.0 );
+    case Dim_t::TWO_D:
+    {
+      arma::cx_vec values(Nx, 1.0);
+      for ( unsigned int i=0;i<Nx;i++ )
+      {
+        double x = getX(i);
+        values[i] = src->get( x, 0.0 );
+      }
+      solver->setInitialConditions( values );
+      break;
+    }
+    case Dim_t::THREE_D:
+    {
+      arma::cx_mat values(Nx, Nx);
+      for ( unsigned int i=0;i<Nx;i++ )
+      {
+        double x = getX(i);
+        for ( unsigned int j=0;j<Nx;j++ )
+        {
+          double y = getX(j);
+          values(j,i) = src->get(x,y,0.0);
+        }
+      }
+      solver->setInitialConditions( values );
+    }
   }
-  solver->setLeftBC(&values[0]);
 }
 
 void ParaxialSimulation::setBoundaryConditions( const ArraySource &source )
@@ -369,7 +359,7 @@ void ParaxialSimulation::setBoundaryConditions( const ArraySource &source )
     msg << " Given size: " << source.getVec().n_elem;
     throw ( runtime_error( msg.str() ) );
   }
-  solver->setLeftBC( source.getVec().memptr() );
+  solver->setInitialConditions( source.getVec() );
 }
 
 double ParaxialSimulation::getEnergy() const

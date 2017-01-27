@@ -4,18 +4,19 @@
 #include <armadillo>
 #include "h5Attribute.hpp"
 
-class Solver2D;
+class Solver;
 namespace post
 {
 class PostProcessingModule
 {
 public:
-  enum class ReturnType_t { vector1D, matrix2D };
-  PostProcessingModule(const char* name, ReturnType_t type ):name(name), returnType(type){};
+  enum class ReturnType_t { vector1D, matrix2D, cube3D };
+  PostProcessingModule(const char* name ):name(name){};
 
   /** Returns the result */
-  virtual void result( const Solver2D& solver, arma::mat& res ){};
-  virtual void result( const Solver2D& solver, arma::vec& res ){};
+  virtual void result( const Solver& solver, arma::cube& res ){};
+  virtual void result( const Solver& solver, arma::mat& res ){};
+  virtual void result( const Solver& solver, arma::vec& res ){};
 
   /** Add attribute to an external array */
   virtual void addAttrib( std::vector<H5Attr> &attrs ) const{};
@@ -24,10 +25,31 @@ public:
   std::string getName() const { return name; };
 
   /** Which return type is used */
-  ReturnType_t getReturnType() const { return returnType; };
+  virtual ReturnType_t getReturnType( const Solver& solver ) const = 0;
 protected:
   std::string name;
-  ReturnType_t returnType;
 };
+
+/** A Field quantity is a quantity that is 2D for a 2D simulation and 3D for a 3D simulation
+* Examples: Intensity, phase
+* Counter examples: Average transmimittivity in a waveguide (1D in all cases), farField (1D for 2D sim and 2D for 3D sim)
+*/
+class FieldQuantity: public PostProcessingModule
+{
+public:
+  FieldQuantity( const char* name ): PostProcessingModule(name){};
+  virtual ReturnType_t getReturnType( const Solver& solver ) const override final;
 };
+
+/**
+* A projection quantity is a quantity that has one lower dimension than the simulation
+* Examples: far field
+*/
+class ProjectionQuantity: public PostProcessingModule
+{
+public:
+  ProjectionQuantity( const char* name ): PostProcessingModule(name){};
+  virtual ReturnType_t getReturnType( const Solver& solver ) const override final;
+};
+}; // namespace
 #endif

@@ -12,6 +12,9 @@ public:
   /** Evaluate the field at position x, z */
   cdouble get( double x, double z ) const override final;
 
+  /** 3D version of the get function */
+  cdouble get( double x, double y, double z ) const override final;
+
   /** Set angle in degrees with the z-axis */
   void setAngleDeg( double angle );
 
