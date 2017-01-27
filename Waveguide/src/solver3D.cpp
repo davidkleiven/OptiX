@@ -37,6 +37,8 @@ void Solver3D::filterTransverse( arma::cx_mat &mat )
   assert( Nx == Ny ); // If this is the case, the filter coefficients does not need to be recomputed
 
   visa::ArmaGetter<cdouble, visa::ArmaMatrix_t::COL> colGetter;
+
+  #pragma omp parallel for
   for ( unsigned int i=0;i<mat.n_rows;i++ )
   {
     colGetter.fixedIndx = i;
@@ -44,6 +46,7 @@ void Solver3D::filterTransverse( arma::cx_mat &mat )
   }
 
   visa::ArmaGetter<cdouble, visa::ArmaMatrix_t::ROW> rowGetter;
+  #pragma omp parallel for
   for ( unsigned int i=0;i<mat.n_cols;i++ )
   {
     rowGetter.fixedIndx = i;
