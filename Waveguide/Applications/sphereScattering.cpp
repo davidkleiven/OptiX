@@ -133,10 +133,10 @@ int main( int argc, char **argv )
     for ( unsigned int i=0;i<plots.nPlots();i++ )
     {
       stringstream fname;
-      fname << "Figures/" << plots.get(i).getName() << ctl.getUID() << ".jpg";
+      fname << "Figures/sphere" << plots.get(i).getName() << ctl.getUID() << ".jpg";
       sf::Image img = plots.get(i).capture();
       img.saveToFile( fname.str() );
-      clog << "Image " << fname.str() << " saved...";
+      clog << "Image " << fname.str() << " saved...\n";
     }
 
     plots.show();
