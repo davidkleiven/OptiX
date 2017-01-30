@@ -3,6 +3,7 @@ cmake_minimum_required (VERSION 2.6)
 project( Waveguide )
 set( CMAKE_CXX_STANDARD 11 )
 #add_definitions( -DARMA_NO_DEBUG )
+set( CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-fopenmp")
 
 # Add libraries
 include_directories(inc)
@@ -96,6 +97,13 @@ find_path( PEI_HEADER pei/ )
 if ( NOT PEI_HEADER )
   MESSAGE( FATAL_ERROR "Did not find the pei headers!")
 endif ( NOT PEI_HEADER )
+
+# Find pthreads library
+find_library( PTHR_LIB pthread )
+if ( NOT PTHR_LIB )
+    MESSAGE( FATAL_ERROR "Did not find the pthreads library!")
+endif()
+set (LIB ${LIB} ${PTHR_LIB})
 
 set ( FLTK_SKIP_FLUID True )
 set( CMAKE_LIBRARY_PATH "/usr/lib/x86_64-linux-gnu")

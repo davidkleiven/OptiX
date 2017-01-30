@@ -1,6 +1,7 @@
 #include "solver3D.hpp"
 #include <cassert>
 #include "paraxialSimulation.hpp"
+#include <omp.h>
 
 using namespace std;
 
@@ -36,6 +37,8 @@ void Solver3D::filterTransverse( arma::cx_mat &mat )
   assert( Nx == Ny ); // If this is the case, the filter coefficients does not need to be recomputed
 
   visa::ArmaGetter<cdouble, visa::ArmaMatrix_t::COL> colGetter;
+
+  #pragma omp parallel for
   for ( unsigned int i=0;i<mat.n_rows;i++ )
   {
     colGetter.fixedIndx = i;
@@ -43,6 +46,7 @@ void Solver3D::filterTransverse( arma::cx_mat &mat )
   }
 
   visa::ArmaGetter<cdouble, visa::ArmaMatrix_t::ROW> rowGetter;
+  #pragma omp parallel for
   for ( unsigned int i=0;i<mat.n_cols;i++ )
   {
     rowGetter.fixedIndx = i;
@@ -55,13 +59,7 @@ void Solver3D::copyCurrentSolution( unsigned int step )
   assert( currentSolution->n_rows == prevSolution->n_rows );
   assert( currentSolution->n_cols == prevSolution->n_cols );
 
-  for ( unsigned int i=0;i<currentSolution->n_cols; i++ )
-  {
-    for ( unsigned int j=0;j<currentSolution->n_rows;j++ )
-    {
-      (*prevSolution)(j,i) = (*currentSolution)(j,i);
-    }
-  }
+  *prevSolution = *currentSolution;
 
   if (( currentSolution->n_rows != solution->n_rows ) || ( currentSolution->n_cols != solution->n_cols ))
   {
@@ -77,13 +75,14 @@ void Solver3D::copyCurrentSolution( unsigned int step )
   assert( maxY < currentSolution->n_cols );
 
   // Downsample the array
-  for ( unsigned int i=0;i<solution->n_rows;i++ )
+  #pragma omp parallel for
+  for ( unsigned int i=0;i<solution->n_rows*solution->n_cols;i++ )
   {
-    for ( unsigned int j=0;j<solution->n_cols;j++ )
-    {
-      (*solution)(i,j,step) = (*currentSolution)( i*deltaX, j*deltaY );
-    }
+    unsigned int row = i%solution->n_rows;
+    unsigned int col = i/solution->n_rows;
+    (*solution)(row,col,step) = (*currentSolution)( row*deltaX, col*deltaY );
   }
+
 }
 
 void Solver3D::setInitialConditions( const arma::cx_mat &values )
