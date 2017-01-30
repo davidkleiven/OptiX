@@ -41,6 +41,9 @@ public:
   /** Amplitude of the far field */
   virtual void result( const Solver &solver, arma::vec &res ) override;
 
+  /** Far field in the 3D case */
+  virtual void result( const Solver &solver, arma::mat &res ) override;
+
   /** Set pad length */
   void setPadLength( unsigned int pad ){ signalLength = pad; };
 
@@ -59,9 +62,14 @@ private:
   const ParaxialSimulation *sim{NULL};
 
   /** Computes the index in the far field array corresponding to a certain angle */
-  unsigned int farFieldAngleToIndx( double angle, const arma::vec &res ) const;
+  unsigned int farFieldAngleToIndx( double angle, unsigned int size ) const;
 
-  void reduceArray( arma::vec &res ) const;
+  template<class T>
+  void reduceArray( arma::Col<T> &res ) const;
+  void reduceArray( arma::mat &res ) const;
+
+  template<class T>
+  void fftshift( arma::Col<T> &array );
 };
 
 /** Module that returns the real part of the exit field */

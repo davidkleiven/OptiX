@@ -47,6 +47,10 @@ private:
   /** Refraction step */
   void refraction( unsigned int step );
 
+  /** Computes the refraction integral when a border has been crossed */
+  void refractionIntegral( double x, double y, double z1, double z2, double &delta, double &beta );
+  unsigned int nStepsInRefrIntegral{200};
+
   bool visRealSpace{false};
   bool visFourierSpace{false};
 };

@@ -31,6 +31,9 @@ int main( int argc, char **argv )
   params["Nz"] = 512;
   params["downSampleT"] = 8;
   params["downSampleZ"] = 4;
+  params["savePlots"] = 0;
+  params["q_max_inverse_nm"] = 0.5;
+  double anglemax = params.at("q_max_inverse_nm")*params.at("wavelength")/(2.0*3.14159);
 
   pei::DialogBox dialog( params );
   dialog.show();
@@ -71,7 +74,7 @@ int main( int argc, char **argv )
     GaussianBeam gbeam;
     gbeam.setWavelength( params.at("wavelength") );
     gbeam.setDim( ParaxialSource::Dim_t::THREE_D );
-    gbeam.setWaist( 4.0*r );
+    gbeam.setWaist( 40.0*r );
 
     FFTSolver3D solver;
     solver.visualizeRealSpace();
@@ -86,9 +89,9 @@ int main( int argc, char **argv )
     clog << "done\n";
     ControlFile ctl("data/sphere");
 
-    ff.setAngleRange( -0.1, 0.1 );
-    ff.setPadLength( 65536 );
-    sphere << ef << ei << ep;
+    ff.setAngleRange( -anglemax, anglemax );
+    ff.setPadLength( 32768 );
+    sphere << ef << ei << ep << ff;
     sphere.save( ctl );
     ctl.save();
 
@@ -130,13 +133,16 @@ int main( int argc, char **argv )
     plots.get("PhaseXZ").fillVertexArray( solution );
 
     // Store all pictures
-    for ( unsigned int i=0;i<plots.nPlots();i++ )
+    if ( static_cast<int>(params.at("savePlots")) )
     {
-      stringstream fname;
-      fname << "Figures/sphere" << plots.get(i).getName() << ctl.getUID() << ".jpg";
-      sf::Image img = plots.get(i).capture();
-      img.saveToFile( fname.str() );
-      clog << "Image " << fname.str() << " saved...\n";
+      for ( unsigned int i=0;i<plots.nPlots();i++ )
+      {
+        stringstream fname;
+        fname << "Figures/sphere" << plots.get(i).getName() << ctl.getUID() << ".jpg";
+        sf::Image img = plots.get(i).capture();
+        img.saveToFile( fname.str() );
+        clog << "Image " << fname.str() << " saved...\n";
+      }
     }
 
     plots.show();
