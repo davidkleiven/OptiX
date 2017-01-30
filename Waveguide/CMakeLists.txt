@@ -8,7 +8,6 @@ set( CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-fopenmp")
 # Add libraries
 include_directories(inc)
 include_directories(/usr/include/jsoncpp)
-add_subdirectory(src)
 include_directories( /usr/local/include )
 include_directories( /usr/lib/x86_64-linux-gnu/hdf5/serial/include )
 
@@ -99,11 +98,10 @@ if ( NOT PEI_HEADER )
 endif ( NOT PEI_HEADER )
 
 # Find pthreads library
-find_library( PTHR_LIB pthread )
-if ( NOT PTHR_LIB )
-    MESSAGE( FATAL_ERROR "Did not find the pthreads library!")
+find_package( OpenMP )
+if ( OpenMP_found )
+  set ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}" )
 endif()
-set (LIB ${LIB} ${PTHR_LIB})
 
 set ( FLTK_SKIP_FLUID True )
 set( CMAKE_LIBRARY_PATH "/usr/lib/x86_64-linux-gnu")
@@ -144,6 +142,8 @@ if ( NOT FFTW_INC )
 endif()
 set( LIB ${LIB} ${FFTW_LIB} )
 include_directories( FFTW_INC )
+
+add_subdirectory(src)
 
 # Add executables
 add_executable( curvedWG.out Applications/curvedWGCartesian.cpp )

@@ -45,12 +45,22 @@ void Solver3D::filterTransverse( arma::cx_mat &mat )
     filter.filterArray( mat, colGetter );
   }
 
-  visa::ArmaGetter<cdouble, visa::ArmaMatrix_t::ROW> rowGetter;
-  #pragma omp parallel for
-  for ( unsigned int i=0;i<mat.n_cols;i++ )
+  unsigned int maxThreads = omp_get_num_threads();
+  vector< visa::ArmaGetter<cdouble, visa::ArmaMatrix_t::ROW> > rowGetters;
+  for ( unsigned int i=0;i<maxThreads;i++ )
   {
-    rowGetter.fixedIndx = i;
-    filter.filterArray( mat, rowGetter );
+    rowGetters.push_back( visa::ArmaGetter<cdouble, visa::ArmaMatrix_t::ROW>() );
+  }
+  
+  #pragma omp parallel
+  {
+    unsigned int id = omp_get_thread_num();
+    #pragma omp for
+    for ( unsigned int i=0;i<mat.n_cols;i++ )
+    {
+      rowGetters[id].fixedIndx = i;
+      filter.filterArray( mat, rowGetters[id] );
+    }
   }
 }
 
