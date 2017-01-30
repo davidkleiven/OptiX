@@ -24,6 +24,9 @@ public:
 
   /** Returns the complex solution */
   virtual const arma::cx_cube& getSolution3D() const override;
+
+  /** Returns the last solution */
+  virtual const arma::cx_mat& getLastSolution3D() const override{ return *prevSolution; };
 protected:
   arma::cx_cube *solution{NULL};
   arma::cx_mat *currentSolution{NULL};
