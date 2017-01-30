@@ -88,23 +88,56 @@ int main( int argc, char **argv )
 
     ff.setAngleRange( -0.1, 0.1 );
     ff.setPadLength( 65536 );
-    sphere << amplitude << phase << ef << ei << ep;
+    sphere << ef << ei << ep;
     sphere.save( ctl );
     ctl.save();
 
+    // Perform some plots of different projections
     visa::WindowHandler plots;
     typedef visa::Colormaps::Colormap_t cmap_t;
-    plots.addPlot("Intensity");
-    plots.addPlot("Phase");
-    plots.get("Intensity").setCmap( cmap_t::NIPY_SPECTRAL );
-    plots.get("Phase").setCmap( cmap_t::NIPY_SPECTRAL );
+    plots.addPlot("IntensityXY");
+    plots.addPlot("PhaseXY");
+    plots.get("IntensityXY").setCmap( cmap_t::GREYSCALE );
+    plots.get("PhaseXY").setCmap( cmap_t::GREYSCALE );
     unsigned int sliceNumber = params.at("Nz")/2;
     arma::mat solution = arma::abs( sphere.getSolver().getSolution3D().slice(sliceNumber) );
-    plots.get("Intensity").fillVertexArray( solution );
+    plots.get("IntensityXY").fillVertexArray( solution );
     arma::cube phaseField;
     phase.result( solver, phaseField );
     solution = phaseField.slice(sliceNumber);
-    plots.get("Phase").fillVertexArray(solution);
+    plots.get("PhaseXY").fillVertexArray(solution);
+
+    // YZ plane
+    plots.addPlot( "IntensityYZ" );
+    plots.addPlot( "PhaseYZ" );
+    plots.get("IntensityYZ").setCmap( cmap_t::GREYSCALE );
+    plots.get("PhaseYZ").setCmap( cmap_t::GREYSCALE );
+    unsigned int row = params.at("Nt")/2;
+    solution = arma::abs( sphere.getSolver().getSolution3D().tube( row, 0, row, params.at("Nt") ) );
+    plots.get("IntensityYZ").fillVertexArray( solution );
+    solution = arma::arg( sphere.getSolver().getSolution3D().tube( row, 0, row, params.at("Nt") ) );
+    plots.get("PhaseYZ").fillVertexArray( solution );
+
+    // XZ plane
+    plots.addPlot( "IntensityXZ" );
+    plots.addPlot( "PhaseXZ" );
+    plots.get("IntensityXZ").setCmap( cmap_t::GREYSCALE );
+    plots.get("PhaseXZ").setCmap( cmap_t::GREYSCALE );
+    unsigned int col = params.at("Nt")/2;
+    solution = arma::abs( sphere.getSolver().getSolution3D().tube( 0, col, params.at("Nt"), col ) );
+    plots.get("IntensityXZ").fillVertexArray( solution );
+    solution = arma::arg( sphere.getSolver().getSolution3D().tube( 0, col, params.at("Nt"), col ) );
+    plots.get("PhaseXZ").fillVertexArray( solution );
+
+    // Store all pictures
+    for ( unsigned int i=0;i<plots.nPlots();i++ )
+    {
+      stringstream fname;
+      fname << "Figures/" << plots.get(i).getName() << ctl.getUID() << ".jpg";
+      sf::Image img = plots.get(i).capture();
+      img.saveToFile( fname.str() );
+      clog << "Image " << fname.str() << " saved...";
+    }
 
     plots.show();
     for ( unsigned int i=0;i<KEEP_PLOT_FOR_SEC;i++ )
