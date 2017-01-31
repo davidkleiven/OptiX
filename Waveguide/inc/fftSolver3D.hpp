@@ -27,6 +27,9 @@ public:
   /** Set the maximum and minimum value in the phase visualization */
   void setPhaseMinMax( double min, double max );
 
+  /** Resets the solver */
+  virtual void reset() override;
+
 private:
   /** The convolution kernel */
   cdouble kernel( double kx, double ky ) const;

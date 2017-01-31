@@ -13,7 +13,7 @@
 #include <chrono>
 #include <thread>
 #include <map>
-#define KEEP_PLOT_FOR_SEC 10
+#define KEEP_PLOT_FOR_SEC 3
 
 using namespace std;
 int main( int argc, char **argv )
@@ -33,10 +33,13 @@ int main( int argc, char **argv )
   params["downSampleZ"] = 4;
   params["savePlots"] = 0;
   params["q_max_inverse_nm"] = 0.5;
-  double anglemax = params.at("q_max_inverse_nm")*params.at("wavelength")/(2.0*3.14159);
+  params["padLength"] = 32768;
 
   pei::DialogBox dialog( params );
   dialog.show();
+
+  double anglemax = params.at("q_max_inverse_nm")*params.at("wavelength")/(2.0*3.14159);
+  anglemax *= (180.0/3.14159);
 
   // Define lengths in nm
   double r = params.at("radius");
@@ -64,9 +67,13 @@ int main( int argc, char **argv )
   {
 
     sphere.setWaveLength( params.at("wavelength") );
+
+    // Reference run
     sphere.setMaterial( "SiO2" );
     sphere.setTransverseDiscretization( xmin, xmax, dx, 1 );
-    sphere.setLongitudinalDiscretization( zmin, zmax, dz, 1 );
+    sphere.setLongitudinalDiscretization( zmin, zmax, (zmax-zmin)/3.0, 1 );
+    FFTSolver3D solver;
+
     PlaneWave pw;
     pw.setWavelength( params.at("wavelength") );
     pw.setDim( ParaxialSource::Dim_t::THREE_D );
@@ -74,9 +81,19 @@ int main( int argc, char **argv )
     GaussianBeam gbeam;
     gbeam.setWavelength( params.at("wavelength") );
     gbeam.setDim( ParaxialSource::Dim_t::THREE_D );
-    gbeam.setWaist( 40.0*r );
+    gbeam.setWaist( 400.0*r );
 
-    FFTSolver3D solver;
+    sphere.setSolver( solver );
+    sphere.setBoundaryConditions( gbeam );
+    sphere.solve();
+    arma::cx_mat ref = solver.getLastSolution3D();
+    clog << "Reference solution computed\n";
+
+    // Compute real solution
+    sphere.reset();
+    sphere.setLongitudinalDiscretization( zmin, zmax, dz, 1 );
+    sphere.setMaterial( "SiO2" );
+
     solver.visualizeRealSpace();
     //solver.visualizeFourierSpace();
     solver.setIntensityMinMax( 0.0, 1.0 );
@@ -90,7 +107,9 @@ int main( int argc, char **argv )
     ControlFile ctl("data/sphere");
 
     ff.setAngleRange( -anglemax, anglemax );
-    ff.setPadLength( 32768 );
+    ff.setPadLength( params.at("padLength")+0.5 );
+    ff.setPadding( post::FarField::Pad_t::ZERO );
+    ff.setReference( ref );
     sphere << ef << ei << ep << ff;
     sphere.save( ctl );
     ctl.save();

@@ -6,7 +6,8 @@ using namespace std;
 const map<elementName, filename> RefractiveIndex::knownElements = {{"Ta", "MatProp/indexRefrTa.txt"},
                                     {"C2H6O", "MatProp/indexRefrC2H6O.txt"},
                                     {"SiO2", "MatProp/indexRefrSiO2.txt"},
-                                    {"C2H6O2", "MatProp/indexRefrC2H6O2.txt"}};
+                                    {"C2H6O2", "MatProp/indexRefrC2H6O2.txt"},
+                                    {"Vacuum", ""}};
 
 void RefractiveIndex::load( const char* element )
 {
@@ -18,6 +19,12 @@ void RefractiveIndex::load( const char* element )
     throw ( runtime_error(msg) );
   }
   string lookUp(element);
+  if ( lookUp == "Vacuum ")
+  {
+    isVacuum = true;
+    return;
+  }
+
   string fname(knownElements.at(lookUp));
   ifstream infile;
   infile.open( fname.c_str() );
@@ -55,6 +62,8 @@ unsigned int RefractiveIndex::closestAbove( double energyInEv ) const
 
 double RefractiveIndex::getDelta( double energyInEv ) const
 {
+  if ( isVacuum ) return 0.0;
+
   unsigned int closest = closestAbove( energyInEv );
   if ( closest == energy.size() )
   {
@@ -70,6 +79,8 @@ double RefractiveIndex::getDelta( double energyInEv ) const
 
 double RefractiveIndex::getBeta( double energyInEv ) const
 {
+  if ( isVacuum ) return 0.0;
+  
   unsigned int closest = closestAbove( energyInEv );
   if ( closest == energy.size() )
   {

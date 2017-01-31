@@ -163,3 +163,14 @@ void FFTSolver3D::refractionIntegral( double x, double y, double z1 , double z2,
   delta /= (2.0*nStepsInRefrIntegral);
   beta /= (2.0*nStepsInRefrIntegral);
 }
+
+void FFTSolver3D::reset()
+{
+  Solver3D::reset();
+  if ( planInitialized )
+  {
+    fftw_destroy_plan( ftforw );
+    fftw_destroy_plan( ftback );
+    planInitialized = false;
+  }
+}

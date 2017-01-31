@@ -194,3 +194,4 @@
 219886 | S-waveguide R=40mm | Looks good |
 502938 | Curved waveguide L=4mm | Looks good |
 839906 | 2D WG FFT solver example | Same results as with FD |
+828475 | 3D scattering fromsphere | Does not match the form factor well |

@@ -22,9 +22,20 @@ class Plotter3D:
         self.data = None
         self.center = [0,0,0]
         self.cmap = "nipy_spectral"
-        self.limits = None
+        self.limits = Limits()
         self.uid = 0
         self.name = ""
+        self.xcrdLab = ""
+        self.ycrdLab = ""
+        self.cbLoc = None
+        self.cbTick = None
+        self.cbLog = True
+
+    def getXlim( self ):
+        return self.limits.xmin, self.limits.xmax
+
+    def getYlim( self ):
+        return self.limits.ymin, self.limits.ymax
 
     def centerOfMass( self ):
         self.center = nd.measurements.center_of_mass( self.data )
@@ -43,44 +54,90 @@ class Plotter3D:
         cg.attach( fig, ax, "Figures/%ssliceZ%d.svg"%(self.name, self.uid) )
         return cg
 
-    def farField( self, cg ):
+    def projectionXY( self, cg ):
         maxval = np.max( self.data )
         minval = 1E-8*maxval
         if ( np.min(self.data) > minval ):
             minval = np.min(self.data)
         fig = plt.figure()
         ax = fig.add_subplot(1,1,1)
-        extent = [self.limits.qmin*10.0, self.limits.qmax*10.0, self.limits.qmin*10.0, self.limits.qmax*10.0]
+        xmin, xmax = self.getXlim()
+        ymin, ymax = self.getYlim()
+        extent = [xmin, xmax, ymin, ymax]
         aspect = self.aspectRatio( extent )
-        im = ax.imshow( self.data, extent=extent, aspect=aspect, cmap=self.cmap, norm=colors.LogNorm(minval,maxval) )
+        if ( self.cbLog ):
+            im = ax.imshow( self.data, extent=extent, aspect=aspect, cmap=self.cmap, norm=colors.LogNorm(minval,maxval) )
+        else:
+            im = ax.imshow( self.data, extent=extent, aspect=aspect, cmap=self.cmap )
         cb = fig.colorbar( im )
-        labels = ["$10^{%d}$"%(int(np.log10(minval))), "$10^{%d}$"%(int(np.log10(maxval)))]
-        loc = [minval, maxval]
-        cb.set_ticks(loc)
-        cb.set_ticklabels(labels)
-        ax.set_xlabel( "$q_x \backslash SI{}{\backslash per\backslash angstrom}$" )
+
+        if ( not self.cbLoc is None and not self.cbTick is None ):
+            cb.set_ticks(self.cbLoc)
+            cb.set_ticklabels(self.cbTick)
+        ax.set_xlabel( self.xcrdLab )
+        ax.set_ylabel( self.ycrdLab )
+        #ax.set_xlabel( "$q_x \\backslash SI{}{\\backslash per\\backslash angstrom}$" )
         #ax.set_ylabel( "$q_y \\ SI{}{\\ per\\ angstrom}$" )
-        cg.attach( fig, ax, "Figures/%s%d.svg"%(self.name, self.uid) )
+        cg.attach( fig, ax, "Figures/%sXY%d.svg"%(self.name, self.uid) )
         return cg
 
     def projectionX( self, cg ):
         fig = plt.figure()
         ax = fig.add_subplot(1,1,1)
-        q = np.linspace( self.limits.qmin*10.0, self.limits.qmax*10.0, len(self.data[0,:]) )
-        ax.plot( q, self.data[int(self.center[0]),:], color="black")
+        xmin, xmax = self.getXlim()
+        x = np.linspace( xmin, xmax, len(self.data[0,:]) )
+        ax.plot( x, self.data[int(self.center[0]),:], color="black")
         ax.spines["right"].set_visible( False )
         ax.spines["top"].set_visible( False )
         #ax.set_xlabel( "$q_x \\SI{}{\\per\\angstrom}$" )
-        cg.attach( fig, ax, "Figures/%sQx%d.svg"%( self.name, self.uid) )
+        ax.set_xlabel( self.xcrdLab )
+        cg.attach( fig, ax, "Figures/%sX%d.svg"%( self.name, self.uid) )
         return cg
 
     def projectionY( self, cg ):
         fig = plt.figure()
         ax = fig.add_subplot(1,1,1)
-        q = np.linspace( self.limits.qmin*10.0, self.limits.qmax*10.0, len(self.data[:,0]) )
-        ax.plot( q, self.data[:,int(self.center[1])], color="black")
+        ymin, ymax = self.getYlim()
+        y = np.linspace( ymin, ymax, len(self.data[:,0]) )
+        ax.plot( y, self.data[:,int(self.center[1])], color="black")
         ax.spines["right"].set_visible( False )
         ax.spines["top"].set_visible( False )
         #ax.set_xlabel( "$q_y \\SI{}{\\per\\angstrom}$" )
-        cg.attach( fig, ax, "Figures/%sQy%d.svg"%( self.name, self.uid) )
+        ax.set_xlabel( self.ycrdLab )
+        cg.attach( fig, ax, "Figures/%sY%d.svg"%( self.name, self.uid) )
         return cg
+
+class FarField(Plotter3D):
+    def __init__( self ):
+        Plotter3D.__init__( self )
+        self.xcrdLab = "$q_x \\backslash SI{}{\\backslash per\\backslash angstrom}$"
+        self.ycrdlab = "$q_y \\backslash SI{}{\\backslash per\\backslash angstrom}$"
+        self.name = "FarField"
+
+    def projectionXY( self, cg ):
+        self.cbLoc = [np.min(self.data), np.max(self.data)]
+        self.cbTick = ["$10^{%d}$"%(int(np.log10(np.min(self.data)))), "$10^{%d}$"%(int(np.log10(np.max(self.data))))]
+        return Plotter3D.projectionXY( self, cg )
+
+    def getXlim( self ):
+        return self.limits.qmin*10.0, self.limits.qmax*10.0
+
+    def getYlim( self ):
+        return self.limits.qmin*10.0, self.limits.qmax*10.0
+
+class Phase(Plotter3D):
+    def __init__( self ):
+        Plotter3D.__init__(self)
+        #self.cbLoc = [-np.pi, 0.0, np.pi]
+        #self.cbTick = ["-$\pi$", "$0$", "$\pi$"]
+        self.xcrdLab =  "$x \\backslash SI{}{\\backslash micro\\backslash meter}$"
+        self.ycrdlab = "$y \\backslash SI{}{\\backslash micro\\backslash meter}$"
+        self.name = "phase"
+        self.cbLog = False
+
+class Intensity(Plotter3D):
+    def __init_( self ):
+        Plotter3D.__init__( self )
+        self.xcrdLab =  "$x \\backslash SI{}{\\backslash micro\\backslash meter}$"
+        self.ycrdlab = "$y \\backslash SI{}{\\backslash micro\\backslash meter}$"
+        self.name = "intensity"
