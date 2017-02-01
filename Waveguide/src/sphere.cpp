@@ -1,5 +1,8 @@
 #include "sphere.hpp"
 #include "refractiveIndex.hpp"
+#include <iostream>
+
+using namespace std;
 
 Sphere::Sphere( const Point3D &inCenter, double radius ): ParaxialSimulation("SingleSphere"), radius(radius)
 {
@@ -15,6 +18,7 @@ void Sphere::setMaterial( const char* name )
   double energy = getEnergy();
   delta = refr.getDelta( energy );
   beta = refr.getBeta( energy );
+  clog << delta << endl;
 }
 
 void Sphere::getXrayMatProp( double x, double y, double z, double &matDelta, double &matBeta ) const

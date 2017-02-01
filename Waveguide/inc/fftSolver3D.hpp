@@ -29,7 +29,6 @@ public:
 
   /** Resets the solver */
   virtual void reset() override;
-
 private:
   /** The convolution kernel */
   cdouble kernel( double kx, double ky ) const;
@@ -56,5 +55,12 @@ private:
 
   bool visRealSpace{false};
   bool visFourierSpace{false};
+};
+
+class FFT3DSolverDebug: public FFTSolver3D
+{
+public:
+  /** Only for debugging. The non-const version should not be used */
+  virtual arma::cx_mat& getLastSolution3D() override{ return *prevSolution; };
 };
 #endif

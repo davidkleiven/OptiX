@@ -14,8 +14,12 @@
 #include <thread>
 #include <map>
 #define KEEP_PLOT_FOR_SEC 3
+//#define FAKE_RESULT_WITH_PURE_PHASE_SHIFT
 
 using namespace std;
+
+void generatePhaseObjectSolution( const map<string,double> &params, const arma::cx_mat &reference, arma::cx_mat &newSolution );
+
 int main( int argc, char **argv )
 {
   map<string,double> params;
@@ -69,10 +73,15 @@ int main( int argc, char **argv )
     sphere.setWaveLength( params.at("wavelength") );
 
     // Reference run
-    sphere.setMaterial( "SiO2" );
+    sphere.setMaterial( "Vacuum" );
     sphere.setTransverseDiscretization( xmin, xmax, dx, 1 );
     sphere.setLongitudinalDiscretization( zmin, zmax, (zmax-zmin)/3.0, 1 );
-    FFTSolver3D solver;
+
+    #ifdef FAKE_RESULT_WITH_PURE_PHASE_SHIFT
+      FFT3DSolverDebug solver;
+    #else
+      FFTSolver3D solver;
+    #endif
 
     PlaneWave pw;
     pw.setWavelength( params.at("wavelength") );
@@ -101,10 +110,21 @@ int main( int argc, char **argv )
 
     sphere.setSolver( solver );
     sphere.setBoundaryConditions( gbeam );
-    clog << "Solving system...";
-    sphere.solve();
+
+    #ifndef FAKE_RESULT_WITH_PURE_PHASE_SHIFT
+      clog << "Solving system...";
+      sphere.solve();
     clog << "done\n";
+    #endif
+
     ControlFile ctl("data/sphere");
+
+    #ifdef FAKE_RESULT_WITH_PURE_PHASE_SHIFT
+      clog << "Using fake solution to test the far field routine!\n";
+      arma::cx_mat fakeSolution;
+      generatePhaseObjectSolution( params, ref, fakeSolution );
+      solver.getLastSolution3D() = fakeSolution;
+    #endif
 
     ff.setAngleRange( -anglemax, anglemax );
     ff.setPadLength( params.at("padLength")+0.5 );
@@ -184,4 +204,38 @@ int main( int argc, char **argv )
   }
 
   return 0;
+}
+
+// Helper functions
+void generatePhaseObjectSolution( const map<string,double> &params, const arma::cx_mat &reference, arma::cx_mat &newSolution )
+{
+  assert( reference.is_square() );
+  double xmin = params.at("xmin_r")*params.at("radius");
+  double xmax = params.at("xmax_r")*params.at("radius");
+  double R = params.at("radius");
+  double dx = (xmax-xmin)/reference.n_rows;
+  double delta = 8.90652E-6;
+  double k = 2.0*3.14159/params.at("wavelength");
+  cdouble im( 0.0, 1.0 );
+  newSolution.set_size( reference.n_rows, reference.n_cols );
+  for ( unsigned int i=0;i<reference.n_cols;i++ )
+  {
+    double x = xmin + i*dx;
+    for ( unsigned int j=0;j<reference.n_rows;j++ )
+    {
+      double y = xmin+j*dx;
+      double r = sqrt( x*x+y*y );
+      if ( r > R )
+      {
+        newSolution(j,i) = reference(j,i);
+      }
+      else
+      {
+        double phase = -2.0*delta*k*sqrt( R*R - r*r );
+        phase = -2.0*delta*k*R;
+        newSolution(j,i) = abs(reference(j,i))*exp(im*phase);
+      }
+      //newSolution(j,i) = 2.0*reference(j,i);
+    }
+  }
 }

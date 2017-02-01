@@ -64,6 +64,9 @@ protected:
   visa::GaussianKernel kernel;
   visa::LowPassFilter filter;
   unsigned int currentStep{1};
+
+  /** Get last solution 3D. Non-const version should only be used for debugging */
+  virtual arma::cx_mat& getLastSolution3D();
 };
 
 #endif

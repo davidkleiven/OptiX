@@ -27,6 +27,7 @@ class Plotter3D:
         self.name = ""
         self.xcrdLab = ""
         self.ycrdLab = ""
+        self.quantityLab = ""
         self.cbLoc = None
         self.cbTick = None
         self.cbLog = True
@@ -81,38 +82,45 @@ class Plotter3D:
         cg.attach( fig, ax, "Figures/%sXY%d.svg"%(self.name, self.uid) )
         return cg
 
-    def projectionX( self, cg ):
+    def projectionX( self, cg, color="black", label="" ):
         fig = plt.figure()
         ax = fig.add_subplot(1,1,1)
         xmin, xmax = self.getXlim()
         x = np.linspace( xmin, xmax, len(self.data[0,:]) )
-        ax.plot( x, self.data[int(self.center[0]),:], color="black")
+        ax.plot( x, self.data[int(self.center[0]),:], color=color, label=label)
         ax.spines["right"].set_visible( False )
         ax.spines["top"].set_visible( False )
         #ax.set_xlabel( "$q_x \\SI{}{\\per\\angstrom}$" )
         ax.set_xlabel( self.xcrdLab )
+        ax.set_ylabel( self.quantityLab )
+        ax.xaxis.set_ticks_position('bottom')
+        ax.yaxis.set_ticks_position('left')
         cg.attach( fig, ax, "Figures/%sX%d.svg"%( self.name, self.uid) )
         return cg
 
-    def projectionY( self, cg ):
+    def projectionY( self, cg, color="black", label="" ):
         fig = plt.figure()
         ax = fig.add_subplot(1,1,1)
         ymin, ymax = self.getYlim()
         y = np.linspace( ymin, ymax, len(self.data[:,0]) )
-        ax.plot( y, self.data[:,int(self.center[1])], color="black")
+        ax.plot( y, self.data[:,int(self.center[1])], color=color, label=label )
         ax.spines["right"].set_visible( False )
         ax.spines["top"].set_visible( False )
         #ax.set_xlabel( "$q_y \\SI{}{\\per\\angstrom}$" )
         ax.set_xlabel( self.ycrdLab )
+        ax.set_ylabel( self.quantityLab )
+        ax.xaxis.set_ticks_position('bottom')
+        ax.yaxis.set_ticks_position('left')
         cg.attach( fig, ax, "Figures/%sY%d.svg"%( self.name, self.uid) )
         return cg
 
 class FarField(Plotter3D):
     def __init__( self ):
         Plotter3D.__init__( self )
-        self.xcrdLab = "$q_x \\backslash SI{}{\\backslash per\\backslash angstrom}$"
-        self.ycrdlab = "$q_y \\backslash SI{}{\\backslash per\\backslash angstrom}$"
+        self.xcrdLab = r"\$q_x (\SI{}{\per\nano\meter})\$"
+        self.ycrdlab = r"\$q_y (\SI{}{\per\nano\meter})\$"
         self.name = "FarField"
+        self.quantityLab = "Intensity (a.u.)"
 
     def projectionXY( self, cg ):
         self.cbLoc = [np.min(self.data), np.max(self.data)]
@@ -120,10 +128,10 @@ class FarField(Plotter3D):
         return Plotter3D.projectionXY( self, cg )
 
     def getXlim( self ):
-        return self.limits.qmin*10.0, self.limits.qmax*10.0
+        return self.limits.qmin, self.limits.qmax
 
     def getYlim( self ):
-        return self.limits.qmin*10.0, self.limits.qmax*10.0
+        return self.limits.qmin, self.limits.qmax
 
 class Phase(Plotter3D):
     def __init__( self ):
@@ -134,10 +142,12 @@ class Phase(Plotter3D):
         self.ycrdlab = "$y \\backslash SI{}{\\backslash micro\\backslash meter}$"
         self.name = "phase"
         self.cbLog = False
+        self.quantityLab = "Phase (rad)"
 
 class Intensity(Plotter3D):
     def __init_( self ):
         Plotter3D.__init__( self )
-        self.xcrdLab =  "$x \\backslash SI{}{\\backslash micro\\backslash meter}$"
+        self.xcrdLab =  r"$x \SI{}{\micro\meter}$"
         self.ycrdlab = "$y \\backslash SI{}{\\backslash micro\\backslash meter}$"
         self.name = "intensity"
+        self.quantityLab = "Intensity (a.u.)"

@@ -19,7 +19,7 @@ void RefractiveIndex::load( const char* element )
     throw ( runtime_error(msg) );
   }
   string lookUp(element);
-  if ( lookUp == "Vacuum ")
+  if ( lookUp == "Vacuum")
   {
     isVacuum = true;
     return;
@@ -80,7 +80,7 @@ double RefractiveIndex::getDelta( double energyInEv ) const
 double RefractiveIndex::getBeta( double energyInEv ) const
 {
   if ( isVacuum ) return 0.0;
-  
+
   unsigned int closest = closestAbove( energyInEv );
   if ( closest == energy.size() )
   {
