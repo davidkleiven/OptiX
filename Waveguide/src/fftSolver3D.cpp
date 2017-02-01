@@ -77,18 +77,27 @@ void FFTSolver3D::propagate()
 
 void FFTSolver3D::refraction( unsigned int step )
 {
+  assert ( step > 0 );
   double stepZ = guide->longitudinalDiscretization().step;
   double wavenumber = guide->getWavenumber();
-  double z = guide->getZ( step ) + 0.5*stepZ;
+  double z1 = guide->getZ( step );
+  double z0 = guide->getZ( step-1 );
   cdouble im(0.0,1.0);
+  const double ZERO = 1E-10;
   for ( unsigned int i=0;i<prevSolution->n_cols; i++ )
   {
     double x = guide->getX(i);
     for ( unsigned int j=0;j<prevSolution->n_rows;j++ )
     {
       double y = guide->getX(j);
-      double delta, beta;
-      guide->getXrayMatProp( x, y, z, delta, beta );
+      double delta, beta, deltaPrev, betaPrev;
+      guide->getXrayMatProp( x, y, z1, delta, beta );
+      guide->getXrayMatProp( x, y, z0, deltaPrev, betaPrev );
+      if (( abs(delta-deltaPrev) < ZERO ) || ( abs(beta-betaPrev) < ZERO ))
+      {
+        // Wave has crossed a border
+        refractionIntegral( x, y, z0, z1, delta, beta );
+      }
 
       // FFTW3: Divide by length to normalize
       double normalization = prevSolution->n_rows*prevSolution->n_cols;
@@ -131,4 +140,37 @@ void FFTSolver3D::setIntensityMinMax( double min, double max )
 void FFTSolver3D::setPhaseMinMax( double min, double max )
 {
   plots.get("Phase").setColorLim( min, max );
+}
+
+void FFTSolver3D::refractionIntegral( double x, double y, double z1 , double z2, double &delta, double &beta )
+{
+  double deltaTemp = 0.0;
+  double betaTemp = 0.0;
+  guide->getXrayMatProp( x, y, z1, delta, beta );
+  guide->getXrayMatProp( x, y, z2, deltaTemp, betaTemp );
+  delta += deltaTemp;
+  beta += betaTemp;
+  double z = z1;
+  double dz = (z2-z1)/nStepsInRefrIntegral;
+  for ( unsigned int i=1;i<nStepsInRefrIntegral-1;i++ )
+  {
+    z = z1 + i*dz;
+    guide->getXrayMatProp( x, y, z, deltaTemp, betaTemp );
+    delta += 2.0*deltaTemp;
+    beta += 2.0*betaTemp;
+  }
+  // NOTE: Multiplication with dz is left out as this is done in the refraction function
+  delta /= (2.0*nStepsInRefrIntegral);
+  beta /= (2.0*nStepsInRefrIntegral);
+}
+
+void FFTSolver3D::reset()
+{
+  Solver3D::reset();
+  if ( planInitialized )
+  {
+    fftw_destroy_plan( ftforw );
+    fftw_destroy_plan( ftback );
+    planInitialized = false;
+  }
 }

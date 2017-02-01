@@ -31,5 +31,6 @@ private:
   std::vector<double> energy;
   std::vector<double> delta;
   std::vector<double> beta;
+  bool isVacuum{false};
 };
 #endif

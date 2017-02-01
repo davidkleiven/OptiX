@@ -20,35 +20,50 @@ def main( argv ):
 
     lim = proj3D.Limits()
     ampPlot = proj3D.Plotter3D()
-    phasePlot = proj3D.Plotter3D()
-
-    ampPlot.name = "intensity"
-    phasePlot.name = "phase"
+    phasePlot = proj3D.Phase()
+    ffPlot = proj3D.FarField()
+    intensityPlot = proj3D.Intensity()
 
     with h5.File( fname, 'r' ) as hf:
         group = hf.get("/data")
-        ampPlot.data = np.array( hf.get("/data/amplitude") )
-        #phasePlot.data = np.array( hf.get("/data/phase") )
+        ffset = hf.get("/data/farField")
+        ffPlot.data = np.array( ffset )
+        phasePlot.data = np.array( hf.get("/data/exitPhase") )
+        intensityPlot.data = np.array( hf.get("/data/exitIntensity") )
         lim.zmin = group.attrs.get("zmin")
         lim.zmax = group.attrs.get("zmax")
-        lim.xmin = group.attrs.get("xmin")
-        lim.xmax = group.attrs.get("xmax")
+        lim.xmin = group.attrs.get("xmin")/1000.0
+        lim.xmax = group.attrs.get("xmax")/1000.0
+        lim.qmin = ffset.attrs.get("qmin")
+        lim.qmax = ffset.attrs.get("qmax")
         lim.ymin = lim.xmin
         lim.ymax = lim.xmax
-        #lim.ymin = group.attrs.get("ymin")
-        #lim.ymax = group.attrs.get("ymax")
+        ffPlot.uid = group.attrs.get("uid")
 
     ampPlot.limits = lim
+    ffPlot.limits = lim
+    phasePlot.limits = lim
+    intensityPlot.limits = lim
+    ffPlot.cmap = "bone"
 
-    print (ampPlot.data)
     # Compute center of mass
-    ampPlot.centerOfMass()
-    #phasePlot.centerOfMass()
+    ffPlot.centerOfMass()
+    phasePlot.centerOfMass()
+    intensityPlot.centerOfMass()
 
     root = tk.Tk()
     control = cg.Control( root )
-    ampPlot.sliceZ( cg )
+    control = ffPlot.projectionXY( control )
+    control = ffPlot.projectionX( control )
+    control = ffPlot.projectionY( control )
 
+    '''
+    control = phasePlot.projectionXY( control )
+    control = phasePlot.projectionX( control )
+    control =phasePlot.projectionY( control )
+    '''
+
+    control = intensityPlot.projectionX( control )
     root.mainloop()
 
 if __name__ == "__main__":

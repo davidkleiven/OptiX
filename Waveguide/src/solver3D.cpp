@@ -2,6 +2,9 @@
 #include <cassert>
 #include "paraxialSimulation.hpp"
 #include <omp.h>
+#include <ctime>
+#include <chrono>
+#include <iostream>
 
 using namespace std;
 
@@ -51,7 +54,7 @@ void Solver3D::filterTransverse( arma::cx_mat &mat )
   {
     rowGetters.push_back( visa::ArmaGetter<cdouble, visa::ArmaMatrix_t::ROW>() );
   }
-  
+
   #pragma omp parallel
   {
     unsigned int id = omp_get_thread_num();
@@ -124,9 +127,19 @@ void Solver3D::step()
 
 void Solver3D::solve()
 {
+  auto lastTime = chrono::steady_clock::now();
+  auto now = lastTime;
   for ( unsigned int i=1;i<guide->nodeNumberLongitudinal();i++ )
   {
     step();
+
+    now = chrono::steady_clock::now();
+    chrono::duration<double> elapsedSec = now - lastTime;
+    if ( elapsedSec > chrono::duration<double>(secBetweenStatusMessage) )
+    {
+      clog << "Propagation step: " << i << " of " << guide->nodeNumberLongitudinal() << endl;
+      lastTime = chrono::steady_clock::now();
+    }
   }
 
   // TODO: Should one support downsampling in 3D. This will require an extra copy

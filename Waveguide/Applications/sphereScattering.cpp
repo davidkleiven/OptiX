@@ -13,9 +13,13 @@
 #include <chrono>
 #include <thread>
 #include <map>
-#define KEEP_PLOT_FOR_SEC 10
+#define KEEP_PLOT_FOR_SEC 3
+//#define FAKE_RESULT_WITH_PURE_PHASE_SHIFT
 
 using namespace std;
+
+void generatePhaseObjectSolution( const map<string,double> &params, const arma::cx_mat &reference, arma::cx_mat &newSolution );
+
 int main( int argc, char **argv )
 {
   map<string,double> params;
@@ -31,9 +35,15 @@ int main( int argc, char **argv )
   params["Nz"] = 512;
   params["downSampleT"] = 8;
   params["downSampleZ"] = 4;
+  params["savePlots"] = 0;
+  params["q_max_inverse_nm"] = 0.5;
+  params["padLength"] = 32768;
 
   pei::DialogBox dialog( params );
   dialog.show();
+
+  double anglemax = params.at("q_max_inverse_nm")*params.at("wavelength")/(2.0*3.14159);
+  anglemax *= (180.0/3.14159);
 
   // Define lengths in nm
   double r = params.at("radius");
@@ -61,9 +71,18 @@ int main( int argc, char **argv )
   {
 
     sphere.setWaveLength( params.at("wavelength") );
-    sphere.setMaterial( "SiO2" );
+
+    // Reference run
+    sphere.setMaterial( "Vacuum" );
     sphere.setTransverseDiscretization( xmin, xmax, dx, 1 );
-    sphere.setLongitudinalDiscretization( zmin, zmax, dz, 1 );
+    sphere.setLongitudinalDiscretization( zmin, zmax, (zmax-zmin)/3.0, 1 );
+
+    #ifdef FAKE_RESULT_WITH_PURE_PHASE_SHIFT
+      FFT3DSolverDebug solver;
+    #else
+      FFTSolver3D solver;
+    #endif
+
     PlaneWave pw;
     pw.setWavelength( params.at("wavelength") );
     pw.setDim( ParaxialSource::Dim_t::THREE_D );
@@ -71,9 +90,19 @@ int main( int argc, char **argv )
     GaussianBeam gbeam;
     gbeam.setWavelength( params.at("wavelength") );
     gbeam.setDim( ParaxialSource::Dim_t::THREE_D );
-    gbeam.setWaist( 4.0*r );
+    gbeam.setWaist( 400.0*r );
 
-    FFTSolver3D solver;
+    sphere.setSolver( solver );
+    sphere.setBoundaryConditions( gbeam );
+    sphere.solve();
+    arma::cx_mat ref = solver.getLastSolution3D();
+    clog << "Reference solution computed\n";
+
+    // Compute real solution
+    sphere.reset();
+    sphere.setLongitudinalDiscretization( zmin, zmax, dz, 1 );
+    sphere.setMaterial( "SiO2" );
+
     solver.visualizeRealSpace();
     //solver.visualizeFourierSpace();
     solver.setIntensityMinMax( 0.0, 1.0 );
@@ -81,14 +110,27 @@ int main( int argc, char **argv )
 
     sphere.setSolver( solver );
     sphere.setBoundaryConditions( gbeam );
-    clog << "Solving system...";
-    sphere.solve();
+
+    #ifndef FAKE_RESULT_WITH_PURE_PHASE_SHIFT
+      clog << "Solving system...";
+      sphere.solve();
     clog << "done\n";
+    #endif
+
     ControlFile ctl("data/sphere");
 
-    ff.setAngleRange( -0.1, 0.1 );
-    ff.setPadLength( 65536 );
-    sphere << ef << ei << ep;
+    #ifdef FAKE_RESULT_WITH_PURE_PHASE_SHIFT
+      clog << "Using fake solution to test the far field routine!\n";
+      arma::cx_mat fakeSolution;
+      generatePhaseObjectSolution( params, ref, fakeSolution );
+      solver.getLastSolution3D() = fakeSolution;
+    #endif
+
+    ff.setAngleRange( -anglemax, anglemax );
+    ff.setPadLength( params.at("padLength")+0.5 );
+    ff.setPadding( post::FarField::Pad_t::ZERO );
+    ff.setReference( ref );
+    sphere << ef << ei << ep << ff;
     sphere.save( ctl );
     ctl.save();
 
@@ -130,13 +172,16 @@ int main( int argc, char **argv )
     plots.get("PhaseXZ").fillVertexArray( solution );
 
     // Store all pictures
-    for ( unsigned int i=0;i<plots.nPlots();i++ )
+    if ( static_cast<int>(params.at("savePlots")) )
     {
-      stringstream fname;
-      fname << "Figures/sphere" << plots.get(i).getName() << ctl.getUID() << ".jpg";
-      sf::Image img = plots.get(i).capture();
-      img.saveToFile( fname.str() );
-      clog << "Image " << fname.str() << " saved...\n";
+      for ( unsigned int i=0;i<plots.nPlots();i++ )
+      {
+        stringstream fname;
+        fname << "Figures/sphere" << plots.get(i).getName() << ctl.getUID() << ".jpg";
+        sf::Image img = plots.get(i).capture();
+        img.saveToFile( fname.str() );
+        clog << "Image " << fname.str() << " saved...\n";
+      }
     }
 
     plots.show();
@@ -159,4 +204,38 @@ int main( int argc, char **argv )
   }
 
   return 0;
+}
+
+// Helper functions
+void generatePhaseObjectSolution( const map<string,double> &params, const arma::cx_mat &reference, arma::cx_mat &newSolution )
+{
+  assert( reference.is_square() );
+  double xmin = params.at("xmin_r")*params.at("radius");
+  double xmax = params.at("xmax_r")*params.at("radius");
+  double R = params.at("radius");
+  double dx = (xmax-xmin)/reference.n_rows;
+  double delta = 8.90652E-6;
+  double k = 2.0*3.14159/params.at("wavelength");
+  cdouble im( 0.0, 1.0 );
+  newSolution.set_size( reference.n_rows, reference.n_cols );
+  for ( unsigned int i=0;i<reference.n_cols;i++ )
+  {
+    double x = xmin + i*dx;
+    for ( unsigned int j=0;j<reference.n_rows;j++ )
+    {
+      double y = xmin+j*dx;
+      double r = sqrt( x*x+y*y );
+      if ( r > R )
+      {
+        newSolution(j,i) = reference(j,i);
+      }
+      else
+      {
+        double phase = -2.0*delta*k*sqrt( R*R - r*r );
+        phase = -2.0*delta*k*R;
+        newSolution(j,i) = abs(reference(j,i))*exp(im*phase);
+      }
+      //newSolution(j,i) = 2.0*reference(j,i);
+    }
+  }
 }

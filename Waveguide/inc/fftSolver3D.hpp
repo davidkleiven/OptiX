@@ -27,6 +27,8 @@ public:
   /** Set the maximum and minimum value in the phase visualization */
   void setPhaseMinMax( double min, double max );
 
+  /** Resets the solver */
+  virtual void reset() override;
 private:
   /** The convolution kernel */
   cdouble kernel( double kx, double ky ) const;
@@ -47,7 +49,18 @@ private:
   /** Refraction step */
   void refraction( unsigned int step );
 
+  /** Computes the refraction integral when a border has been crossed */
+  void refractionIntegral( double x, double y, double z1, double z2, double &delta, double &beta );
+  unsigned int nStepsInRefrIntegral{200};
+
   bool visRealSpace{false};
   bool visFourierSpace{false};
+};
+
+class FFT3DSolverDebug: public FFTSolver3D
+{
+public:
+  /** Only for debugging. The non-const version should not be used */
+  virtual arma::cx_mat& getLastSolution3D() override{ return *prevSolution; };
 };
 #endif

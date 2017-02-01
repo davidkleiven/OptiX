@@ -21,3 +21,8 @@ const arma::cx_mat& Solver::getLastSolution3D() const
 {
   throw( runtime_error("The 3D version of getLastSolution3D() is not implemented!") );
 }
+
+arma::cx_mat& Solver::getLastSolution3D()
+{
+  throw( runtime_error("The 3D version of non-const getLastSolution3D() is not implemented!") );
+}

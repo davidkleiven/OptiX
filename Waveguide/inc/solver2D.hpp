@@ -66,7 +66,7 @@ public:
   void setXBC( const cdouble valuesTop[], const cdouble valuesBottom[] ); // BC at top (x=xmax) and bottom (x=xmin)
 
   /** Get last solution. NOTE: Return prev solution as this is not filtered */
-  arma::cx_vec& getLastSolution() const { return *prevSolution; };
+  virtual const arma::cx_vec& getLastSolution() const override final { return *prevSolution; };
 
   /** Run simulation */
   void solve();
