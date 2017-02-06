@@ -42,6 +42,7 @@ void MultipleCurvedWG::loadWaveguides( const string &jsonfname )
   infile.close();
   loadWaveguides( root );
 }
+
 void MultipleCurvedWG::loadWaveguides( const Json::Value &root )
 {
 
@@ -86,6 +87,7 @@ void MultipleCurvedWG::init( const map<string,double> &params )
 
   if ( solver != NULL ) delete solver;
   CrankNicholson *cnSolver = new CrankNicholson();
+  cnSolver->disableLongitudinalFilter(); // Completely disable longitudinal filter
 
   PlaneWave* pw = new PlaneWave();
 
@@ -113,7 +115,8 @@ void MultipleCurvedWG::init( const map<string,double> &params )
   this->setTransverseDiscretization( xmin, xmax, params.at("stepX"), params.at("downSamplingX") );
 
   // NOTE: Now zmin is equal to the total length of the waveguide
-  this->setLongitudinalDiscretization( 0.0, zmin, params.at("stepZ"), params.at("downSamplingZ") );
+  //this->setLongitudinalDiscretization( 0.0, zmin, params.at("stepZ"), params.at("downSamplingZ") );
+  this->setLongitudinalDiscretization( 0.0, zmin, params.at("stepZ") );
   this->setWaveLength( params.at("wavelength") );
 
   cnSolver->setEquation( eq );
@@ -126,7 +129,8 @@ void MultipleCurvedWG::init( const map<string,double> &params )
   transmittivity = new arma::vec( totalNz, arma::fill::zeros );
 
   if ( intensity != NULL ) delete intensity;
-  intensity = new arma::mat( Nx/params.at("downSamplingX"), totalNz/params.at("downSamplingZ"), arma::fill::zeros );
+  //intensity = new arma::mat( Nx/params.at("downSamplingX"), totalNz/params.at("downSamplingZ"), arma::fill::zeros );
+  intensity = new arma::mat( Nx/params.at("downSamplingX"), totalNz, arma::fill::zeros );
 
   pw->setWavelength( params.at("wavelength") );
 
@@ -165,12 +169,13 @@ void MultipleCurvedWG::solve()
       if ( (*wg)->getCurvature() != (*(wg-1))->getCurvature() )
       {
         flipWrtCenterOfWG( endSolution );
-        double phaseShift = phaseDifference( **(wg-1), **wg );
-        endSolution *= exp( im*wavenumber*phaseShift );
+        //double phaseShift = phaseDifference( **(wg-1), **wg );
+        //endSolution *= exp( im*wavenumber*phaseShift );
       }
 
       (*wg)->setBoundaryConditions( fsource );
     }
+
     (*wg)->solve();
     processSolution( **wg );
     endSolution = solver->getLastSolution();
@@ -195,10 +200,19 @@ void MultipleCurvedWG::processSolution( CurvedWGConfMap &wg )
 
   // Get a copy of the solution
   arma::mat intensitySolution =  abs( solver->getSolution() );
+
   if ( wg.getCurvature() == CurvedWGConfMap::Curvature_t::CONVEX )
   {
     flipWrtCenterOfWG( intensitySolution );
   }
+
+  if ( NzNextFillStartIntensity > 0 )
+  {
+    checkFiltering( intensitySolution, NzNextFillStartIntensity );
+  }
+
+  cout << intensitySolution.col(0) << endl;
+  cout << intensity->col(NzNextFillStartIntensity) << endl;
 
   // Copy intensity
   for ( unsigned int i=0;i<nmax;i++ )
@@ -209,7 +223,7 @@ void MultipleCurvedWG::processSolution( CurvedWGConfMap &wg )
     }
   }
 
-  NzNextFillStartIntensity += nmax;
+  NzNextFillStartIntensity += (nmax-1); // Overwrite the last column, since the first column in the next solution is equal
 
   unsigned int thisTransSize = transmittivity->size();
   unsigned int computedTransSize = wg.getTransmittivity().get().size();
@@ -325,4 +339,29 @@ void MultipleCurvedWG::reset()
   NzNextFillStartIntensity = 0;
   lastElemSet = 0;
   angles.clear();
+}
+
+void MultipleCurvedWG::checkFiltering( arma::mat &newSolution, unsigned int prevEnd )
+{
+  double minDeviation = 1E10;
+  int shift = 0;
+  int minShift = -newSolution.n_rows/8;
+  int maxShift = newSolution.n_rows/8;
+  arma::vec prevSolution = intensity->col(prevEnd);
+  for ( int i=minShift;i<maxShift;i++ )
+  {
+    arma::vec shiftedSolution = arma::shift( newSolution.col(0), i );
+    double newDeviation = arma::sum( arma::abs(shiftedSolution-prevSolution) );
+    if ( newDeviation < minDeviation )
+    {
+      minDeviation = newDeviation;
+      shift = i;
+    }
+  }
+  clog << "Shift: " << shift << " min deviation: " << minDeviation << endl;
+  if ( shift != 0 )
+  {
+    clog << "The filtering seems to have shifted the solution by " << shift << " pixel(s). Correcting for this...\n";
+  }
+  newSolution = arma::shift( newSolution, shift );
 }

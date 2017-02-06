@@ -83,6 +83,9 @@ public:
   /** Set which boundary conditions to use. Dirichlet is default */
   void setBoundaryCondition( BC_t bc ){ boundaryCondition = bc; };
 
+  /** Function that disables the longitudinal filtering */
+  void disableLongitudinalFilter(){ longitudinalFilterDisabled = true; };
+
   // Virtual functions
   /** Pure virtual function for solving the system */
 
@@ -101,6 +104,7 @@ protected:
   double zmin{0.0};
   double wavenumber{1.0};
   BC_t boundaryCondition{BC_t::DIRICHLET};
+  bool longitudinalFilterDisabled{false}; // Flag for completely disable longitudinal filter
 
   /** Get the solution */
   arma::cx_mat& getSolution( unsigned int iz ) { return *solution; };
