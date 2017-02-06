@@ -156,6 +156,16 @@ void MultipleCurvedWG::solve()
     clog << "Running waveguide " << counter++ << endl;
     solver->reset();
 
+    // Set direction from which to start the downsample routine
+    if ( (*wg)->getCurvature() == CurvedWGConfMap::Curvature_t::CONVEX )
+    {
+      solver->downSampleRightLeft();
+    }
+    else
+    {
+      solver->downSampleLeftRight();
+    }
+
     (*wg)->setSolver( *solver );
     if ( wg == waveguides->begin() )
     {

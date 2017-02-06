@@ -35,7 +35,7 @@ def main( argv ):
         multiplot.angles = np.array( group.attrs.get("angles"))
         uid = group.attrs.get("uid")
 
-        intensity = np.array( hf.get("/data/amplitude") )
+        intensity = np.array( hf.get("/data/amplitude") ).T
         transmittivity = np.array( hf.get("/data/transmittivity") )
         if ( "image" in group.attrs.keys() ):
             multiplot.miniatyrGeo = group.attrs.get( "image" )
