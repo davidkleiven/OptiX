@@ -57,11 +57,9 @@ def main( argv ):
     control = ffPlot.projectionX( control )
     control = ffPlot.projectionY( control )
 
-    '''
     control = phasePlot.projectionXY( control )
     control = phasePlot.projectionX( control )
     control =phasePlot.projectionY( control )
-    '''
 
     control = intensityPlot.projectionX( control )
     root.mainloop()
