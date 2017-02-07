@@ -57,12 +57,6 @@ public:
 
   /** Downsamples the solution in the longitudinal direction */
   virtual void downSampleLongitudinalDirection(){};
-
-  /** Performs downsampling from left to right (currently only applicable in 2D) */
-  virtual void downSampleLeftRight(){};
-
-  /** Performs downsampling from right to left (currently only applicable in 2D) */
-  virtual void downSampleRightLeft(){};
 protected:
   Dimension_t dim;
   std::string name;

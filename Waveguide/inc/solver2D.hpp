@@ -86,12 +86,6 @@ public:
   /** Function that disables the longitudinal filtering */
   void disableLongitudinalFilter(){ longitudinalFilterDisabled = true; };
 
-  /** Downsample from right to left */
-  virtual void downSampleRightLeft() override { downSampleLR = false; };
-
-  /** Downsample from left to right */
-  virtual void downSampleLeftRight() override { downSampleLR = true; };
-
   // Virtual functions
   /** Pure virtual function for solving the system */
 
@@ -111,7 +105,6 @@ protected:
   double wavenumber{1.0};
   BC_t boundaryCondition{BC_t::DIRICHLET};
   bool longitudinalFilterDisabled{false}; // Flag for completely disable longitudinal filter
-  bool downSampleLR{true}; // Downsample from left to right
 
   /** Get the solution */
   arma::cx_mat& getSolution( unsigned int iz ) { return *solution; };

@@ -176,21 +176,9 @@ void Solver2D::copyCurrentSolution( unsigned int step )
 
   // Downsample array
   double delta = static_cast<double>( signalToFilter().n_elem )/static_cast<double>( solution->n_rows );
-  if ( downSampleLR )
+  for ( unsigned int i=0;i<solution->n_rows;i++ )
   {
-    for ( unsigned int i=0;i<solution->n_rows;i++ )
-    {
-      (*solution)(i,step) = signalToFilter()(delta*i+delta/2.0);
-    }
-  }
-  else
-  {
-    // TODO: This is not correct
-    for ( unsigned int i=0;i<solution->n_rows;i++ )
-    {
-      unsigned int n = solution->n_rows-i-1;
-      (*solution)(n,step) = signalToFilter()(delta*n+delta/2.0);
-    }
+    (*solution)(i,step) = signalToFilter()(delta*i+delta/2.0);
   }
 }
 

@@ -6,6 +6,7 @@
 #include <cassert>
 #include "curvedWGConfMap.hpp"
 using namespace std;
+//#define PRINT_OUT_CONNECTION
 
 const double PI = acos(-1.0);
 MultipleCurvedWG::~MultipleCurvedWG()
@@ -85,6 +86,14 @@ void MultipleCurvedWG::init( const map<string,double> &params )
     throw ( runtime_error("Waveguides needs to be loaded before the init function is called!") );
   }
 
+  if ( static_cast<int>(params.at("downSamplingX")+0.5) != 1 )
+  {
+    clog << "\nWARNING! In case of opposite curvature the filtering will cause a slight shift of the solution.\n";
+    clog << "Thus, at the interface between two waveguide segments the field will be discontinous\n";
+    clog << "Quantities like transmittivity and qualitative features of the solution remain unaltered\n";
+    clog << "Run with downSamplingX = 1 to avoid this artifact.\n\n";
+  }
+
   if ( solver != NULL ) delete solver;
   CrankNicholson *cnSolver = new CrankNicholson();
   cnSolver->disableLongitudinalFilter(); // Completely disable longitudinal filter
@@ -156,16 +165,6 @@ void MultipleCurvedWG::solve()
     clog << "Running waveguide " << counter++ << endl;
     solver->reset();
 
-    // Set direction from which to start the downsample routine
-    if ( (*wg)->getCurvature() == CurvedWGConfMap::Curvature_t::CONVEX )
-    {
-      solver->downSampleRightLeft();
-    }
-    else
-    {
-      solver->downSampleLeftRight();
-    }
-
     (*wg)->setSolver( *solver );
     if ( wg == waveguides->begin() )
     {
@@ -221,8 +220,10 @@ void MultipleCurvedWG::processSolution( CurvedWGConfMap &wg )
     checkFiltering( intensitySolution, NzNextFillStartIntensity );
   }
 
-  cout << intensitySolution.col(0) << endl;
-  cout << intensity->col(NzNextFillStartIntensity) << endl;
+  #ifdef PRINT_OUT_CONNECTION
+    cout << intensitySolution.col(0) << endl;
+    cout << intensity->col(NzNextFillStartIntensity) << endl;
+  #endif
 
   // Copy intensity
   for ( unsigned int i=0;i<nmax;i++ )
