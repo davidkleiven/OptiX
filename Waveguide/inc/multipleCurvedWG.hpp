@@ -77,5 +77,8 @@ private:
   double phaseDifference( const CurvedWGConfMap &source, const CurvedWGConfMap &target ) const;
 
   void processSolution( CurvedWGConfMap &wg );
+
+  /** The filters may shift the solution a tiny bit, so correct for this */
+  void checkFiltering( arma::mat &newSolution, unsigned int prevEnd );
 };
 #endif
