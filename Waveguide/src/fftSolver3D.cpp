@@ -2,6 +2,7 @@
 #include <cmath>
 #include <visa/visa.hpp>
 #include "paraxialSimulation.hpp"
+#include <iostream>
 using namespace std;
 
 const double PI = acos(-1.0);
@@ -23,7 +24,7 @@ cdouble FFTSolver3D::kernel( double kx, double ky ) const
   return exp(-A*(kx*kx + ky*ky) );
 }
 
-double FFTSolver3D::spatialFreq( unsigned int indx, unsigned int size ) const
+double FFTSolver3D::spatialFreqX( unsigned int indx, unsigned int size ) const
 {
   if ( indx > size/2 )
   {
@@ -31,6 +32,16 @@ double FFTSolver3D::spatialFreq( unsigned int indx, unsigned int size ) const
   }
   double stepX = guide->transverseDiscretization().step;
   return 2.0*PI*indx/(stepX*size);
+}
+
+double FFTSolver3D::spatialFreqY( unsigned int indx, unsigned int size ) const
+{
+  if ( indx > size/2 )
+  {
+    indx = size-indx;
+  }
+  double stepY = guide->verticalDiscretization().step;
+  return 2.0*PI*indx/(stepY*size);
 }
 
 void FFTSolver3D::solveStep( unsigned int step )
@@ -64,10 +75,10 @@ void FFTSolver3D::propagate()
 
   for ( unsigned int i=0;i<currentSolution->n_cols;i++ )
   {
-    double kx = spatialFreq( i, currentSolution->n_cols );
+    double kx = spatialFreqX( i, currentSolution->n_cols );
     for ( unsigned int j=0;j<currentSolution->n_rows;j++ )
     {
-      double ky = spatialFreq( j, currentSolution->n_rows );
+      double ky = spatialFreqY( j, currentSolution->n_rows );
       (*currentSolution)(j,i) *= kernel( kx, ky );
     }
   }
@@ -89,7 +100,7 @@ void FFTSolver3D::refraction( unsigned int step )
     double x = guide->getX(i);
     for ( unsigned int j=0;j<prevSolution->n_rows;j++ )
     {
-      double y = guide->getX(j);
+      double y = guide->getY(j);
       double delta, beta, deltaPrev, betaPrev;
       guide->getXrayMatProp( x, y, z1, delta, beta );
       guide->getXrayMatProp( x, y, z0, deltaPrev, betaPrev );
@@ -109,8 +120,22 @@ void FFTSolver3D::refraction( unsigned int step )
 
   if ( visRealSpace )
   {
-    arma::mat values = arma::abs( *currentSolution );
+    arma::mat values = arma::flipud( arma::abs( *currentSolution ) );
+    plots.get("Intensity").setCmap( cmap_t::NIPY_SPECTRAL );
+    plots.get("Intensity").setOpacity(1.0);
+    plots.get("Intensity").setColorLim( 0.0, 1.1 );
     plots.get("Intensity").fillVertexArray( values );
+
+    plots.get("Intensity").setCmap( cmap_t::GREYSCALE );
+    plots.get("Intensity").setOpacity(0.5);
+    arma::mat refr(values);
+    evaluateRefractiveIndex( refr, z1 );
+    double refrMin = arma::min( arma::min(refr) );
+    double refrMax = arma::max( arma::max(refr) );
+
+    //plots.get("Intensity").setColorLim( refrMin, refrMax );
+    plots.get("Intensity").fillVertexArray( refr );
+
     values = -arma::arg( *currentSolution );
     plots.get("Phase").fillVertexArray( values );
     plots.show();
@@ -173,4 +198,37 @@ void FFTSolver3D::reset()
     fftw_destroy_plan( ftback );
     planInitialized = false;
   }
+}
+
+void FFTSolver3D::evaluateRefractiveIndex( arma::mat &refr, double z ) const
+{
+  // Set size to the default values in VISA
+  //unsigned int width = guide->nodeNumberTransverse();
+  //unsigned int height = guide->nodeNumberVertical();
+  //refr.set_size( height, width );
+  //double dx = ( guide->transverseDiscretization().max - guide->transverseDiscretization().min )/width;
+  //double dy = ( guide->verticalDiscretization().max - guide->verticalDiscretization().min )/height;
+
+  double delta, beta;
+  for ( unsigned int i=0;i<refr.n_cols;i++ )
+  {
+    //double x = guide->transverseDiscretization().min + i*dx;
+    double x = guide->getX(i);
+    for ( unsigned int j=0;j<refr.n_rows;j++ )
+    {
+      //double y = guide->verticalDiscretization().min + j*dy;
+      double y = guide->getY(j);
+      guide->getXrayMatProp( x, y, z, delta, beta );
+      if ( delta > 1E-10 )
+      {
+        refr(j,i) = 0.0;
+      }
+      else
+      {
+        refr(j,i) = 1.0;
+      }
+      //refr(j,i) = delta;
+    }
+  }
+  refr = arma::flipud( refr );
 }

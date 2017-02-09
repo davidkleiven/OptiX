@@ -20,12 +20,15 @@
 
 using namespace std;
 const double PI = acos(-1.0);
-ParaxialSimulation::ParaxialSimulation(const char* name):xDisc(new Disctretization), zDisc(new Disctretization), name(name){};
+ParaxialSimulation::ParaxialSimulation(const char* name):xDisc(new Disctretization), zDisc(new Disctretization),
+yDisc(new Disctretization), name(name){};
 
 ParaxialSimulation::~ParaxialSimulation()
 {
   if ( xDisc != NULL ) delete xDisc;
   if ( zDisc != NULL ) delete zDisc;
+  if ( yDisc != NULL ) delete yDisc;
+
   if ( solverInitializedViaInit )
   {
     delete solver;
@@ -79,6 +82,14 @@ void ParaxialSimulation::setTransverseDiscretization( double xmin, double xmax, 
   xDisc->max = xmax;
   xDisc->step = step;
   xDisc->downsamplingRatio = downsamplingRatio;
+  yDisc->downsamplingRatio = xDisc->downsamplingRatio;
+}
+
+void ParaxialSimulation::setVerticalDiscretization( double ymin, double ymax, double step )
+{
+  yDisc->min = ymin;
+  yDisc->max = ymax;
+  yDisc->step = step;
 }
 
 void ParaxialSimulation::setLongitudinalDiscretization( double zmin, double zmax, double step )
@@ -97,6 +108,11 @@ void ParaxialSimulation::setLongitudinalDiscretization( double zmin, double zmax
 unsigned int ParaxialSimulation::nodeNumberTransverse() const
 {
   return (xDisc->max - xDisc->min)/xDisc->step + 1.0;
+}
+
+unsigned int ParaxialSimulation::nodeNumberVertical() const
+{
+  return (yDisc->max - yDisc->min)/yDisc->step + 1.0;
 }
 
 unsigned int ParaxialSimulation::nodeNumberLongitudinal() const
@@ -249,6 +265,11 @@ double ParaxialSimulation::getX( int ix ) const
   return xDisc->min + ix*xDisc->step;
 }
 
+double ParaxialSimulation::getY( int iy ) const
+{
+  return yDisc->min + iy*yDisc->step;
+}
+
 template <class arrayType>
 void ParaxialSimulation::saveArray( arrayType &matrix, const char* dsetname )
 {
@@ -339,7 +360,7 @@ void ParaxialSimulation::setBoundaryConditions( const ParaxialSource &source )
         double x = getX(i);
         for ( unsigned int j=0;j<Nx;j++ )
         {
-          double y = getX(j);
+          double y = getY(j);
           values(j,i) = src->get(x,y,0.0);
         }
       }

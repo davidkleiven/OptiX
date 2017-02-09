@@ -48,17 +48,26 @@ public:
   /** Set longitudinal discretization with down sampling */
   void setLongitudinalDiscretization( double zmin, double zmax, double step, unsigned int downsamplingRatio );
 
+  /** Set the vertical discretization (only applicable in 3D) */
+  void setVerticalDiscretization( double ymin, double ymax, double step );
+
   /** Get number of nodes in the transverse direction */
   unsigned int nodeNumberTransverse() const;
 
   /** Get number of nodes in the longitudinal direction */
   unsigned int nodeNumberLongitudinal() const;
 
+  /** Get number of nodes in the vertical direction */
+  unsigned int nodeNumberVertical() const;
+
   /** Get transverse discretiaztion */
   const Disctretization& transverseDiscretization() const{ return *xDisc; };
 
   /** Get longitudinal discretization */
   const Disctretization& longitudinalDiscretization() const { return *zDisc; };
+
+  /** Get vertical discretization */
+  const Disctretization& verticalDiscretization() const { return *yDisc; };
 
   /** Set the padding value used when computing the far field */
   void setFarFieldPadValue( double padValue ){ farParam.padValue=padValue; };
@@ -101,6 +110,9 @@ public:
 
   /** Get x-coordinate corresponding to the array index ix */
   double getX ( int ix ) const;
+
+  /** Get y-coordinate corresponding to the array index iy */
+  double getY( int iy ) const;
 
   /** Get far field */
   const arma::vec& getFarField() const { return *farFieldModulus; };
@@ -156,6 +168,7 @@ protected:
   Solver *solver{NULL};
   Disctretization *xDisc; // Transverse
   Disctretization *zDisc; // Along optical axis
+  Disctretization *yDisc; // Vertical
   arma::vec *farFieldModulus{NULL};
   double wavenumber;
   std::string name;

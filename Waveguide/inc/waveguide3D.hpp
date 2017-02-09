@@ -3,6 +3,17 @@
 #include "paraxialSimulation.hpp"
 #include "refractiveIndex.hpp"
 
+/**
+Class for simulating 3D waveguides.
+
+Assumptions on template parameters:
+wgPath must have a function with signature:
+void get( double z, double &x, double &y ) const;
+
+wgShape must have a function with signature:
+bool isInside( double x, double y, double z ) const;
+
+*/
 template<class wgPath, class wgShape>
 class Waveguide3D: public ParaxialSimulation
 {
@@ -17,6 +28,9 @@ public:
 
   /** Set cladding material */
   void setCladdingMaterial( const char* name );
+
+  /** Return the material properties of the cylinder */
+  void getXrayMatProp( double x, double y, double z, double &delta, double &beta ) const override;
 private:
     wgPath center;
     wgShape shape;

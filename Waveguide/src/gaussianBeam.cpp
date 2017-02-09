@@ -28,18 +28,26 @@ double GaussianBeam::spotSize( double z ) const
 
 cdouble GaussianBeam::get( double x, double z ) const
 {
+  x -= centerX;
   cdouble im(0.0,1.0);
   double waistRatio = waist/spotSize( z-z0 );
   double gaussianFactor = exp(-pow(x/spotSize(z-z0),2) );
-  cdouble phaseFactor = exp(-im*wavenumber*z0 + 0.5*im*wavenumber*(x-x0)*(x-x0)*inverseRadiusOfCurvature(z-z0) \
+  cdouble phaseFactor = exp(-im*wavenumber*z0 + 0.5*im*wavenumber*x*x*inverseRadiusOfCurvature(z-z0) \
                           -im*guoyPhase(z-z0));
   return amplitude*waistRatio*gaussianFactor*phaseFactor;
 }
 
 cdouble GaussianBeam::get( double x, double y, double z ) const
 {
+  y -= centerY;
   double gaussY = exp( -pow(y/spotSize(z-z0),2) );
   return get(x,z)*gaussY;
+}
+
+void GaussianBeam::setCenter( double xc, double yc )
+{
+  centerX = xc;
+  centerY = yc;
 }
 
 double GaussianBeam::beamDivergence() const

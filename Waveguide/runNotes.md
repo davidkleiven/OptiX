@@ -195,3 +195,5 @@
 502938 | Curved waveguide L=4mm | Looks good |
 839906 | 2D WG FFT solver example | Same results as with FD |
 828475 | 3D scattering fromsphere | Does not match the form factor well |
+558434 | 3D scattering from sphere | Good match with the form factor, error in 828475: not vacuum in reference |
+351880 | 3D scattering from sphere, smaller reciprocal space | OK |

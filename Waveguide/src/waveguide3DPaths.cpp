@@ -1,4 +1,7 @@
 #include "waveguide3DPaths.hpp"
+#include <iostream>
+
+using namespace std;
 
 void StraightPath::get( double z, double &x, double &y ) const
 {

@@ -33,8 +33,11 @@ private:
   /** The convolution kernel */
   cdouble kernel( double kx, double ky ) const;
 
-  /** Return the spatial frequency corresponding to indx */
-  double spatialFreq( unsigned int indx, unsigned int size ) const;
+  /** Return the spatial frequency corresponding to indx in x-direction */
+  double spatialFreqX( unsigned int indx, unsigned int size ) const;
+
+  /** Return the spatial frequency corresponding to indx in the y-direction */
+  double spatialFreqY( unsigned int indx, unsigned int size ) const;
 
   fftw_complex *curr{NULL};
   fftw_complex *prev{NULL};
@@ -51,6 +54,10 @@ private:
 
   /** Computes the refraction integral when a border has been crossed */
   void refractionIntegral( double x, double y, double z1, double z2, double &delta, double &beta );
+
+  /** Evaluates the refractive index for the purpose of overlay */
+  void evaluateRefractiveIndex( arma::mat &refr, double z ) const;
+
   unsigned int nStepsInRefrIntegral{200};
 
   bool visRealSpace{false};
