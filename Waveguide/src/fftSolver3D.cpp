@@ -3,6 +3,7 @@
 #include <visa/visa.hpp>
 #include "paraxialSimulation.hpp"
 #include <iostream>
+#include <sstream>
 using namespace std;
 
 const double PI = acos(-1.0);
@@ -126,15 +127,26 @@ void FFTSolver3D::refraction( unsigned int step )
     plots.get("Intensity").setColorLim( 0.0, 1.1 );
     plots.get("Intensity").fillVertexArray( values );
 
-    plots.get("Intensity").setCmap( cmap_t::GREYSCALE );
-    plots.get("Intensity").setOpacity(0.5);
-    arma::mat refr(values);
-    evaluateRefractiveIndex( refr, z1 );
-    double refrMin = arma::min( arma::min(refr) );
-    double refrMax = arma::max( arma::max(refr) );
+    if ( overlayRefractiveIndex )
+    {
+      plots.get("Intensity").setCmap( cmap_t::GREYSCALE );
+      plots.get("Intensity").setOpacity(0.5);
+      arma::mat refr(values);
+      evaluateRefractiveIndex( refr, z1 );
+      double refrMin = arma::min( arma::min(refr) );
+      double refrMax = arma::max( arma::max(refr) );
 
-    //plots.get("Intensity").setColorLim( refrMin, refrMax );
-    plots.get("Intensity").fillVertexArray( refr );
+      //plots.get("Intensity").setColorLim( refrMin, refrMax );
+      plots.get("Intensity").fillVertexArray( refr );
+    }
+
+    if ( createAnimation )
+    {
+      stringstream ss;
+      ss << imageName << imgCounter++ << ".png";
+      sf::Image img = plots.get("Intensity").capture();
+      img.saveToFile( ss.str() );
+    }
 
     values = -arma::arg( *currentSolution );
     plots.get("Phase").fillVertexArray( values );
@@ -191,6 +203,7 @@ void FFTSolver3D::refractionIntegral( double x, double y, double z1 , double z2,
 
 void FFTSolver3D::reset()
 {
+  imgCounter = 0;
   Solver3D::reset();
   if ( planInitialized )
   {
@@ -231,4 +244,11 @@ void FFTSolver3D::evaluateRefractiveIndex( arma::mat &refr, double z ) const
     }
   }
   refr = arma::flipud( refr );
+}
+
+void FFTSolver3D::storeImages( const char* prefix )
+{
+  imageName = prefix;
+  createAnimation = true;
+  clog << "Intensity images will be store with prefix: " << imageName << endl;
 }

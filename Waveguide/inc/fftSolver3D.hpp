@@ -4,6 +4,7 @@
 #include <complex>
 #include <fftw3.h>
 #include <visa/visa.hpp>
+#include <string>
 
 typedef std::complex<double> cdouble;
 class FFTSolver3D: public Solver3D
@@ -27,6 +28,12 @@ public:
   /** Set the maximum and minimum value in the phase visualization */
   void setPhaseMinMax( double min, double max );
 
+  /** Overlay the refractive index profile */
+  void overlayGeometry(){ overlayRefractiveIndex = true; };
+
+  /** Images generated will be stored at prefix */
+  void storeImages( const char* prefix );
+
   /** Resets the solver */
   virtual void reset() override;
 private:
@@ -45,6 +52,10 @@ private:
   fftw_plan ftback;
   visa::WindowHandler plots;
   bool planInitialized{false};
+  bool overlayRefractiveIndex{false};
+  bool createAnimation{false};
+  std::string imageName{""};
+  unsigned int imgCounter{0};
 
   /** Diffraction step */
   void propagate();

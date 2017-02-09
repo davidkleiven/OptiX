@@ -10,12 +10,18 @@
 #include <pei/dialogBox.hpp>
 #include <map>
 #include <string>
+#include <SFML/Graphics.hpp>
 
 using namespace std;
 enum class Wg_t{ STRAIGHT, CURVED};
 
 int main( int argc, char** argv )
 {
+  string imgStoring("");
+  if ( argc > 1 )
+  {
+    imgStoring = argv[1];
+  }
   cout << "--------------------\n";
   cout << "Modes:\n";
   cout << "0: Straight\n";
@@ -116,6 +122,11 @@ int main( int argc, char** argv )
 
 
     FFTSolver3D solver;
+    solver.overlayGeometry();
+    if ( imgStoring != "" )
+    {
+      solver.storeImages( imgStoring.c_str() );
+    }
 
     GaussianBeam gbeam;
     gbeam.setWavelength( params.at("wavelength") );
