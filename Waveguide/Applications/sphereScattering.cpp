@@ -107,7 +107,7 @@ int main( int argc, char **argv )
     // Compute real solution
     sphere.reset();
     sphere.setLongitudinalDiscretization( zmin, zmax, dz, 1 );
-    sphere.setMaterial( "Pb" );
+    sphere.setMaterial( "SiO2" );
 
     solver.visualizeRealSpace();
     //solver.visualizeFourierSpace();
