@@ -25,12 +25,13 @@ def integrandImag( r, q ):
     return r*spec.jn( 0, q*r )*np.sin(-delta*k*np.sqrt(R**2 - r**2) )
 
 def formFactorCircularStop( q ):
-    return 2.0*spec.jn( 1, q*R )/(q*R )
+    q[np.abs(q) < 1E-15] = 1E-15
+    return 2.0*spec.j1( q*R )/(q*R )
 
 def main( argv ):
     plotCircularStop = 0
     if ( len(argv) > 0 ):
-        plotCircularStop = argv[0]
+        plotCircularStop = int( argv[0] )
 
     lim = proj3D.Limits()
     ffPlot = proj3D.FarField()
