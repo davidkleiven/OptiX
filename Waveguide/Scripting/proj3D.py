@@ -31,6 +31,7 @@ class Plotter3D:
         self.cbLoc = None
         self.cbTick = None
         self.cbLog = True
+        self.equalXYDim = True
 
     def getXlim( self ):
         return self.limits.xmin, self.limits.xmax
@@ -64,12 +65,31 @@ class Plotter3D:
         ax = fig.add_subplot(1,1,1)
         xmin, xmax = self.getXlim()
         ymin, ymax = self.getYlim()
+
+        indxXmin = 0
+        indxXmax = -1
+        indxYmin = 0
+        indxYmax = -1
+        if ( self.equalXYDim ):
+            x = np.linspace(xmin,xmax,self.data.shape[1])
+            y = np.linsapce(ymin,ymax,self.data.shape[0])
+            if ( xmin < ymin ):
+                indxXmin = np.argmin( np.abs(x-ymin) )
+            else:
+                indxYmin = np.argmin( np.abs(y-xmin) )
+            if ( xmax > ymax ):
+                indxXmax = np.argmin( np.abs(x-ymax) )
+            else:
+                indxYmax = np.argmin( np.abs(y-xmax) )
+
         extent = [xmin, xmax, ymin, ymax]
         aspect = self.aspectRatio( extent )
         if ( self.cbLog ):
-            im = ax.imshow( self.data, extent=extent, aspect=aspect, cmap=self.cmap, norm=colors.LogNorm(minval,maxval) )
+            im = ax.imshow( self.data[indxXmin:indxXmax,indxYmin:indxYmax],
+            extent=extent, aspect=aspect, cmap=self.cmap, norm=colors.LogNorm(minval,maxval) )
         else:
-            im = ax.imshow( self.data, extent=extent, aspect=aspect, cmap=self.cmap )
+            im = ax.imshow( self.data[indxXmin:indxXmax,indxYmin:indxYmax],
+            extent=extent, aspect=aspect, cmap=self.cmap )
         cb = fig.colorbar( im )
 
         if ( not self.cbLoc is None and not self.cbTick is None ):

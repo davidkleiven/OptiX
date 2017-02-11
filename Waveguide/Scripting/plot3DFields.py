@@ -36,8 +36,8 @@ def main( argv ):
         lim.xmax = group.attrs.get("xmax")/1000.0
         lim.qmin = ffset.attrs.get("qmin")
         lim.qmax = ffset.attrs.get("qmax")
-        lim.ymin = lim.xmin
-        lim.ymax = lim.xmax
+        lim.ymin = group.attrs.get("ymin")/1000.0
+        lim.ymax = group.attrs.get("ymax")/1000.0
         ffPlot.uid = group.attrs.get("uid")
 
     ampPlot.limits = lim
