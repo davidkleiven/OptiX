@@ -61,7 +61,7 @@ def main( argv ):
     control = phasePlot.projectionX( control )
     control =phasePlot.projectionY( control )
 
-    control = intensityPlot.projectionX( control )
+    control = intensityPlot.projectionXY( control )
     root.mainloop()
 
 if __name__ == "__main__":

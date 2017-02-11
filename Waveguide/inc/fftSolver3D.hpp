@@ -4,6 +4,7 @@
 #include <complex>
 #include <fftw3.h>
 #include <visa/visa.hpp>
+#include <string>
 
 typedef std::complex<double> cdouble;
 class FFTSolver3D: public Solver3D
@@ -27,14 +28,23 @@ public:
   /** Set the maximum and minimum value in the phase visualization */
   void setPhaseMinMax( double min, double max );
 
+  /** Overlay the refractive index profile */
+  void overlayGeometry(){ overlayRefractiveIndex = true; };
+
+  /** Images generated will be stored at prefix */
+  void storeImages( const char* prefix );
+
   /** Resets the solver */
   virtual void reset() override;
 private:
   /** The convolution kernel */
   cdouble kernel( double kx, double ky ) const;
 
-  /** Return the spatial frequency corresponding to indx */
-  double spatialFreq( unsigned int indx, unsigned int size ) const;
+  /** Return the spatial frequency corresponding to indx in x-direction */
+  double spatialFreqX( unsigned int indx, unsigned int size ) const;
+
+  /** Return the spatial frequency corresponding to indx in the y-direction */
+  double spatialFreqY( unsigned int indx, unsigned int size ) const;
 
   fftw_complex *curr{NULL};
   fftw_complex *prev{NULL};
@@ -42,6 +52,10 @@ private:
   fftw_plan ftback;
   visa::WindowHandler plots;
   bool planInitialized{false};
+  bool overlayRefractiveIndex{false};
+  bool createAnimation{false};
+  std::string imageName{""};
+  unsigned int imgCounter{0};
 
   /** Diffraction step */
   void propagate();
@@ -51,6 +65,10 @@ private:
 
   /** Computes the refraction integral when a border has been crossed */
   void refractionIntegral( double x, double y, double z1, double z2, double &delta, double &beta );
+
+  /** Evaluates the refractive index for the purpose of overlay */
+  void evaluateRefractiveIndex( arma::mat &refr, double z ) const;
+
   unsigned int nStepsInRefrIntegral{200};
 
   bool visRealSpace{false};

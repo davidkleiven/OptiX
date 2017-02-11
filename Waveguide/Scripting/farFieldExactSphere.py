@@ -11,8 +11,17 @@ R = 2000.0 # nm
 k = 40.01 # nm^{-1} wavenumber
 delta = 8.90652E-6
 #fname = "data/sphere828475.h5"
+
+#fname = "data/sphere558434.h5"
+fname = "data/sphere334411.h5"
+fname = "data/sphere912348.h5"
+fname = "data/sphere799650.h5"
+fname = "data/sphere483220.h5"
+fname = "data/sphere450350.h5"
+fname = "data/sphere683666.h5"
 fname = "data/sphere558434.h5"
 fname = "data/sphere718369.h5"
+
 def formsphere( q ):
     f =  (np.sin(q*R) - q*R*np.cos(q*R))/(q*R)**3
     f[np.abs(q*R) < 1E-3] = 1.0/3.0

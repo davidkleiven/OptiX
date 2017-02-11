@@ -81,6 +81,7 @@ int main( int argc, char **argv )
     // Reference run
     sphere.setMaterial( "Vacuum" );
     sphere.setTransverseDiscretization( xmin, xmax, dx, 1 );
+    sphere.setVerticalDiscretization( xmin, xmax, dx );
     sphere.setLongitudinalDiscretization( zmin, zmax, (zmax-zmin)/3.0, 1 );
 
     #ifdef FAKE_RESULT_WITH_PURE_PHASE_SHIFT
