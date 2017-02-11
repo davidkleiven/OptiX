@@ -19,10 +19,14 @@ public:
 
   /** Set the cylinder material */
   void setMaterial( const char* name );
+
+  /** Run the simulation without absorption */
+  void noAbsorption(){ withAbsorption = false; };
 private:
   Point3D center;
   double radius{1.0};
   double delta{0.0};
   double beta{0.0};
+  bool withAbsorption{true};
 };
 #endif

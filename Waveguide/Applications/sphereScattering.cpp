@@ -23,21 +23,22 @@ void generatePhaseObjectSolution( const map<string,double> &params, const arma::
 int main( int argc, char **argv )
 {
   map<string,double> params;
-  params["xmin_r"] = -4.0;
-  params["xmax_r"] = 4.0;
-  params["ymin_r"] = -4.0;
-  params["ymax_r"] = 4.0;
-  params["zmin_r"] = -2.0;
-  params["zmax_r"] = 2.0;
-  params["wavelength"] = 0.1569;
-  params["radius"] = 2000.0;
-  params["Nt"] = 1024;
-  params["Nz"] = 512;
-  params["downSampleT"] = 8;
-  params["downSampleZ"] = 4;
-  params["savePlots"] = 0;
-  params["q_max_inverse_nm"] = 0.5;
-  params["padLength"] = 32768;
+  params["xmin_r"] = -4.0;            // Minimum x-position in units of the radius of the sphere
+  params["xmax_r"] = 4.0;             // Maximum x-position in units of the radius of the sphere
+  params["ymin_r"] = -4.0;            // Minimum y-position in units of the radius of the sphere
+  params["ymax_r"] = 4.0;             // Maximum y-position in units of the radius of the sphere
+  params["zmin_r"] = -2.0;            // Minimum z-position in units of the radius of the sphere
+  params["zmax_r"] = 2.0;             // Maximum z-position in units of the radius of the sphere
+  params["wavelength"] = 0.1569;      // Wavelength in nano meters
+  params["radius"] = 2000.0;          // Radius of the sphere in nano meters
+  params["Nt"] = 1024;                // Number of discretization points in the x and y direction (should 2^N)
+  params["Nz"] = 512;                 // Number of discretization points in the z-direction (propagation direction)
+  params["downSampleT"] = 8;          // Downsamplings factor in the x and y direction (1 --> no downsampling)
+  params["downSampleZ"] = 4;          // Downsampling factor in the z-direction (1 --> no downsampling )
+  params["savePlots"] = 0;            // Save the resulting plots to png file ( 0 --> no, otherwise yes )
+  params["q_max_inverse_nm"] = 0.5;   // Maximum scattering wavevector to store for the farfield ( 1/nm )
+  params["padLength"] = 2048;         // Length of the signal to use when computing the far field (should be 2^N)
+  params["disableAbsorption"] = 0.0;  // Run without absorption (0 --> with absorption, otherwise run without absorption)
 
   pei::DialogBox dialog( params );
   dialog.show();
@@ -51,6 +52,7 @@ int main( int argc, char **argv )
   double xmax = params.at("xmax_r")*r;
   double zmin = params.at("zmin_r")*r;
   double zmax = params.at("zmax_r")*r;
+  bool disableAbsorption = ( static_cast<int>(params.at("disableAbsorption")+0.5) != 0 );
 
   double dx = (xmax-xmin)/params.at("Nt");
   double dz = (zmax-zmin)/params.at("Nz");
@@ -67,6 +69,10 @@ int main( int argc, char **argv )
   post::FarField ff;
 
   Sphere sphere( center, r );
+  if ( disableAbsorption )
+  {
+    sphere.noAbsorption();
+  }
   try
   {
 

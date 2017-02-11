@@ -17,8 +17,15 @@ void Sphere::setMaterial( const char* name )
   refr.load(name);
   double energy = getEnergy();
   delta = refr.getDelta( energy );
-  beta = refr.getBeta( energy );
-  clog << delta << endl;
+
+  if ( withAbsorption )
+  {
+    beta = refr.getBeta( energy );
+  }
+  else
+  {
+    beta = 0.0;
+  }
 }
 
 void Sphere::getXrayMatProp( double x, double y, double z, double &matDelta, double &matBeta ) const

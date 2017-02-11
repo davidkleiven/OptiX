@@ -197,3 +197,6 @@
 828475 | 3D scattering fromsphere | Does not match the form factor well |
 558434 | 3D scattering from sphere | Good match with the form factor, error in 828475: not vacuum in reference |
 351880 | 3D scattering from sphere, smaller reciprocal space | OK |
+450350 | 3D scattering from sphere Nt=1024, Nz=128, qmax=0.1, no absorption SiO2 | Good fit, files accidently deleted. see 274890 |
+274890 | 3D scattering from sphere Nt=1024, Nz=128, qmax=0.1, no absorption SiO2 | Good fit |
+683666 | 3D scattering from sphere Nt=1024, Nz=128, qmax=0.1, with absorption SiO2 | Interesting features at higher Q |
