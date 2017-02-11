@@ -17,6 +17,9 @@ public:
   /** Sets the waist in nano meter */
   void setWaist( double w ){ waist = w; };
 
+  /** Set the center of the beam */
+  void setCenter( double xc, double yc );
+
   /** Get the beam divergence */
   double beamDivergence() const;
 
@@ -24,6 +27,8 @@ public:
   void info( Json::Value &obj ) const override;
 private:
   double waist{1.0};
+  double centerX{0.0};
+  double centerY{0.0};
 
   // Help functions
   /** Get the rayleigh range */

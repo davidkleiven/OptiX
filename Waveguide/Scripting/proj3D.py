@@ -147,7 +147,7 @@ class Phase(Plotter3D):
 class Intensity(Plotter3D):
     def __init_( self ):
         Plotter3D.__init__( self )
-        self.xcrdLab =  r"$x \SI{}{\micro\meter}$"
-        self.ycrdlab = "$y \\backslash SI{}{\\backslash micro\\backslash meter}$"
+        self.xcrdLab =  r"\$x \SI{}{\micro\meter}\$"
+        self.ycrdlab = "\$y \SI{}{\micro\meter}\$"
         self.name = "intensity"
         self.quantityLab = "Intensity (a.u.)"
