@@ -78,8 +78,8 @@ int main( int argc, char** argv )
   switch ( wgtype )
   {
     case Wg_t::STRAIGHT:
-      xmin = -3.0*width;
-      xmax = 4.0*width;
+      xmin = -6.0*width;
+      xmax = 7.0*width;
       break;
     case Wg_t::CURVED:
       xmin = -pow( params.at("zmax"), 2)/(2.0*params.at("radiusInmm")*1E6 ) - width;
@@ -94,6 +94,13 @@ int main( int argc, char** argv )
   post::ExitIntensity ei;
   post::ExitPhase ep;
   post::FarField ff;
+
+  // Set export size
+  unsigned int exportRow = 512;
+  unsigned int exportCol = 512;
+  ef.setExportDimensions( exportRow, exportCol );
+  ei.setExportDimensions( exportRow, exportCol );
+  ff.setExportDimensions( exportRow, exportCol );
 
   SquareWell squareShape;
   squareShape.setWidth( params.at("width") );

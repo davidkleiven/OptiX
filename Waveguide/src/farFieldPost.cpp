@@ -57,12 +57,6 @@ void post::FarField::result( const Solver &solver, arma::vec &res )
 
   // Extract only the requested frequencies
   reduceArray( res );
-
-  if ( resizeMatrices )
-  {
-    arma::mat copy(res);
-    resizeMatrix( copy, res );
-  }
 }
 
 template<class T>
@@ -82,17 +76,19 @@ template void post::FarField::fftshift<cdouble>( arma::Col<cdouble> &array );
 unsigned int post::FarField::farFieldAngleToIndx( double angle, unsigned int size, Dir_t direction ) const
 {
   double angleRad = angle*PI/180.0;
-  double delta = 0.0;
+  double stepsize = 0.0;
 
   switch( direction )
   {
     case Dir_t::X:
-      delta = sim->transverseDiscretization().step;
+      stepsize = sim->transverseDiscretization().step;
+      break;
     case Dir_t::Y:
-      delta = sim->verticalDiscretization().step;
+      stepsize = sim->verticalDiscretization().step;
+      break;
   }
 
-  int n = size*sim->getWavenumber()*delta*sin(angleRad)/(2.0*PI);
+  int n = size*sim->getWavenumber()*stepsize*sin(angleRad)/(2.0*PI);
 
   if ( abs(n) >= size/2 )
   {
@@ -103,11 +99,19 @@ unsigned int post::FarField::farFieldAngleToIndx( double angle, unsigned int siz
 }
 
 template<class T>
+void post::FarField::reduceArray( arma::Col<T> &res, Dir_t direction ) const
+{
+  unsigned int indxMin = farFieldAngleToIndx( phiMin, res.n_elem, direction );
+  unsigned int indxMax = farFieldAngleToIndx( phiMax, res.n_elem, direction );
+  res = res.subvec( indxMin, indxMax );
+}
+template void post::FarField::reduceArray<double>( arma::Col<double> &res, Dir_t direction ) const;
+template void post::FarField::reduceArray<cdouble>( arma::Col<cdouble> &res, Dir_t direction ) const;
+
+template<class T>
 void post::FarField::reduceArray( arma::Col<T> &res ) const
 {
-  unsigned int indxMin = farFieldAngleToIndx( phiMin, res.n_elem, Dir_t::X );
-  unsigned int indxMax = farFieldAngleToIndx( phiMax, res.n_elem, Dir_t::X );
-  res = res.subvec( indxMin, indxMax );
+  reduceArray( res, Dir_t::X );
 }
 template void post::FarField::reduceArray<double>( arma::Col<double> &res ) const;
 template void post::FarField::reduceArray<cdouble>( arma::Col<cdouble> &res ) const;
@@ -137,6 +141,8 @@ void post::FarField::result( const Solver &solver, arma::mat &res )
   unsigned int Nx = signalLength < res.n_cols ? res.n_rows:signalLength;
   unsigned int Ny = signalLength < res.n_rows ? res.n_cols:signalLength;
 
+  assert( Nx == Ny ); // TODO: Currently only square matrix is supported
+
   // Perform FFT over columns
   arma::cx_vec pad( Nx );
   arma::cx_vec ft( Nx );
@@ -145,18 +151,17 @@ void post::FarField::result( const Solver &solver, arma::mat &res )
   unsigned int indxMax = farFieldAngleToIndx( phiMax, pad.n_elem, Dir_t::Y );
   assert( indxMax >= indxMin );
 
-  unsigned int size = indxMax-indxMin+1;
-  clog << "Size: " << size << endl;
-  if ( size == 0 )
+  unsigned int nrows = indxMax-indxMin+1;
+  clog << "Size: " << nrows << endl;
+  if ( nrows == 0 )
   {
     cout << "The requested far field size is zero!\n";
     return;
   }
-  else if ( size == pad.n_elem )
+  else if ( nrows == pad.n_elem )
   {
     cout << "Warning! The requested scattering angle is beyond the maximum limit! Increase the resolution!\n";
   }
-  res.set_size( size, size );
 
   arma::cx_mat solution = solver.getLastSolution3D();
   if ( reference != NULL )
@@ -164,7 +169,7 @@ void post::FarField::result( const Solver &solver, arma::mat &res )
     solution -= *reference;
   }
 
-  arma::cx_mat temporary(size, solution.n_cols );
+  arma::cx_mat temporary(nrows, solution.n_cols );
   temporary.fill( 0.0 );
 
   fftw_complex* data = reinterpret_cast<fftw_complex*>( pad.memptr() );
@@ -180,16 +185,21 @@ void post::FarField::result( const Solver &solver, arma::mat &res )
     fftw_execute( plan );
     ft = pad; // Perform copy to avoid changing the FFTW plan
     fftshift( ft );
-    reduceArray( ft );
+    reduceArray( ft, Dir_t::Y );
     //temporary.insert_cols(i, ft);
     temporary.col(i) = ft;
     pad.fill(0.0);
   }
 
   // FFT over rows
-  assert( Nx == Ny );
   pad.set_size( Ny );
   pad.fill( 0.0 );
+  indxMin = farFieldAngleToIndx( phiMin, pad.n_elem, Dir_t::X );
+  indxMax = farFieldAngleToIndx( phiMax, pad.n_elem, Dir_t::X );
+  assert( indxMax >= indxMin );
+
+  unsigned int ncols = indxMax-indxMin+1;
+  res.set_size( nrows, ncols );
   for ( unsigned int i=0;i<temporary.n_rows;i++ )
   {
     pad.subvec( 0, temporary.n_cols-1 ) = temporary.row(i).t();
@@ -197,12 +207,18 @@ void post::FarField::result( const Solver &solver, arma::mat &res )
     fftw_execute( plan );
     ft = pad; // Copy to not change the FFTW plan
     fftshift( ft );
-    reduceArray( ft );
+    reduceArray( ft, Dir_t::X );
     //res.insert_rows( i, arma::pow( arma::abs( ft ), 2 ).t() );
     res.row(i) = arma::pow( arma::abs( ft ), 2 ).t()/signalLength;
     pad.fill(0.0);
   }
   fftw_destroy_plan( plan );
+
+  if ( resizeMatrices )
+  {
+    arma::mat copy(res);
+    resizeMatrix( copy, res );
+  }
 }
 
 void post::FarField::padSignal( arma::cx_vec &zeroPadded ) const

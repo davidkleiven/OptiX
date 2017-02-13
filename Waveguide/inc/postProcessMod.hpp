@@ -76,7 +76,7 @@ private:
   unsigned int farFieldAngleToIndx( double angle, unsigned int size, Dir_t direction ) const;
 
   template<class T>
-  void reduceArray( arma::Col<T> &res, Dir_t direction );
+  void reduceArray( arma::Col<T> &res, Dir_t direction ) const;
 
   template<class T>
   void reduceArray( arma::Col<T> &res ) const;
