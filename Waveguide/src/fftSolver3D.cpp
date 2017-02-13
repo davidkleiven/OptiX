@@ -124,28 +124,30 @@ void FFTSolver3D::refraction( unsigned int step )
   double z0 = guide->getZ( step-1 );
   cdouble im(0.0,1.0);
   const double ZERO = 1E-10;
-  for ( unsigned int i=0;i<prevSolution->n_cols; i++ )
+
+  // FFTW3: Divide by length to normalize
+  double normalization = prevSolution->n_rows*prevSolution->n_cols;
+
+  #pragma omp parallel for
+  for ( unsigned int i=0;i<prevSolution->n_cols*prevSolution->n_rows; i++ )
   {
-    double x = guide->getX(i);
-    for ( unsigned int j=0;j<prevSolution->n_rows;j++ )
+    unsigned int row = i%prevSolution->n_rows;
+    unsigned int col = i/prevSolution->n_rows;
+
+    double x = guide->getX(col);
+    double y = guide->getY(row);
+    double delta, beta, deltaPrev, betaPrev;
+    guide->getXrayMatProp( x, y, z1, delta, beta );
+    guide->getXrayMatProp( x, y, z0, deltaPrev, betaPrev );
+
+    if (( abs(delta-deltaPrev) > ZERO ) || ( abs(beta-betaPrev) > ZERO ))
     {
-      double y = guide->getY(j);
-      double delta, beta, deltaPrev, betaPrev;
-      guide->getXrayMatProp( x, y, z1, delta, beta );
-      guide->getXrayMatProp( x, y, z0, deltaPrev, betaPrev );
-
-      if (( abs(delta-deltaPrev) > ZERO ) || ( abs(beta-betaPrev) > ZERO ))
-      {
-        // Wave has crossed a border
+      // Wave has crossed a border
         refractionIntegral( x, y, z0, z1, delta, beta );
-      }
-
-
-      // FFTW3: Divide by length to normalize
-      double normalization = prevSolution->n_rows*prevSolution->n_cols;
-      //normalization = 1.0;
-      (*currentSolution)(j,i) = (*prevSolution)(j,i)*exp( -wavenumber*(beta+im*delta)*stepZ )/normalization;
     }
+    
+    //normalization = 1.0;
+    (*currentSolution)(row,col) = (*prevSolution)(row,col)*exp( -wavenumber*(beta+im*delta)*stepZ )/normalization;
   }
 
 
