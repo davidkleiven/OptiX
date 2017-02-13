@@ -27,9 +27,9 @@ def main( argv ):
     with h5.File( fname, 'r' ) as hf:
         group = hf.get("/data")
         ffset = hf.get("/data/farField")
-        ffPlot.data = np.array( ffset )
-        phasePlot.data = np.array( hf.get("/data/exitPhase") )
-        intensityPlot.data = np.array( hf.get("/data/exitIntensity") )
+        ffPlot.data = np.array( ffset ).T
+        phasePlot.data = np.array( hf.get("/data/exitPhase") ).T
+        intensityPlot.data = np.array( hf.get("/data/exitIntensity") ).T
         lim.zmin = group.attrs.get("zmin")
         lim.zmax = group.attrs.get("zmax")
         lim.xmin = group.attrs.get("xmin")/1000.0
