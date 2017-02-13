@@ -28,7 +28,7 @@ def main( argv ):
         group = hf.get("/data")
         ffset = hf.get("/data/farField")
         ffPlot.data = np.array( ffset ).T
-        phasePlot.data = np.array( hf.get("/data/exitPhase") ).T
+        phasePlot.data = np.flipud( np.array( hf.get("/data/exitPhase") ).T )
         intensityPlot.data = np.array( hf.get("/data/exitIntensity") ).T
         lim.zmin = group.attrs.get("zmin")
         lim.zmax = group.attrs.get("zmax")
