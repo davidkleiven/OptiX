@@ -17,6 +17,12 @@ void post::Intensity::result( const Solver &solver, arma::cube &res )
 void post::Phase::result( const Solver &solver, arma::mat &res )
 {
   res = arma::arg( solver.getSolution() );
+
+  if ( resizeMatrices )
+  {
+    arma::mat copy(res);
+    resizeMatrix( copy, res );
+  }
 }
 
 void post::Phase::result( const Solver &solver, arma::cube &res )
@@ -32,6 +38,12 @@ void post::ExitField::result( const Solver &solver, arma::vec &res )
 void post::ExitField::result( const Solver &solver, arma::mat&res )
 {
   res = arma::real( solver.getLastSolution3D() );
+
+  if ( resizeMatrices )
+  {
+    arma::mat copy(res);
+    resizeMatrix( copy, res );
+  }
 }
 
 void post::ExitIntensity::result( const Solver &solver, arma::vec &res )
@@ -42,6 +54,12 @@ void post::ExitIntensity::result( const Solver &solver, arma::vec &res )
 void post::ExitIntensity::result( const Solver &solver, arma::mat &res )
 {
   res = arma::pow( arma::abs( solver.getLastSolution3D() ), 2 );
+
+  if ( resizeMatrices )
+  {
+    arma::mat copy(res);
+    resizeMatrix( copy, res );
+  }
 }
 
 void post::ExitPhase::result( const Solver &solver, arma::vec &res )

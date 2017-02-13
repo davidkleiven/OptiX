@@ -24,10 +24,19 @@ public:
   /** Returns the name */
   std::string getName() const { return name; };
 
+  /** Sets the size of the exported matrices */
+  void setExportDimensions( unsigned int rows, unsigned int cols );
+
   /** Which return type is used */
   virtual ReturnType_t getReturnType( const Solver& solver ) const = 0;
 protected:
   std::string name;
+  unsigned int exportRows{0};
+  unsigned int exportCols{0};
+  bool resizeMatrices{false};
+
+  /** Resize the matrices to save space */
+  void resizeMatrix( const arma::mat &mat, arma::mat &downsampled ) const;
 };
 
 /** A Field quantity is a quantity that is 2D for a 2D simulation and 3D for a 3D simulation
