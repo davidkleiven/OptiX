@@ -20,8 +20,15 @@ using namespace std;
 
 void generatePhaseObjectSolution( const map<string,double> &params, const arma::cx_mat &reference, arma::cx_mat &newSolution );
 
+enum class Geometry_t{SPHERE, COATED_SPHERE};
 int main( int argc, char **argv )
 {
+  cout << "--------------------\n";
+  cout << "Modes:\n";
+  cout << "0: Sphere\n";
+  cout << "1: Coated sphere\n";
+  cout << "--------------------\n";
+
   map<string,double> params;
   params["xmin_r"] = -4.0;            // Minimum x-position in units of the radius of the sphere
   params["xmax_r"] = 4.0;             // Maximum x-position in units of the radius of the sphere
@@ -39,9 +46,21 @@ int main( int argc, char **argv )
   params["q_max_inverse_nm"] = 0.5;   // Maximum scattering wavevector to store for the farfield ( 1/nm )
   params["padLength"] = 2048;         // Length of the signal to use when computing the far field (should be 2^N)
   params["disableAbsorption"] = 0.0;  // Run without absorption (0 --> with absorption, otherwise run without absorption)
+  params["mode"] = 0;
+  params["coatThicknessIn_nm"] = 100.0; // Thickness of the coating in nano meters
 
   pei::DialogBox dialog( params );
   dialog.show();
+
+  Geometry_t geom;
+  if ( static_cast<int>(params.at("mode")+0.5) == 0 )
+  {
+    geom = Geometry_t::SPHERE;
+  }
+  else if ( static_cast<int>(params.at("mode")+0.5) == 1 )
+  {
+    geom = Geometry_t::COATED_SPHERE;
+  }
 
   double anglemax = params.at("q_max_inverse_nm")*params.at("wavelength")/(2.0*3.14159);
   anglemax *= (180.0/3.14159);
@@ -68,21 +87,37 @@ int main( int argc, char **argv )
   post::ExitPhase ep;
   post::FarField ff;
 
+  Sphere *scatterer = NULL;
   Sphere sphere( center, r );
+  CoatedSphere coated( center, r );
+  coated.setThickness( params.at("coatThicknessIn_nm") );
+
+  switch( geom )
+  {
+    case Geometry_t::SPHERE:
+      scatterer = &sphere;
+      break;
+    case Geometry_t::COATED_SPHERE:
+      scatterer = &coated;
+      break;
+  }
+
   if ( disableAbsorption )
   {
-    sphere.noAbsorption();
+    scatterer->noAbsorption();
   }
   try
   {
 
-    sphere.setWaveLength( params.at("wavelength") );
+    scatterer->setWaveLength( params.at("wavelength") );
 
     // Reference run
-    sphere.setMaterial( "Vacuum" );
-    sphere.setTransverseDiscretization( xmin, xmax, dx, 1 );
-    sphere.setVerticalDiscretization( xmin, xmax, dx );
-    sphere.setLongitudinalDiscretization( zmin, zmax, (zmax-zmin)/3.0, 1 );
+    scatterer->setMaterial( "Vacuum" );
+    coated.setCoatingMaterial( "Vacuum" );
+
+    scatterer->setTransverseDiscretization( xmin, xmax, dx, 1 );
+    scatterer->setVerticalDiscretization( xmin, xmax, dx );
+    scatterer->setLongitudinalDiscretization( zmin, zmax, (zmax-zmin)/3.0, 1 );
 
     #ifdef FAKE_RESULT_WITH_PURE_PHASE_SHIFT
       FFT3DSolverDebug solver;
@@ -99,28 +134,29 @@ int main( int argc, char **argv )
     gbeam.setDim( ParaxialSource::Dim_t::THREE_D );
     gbeam.setWaist( 400.0*r );
 
-    sphere.setSolver( solver );
-    sphere.setBoundaryConditions( gbeam );
-    sphere.solve();
+    scatterer->setSolver( solver );
+    scatterer->setBoundaryConditions( gbeam );
+    scatterer->solve();
     arma::cx_mat ref = solver.getLastSolution3D();
     clog << "Reference solution computed\n";
 
     // Compute real solution
-    sphere.reset();
-    sphere.setLongitudinalDiscretization( zmin, zmax, dz, 1 );
-    sphere.setMaterial( "SiO2" );
+    scatterer->reset();
+    scatterer->setLongitudinalDiscretization( zmin, zmax, dz, 1 );
+    scatterer->setMaterial( "SiO2" );
+    coated.setCoatingMaterial( "Au" );
 
     solver.visualizeRealSpace();
     //solver.visualizeFourierSpace();
     solver.setIntensityMinMax( 0.0, 1.0 );
     solver.setPhaseMinMax( 0.0, 1.5 );
 
-    sphere.setSolver( solver );
-    sphere.setBoundaryConditions( gbeam );
+    scatterer->setSolver( solver );
+    scatterer->setBoundaryConditions( gbeam );
 
     #ifndef FAKE_RESULT_WITH_PURE_PHASE_SHIFT
       clog << "Solving system...";
-      sphere.solve();
+      scatterer->solve();
     clog << "done\n";
     #endif
 
@@ -138,7 +174,7 @@ int main( int argc, char **argv )
     ff.setPadding( post::FarField::Pad_t::ZERO );
     ff.setReference( ref );
     sphere << ef << ei << ep << ff;
-    sphere.save( ctl );
+    scatterer->save( ctl );
     ctl.save();
 
     // Perform some plots of different projections
@@ -149,7 +185,7 @@ int main( int argc, char **argv )
     plots.get("IntensityXY").setCmap( cmap_t::GREYSCALE );
     plots.get("PhaseXY").setCmap( cmap_t::GREYSCALE );
     unsigned int sliceNumber = params.at("Nz")/2;
-    arma::mat solution = arma::abs( sphere.getSolver().getSolution3D().slice(sliceNumber) );
+    arma::mat solution = arma::abs( scatterer->getSolver().getSolution3D().slice(sliceNumber) );
     plots.get("IntensityXY").fillVertexArray( solution );
     arma::cube phaseField;
     phase.result( solver, phaseField );
@@ -162,9 +198,9 @@ int main( int argc, char **argv )
     plots.get("IntensityYZ").setCmap( cmap_t::GREYSCALE );
     plots.get("PhaseYZ").setCmap( cmap_t::GREYSCALE );
     unsigned int row = params.at("Nt")/2;
-    solution = arma::abs( sphere.getSolver().getSolution3D().tube( row, 0, row, params.at("Nt") ) );
+    solution = arma::abs( scatterer->getSolver().getSolution3D().tube( row, 0, row, params.at("Nt") ) );
     plots.get("IntensityYZ").fillVertexArray( solution );
-    solution = arma::arg( sphere.getSolver().getSolution3D().tube( row, 0, row, params.at("Nt") ) );
+    solution = arma::arg( scatterer->getSolver().getSolution3D().tube( row, 0, row, params.at("Nt") ) );
     plots.get("PhaseYZ").fillVertexArray( solution );
 
     // XZ plane
@@ -173,9 +209,9 @@ int main( int argc, char **argv )
     plots.get("IntensityXZ").setCmap( cmap_t::GREYSCALE );
     plots.get("PhaseXZ").setCmap( cmap_t::GREYSCALE );
     unsigned int col = params.at("Nt")/2;
-    solution = arma::abs( sphere.getSolver().getSolution3D().tube( 0, col, params.at("Nt"), col ) );
+    solution = arma::abs( scatterer->getSolver().getSolution3D().tube( 0, col, params.at("Nt"), col ) );
     plots.get("IntensityXZ").fillVertexArray( solution );
-    solution = arma::arg( sphere.getSolver().getSolution3D().tube( 0, col, params.at("Nt"), col ) );
+    solution = arma::arg( scatterer->getSolver().getSolution3D().tube( 0, col, params.at("Nt"), col ) );
     plots.get("PhaseXZ").fillVertexArray( solution );
 
     // Store all pictures
