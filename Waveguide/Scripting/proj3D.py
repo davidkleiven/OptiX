@@ -72,9 +72,6 @@ class Plotter3D:
             im = ax.imshow( self.data, extent=extent, aspect=aspect, cmap=self.cmap )
         cb = fig.colorbar( im )
 
-        if ( not self.cbLoc is None and not self.cbTick is None ):
-            cb.set_ticks(self.cbLoc)
-            cb.set_ticklabels(self.cbTick)
         ax.set_xlabel( self.xcrdLab )
         ax.set_ylabel( self.ycrdLab )
         #ax.set_xlabel( "$q_x \\backslash SI{}{\\backslash per\\backslash angstrom}$" )
