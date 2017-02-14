@@ -72,9 +72,6 @@ class Plotter3D:
             im = ax.imshow( self.data, extent=extent, aspect=aspect, cmap=self.cmap )
         cb = fig.colorbar( im )
 
-        if ( not self.cbLoc is None and not self.cbTick is None ):
-            cb.set_ticks(self.cbLoc)
-            cb.set_ticklabels(self.cbTick)
         ax.set_xlabel( self.xcrdLab )
         ax.set_ylabel( self.ycrdLab )
         #ax.set_xlabel( "$q_x \\backslash SI{}{\\backslash per\\backslash angstrom}$" )
@@ -103,7 +100,9 @@ class Plotter3D:
         ax = fig.add_subplot(1,1,1)
         ymin, ymax = self.getYlim()
         y = np.linspace( ymin, ymax, len(self.data[:,0]) )
-        ax.plot( y, self.data[:,int(self.center[1])], color=color, label=label )
+        values = self.data[:,int(self.center[1])]
+        values = values[::-1]
+        ax.plot( y, values, color=color, label=label )
         ax.spines["right"].set_visible( False )
         ax.spines["top"].set_visible( False )
         #ax.set_xlabel( "$q_y \\SI{}{\\per\\angstrom}$" )
@@ -144,7 +143,7 @@ class Phase(Plotter3D):
         self.cbLog = False
         self.quantityLab = "Phase (rad)"
 
-class Intensity(Plotter3D):
+class IntensityPlot(Plotter3D):
     def __init_( self ):
         Plotter3D.__init__( self )
         self.xcrdLab =  r"\$x \SI{}{\micro\meter}\$"

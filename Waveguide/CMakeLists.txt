@@ -2,7 +2,7 @@ cmake_minimum_required (VERSION 2.6)
 
 project( Waveguide )
 set( CMAKE_CXX_STANDARD 11 )
-#add_definitions( -DARMA_NO_DEBUG )
+add_definitions( -DARMA_NO_DEBUG )
 set( CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-fopenmp")
 
 # Add libraries
@@ -131,6 +131,13 @@ set( LIB ${LIB} ${FLTK_BASE_LIBRARY} )
 set( LIB ${LIB} ${FLTK_GL_LIBRARY} )
 set( LIB ${LIB} ${FLTK_FORMS_LIBRARY} )
 
+# Find the FFTW3 library with threads
+find_library( FFTW_OMP_LIB fftw3_omp )
+if ( NOT FFTW_OMP_LIB )
+  MESSAGE( FATAL_ERROR "Could not find the FFTW3 openMP library!")
+endif()
+set( LIB ${LIB} ${FFTW_OMP_LIB})
+
 # Find the FFTW3 library
 find_library( FFTW_LIB fftw3 )
 if ( NOT FFTW_LIB )
@@ -141,6 +148,7 @@ if ( NOT FFTW_INC )
   MESSAGE( FATAL_ERROR "Could not find the FFTW3 headers!")
 endif()
 set( LIB ${LIB} ${FFTW_LIB} )
+set( LIB ${LIB} "m") # Add C-math library
 include_directories( FFTW_INC )
 
 add_subdirectory(src)

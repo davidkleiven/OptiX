@@ -5,6 +5,7 @@
 #include <fftw3.h>
 #include <visa/visa.hpp>
 #include <string>
+#include "absorber.hpp"
 
 typedef std::complex<double> cdouble;
 class FFTSolver3D: public Solver3D
@@ -34,6 +35,9 @@ public:
   /** Images generated will be stored at prefix */
   void storeImages( const char* prefix );
 
+  /** Set absorbing boundary conditions */
+  void absorbingBC( double width, double dampingLength );
+
   /** Resets the solver */
   virtual void reset() override;
 private:
@@ -46,6 +50,9 @@ private:
   /** Return the spatial frequency corresponding to indx in the y-direction */
   double spatialFreqY( unsigned int indx, unsigned int size ) const;
 
+  /** Performs absorbing boundary conditions */
+  void applyAbsorbingBC();
+
   fftw_complex *curr{NULL};
   fftw_complex *prev{NULL};
   fftw_plan ftforw;
@@ -56,6 +63,8 @@ private:
   bool createAnimation{false};
   std::string imageName{""};
   unsigned int imgCounter{0};
+  Absorber absorbX;
+  Absorber absorbY;
 
   /** Diffraction step */
   void propagate();

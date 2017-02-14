@@ -200,3 +200,4 @@
 450350 | 3D scattering from sphere Nt=1024, Nz=128, qmax=0.1, no absorption SiO2 | Good fit, files accidently deleted. see 274890 |
 274890 | 3D scattering from sphere Nt=1024, Nz=128, qmax=0.1, no absorption SiO2 | Good fit |
 683666 | 3D scattering from sphere Nt=1024, Nz=128, qmax=0.1, with absorption SiO2 | Interesting features at higher Q |
+253987 | 3D waveguide with absorbing BC | Looks OK, some reflections can be seen |

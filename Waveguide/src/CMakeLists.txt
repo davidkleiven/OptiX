@@ -7,6 +7,6 @@ set( SOURCES cladding.cpp waveGuide.cpp waveGuideRadiusCurvature.cpp numerovSolv
 				  refractiveIndex.cpp incidentAngleLengthSweep.cpp cylinder2D.cpp postProcessMod.cpp farFieldPost.cpp
 				  transmittivity.cpp curvedWGConfMap.cpp multipleCurvedWG.cpp
 				fixedValuesSource.cpp bendOptimizer.cpp fftSolver2D.cpp solver.cpp solver3D.cpp fftSolver3D.cpp
-			postProcessing.cpp sphere.cpp waveguideShapes.cpp waveguide3DPaths.cpp )
+			postProcessing.cpp sphere.cpp waveguideShapes.cpp waveguide3DPaths.cpp absorber.cpp)
 
 add_library( src STATIC ${SOURCES} )

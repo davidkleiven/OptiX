@@ -22,14 +22,14 @@ def main( argv ):
     ampPlot = proj3D.Plotter3D()
     phasePlot = proj3D.Phase()
     ffPlot = proj3D.FarField()
-    intensityPlot = proj3D.Intensity()
+    intensityPlot = proj3D.IntensityPlot()
 
     with h5.File( fname, 'r' ) as hf:
         group = hf.get("/data")
         ffset = hf.get("/data/farField")
-        ffPlot.data = np.array( ffset )
-        phasePlot.data = np.array( hf.get("/data/exitPhase") )
-        intensityPlot.data = np.array( hf.get("/data/exitIntensity") )
+        ffPlot.data = np.flipud( np.array( ffset ).T )
+        phasePlot.data = np.flipud( np.array( hf.get("/data/exitPhase") ).T )
+        intensityPlot.data = np.flipud( np.array( hf.get("/data/exitIntensity") ).T )
         lim.zmin = group.attrs.get("zmin")
         lim.zmax = group.attrs.get("zmax")
         lim.xmin = group.attrs.get("xmin")/1000.0
@@ -39,6 +39,9 @@ def main( argv ):
         lim.ymin = lim.xmin
         lim.ymax = lim.xmax
         ffPlot.uid = group.attrs.get("uid")
+        ampPlot.uid = ffPlot.uid
+        phasePlot.uid = ffPlot.uid
+        intensityPlot.uid = ffPlot.uid
 
     ampPlot.limits = lim
     ffPlot.limits = lim
@@ -58,8 +61,6 @@ def main( argv ):
     control = ffPlot.projectionY( control )
 
     control = phasePlot.projectionXY( control )
-    control = phasePlot.projectionX( control )
-    control =phasePlot.projectionY( control )
 
     control = intensityPlot.projectionXY( control )
     root.mainloop()

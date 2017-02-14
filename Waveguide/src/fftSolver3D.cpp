@@ -4,6 +4,10 @@
 #include "paraxialSimulation.hpp"
 #include <iostream>
 #include <sstream>
+#include <omp.h>
+#include <ctime>
+//#define USE_FFTW_MULTITHREAD
+//#define PRINT_TIMING_INFO
 using namespace std;
 
 const double PI = acos(-1.0);
@@ -58,14 +62,40 @@ void FFTSolver3D::solveStep( unsigned int step )
     ftback = fftw_plan_dft_2d( prevSolution->n_rows, prevSolution->n_cols, curr, prev, FFTW_BACKWARD, FFTW_ESTIMATE );
     planInitialized = true;
   }
+
+  #ifdef PRINT_TIMING_INFO
+    clock_t start = clock();
+  #endif
+
   propagate();
+
+  #ifdef PRINT_TIMING_INFO
+    clog << "Propagation step took: " << static_cast<double>( clock()-start )/CLOCKS_PER_SEC << "sec\n";
+    start = clock();
+  #endif
+
   refraction( step );
+
+  #ifdef PRINT_TIMING_INFO
+    clog << "Refraction step took: " << static_cast<double>( clock()-start )/CLOCKS_PER_SEC << "sec\n";
+  #endif
+
+  applyAbsorbingBC();
 }
 
 void FFTSolver3D::propagate()
 {
   // NOTE: FFTW assumes row-major ordering, while Armadillo uses column major
+
+  #ifdef PRINT_TIMING_INFO
+    clock_t start = clock();
+  #endif
+
   fftw_execute( ftforw ); // prev --> current
+
+  #ifdef PRINT_TIMING_INFO
+    clog << "FFT forward took: " << static_cast<double>(clock()-start)/CLOCKS_PER_SEC << " sec\n";
+  #endif
 
   if ( visFourierSpace )
   {
@@ -74,14 +104,14 @@ void FFTSolver3D::propagate()
     plots.show();
   }
 
-  for ( unsigned int i=0;i<currentSolution->n_cols;i++ )
+  #pragma omp parallel for
+  for ( unsigned int i=0;i<currentSolution->n_cols*currentSolution->n_rows;i++ )
   {
-    double kx = spatialFreqX( i, currentSolution->n_cols );
-    for ( unsigned int j=0;j<currentSolution->n_rows;j++ )
-    {
-      double ky = spatialFreqY( j, currentSolution->n_rows );
-      (*currentSolution)(j,i) *= kernel( kx, ky );
-    }
+    unsigned int row = i%currentSolution->n_rows;
+    unsigned int col = i/currentSolution->n_rows;
+    double kx = spatialFreqX( col, currentSolution->n_cols );
+    double ky = spatialFreqY( row, currentSolution->n_rows );
+    (*currentSolution)(row,col) *= kernel( kx, ky );
   }
 
   fftw_execute( ftback ); // current --> prev
@@ -96,26 +126,30 @@ void FFTSolver3D::refraction( unsigned int step )
   double z0 = guide->getZ( step-1 );
   cdouble im(0.0,1.0);
   const double ZERO = 1E-10;
-  for ( unsigned int i=0;i<prevSolution->n_cols; i++ )
+
+  // FFTW3: Divide by length to normalize
+  double normalization = prevSolution->n_rows*prevSolution->n_cols;
+
+  #pragma omp parallel for
+  for ( unsigned int i=0;i<prevSolution->n_cols*prevSolution->n_rows; i++ )
   {
-    double x = guide->getX(i);
-    for ( unsigned int j=0;j<prevSolution->n_rows;j++ )
+    unsigned int row = i%prevSolution->n_rows;
+    unsigned int col = i/prevSolution->n_rows;
+
+    double x = guide->getX(col);
+    double y = guide->getY(row);
+    double delta, beta, deltaPrev, betaPrev;
+    guide->getXrayMatProp( x, y, z1, delta, beta );
+    guide->getXrayMatProp( x, y, z0, deltaPrev, betaPrev );
+
+    if (( abs(delta-deltaPrev) > ZERO ) || ( abs(beta-betaPrev) > ZERO ))
     {
-      double y = guide->getY(j);
-      double delta, beta, deltaPrev, betaPrev;
-      guide->getXrayMatProp( x, y, z1, delta, beta );
-      guide->getXrayMatProp( x, y, z0, deltaPrev, betaPrev );
-      if (( abs(delta-deltaPrev) < ZERO ) || ( abs(beta-betaPrev) < ZERO ))
-      {
         // Wave has crossed a border
         refractionIntegral( x, y, z0, z1, delta, beta );
-      }
-
-      // FFTW3: Divide by length to normalize
-      double normalization = prevSolution->n_rows*prevSolution->n_cols;
-      //normalization = 1.0;
-      (*currentSolution)(j,i) = (*prevSolution)(j,i)*exp( -wavenumber*(beta+im*delta)*stepZ )/normalization;
     }
+
+    //normalization = 1.0;
+    (*currentSolution)(row,col) = (*prevSolution)(row,col)*exp( -wavenumber*(beta+im*delta)*stepZ )/normalization;
   }
 
 
@@ -251,4 +285,50 @@ void FFTSolver3D::storeImages( const char* prefix )
   imageName = prefix;
   createAnimation = true;
   clog << "Intensity images will be store with prefix: " << imageName << endl;
+}
+
+void FFTSolver3D::absorbingBC( double width, double dampingLength )
+{
+  if ( guide == NULL )
+  {
+    throw( runtime_error("No waveguide set! The solver needs first to be passed to a waveguide object. Then call this function!") );
+  }
+
+  unsigned int nPixX = width/guide->transverseDiscretization().step + 1;
+  unsigned int nPixY = width/guide->verticalDiscretization().step + 1;
+
+ clog << "Absorbing BC: " << nPixX << " px in x-direction. " << nPixY << " px in y-direction\n";
+
+  double invDampingX = guide->transverseDiscretization().step/dampingLength;
+  double invDampingY = guide->verticalDiscretization().step/dampingLength;
+
+  absorbX.setThickness( nPixX );
+  absorbY.setThickness( nPixY );
+  absorbX.setInverseDampingLength( invDampingX );
+  absorbY.setInverseDampingLength( invDampingY );
+}
+
+void FFTSolver3D::applyAbsorbingBC()
+{
+  #pragma omp parallel
+  {
+    DimGetter<ApplyDim_t::COL> getter;
+    #pragma omp for
+    for ( unsigned int i=0;i<currentSolution->n_cols;i++ )
+    {
+      getter.fixed = i;
+      absorbY.apply( *currentSolution, getter );
+    }
+  }
+
+  #pragma omp parallel
+  {
+    DimGetter<ApplyDim_t::ROW> getter;
+    #pragma omp for
+    for ( unsigned int i=0;i<currentSolution->n_rows;i++ )
+    {
+      getter.fixed = i;
+      absorbX.apply( *currentSolution, getter );
+    }
+  }
 }
