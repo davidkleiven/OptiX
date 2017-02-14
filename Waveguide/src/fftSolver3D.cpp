@@ -297,10 +297,13 @@ void FFTSolver3D::absorbingBC( double width, double dampingLength )
   unsigned int nPixX = width/guide->transverseDiscretization().step + 1;
   unsigned int nPixY = width/guide->verticalDiscretization().step + 1;
 
- clog << "Absorbing BC: " << nPixX << " px in x-direction. " << nPixY << " px in y-direction\n";
+ clog << "Absorbing BC: " << nPixX << " px in x-direction. " << nPixY << " px in y-direction.\n";
 
   double invDampingX = guide->transverseDiscretization().step/dampingLength;
   double invDampingY = guide->verticalDiscretization().step/dampingLength;
+
+  clog << "Absorbing BC: Damping length " << static_cast<int>(1.0/invDampingX) << " px in x-direction ";
+  clog << static_cast<int>(1.0/invDampingY) << " px in y-direction\n";
 
   absorbX.setThickness( nPixX );
   absorbY.setThickness( nPixY );
