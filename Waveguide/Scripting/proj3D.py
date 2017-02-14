@@ -144,7 +144,7 @@ class Phase(Plotter3D):
         self.cbLog = False
         self.quantityLab = "Phase (rad)"
 
-class Intensity(Plotter3D):
+class IntensityPlot(Plotter3D):
     def __init_( self ):
         Plotter3D.__init__( self )
         self.xcrdLab =  r"\$x \SI{}{\micro\meter}\$"
