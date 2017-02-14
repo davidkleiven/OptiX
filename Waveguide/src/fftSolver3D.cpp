@@ -79,6 +79,8 @@ void FFTSolver3D::solveStep( unsigned int step )
   #ifdef PRINT_TIMING_INFO
     clog << "Refraction step took: " << static_cast<double>( clock()-start )/CLOCKS_PER_SEC << "sec\n";
   #endif
+
+  applyAbsorbingBC();
 }
 
 void FFTSolver3D::propagate()
@@ -142,10 +144,10 @@ void FFTSolver3D::refraction( unsigned int step )
 
     if (( abs(delta-deltaPrev) > ZERO ) || ( abs(beta-betaPrev) > ZERO ))
     {
-      // Wave has crossed a border
+        // Wave has crossed a border
         refractionIntegral( x, y, z0, z1, delta, beta );
     }
-    
+
     //normalization = 1.0;
     (*currentSolution)(row,col) = (*prevSolution)(row,col)*exp( -wavenumber*(beta+im*delta)*stepZ )/normalization;
   }
@@ -283,4 +285,50 @@ void FFTSolver3D::storeImages( const char* prefix )
   imageName = prefix;
   createAnimation = true;
   clog << "Intensity images will be store with prefix: " << imageName << endl;
+}
+
+void FFTSolver3D::absorbingBC( double width, double dampingLength )
+{
+  if ( guide == NULL )
+  {
+    throw( runtime_error("No waveguide set! The solver needs first to be passed to a waveguide object. Then call this function!") );
+  }
+
+  unsigned int nPixX = width/guide->transverseDiscretization().step + 1;
+  unsigned int nPixY = width/guide->verticalDiscretization().step + 1;
+
+ clog << "Absorbing BC: " << nPixX << " px in x-direction. " << nPixY << " px in y-direction\n";
+
+  double invDampingX = guide->transverseDiscretization().step/dampingLength;
+  double invDampingY = guide->verticalDiscretization().step/dampingLength;
+
+  absorbX.setThickness( nPixX );
+  absorbY.setThickness( nPixY );
+  absorbX.setInverseDampingLength( invDampingX );
+  absorbY.setInverseDampingLength( invDampingY );
+}
+
+void FFTSolver3D::applyAbsorbingBC()
+{
+  #pragma omp parallel
+  {
+    DimGetter<ApplyDim_t::COL> getter;
+    #pragma omp for
+    for ( unsigned int i=0;i<currentSolution->n_cols;i++ )
+    {
+      getter.fixed = i;
+      absorbY.apply( *currentSolution, getter );
+    }
+  }
+
+  #pragma omp parallel
+  {
+    DimGetter<ApplyDim_t::ROW> getter;
+    #pragma omp for
+    for ( unsigned int i=0;i<currentSolution->n_rows;i++ )
+    {
+      getter.fixed = i;
+      absorbX.apply( *currentSolution, getter );
+    }
+  }
 }
