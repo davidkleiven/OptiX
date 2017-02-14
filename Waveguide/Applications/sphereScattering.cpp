@@ -80,12 +80,18 @@ int main( int argc, char **argv )
   center.y = center.x;
   center.z = (zmax+zmin)/2.0;
 
-  post::Phase phase;
-  post::Intensity amplitude;
+  post::Phase phase; // Only used for visualization
   post::ExitField ef;
   post::ExitIntensity ei;
   post::ExitPhase ep;
   post::FarField ff;
+
+  unsigned int exportNx = 512;
+  unsigned int exportNy = 512;
+  ef.setExportDimensions( exportNx, exportNy );
+  ei.setExportDimensions( exportNx, exportNy );
+  ep.setExportDimensions( exportNx, exportNy );
+  ff.setExportDimensions( exportNx, exportNy );
 
   Sphere *scatterer = NULL;
   Sphere sphere( center, r );
@@ -173,7 +179,7 @@ int main( int argc, char **argv )
     ff.setPadLength( params.at("padLength")+0.5 );
     ff.setPadding( post::FarField::Pad_t::ZERO );
     ff.setReference( ref );
-    sphere << ef << ei << ep << ff;
+    *scatterer << ef << ei << ep << ff;
     scatterer->save( ctl );
     ctl.save();
 
