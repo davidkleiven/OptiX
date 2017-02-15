@@ -8,7 +8,6 @@ from scipy import special as spec
 from scipy import integrate
 import json
 
-R = 2000.0 # nm
 k = 40.01 # nm^{-1} wavenumber
 #fname = "data/sphere828475.h5"
 
@@ -27,12 +26,13 @@ class LayeredSphere:
         self.radii = []
         self.delta = []
 
-    def formsphere( q, R ):
-        f =  (np.sin(q*R) - q*R*np.cos(q*R))/(q*R)**3
+    def formsphere( self, q, R ):
+        V = (4.0*np.pi*R**3)/3.0
+        f =  3.0*V*(np.sin(q*R) - q*R*np.cos(q*R))/(q*R)**3
         f[np.abs(q*R) < 1E-3] = 1.0/3.0
         return f
 
-    def formFactor( q ):
+    def formFactor( self, q ):
         assert( len(self.radii) == len(self.delta) )
         tot = self.delta[0]*self.formsphere( q, self.radii[0] )
         for i in range( 1, len(self.radii) ):
@@ -84,7 +84,7 @@ def main( argv ):
         spheres.radii.append( entry["radius"] )
         spheres.delta.append( entry["delta"] )
 
-    F = spheres.formsphere( q )**2
+    F = spheres.formFactor( q )**2
 
     F *= ( amp/np.max(F) )
 
@@ -96,11 +96,12 @@ def main( argv ):
         Fphase[i] = integrate.quad( integrandReal, 0.0, R, args=(q[i],))[0] + 1j*integrate.quad( integrandImag, 0.0, R, args=(q[i],))[0]
 
 
-    control.plots.axes[0].ax.plot( q, F, color="#ca0020", label=r"\$F(q)\$")
+    control.plots.axes[0].ax.plot( q, F, color="#ca0020", label=r"\$F(q)\$" )
     control.plots.axes[0].ax.legend( loc="upper left", frameon=False, labelspacing=0.01, borderpad=0.0, handletextpad=0.3, handlelength=0.1 )
 
     if ( plotCircularStop == 1 ):
         control.plots.axes[0].ax.plot( q, Fc, color="#4daf4a", label=r"\$F_c(q)\$")
+
     control.plots.axes[0].ax.legend( loc="upper left", frameon=False, labelspacing=0.01, borderpad=0.0, handletextpad=0.3, handlelength=0.1 )
     root.mainloop()
 
