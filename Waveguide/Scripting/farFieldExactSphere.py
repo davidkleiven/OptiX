@@ -55,8 +55,10 @@ def main( argv ):
     paramFile.close()
 
     plotCircularStop = 0
-    if ( len(argv) > 0 ):
-        plotCircularStop = int( argv[0] )
+    try:
+        plotCircularStop = params["plotCircularStop"]
+    except:
+        plotCircularStop = 0
 
     lim = proj3D.Limits()
     ffPlot = proj3D.FarField()
@@ -83,7 +85,7 @@ def main( argv ):
         spheres.delta.append( entry["delta"] )
 
     F = spheres.formsphere( q )**2
-    
+
     F *= ( amp/np.max(F) )
 
     Fc = formFactorCircularStop( q )**2
