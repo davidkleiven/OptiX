@@ -39,10 +39,10 @@ class LayeredSphere:
             tot += (self.delta[i]*self.formsphere( q, self.radii[i]) - self.delta[i]*self.formsphere( q, self.radii[i-1]) )
         return tot
 
-def integrandReal( r, q, R ):
+def integrandReal( r, q, R, delta ):
     return r*spec.jn( 0, q*r )*( np.cos(-delta*k*np.sqrt(R**2 - r**2) ) - 1.0 )
 
-def integrandImag( r, q, R ):
+def integrandImag( r, q, R, delta ):
     return r*spec.jn( 0, q*r )*np.sin(-delta*k*np.sqrt(R**2 - r**2) )
 
 def formFactorCircularStop( q, R ):
@@ -89,13 +89,14 @@ def main( argv ):
     F *= ( amp/np.max(F) )
 
     R = params["spheres"][0]["radius"]
+    delta = params["spehres"][0]["radius"]
 
     Fc = formFactorCircularStop( q, R )**2
     Fc *= ( amp/np.max(Fc) )
 
     Fphase = np.zeros(len(q)) + 1j*np.zeros(len(q))
     for i in range(0,len(q)):
-        Fphase[i] = integrate.quad( integrandReal, 0.0, R, args=(q[i],R))[0] + 1j*integrate.quad( integrandImag, 0.0, R, args=(q[i],R))[0]
+        Fphase[i] = integrate.quad( integrandReal, 0.0, R, args=(q[i],R,delta))[0] + 1j*integrate.quad( integrandImag, 0.0, R, args=(q[i],R,delta))[0]
 
 
     control.plots.axes[0].ax.plot( q, F, color="#ca0020", label=r"\$F(q)\$" )
