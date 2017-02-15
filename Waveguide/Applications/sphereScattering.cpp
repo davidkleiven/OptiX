@@ -155,7 +155,7 @@ int main( int argc, char **argv )
     solver.visualizeRealSpace();
     //solver.visualizeFourierSpace();
     solver.setIntensityMinMax( 0.0, 1.0 );
-    solver.setPhaseMinMax( 0.0, 1.5 );
+    solver.setPhaseMinMax( -1.58, 1.58 );
 
     scatterer->setSolver( solver );
     scatterer->setBoundaryConditions( gbeam );
