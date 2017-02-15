@@ -25,7 +25,7 @@ void Solver3D::setSimulator( ParaxialSimulation &sim )
 
   prevSolution = new arma::cx_mat(Nx,Ny);
   currentSolution = new arma::cx_mat(Nx, Ny);
-  solution = new arma::cx_cube( Nx, Ny, Nz );
+  solution = new arma::cx_cube( downSampledX, downSampledX, downSampledZ+1 );
 
   if ( downSampledX != Nx )
   {
@@ -74,28 +74,31 @@ void Solver3D::copyCurrentSolution( unsigned int step )
 
   *prevSolution = *currentSolution;
 
-  if (( currentSolution->n_rows != solution->n_rows ) || ( currentSolution->n_cols != solution->n_cols ))
+  if (step%guide->longitudinalDiscretization().downsamplingRatio == 0 )
   {
-    filterTransverse( *currentSolution );
+    unsigned int currZ = step/guide->longitudinalDiscretization().downsamplingRatio;
+    if (( currentSolution->n_rows != solution->n_rows ) || ( currentSolution->n_cols != solution->n_cols ))
+    {
+      filterTransverse( *currentSolution );
+    }
+
+    double deltaX = static_cast<double>( currentSolution->n_rows )/static_cast<double>( solution->n_rows );
+    double deltaY = static_cast<double>( currentSolution->n_cols )/static_cast<double>( solution->n_cols );
+
+    unsigned int maxX = deltaX*( solution->n_rows - 1 );
+    unsigned int maxY = deltaY*( solution->n_cols - 1 );
+    assert( maxX < currentSolution->n_rows );
+    assert( maxY < currentSolution->n_cols );
+
+    // Downsample the array
+    #pragma omp parallel for
+    for ( unsigned int i=0;i<solution->n_rows*solution->n_cols;i++ )
+    {
+      unsigned int row = i%solution->n_rows;
+      unsigned int col = i/solution->n_rows;
+      (*solution)(row,col,currZ) = (*currentSolution)( row*deltaX, col*deltaY );
+    }
   }
-
-  double deltaX = static_cast<double>( currentSolution->n_rows )/static_cast<double>( solution->n_rows );
-  double deltaY = static_cast<double>( currentSolution->n_cols )/static_cast<double>( solution->n_cols );
-
-  unsigned int maxX = deltaX*( solution->n_rows - 1 );
-  unsigned int maxY = deltaY*( solution->n_cols - 1 );
-  assert( maxX < currentSolution->n_rows );
-  assert( maxY < currentSolution->n_cols );
-
-  // Downsample the array
-  #pragma omp parallel for
-  for ( unsigned int i=0;i<solution->n_rows*solution->n_cols;i++ )
-  {
-    unsigned int row = i%solution->n_rows;
-    unsigned int col = i/solution->n_rows;
-    (*solution)(row,col,step) = (*currentSolution)( row*deltaX, col*deltaY );
-  }
-
 }
 
 void Solver3D::setInitialConditions( const arma::cx_mat &values )

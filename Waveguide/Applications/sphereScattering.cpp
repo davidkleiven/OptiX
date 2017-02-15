@@ -48,6 +48,7 @@ int main( int argc, char **argv )
   params["disableAbsorption"] = 0.0;  // Run without absorption (0 --> with absorption, otherwise run without absorption)
   params["mode"] = 0;
   params["coatThicknessIn_nm"] = 100.0; // Thickness of the coating in nano meters
+  params["farFieldSaveSize"] = 512;     // Dimenstion of the farfield matrices to be saved
 
   pei::DialogBox dialog( params );
   dialog.show();
@@ -91,7 +92,7 @@ int main( int argc, char **argv )
   ef.setExportDimensions( exportNx, exportNy );
   ei.setExportDimensions( exportNx, exportNy );
   ep.setExportDimensions( exportNx, exportNy );
-  ff.setExportDimensions( exportNx, exportNy );
+  ff.setExportDimensions( params.at("farFieldSaveSize"), params.at("farFieldSaveSize") );
 
   Sphere *scatterer = NULL;
   Sphere sphere( center, r );
@@ -121,7 +122,7 @@ int main( int argc, char **argv )
     scatterer->setMaterial( "Vacuum" );
     coated.setCoatingMaterial( "Vacuum" );
 
-    scatterer->setTransverseDiscretization( xmin, xmax, dx, 1 );
+    scatterer->setTransverseDiscretization( xmin, xmax, dx, params.at("downSampleT") );
     scatterer->setVerticalDiscretization( xmin, xmax, dx );
     scatterer->setLongitudinalDiscretization( zmin, zmax, (zmax-zmin)/3.0, 1 );
 
@@ -148,7 +149,7 @@ int main( int argc, char **argv )
 
     // Compute real solution
     scatterer->reset();
-    scatterer->setLongitudinalDiscretization( zmin, zmax, dz, 1 );
+    scatterer->setLongitudinalDiscretization( zmin, zmax, dz, params.at("downSampleZ") );
     scatterer->setMaterial( "SiO2" );
     coated.setCoatingMaterial( "Au" );
 
@@ -190,7 +191,7 @@ int main( int argc, char **argv )
     plots.addPlot("PhaseXY");
     plots.get("IntensityXY").setCmap( cmap_t::GREYSCALE );
     plots.get("PhaseXY").setCmap( cmap_t::GREYSCALE );
-    unsigned int sliceNumber = params.at("Nz")/2;
+    unsigned int sliceNumber = params.at("Nz")/( 2.0*params.at("downSampleZ") );
     arma::mat solution = arma::abs( scatterer->getSolver().getSolution3D().slice(sliceNumber) );
     plots.get("IntensityXY").fillVertexArray( solution );
     arma::cube phaseField;
@@ -203,10 +204,10 @@ int main( int argc, char **argv )
     plots.addPlot( "PhaseYZ" );
     plots.get("IntensityYZ").setCmap( cmap_t::GREYSCALE );
     plots.get("PhaseYZ").setCmap( cmap_t::GREYSCALE );
-    unsigned int row = params.at("Nt")/2;
-    solution = arma::abs( scatterer->getSolver().getSolution3D().tube( row, 0, row, params.at("Nt") ) );
+    unsigned int row = params.at("Nt")/( 2.0*params.at("downSampleT") );
+    solution = arma::abs( scatterer->getSolver().getSolution3D().tube( row, 0, row, params.at("Nt")/params.at("downSampleT")-1 ) );
     plots.get("IntensityYZ").fillVertexArray( solution );
-    solution = arma::arg( scatterer->getSolver().getSolution3D().tube( row, 0, row, params.at("Nt") ) );
+    solution = arma::arg( scatterer->getSolver().getSolution3D().tube( row, 0, row, params.at("Nt")/params.at("downSampleT")-1 ) );
     plots.get("PhaseYZ").fillVertexArray( solution );
 
     // XZ plane
@@ -214,10 +215,10 @@ int main( int argc, char **argv )
     plots.addPlot( "PhaseXZ" );
     plots.get("IntensityXZ").setCmap( cmap_t::GREYSCALE );
     plots.get("PhaseXZ").setCmap( cmap_t::GREYSCALE );
-    unsigned int col = params.at("Nt")/2;
-    solution = arma::abs( scatterer->getSolver().getSolution3D().tube( 0, col, params.at("Nt"), col ) );
+    unsigned int col = params.at("Nt")/(2.0*params.at("downSampleT"));
+    solution = arma::abs( scatterer->getSolver().getSolution3D().tube( 0, col, params.at("Nt")/params.at("downSampleT")-1, col ) );
     plots.get("IntensityXZ").fillVertexArray( solution );
-    solution = arma::arg( scatterer->getSolver().getSolution3D().tube( 0, col, params.at("Nt"), col ) );
+    solution = arma::arg( scatterer->getSolver().getSolution3D().tube( 0, col, params.at("Nt")/params.at("downSampleT")-1, col ) );
     plots.get("PhaseXZ").fillVertexArray( solution );
 
     // Store all pictures
@@ -232,7 +233,6 @@ int main( int argc, char **argv )
         clog << "Image " << fname.str() << " saved...\n";
       }
     }
-
     plots.show();
     for ( unsigned int i=0;i<KEEP_PLOT_FOR_SEC;i++ )
     {

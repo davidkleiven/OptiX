@@ -34,9 +34,10 @@ class LayeredSphere:
 
     def formFactor( self, q ):
         assert( len(self.radii) == len(self.delta) )
+
         tot = self.delta[0]*self.formsphere( q, self.radii[0] )
         for i in range( 1, len(self.radii) ):
-            tot += self.delta[i]*(self.formsphere( q, self.radii[i]) - self.formsphere( q, self.radii[i-1]) )
+            tot += self.delta[i]*( self.formsphere( q, self.radii[i] ) - self.formsphere( q, self.radii[i-1]) )
         return tot
 
 def integrandReal( r, q, R, delta ):

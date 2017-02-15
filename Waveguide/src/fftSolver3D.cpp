@@ -8,6 +8,7 @@
 #include <ctime>
 //#define USE_FFTW_MULTITHREAD
 //#define PRINT_TIMING_INFO
+#define UPDATE_MESSAGE_FREQUENCY 10
 using namespace std;
 
 const double PI = acos(-1.0);
@@ -61,6 +62,7 @@ void FFTSolver3D::solveStep( unsigned int step )
     ftforw = fftw_plan_dft_2d( prevSolution->n_rows, prevSolution->n_cols, prev, curr, FFTW_FORWARD, FFTW_ESTIMATE );
     ftback = fftw_plan_dft_2d( prevSolution->n_rows, prevSolution->n_cols, curr, prev, FFTW_BACKWARD, FFTW_ESTIMATE );
     planInitialized = true;
+    clog << endl; // To better for the step update
   }
 
   #ifdef PRINT_TIMING_INFO
@@ -81,6 +83,11 @@ void FFTSolver3D::solveStep( unsigned int step )
   #endif
 
   applyAbsorbingBC();
+
+  if ( step%UPDATE_MESSAGE_FREQUENCY == 0 )
+  {
+    clog << "Step: " << step << "\r";
+  }
 }
 
 void FFTSolver3D::propagate()

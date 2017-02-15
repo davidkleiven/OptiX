@@ -78,7 +78,7 @@ private:
   /** Evaluates the refractive index for the purpose of overlay */
   void evaluateRefractiveIndex( arma::mat &refr, double z ) const;
 
-  unsigned int nStepsInRefrIntegral{200};
+  unsigned int nStepsInRefrIntegral{10};
 
   bool visRealSpace{false};
   bool visFourierSpace{false};

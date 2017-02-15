@@ -79,7 +79,7 @@ void CoatedSphere::getXrayMatProp( double x, double y, double z, double &matDelt
 
   double distSq = pow( x - center.x, 2 ) + pow( y - center.y, 2 ) + pow( z - center.z, 2 );
 
-  if ( distSq < pow( radius+thickness, 2) )
+  if (( distSq < pow( radius+thickness, 2) ) && ( distSq > pow(radius,2) ))
   {
     matDelta = deltaCoat;
     matBeta = betaCoat;

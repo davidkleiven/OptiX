@@ -203,3 +203,6 @@
 253987 | 3D waveguide with absorbing BC | Looks OK, some reflections can be seen |
 177051 | 3D scattering from sphere qmax=0.05 SiO2 | Good fit, think 450350, 274890, 683666 is wrong |
 958550 | 3D scattering from coated sphere, r=2000 nm, d=400 nm SiO2 and Au | Ringing clearly visible |
+722790 | SiO2 core shell, thickness 400 nm | Fits good with form factor |
+271014 | Gold sphere r=2000nm no abs | Demonstrates that form factor cannot be used with strong scatterers |
+873353 | SiO2 sphere, Au shell, r=500 nm, d=50 nm | Looks good, a bit softer in the zeros |
