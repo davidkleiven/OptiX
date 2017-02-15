@@ -29,7 +29,7 @@ class LayeredSphere:
     def formsphere( self, q, R ):
         V = (4.0*np.pi*R**3)/3.0
         f =  3.0*V*(np.sin(q*R) - q*R*np.cos(q*R))/(q*R)**3
-        f[np.abs(q*R) < 1E-3] = 1.0/3.0
+        f[np.abs(q*R) < 1E-3] = V
         return f
 
     def formFactor( self, q ):
