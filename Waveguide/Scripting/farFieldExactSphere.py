@@ -34,7 +34,7 @@ class LayeredSphere:
 
     def formFactor( self, q ):
         assert( len(self.radii) == len(self.delta) )
-        tot = self.delta[0]*self.formsphere( q, self.radii[0] )*self.delta[0]
+        tot = self.delta[0]*self.formsphere( q, self.radii[0] )
         for i in range( 1, len(self.radii) ):
             tot += (self.delta[i]*self.formsphere( q, self.radii[i]) - self.delta[i]*self.formsphere( q, self.radii[i-1]) )
         return tot
@@ -94,10 +94,11 @@ def main( argv ):
     Fc = formFactorCircularStop( q, R )**2
     Fc *= ( amp/np.max(Fc) )
 
+    '''
     Fphase = np.zeros(len(q)) + 1j*np.zeros(len(q))
     for i in range(0,len(q)):
         Fphase[i] = integrate.quad( integrandReal, 0.0, R, args=(q[i],R,delta))[0] + 1j*integrate.quad( integrandImag, 0.0, R, args=(q[i],R,delta))[0]
-
+    '''
 
     control.plots.axes[0].ax.plot( q, F, color="#ca0020", label=r"\$F(q)\$" )
     control.plots.axes[0].ax.legend( loc="upper left", frameon=False, labelspacing=0.01, borderpad=0.0, handletextpad=0.3, handlelength=0.1 )
