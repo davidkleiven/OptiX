@@ -6,10 +6,10 @@ import numpy as np
 import tkinter as tk
 from scipy import special as spec
 from scipy import integrate
+import json
 
 R = 2000.0 # nm
 k = 40.01 # nm^{-1} wavenumber
-delta = 8.90652E-6
 #fname = "data/sphere828475.h5"
 
 #fname = "data/sphere558434.h5"
@@ -22,10 +22,22 @@ fname = "data/sphere683666.h5"
 fname = "data/sphere558434.h5"
 fname = "data/sphere718369.h5"
 
-def formsphere( q ):
-    f =  (np.sin(q*R) - q*R*np.cos(q*R))/(q*R)**3
-    f[np.abs(q*R) < 1E-3] = 1.0/3.0
-    return f
+class LayeredSphere:
+    def __init__( self ):
+        self.radii = []
+        self.delta = []
+
+    def formsphere( q, R ):
+        f =  (np.sin(q*R) - q*R*np.cos(q*R))/(q*R)**3
+        f[np.abs(q*R) < 1E-3] = 1.0/3.0
+        return f
+
+    def formFactor( q ):
+        assert( len(self.radii) == len(self.delta) )
+        tot = self.delta[0]*self.formsphere( q, self.radii[0] )
+        for i in range( 1, len(self.radii) ):
+            tot += (self.delta[i]*self.formsphere( q, self.radii[i]) - self.delta[i]*self.formsphere( q, self.radii[i-1]) )
+        return tot
 
 def integrandReal( r, q ):
     return r*spec.jn( 0, q*r )*( np.cos(-delta*k*np.sqrt(R**2 - r**2) ) - 1.0 )
@@ -38,13 +50,17 @@ def formFactorCircularStop( q ):
     return 2.0*spec.j1( q*R )/(q*R )
 
 def main( argv ):
+    paramFile = open( argv[0], 'r' )
+    params = json.load( paramFile )
+    paramFile.close()
+
     plotCircularStop = 0
     if ( len(argv) > 0 ):
         plotCircularStop = int( argv[0] )
 
     lim = proj3D.Limits()
     ffPlot = proj3D.FarField()
-    with h5.File(fname, 'r') as hf:
+    with h5.File(params["datafile"], 'r') as hf:
         ff = hf.get("/data/farField")
         lim.qmin = ff.attrs.get("qmin")
         lim.qmax = ff.attrs.get("qmax")
@@ -60,7 +76,14 @@ def main( argv ):
     amp = np.max( ffPlot.data )
 
     q = np.linspace( lim.qmin, lim.qmax, 1001 )
-    F = formsphere( q )**2
+
+    spheres = LayeredSphere()
+    for entry in params["spheres"]:
+        spheres.radii.append( entry["radius"] )
+        spheres.delta.append( entry["delta"] )
+
+    F = spheres.formsphere( q )**2
+    
     F *= ( amp/np.max(F) )
 
     Fc = formFactorCircularStop( q )**2

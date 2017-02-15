@@ -45,6 +45,27 @@ void Sphere::getXrayMatProp( double x, double y, double z, double &matDelta, dou
   matBeta = 0.0;
 }
 
+void Sphere::setGroupAttributes()
+{
+  if ( maingroup == NULL ) return;
+
+  ParaxialSimulation::setGroupAttributes();
+
+  H5::DataSpace attribSpace(H5S_SCALAR);
+
+  H5::Attribute att = maingroup->createAttribute( "delta", H5::PredType::NATIVE_DOUBLE, attribSpace );
+  att.write( H5::PredType::NATIVE_DOUBLE, &delta );
+
+  att = maingroup->createAttribute( "beta", H5::PredType::NATIVE_DOUBLE, attribSpace );
+  att.write( H5::PredType::NATIVE_DOUBLE, &beta );
+
+  att = maingroup->createAttribute( "radius", H5::PredType::NATIVE_DOUBLE, attribSpace );
+  att.write( H5::PredType::NATIVE_DOUBLE, &radius );
+
+  att = maingroup->createAttribute( "withAbsorption", H5::PredType::NATIVE_HBOOL, attribSpace );
+  att.write( H5::PredType::NATIVE_HBOOL, &withAbsorption );
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 void CoatedSphere::getXrayMatProp( double x, double y, double z, double &matDelta, double &matBeta ) const
 {
@@ -84,4 +105,21 @@ void CoatedSphere::setCoatingMaterial( const char* name )
   {
     betaCoat = 0.0;
   }
+}
+
+void CoatedSphere::setGroupAttributes()
+{
+  if ( maingroup == NULL ) return;
+  Sphere::setGroupAttributes();
+
+  H5::DataSpace attribSpace(H5S_SCALAR);
+
+  H5::Attribute att = maingroup->createAttribute( "deltaCoating", H5::PredType::NATIVE_DOUBLE, attribSpace );
+  att.write( H5::PredType::NATIVE_DOUBLE, &deltaCoat );
+
+  att = maingroup->createAttribute( "betaCoating", H5::PredType::NATIVE_DOUBLE, attribSpace );
+  att.write( H5::PredType::NATIVE_DOUBLE, &betaCoat );
+
+  att = maingroup->createAttribute( "coatThickness", H5::PredType::NATIVE_DOUBLE, attribSpace );
+  att.write( H5::PredType::NATIVE_DOUBLE, &thickness );
 }

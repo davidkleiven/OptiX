@@ -1,0 +1,13 @@
+{
+  "datafile":"sphere123546.h5",
+  "spheres":[
+    {
+      "radius":2000.0,
+      "delta":8.96E-6
+    },
+    {
+      "radius":2400.0,
+      "delta":5.0E-5
+    }
+  ]
+}

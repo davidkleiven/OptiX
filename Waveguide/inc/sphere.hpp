@@ -17,6 +17,9 @@ public:
   /** Return the material properties of the cylinder */
   virtual void getXrayMatProp( double x, double y, double z, double &delta, double &beta ) const override;
 
+  /** Add additional attributes specific to this simulation */
+  virtual void setGroupAttributes() override;
+
   /** Set the cylinder material */
   void setMaterial( const char* name );
 
@@ -44,6 +47,9 @@ public:
 
   /** Return the material properties */
   virtual void getXrayMatProp( double x, double y, double z, double &delta, double &beta ) const override;
+
+  /** Set attributes specific to this simulation */
+  virtual void setGroupAttributes() override;
 private:
   double deltaCoat{0.0};
   double betaCoat{0.0};
