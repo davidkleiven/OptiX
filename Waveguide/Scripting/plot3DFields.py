@@ -47,7 +47,7 @@ def main( argv ):
     ffPlot.limits = lim
     phasePlot.limits = lim
     intensityPlot.limits = lim
-    ffPlot.cmap = "bone"
+    #ffPlot.cmap = "bone"
 
     # Compute center of mass
     ffPlot.centerOfMass()
