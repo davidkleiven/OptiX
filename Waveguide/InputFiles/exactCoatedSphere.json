@@ -1,12 +1,12 @@
 {
-  "datafile":"data/sphere725724.h5",
+  "datafile":"data/sphere873353.h5",
   "spheres":[
     {
-      "radius":2000.0,
+      "radius":500.0,
       "delta":8.9065E-6
     },
     {
-      "radius":2400.0,
+      "radius":550.0,
       "delta":4.8984E-5
     }
   ]

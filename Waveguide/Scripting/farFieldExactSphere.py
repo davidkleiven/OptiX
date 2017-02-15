@@ -77,7 +77,7 @@ def main( argv ):
     ax = control.plots.axes[0].ax
     amp = np.max( ffPlot.data )
 
-    q = np.linspace( lim.qmin, lim.qmax, 1001 )
+    q = np.linspace( lim.qmin, lim.qmax, 10001 )
 
     spheres = LayeredSphere()
     for entry in params["spheres"]:
