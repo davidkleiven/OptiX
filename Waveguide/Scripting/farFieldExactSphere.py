@@ -89,7 +89,7 @@ def main( argv ):
     F *= ( amp/np.max(F) )
 
     R = params["spheres"][0]["radius"]
-    delta = params["spehres"][0]["radius"]
+    delta = params["spheres"][0]["radius"]
 
     Fc = formFactorCircularStop( q, R )**2
     Fc *= ( amp/np.max(Fc) )
