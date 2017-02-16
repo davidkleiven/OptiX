@@ -206,3 +206,4 @@
 722790 | SiO2 core shell, thickness 400 nm | Fits good with form factor |
 271014 | Gold sphere r=2000nm no abs | Demonstrates that form factor cannot be used with strong scatterers |
 873353 | SiO2 sphere, Au shell, r=500 nm, d=50 nm | Looks good, a bit softer in the zeros |
+620657 | SiO2 sphere, Au shell, r=50 nm, d=5 nm | Looks very good |
