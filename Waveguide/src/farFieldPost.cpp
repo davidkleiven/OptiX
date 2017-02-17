@@ -138,8 +138,8 @@ void post::FarField::addAttrib( vector<H5Attr> &attr ) const
 
 void post::FarField::result( const Solver &solver, arma::mat &res )
 {
-  unsigned int Nx = signalLength < res.n_cols ? res.n_rows:signalLength;
-  unsigned int Ny = signalLength < res.n_rows ? res.n_cols:signalLength;
+  unsigned int Nx = signalLength < res.n_rows ? res.n_rows:signalLength;
+  unsigned int Ny = signalLength < res.n_cols ? res.n_cols:signalLength;
 
   assert( Nx == Ny ); // TODO: Currently only square matrix is supported
 

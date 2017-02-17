@@ -212,6 +212,6 @@ protected:
   void verifySolverReady() const;
 
   /** Set group attributes */
-  void setGroupAttributes();
+  virtual void setGroupAttributes();
 };
 #endif

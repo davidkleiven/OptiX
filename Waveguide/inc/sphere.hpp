@@ -15,18 +15,44 @@ public:
   Sphere( const Point3D &center, double radius );
 
   /** Return the material properties of the cylinder */
-  void getXrayMatProp( double x, double y, double z, double &delta, double &beta ) const override;
+  virtual void getXrayMatProp( double x, double y, double z, double &delta, double &beta ) const override;
+
+  /** Add additional attributes specific to this simulation */
+  virtual void setGroupAttributes() override;
 
   /** Set the cylinder material */
   void setMaterial( const char* name );
 
   /** Run the simulation without absorption */
   void noAbsorption(){ withAbsorption = false; };
-private:
+protected:
+  Sphere( const Point3D &inCenter, double radius, const char* name );
   Point3D center;
   double radius{1.0};
   double delta{0.0};
   double beta{0.0};
   bool withAbsorption{true};
+};
+
+class CoatedSphere: public Sphere
+{
+public:
+  CoatedSphere( const Point3D &center, double radius ): Sphere(center, radius, "CoatedSphere"){};
+
+  /** Set the material of the coating */
+  void setCoatingMaterial( const char* name );
+
+  /** Set the thickness of the coating in nano meters */
+  void setThickness( double newThickness ){ thickness = newThickness; };
+
+  /** Return the material properties */
+  virtual void getXrayMatProp( double x, double y, double z, double &delta, double &beta ) const override;
+
+  /** Set attributes specific to this simulation */
+  virtual void setGroupAttributes() override;
+private:
+  double deltaCoat{0.0};
+  double betaCoat{0.0};
+  double thickness{0.0};
 };
 #endif

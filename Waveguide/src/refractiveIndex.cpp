@@ -8,6 +8,7 @@ const map<elementName, filename> RefractiveIndex::knownElements = {{"Ta", "MatPr
                                     {"SiO2", "MatProp/indexRefrSiO2.txt"},
                                     {"C2H6O2", "MatProp/indexRefrC2H6O2.txt"},
                                     {"Pb", "MatProp/indexRefrPb.txt"},
+                                    {"Au", "MatProp/indexRefrAu.txt"},
                                     {"Vacuum", ""}};
 
 void RefractiveIndex::load( const char* element )
