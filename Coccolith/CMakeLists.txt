@@ -5,6 +5,7 @@ project( Waveguide )
 set( CMAKE_CXX_STANDARD 11 )
 
 include_directories( include )
+add_subdirectory(src)
 
 # Meep library
 find_library( LIBMEEP meep )
@@ -85,5 +86,6 @@ set( LIB ${LIB} ${FLTK_BASE_LIBRARY} )
 set( LIB ${LIB} ${FLTK_GL_LIBRARY} )
 set( LIB ${LIB} ${FLTK_FORMS_LIBRARY} )
 
+set( LIB ${LIB} sourcefiles)
 add_executable( coccolith.out coccolith.cpp )
 target_link_libraries( coccolith.out ${LIB} )
