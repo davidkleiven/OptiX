@@ -81,6 +81,22 @@ if ( NOT FLTK_IMAGE_LIBRARY)
 endif()
 find_package( OpenGL REQUIRED )
 
+find_package(SFML REQUIRED system window graphics network audio)
+include_directories(SFML_INCLUDE_DIR)
+set( LIB ${LIB} ${SFML_LIBRARIES} )
+
+# Check for the VISA library
+find_library( VISA_LIB visa HINTS /usr/local/lib )
+if ( NOT VISA_LIB )
+  MESSAGE (FATAL_ERROR "Did not find the VISA library")
+endif ( NOT VISA_LIB )
+set( LIB ${LIB} ${VISA_LIB} )
+
+find_path( VISA_HEADER visa/ )
+if ( NOT VISA_HEADER )
+  MESSAGE(FATAL_ERROR "Did not find the VISA header files!")
+endif( NOT VISA_HEADER )
+
 include_directories( FLTK_INCLUDE_DIR )
 set( LIB ${LIB} ${FLTK_BASE_LIBRARY} )
 set( LIB ${LIB} ${FLTK_GL_LIBRARY} )

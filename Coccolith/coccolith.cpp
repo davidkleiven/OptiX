@@ -10,6 +10,7 @@ int main( int argc, char** argv )
   try
   {
     material.loadRaw( "data/cocco8cv4_216_182_249_253.raw" );
+    material.slideThroughVoxelArray();
   }
   catch( exception &exc )
   {

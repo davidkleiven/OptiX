@@ -1,6 +1,9 @@
 #include "voxelMaterial.hpp"
 #include <iostream>
 #include <stdexcept>
+#include <visa/visa.hpp>
+#include <chrono>
+#include <thread>
 
 using namespace std;
 
@@ -97,12 +100,66 @@ void VoxelMaterial::showStatistics() const
   cout << "--------------------\n";
 }
 
-double VoxelMaterial::eps( const meep::vec &r )
+void VoxelMaterial::slideThroughVoxelArray() const
 {
+  clog << "Showing XY plane\n";
+  visa::WindowHandler plots;
+  plots.addPlot( "Voxelvalues" );
+  chrono::milliseconds duration(50);
+  for ( unsigned int i=0;i<voxels.n_slices;i++ )
+  {
+    arma::mat values = arma::conv_to<arma::mat>::from( voxels.slice(i) );
+    plots.getActive().fillVertexArray( values );
+    plots.show();
+    this_thread::sleep_for( duration );
+  }
+
+  plots.get("Voxelvalues").clear();
+  clog << "Showing YZ plane\n";
+  for ( unsigned int i=0;i<voxels.n_rows;i++ )
+  {
+    arma::mat values;
+    fillArmaMat( voxels.tube( i, 0, i, voxels.n_cols-1 ), values );
+    plots.getActive().fillVertexArray( values );
+    plots.show();
+    this_thread::sleep_for( duration );
+  }
+
+  plots.get("Voxelvalues").clear();
+  clog << "Showing XZ plane\n";
+  for ( unsigned int i=0;i<voxels.n_cols;i++ )
+  {
+    arma::mat values;
+    fillArmaMat( voxels.tube( 0, i, voxels.n_rows-1, i ), values );
+    plots.getActive().fillVertexArray( values );
+    plots.show();
+    this_thread::sleep_for( duration );
+  }
+}
+
+void VoxelMaterial::fillArmaMat( const arma::Mat<unsigned char> &values, arma::mat &matrix )
+{
+  matrix.set_size( values.n_rows, values.n_cols );
+  for ( unsigned int i=0;i<values.n_cols;i++ )
+  {
+    for ( unsigned int j=0;j<values.n_rows;j++ )
+    {
+      matrix(j,i) = values(j,i);
+    }
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+double CaCO3Cocco::eps( const meep::vec &r )
+{
+  if ( voxels( r.x(), r.y(), r.z() ) == 1 )
+  {
+    return epsilon;
+  }
   return 1.0;
 }
 
-double VoxelMaterial::conductivity( meep::component c, const meep::vec &r )
+double CaCO3Cocco::conductivity( meep::component c, const meep::vec &r )
 {
   return 0.0;
 }
