@@ -40,9 +40,6 @@ void CoccolithSimulation::setMainPropagationDirection( MainPropDirection_t propD
 
 void CoccolithSimulation::addSourceVolume()
 {
-  meep::vec crn1;
-  meep::vec crn2;
-
   double pml = getPMLThickness();
   switch( propagationDir )
   {
@@ -144,6 +141,7 @@ void CoccolithSimulation::init()
   addStructure();
   addFields();
   addSource();
+  addFluxPlanes();
 }
 
 double CoccolithSimulation::getPMLThickness() const
@@ -151,14 +149,14 @@ double CoccolithSimulation::getPMLThickness() const
   return pmlThicknessInWavelengths*getWavelength();
 }
 
-void CoccolithSimulation::addFluxPlanes( const meep::vec &srcCrn1, const meep::vec &srcCrn2 )
+void CoccolithSimulation::addFluxPlanes()
 {
 
   if ( source == NULL )
   {
     throw( runtime_error("A source profile needs to be set before flux planes are added!") );
   }
-  meep::vec diagonal = srcCrn2 - srcCrn1;
+  meep::vec diagonal = crn2 - crn1;
   meep::vec displacement;
   const double ZERO = 1E-12;
 
@@ -180,8 +178,8 @@ void CoccolithSimulation::addFluxPlanes( const meep::vec &srcCrn1, const meep::v
     throw ( runtime_error("The diagonal vector obtained from the corners does not lie in a plane orthogonal to one of the coordinate axes!"));
   }
 
-  meep::vec sourceDFTCrn1 = srcCrn1 + displacement*5.0;
-  meep::vec sourceDFTCrn2 = srcCrn2 + displacement*5.0;
+  meep::vec sourceDFTCrn1 = crn1 + displacement*5.0;
+  meep::vec sourceDFTCrn2 = crn2 + displacement*5.0;
 
   if ( dftVolSource != NULL ) delete dftVolSource;
   dftVolSource = new meep::volume( sourceDFTCrn1, sourceDFTCrn2 );
@@ -189,8 +187,8 @@ void CoccolithSimulation::addFluxPlanes( const meep::vec &srcCrn1, const meep::v
   meep::vec domainDiagonal( material.sizeX(), material.sizeY(), material.sizeZ() );
   double size = domainDiagonal&displacement; // In MEEP: & is dot product
 
-  meep::vec transDFTCrn1 = srcCrn1 + displacement*size - displacement*2.0*getPMLThickness() - displacement*5.0;
-  meep::vec transDFTCrn2 = srcCrn2 + displacement*size - displacement*2.0*getPMLThickness() - displacement*5.0;
+  meep::vec transDFTCrn1 = crn1 + displacement*size - displacement*2.0*getPMLThickness() - displacement*5.0;
+  meep::vec transDFTCrn2 = crn2 + displacement*size - displacement*2.0*getPMLThickness() - displacement*5.0;
 
   if ( dftVolTransmit != NULL ) delete dftVolTransmit;
   dftVolTransmit = new meep::volume( transDFTCrn1, transDFTCrn2 );

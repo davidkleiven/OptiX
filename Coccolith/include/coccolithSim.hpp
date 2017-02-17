@@ -62,6 +62,10 @@ private:
   meep::dft_flux *srcFlux{NULL};
   meep::dft_flux *transmitFlux{NULL};
 
+  // Source corners
+  meep::vec crn1;
+  meep::vec crn2;
+
   /** Add a source volume */
   void addSourceVolume();
 
@@ -75,7 +79,7 @@ private:
   void addFields();
 
   /** Add DFT flux planes */
-  void addFluxPlanes( const meep::vec &srcCrn1, const meep::vec &srcCrn2 );
+  void addFluxPlanes();
 
   /** Returns the PML thickness in pixel units */
   double getPMLThickness() const;
