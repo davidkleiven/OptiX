@@ -426,17 +426,26 @@ void ParaxialSimulation::setGroupAttributes()
   att = maingroup->createAttribute( "xmax", H5::PredType::NATIVE_DOUBLE, attribSpace );
   att.write( H5::PredType::NATIVE_DOUBLE, &xDisc->max );
 
+  att = maingroup->createAttribute( "dx", H5::PredType::NATIVE_DOUBLE, attribSpace );
+  att.write( H5::PredType::NATIVE_DOUBLE, &xDisc->step );
+
   att = maingroup->createAttribute( "zmin", H5::PredType::NATIVE_DOUBLE, attribSpace );
   att.write( H5::PredType::NATIVE_DOUBLE, &zDisc->min );
 
   att = maingroup->createAttribute( "zmax", H5::PredType::NATIVE_DOUBLE, attribSpace );
   att.write( H5::PredType::NATIVE_DOUBLE, &zDisc->max );
 
+  att = maingroup->createAttribute( "dz", H5::PredType::NATIVE_DOUBLE, attribSpace );
+  att.write( H5::PredType::NATIVE_DOUBLE, &zDisc->step );
+
   att = maingroup->createAttribute( "ymin", H5::PredType::NATIVE_DOUBLE, attribSpace );
   att.write( H5::PredType::NATIVE_DOUBLE, &yDisc->min );
 
   att = maingroup->createAttribute( "ymax", H5::PredType::NATIVE_DOUBLE, attribSpace );
   att.write( H5::PredType::NATIVE_DOUBLE, &yDisc->max );
+
+  att = maingroup->createAttribute( "dy", H5::PredType::NATIVE_DOUBLE, attribSpace );
+  att.write( H5::PredType::NATIVE_DOUBLE, &yDisc->step );
 
   att = maingroup->createAttribute( "uid", H5::PredType::NATIVE_INT, attribSpace );
   att.write( H5::PredType::NATIVE_INT, &uid );

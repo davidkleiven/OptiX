@@ -22,7 +22,7 @@ def main( argv ):
     ampPlot = proj3D.Plotter3D()
     phasePlot = proj3D.Phase()
     ffPlot = proj3D.FarField()
-    intensityPlot = proj3D.Intensity()
+    intensityPlot = proj3D.IntensityPlot()
 
     with h5.File( fname, 'r' ) as hf:
         group = hf.get("/data")
@@ -39,12 +39,15 @@ def main( argv ):
         lim.ymin = lim.xmin
         lim.ymax = lim.xmax
         ffPlot.uid = group.attrs.get("uid")
+        ampPlot.uid = ffPlot.uid
+        phasePlot.uid = ffPlot.uid
+        intensityPlot.uid = ffPlot.uid
 
     ampPlot.limits = lim
     ffPlot.limits = lim
     phasePlot.limits = lim
     intensityPlot.limits = lim
-    ffPlot.cmap = "bone"
+    #ffPlot.cmap = "bone"
 
     # Compute center of mass
     ffPlot.centerOfMass()
@@ -58,8 +61,6 @@ def main( argv ):
     control = ffPlot.projectionY( control )
 
     control = phasePlot.projectionXY( control )
-    control = phasePlot.projectionX( control )
-    control =phasePlot.projectionY( control )
 
     control = intensityPlot.projectionXY( control )
     root.mainloop()

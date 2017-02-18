@@ -44,6 +44,8 @@ int main( int argc, char** argv )
   params["gaussianWaistInWidths"] = 1.0;
   params["yminInDepths"] = -2.0;
   params["ymaxInDepths"] = 5.0;
+  params["absorberWidthInWavelengths"] = 20.0;
+  params["absorberDampingInWavelengths"] = 4.0;
 
   pei::DialogBox box( params );
   box.show();
@@ -78,8 +80,8 @@ int main( int argc, char** argv )
   switch ( wgtype )
   {
     case Wg_t::STRAIGHT:
-      xmin = -3.0*width;
-      xmax = 4.0*width;
+      xmin = -6.0*width;
+      xmax = 7.0*width;
       break;
     case Wg_t::CURVED:
       xmin = -pow( params.at("zmax"), 2)/(2.0*params.at("radiusInmm")*1E6 ) - width;
@@ -94,6 +96,13 @@ int main( int argc, char** argv )
   post::ExitIntensity ei;
   post::ExitPhase ep;
   post::FarField ff;
+
+  // Set export size
+  unsigned int exportRow = 512;
+  unsigned int exportCol = 512;
+  ef.setExportDimensions( exportRow, exportCol );
+  ei.setExportDimensions( exportRow, exportCol );
+  ff.setExportDimensions( exportRow, exportCol );
 
   SquareWell squareShape;
   squareShape.setWidth( params.at("width") );
@@ -123,6 +132,7 @@ int main( int argc, char** argv )
 
     FFTSolver3D solver;
     solver.overlayGeometry();
+
     if ( imgStoring != "" )
     {
       solver.storeImages( imgStoring.c_str() );
@@ -141,6 +151,7 @@ int main( int argc, char** argv )
     switch ( wgtype )
     {
       case Wg_t::STRAIGHT:
+      {
         clog << "Running straight waveguide...\n";
         straightWG << ef << ei << ep << ff;
         straightWG.setWaveLength( params.at("wavelength") );
@@ -149,10 +160,16 @@ int main( int argc, char** argv )
         straightWG.setLongitudinalDiscretization( 0.0, params.at("zmax"), dz, params.at("downSampleZ") );
         straightWG.setCladdingMaterial( "Ta" );
         straightWG.setSolver( solver );
+
+        double absorbWidth = params.at("absorberWidthInWavelengths")*params.at("wavelength");
+        double damping = params.at("absorberDampingInWavelengths")*params.at("wavelength");
+        solver.absorbingBC( absorbWidth, damping );
+
         straightWG.setBoundaryConditions( gbeam );
         straightWG.solve();
         straightWG.save( ctl );
         break;
+      }
       case Wg_t::CURVED:
         clog << "Running curved waveguide...\n";
         curvedWG << ef << ei << ep << ff;

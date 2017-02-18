@@ -64,6 +64,7 @@ public:
   /** Add attributes */
   virtual void addAttrib( std::vector<H5Attr> &attr ) const override final;
 private:
+  enum class Dir_t{X,Y};
   unsigned int signalLength{0};
   double phiMin{-90.0};
   double phiMax{90.0};
@@ -72,7 +73,10 @@ private:
   const arma::cx_mat *reference{NULL};
 
   /** Computes the index in the far field array corresponding to a certain angle */
-  unsigned int farFieldAngleToIndx( double angle, unsigned int size ) const;
+  unsigned int farFieldAngleToIndx( double angle, unsigned int size, Dir_t direction ) const;
+
+  template<class T>
+  void reduceArray( arma::Col<T> &res, Dir_t direction ) const;
 
   template<class T>
   void reduceArray( arma::Col<T> &res ) const;
