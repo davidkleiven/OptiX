@@ -6,15 +6,16 @@ set( CMAKE_CXX_STANDARD 11 )
 
 include_directories( include )
 add_subdirectory(src)
+set( CMAKE_LIBRARY_PATH /usr/lib/x86_64-linux-gnu )
 
 # Meep library
-find_library( LIBMEEP meep )
+find_library( LIBMEEP meep  PATH "/usr/lib/x86_64-linux-gnu" )
 if ( NOT LIBMEEP )
   MESSAGE( FATAL_ERROR "Did not find the MEEP library!")
 endif()
 set( LIB ${LIBMEEP} )
 
-find_path( MEEPH "meep.hpp")
+find_path( MEEPH "meep.hpp" )
 if ( NOT MEEPH )
   MESSAGE( FATAL_ERROR "Did not find the MEEP header files!" )
 endif()

@@ -27,6 +27,9 @@ public:
   /** Shows an animation where it slides through the voxel array in different direction */
   void slideThroughVoxelArray() const;
 
+  /** Shows projections in all three directions */
+  void showProjections() const;
+
   /** Domain size in the X-direction */
   unsigned int sizeX() const { return voxels.n_rows; };
 
