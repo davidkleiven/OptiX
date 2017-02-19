@@ -17,11 +17,15 @@ CoccolithSimulation::~CoccolithSimulation()
   if ( dftVolTransmit != NULL ) delete dftVolTransmit;
   if ( srcFlux != NULL ) delete srcFlux;
   if ( transmitFlux != NULL ) delete transmitFlux;
+  if ( monitor1 != NULL ) delete monitor1;
+  if ( monitor2 != NULL ) delete monitor2;
 }
 
 void CoccolithSimulation::loadVoxels( const char* fname )
 {
   material.loadRaw( fname );
+  cout << material.sizeX() << " " << material.sizeY() << " " << material.sizeZ() << endl;
+  cout << getPMLThickness() << endl;
   gdvol = meep::vol3d( material.sizeX(), material.sizeY(), material.sizeZ(), resolution );
   materialLoaded = true;
 }
@@ -44,16 +48,16 @@ void CoccolithSimulation::addSourceVolume()
   switch( propagationDir )
   {
     case MainPropDirection_t::X:
-      crn1 = meep::vec( pml, 0, 0 );
-      crn2 = meep::vec( pml, material.sizeY(), material.sizeZ() );
+      crn1 = meep::vec( getSrcPos(), 0, 0 );
+      crn2 = meep::vec( getSrcPos(), material.sizeY(), material.sizeZ() );
       break;
     case MainPropDirection_t::Y:
-      crn1 = meep::vec( 0, pml, 0 );
-      crn2 = meep::vec( material.sizeX(), pml, material.sizeZ() );
+      crn1 = meep::vec( 0, getSrcPos(), 0 );
+      crn2 = meep::vec( material.sizeX(), getSrcPos(), material.sizeZ() );
       break;
     case MainPropDirection_t::Z:
-      crn1 = meep::vec( 0, 0, pml );
-      crn2 = meep::vec( material.sizeX(), material.sizeY(), pml );
+      crn1 = meep::vec( 0, 0, getSrcPos() );
+      crn2 = meep::vec( material.sizeX(), material.sizeY(), getSrcPos() );
       break;
   }
 
@@ -137,11 +141,13 @@ void CoccolithSimulation::init()
   {
     throw( runtime_error("No material loaded! Call loadVoxels!") );
   }
+  domainInfo();
   addSourceVolume();
   addStructure();
   addFields();
   addSource();
   addFluxPlanes();
+  isInitialized = true;
 }
 
 double CoccolithSimulation::getPMLThickness() const
@@ -178,8 +184,8 @@ void CoccolithSimulation::addFluxPlanes()
     throw ( runtime_error("The diagonal vector obtained from the corners does not lie in a plane orthogonal to one of the coordinate axes!"));
   }
 
-  meep::vec sourceDFTCrn1 = crn1 + displacement*5.0;
-  meep::vec sourceDFTCrn2 = crn2 + displacement*5.0;
+  meep::vec sourceDFTCrn1 = crn1 + displacement*getSrcFluxPos();
+  meep::vec sourceDFTCrn2 = crn2 + displacement*getSrcFluxPos();
 
   if ( dftVolSource != NULL ) delete dftVolSource;
   dftVolSource = new meep::volume( sourceDFTCrn1, sourceDFTCrn2 );
@@ -187,8 +193,8 @@ void CoccolithSimulation::addFluxPlanes()
   meep::vec domainDiagonal( material.sizeX(), material.sizeY(), material.sizeZ() );
   double size = domainDiagonal&displacement; // In MEEP: & is dot product
 
-  meep::vec transDFTCrn1 = crn1 + displacement*size - displacement*2.0*getPMLThickness() - displacement*5.0;
-  meep::vec transDFTCrn2 = crn2 + displacement*size - displacement*2.0*getPMLThickness() - displacement*5.0;
+  meep::vec transDFTCrn1 = crn1 + displacement*( getTransFluxPos() - pmlThicknessInWavelengths*getWavelength() );
+  meep::vec transDFTCrn2 = crn2 + displacement*( getTransFluxPos() - pmlThicknessInWavelengths*getWavelength() );
 
   if ( dftVolTransmit != NULL ) delete dftVolTransmit;
   dftVolTransmit = new meep::volume( transDFTCrn1, transDFTCrn2 );
@@ -248,4 +254,109 @@ double CoccolithSimulation::getTransFluxPos() const
     case SourcePosition_t::BOTTOM:
       return getLowerBorderInPropDir();
   }
+}
+
+void CoccolithSimulation::setMonitorPlanes()
+{
+  if ( monitor1 != NULL ) delete monitor1;
+  if ( monitor2 != NULL ) delete monitor2;
+
+  meep::vec vMain;
+  meep::vec v1;
+  meep::vec v2;
+  meep::vec orig1;
+  meep::vec orig2;
+  double dx = static_cast<double>(material.sizeX())/static_cast<double>(nMonitorX);
+  double dy = static_cast<double>(material.sizeY())/static_cast<double>(nMonitorY);
+  double dz = static_cast<double>(material.sizeZ())/static_cast<double>(nMonitorZ);
+  switch ( propagationDir )
+  {
+    case MainPropDirection_t::X:
+      vMain = meep::vec(dx, 0.0, 0.0 );
+      v1 = meep::vec(0.0, dy, 0.0 );
+      v2 = meep::vec(0.0, 0.0, dz );
+      monitor1 = new FieldMonitor( nMonitorY, nMonitorX );
+      monitor2 = new FieldMonitor( nMonitorZ, nMonitorX );
+      monitor1->setName( "XY-plane" );
+      monitor2->setName( "XZ-plane" );
+      orig1 = meep::vec( 0.0, 0.0, material.sizeZ()/2.0 );
+      orig2 = meep::vec( 0.0, material.sizeY()/2.0, 0.0 );
+      break;
+    case MainPropDirection_t::Y:
+      vMain = meep::vec(0.0, dy, 0.0 );
+      v1 = meep::vec( dx, 0.0, 0.0 );
+      v2 = meep::vec( 0.0, 0.0, dz );
+      monitor1 = new FieldMonitor( nMonitorX, nMonitorY );
+      monitor2 = new FieldMonitor( nMonitorZ, nMonitorY );
+      monitor1->setName( "XY-plane" );
+      monitor2->setName( "YZ-plane" );
+      orig1 = meep::vec( 0.0, 0.0, material.sizeZ()/2.0 );
+      orig2 = meep::vec( material.sizeX()/2.0, 0.0, 0.0 );
+      break;
+    case MainPropDirection_t::Z:
+      vMain = meep::vec(0.0, 0.0, dz );
+      v1 = meep::vec( dx, 0.0, 0.0 );
+      v2 = meep::vec( 0.0, dy, 0.0 );
+      monitor1 = new FieldMonitor( nMonitorX, nMonitorZ );
+      monitor2 = new FieldMonitor( nMonitorY, nMonitorZ );
+      monitor1->setName( "XZ-plane" );
+      monitor2->setName( "YZ-plane" );
+      orig1 = meep::vec( 0.0, material.sizeY()/2.0, 0.0 );
+      orig2 = meep::vec( material.sizeX()/2.0, 0.0, 0.0 );
+      break;
+  }
+
+  monitor1->setDisplacementVectors( v1, vMain );
+  monitor2->setDisplacementVectors( v2, vMain );
+  monitor1->setOrigin( orig1 );
+  monitor2->setOrigin( orig2 );
+
+  // Add plots
+  plots.addPlot( monitor1->getName().c_str() );
+  plots.addPlot( monitor2->getName().c_str() );
+}
+
+void CoccolithSimulation::run()
+{
+  if ( !isInitialized )
+  {
+    throw( runtime_error("Simulation is not initialized!") );
+  }
+
+  unsigned int iter = 0;
+  while ( field->time() < tEnd )
+  {
+    field->step();
+
+    if ( iter%plotUpdateFreq == 0 )
+    {
+      visualize();
+    }
+    iter++;
+  }
+}
+
+void CoccolithSimulation::visualize()
+{
+  monitor1->setIntensity( *field );
+  monitor2->setIntensity( *field );
+
+  plots.get( monitor1->getName().c_str() ).fillVertexArray( monitor1->get() );
+  plots.get( monitor2->getName().c_str() ).fillVertexArray( monitor2->get() );
+  plots.show();
+}
+
+void CoccolithSimulation::domainInfo() const
+{
+  double speedOfLight = 2.997E8; // nm/ns
+  double L = material.getVoxelSize();
+  double PI = acos(-1.0);
+  cout << "-----------------------------------------------------------\n";
+  cout << "Domain info:\n";
+  cout << "SizeX: " << material.sizeX()*L << " nm, SizeY: " << material.sizeY()*L << " nm. SizeZ: " << material.sizeZ()*L << " nm\n";
+  cout << "dx=dy=dz = " << L/resolution << " nm\n";
+  cout << "PML thickness: " << getPMLThickness()*L << " nm\n";
+  cout << "Main frequency: " << centerFrequency*speedOfLight/(2.0*PI*L*1000.0) << " (THz)\n";
+  cout << "Frequency width: " << freqWidth*speedOfLight/(2.0*PI*L*1000.0) << " (THz)\n";
+  cout << "Wavelength: " << getWavelength()*L << " nm\n";
 }

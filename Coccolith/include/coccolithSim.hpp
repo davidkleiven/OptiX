@@ -2,7 +2,9 @@
 #define COCCOLITH_SIMULATION_H
 #include <string>
 #include "voxelMaterial.hpp"
+#include "fieldMonitors.hpp"
 #include <complex>
+#include <visa/visa.hpp>
 
 typedef std::complex<double> cdouble;
 enum class MainPropDirection_t{ X, Y, Z };
@@ -26,6 +28,12 @@ public:
   /** Return the wavelength in pixel units */
   double getWavelength() const;
 
+  /** Set the PML thickness in number of wavelengths */
+  void setPMLInWavelengths( double newThick ){ pmlThicknessInWavelengths = newThick; };
+
+  /** Run the simulation */
+  void run();
+
   /** Initialize the source profile */
   void initSource( double freq, double fwidth );
 
@@ -40,6 +48,12 @@ public:
 
   /** Set side for the source. TOP: Close to the border indexed 0, BOTTOM: close to the opposite border */
   void setSourceSide( SourcePosition_t newPos ){ srcPos = newPos; };
+
+  /** Set the end time */
+  void setEndTime( double t ){ tEnd = t; };
+
+  /** Print info about the domain */
+  void domainInfo() const;
 private:
   CaCO3Cocco material;
   MainPropDirection_t propagationDir{MainPropDirection_t::Z};
@@ -52,6 +66,8 @@ private:
   unsigned int uid{0};
   std::string outdir{"data/"};
   unsigned int nSave{30};
+  bool isInitialized{false};
+  unsigned int plotUpdateFreq{20};
 
   double pmlThicknessInWavelengths{3.0};
   double centerFrequency{1.0};
@@ -59,12 +75,25 @@ private:
   double resolution{1.0};
   bool materialLoaded{false};
   unsigned int nfreq{100};
+  unsigned int nMonitorX{256};
+  unsigned int nMonitorY{256};
+  unsigned int nMonitorZ{256};
+  double tEnd{100.0};
+  visa::WindowHandler plots;
+
+  /** Visualized intensity */
+  void visualize();
 
   // Flux planes
   meep::volume *dftVolSource{NULL};
   meep::volume *dftVolTransmit{NULL};
   meep::dft_flux *srcFlux{NULL};
   meep::dft_flux *transmitFlux{NULL};
+
+  // Monitor planes 1
+  FieldMonitor *monitor1{NULL};
+  FieldMonitor *monitor2{NULL};
+
 
   // Source corners
   meep::vec crn1;
@@ -104,6 +133,9 @@ private:
 
   /** Returns the PML thickness in pixel units */
   double getPMLThickness() const;
+
+  /** Sets two monitor planes passing through the center of the computational domain */
+  void setMonitorPlanes();
 
   static meep::vec waveVec;
 

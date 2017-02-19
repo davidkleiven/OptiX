@@ -30,6 +30,15 @@ public:
   /** Shows projections in all three directions */
   void showProjections() const;
 
+  /** Get profile projection onto the XY-plane */
+  void projectionXY( arma::mat &mat ) const;
+
+  /** Get the profile projected onto the XZ-plane */
+  void projectionXZ( arma::mat &mat ) const;
+
+  /** Get the profile projected onto the YZ-plane */
+  void projectionYZ( arma::mat &mat ) const;
+
   /** Domain size in the X-direction */
   unsigned int sizeX() const { return voxels.n_rows; };
 
@@ -38,6 +47,9 @@ public:
 
   /** Domain size in the Z-direction */
   unsigned int sizeZ() const { return voxels.n_slices; };
+
+  /** Returns the voxel size in nano meters */
+  double getVoxelSize() const{ return vxsize; };
 protected:
   /** Extracts the dimension of the data from the filename */
   static void extractDimsFromFilename( const std::string &fname, InfoFromFilename &info );
@@ -49,6 +61,8 @@ protected:
 
   /** Print statistics of voxels */
   void showStatistics() const;
+
+  double vxsize{1.0};
 
   arma::Cube<unsigned char> voxels;
 };

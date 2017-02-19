@@ -40,6 +40,7 @@ void VoxelMaterial::loadRaw( const string &fname )
 {
   InfoFromFilename info;
   extractDimsFromFilename( fname, info );
+  vxsize = info.voxelsize;
 
   voxels.load( fname, arma::raw_binary );
 
@@ -142,39 +143,24 @@ void VoxelMaterial::showProjections() const
   unsigned int holdForSec = 15;
   visa::WindowHandler plots;
   plots.addPlot( "XY-plane" );
+  plots.get( "XY-plane" ).setCmap( visa::Colormaps::Colormap_t::GREYSCALE );
 
   // Project in z-direction
   arma::mat values( voxels.n_rows, voxels.n_cols );
-  values.fill(0.0);
-  for ( unsigned int i=0;i<voxels.n_slices;i++ )
-  {
-    values +=  arma::conv_to<arma::mat>::from( voxels.slice(i) );
-  }
-  values /= voxels.n_slices;
+  projectionXY( values );
   plots.getActive().fillVertexArray( values );
 
   plots.addPlot( "XZ-plane" );
+  plots.get( "XZ-plane" ).setCmap( visa::Colormaps::Colormap_t::GREYSCALE );
   values.set_size( voxels.n_cols, voxels.n_slices );
-  values.fill(0.0);
-  for ( unsigned int i=0;i<voxels.n_rows;i++ )
-  {
-    arma::mat next;
-    fillArmaMat( voxels.tube( i, 0, i, voxels.n_cols-1 ), next );
-    values += next;
-  }
-  values /= voxels.n_rows;
+  projectionXZ( values );
   plots.get("XZ-plane").fillVertexArray( values );
 
   plots.addPlot( "YZ-plane" );
+  plots.get( "YZ-plane" ).setCmap( visa::Colormaps::Colormap_t::GREYSCALE );
   values.set_size( voxels.n_rows, voxels.n_slices );
-  values.fill(0.0);
-  for ( unsigned int i=0;i<voxels.n_cols;i++ )
-  {
-    arma::mat next;
-    fillArmaMat( voxels.tube( 0, i, voxels.n_rows-1, i ), next );
-    values += next;
-  }
 
+  projectionYZ( values );
   plots.get("YZ-plane").fillVertexArray( values );
 
   chrono::seconds duration(1);
@@ -199,6 +185,39 @@ void VoxelMaterial::fillArmaMat( const arma::Mat<unsigned char> &values, arma::m
   }
 }
 
+void VoxelMaterial::projectionXY( arma::mat &matrix ) const
+{
+  matrix.fill(0.0);
+  for ( unsigned int i=0;i<voxels.n_slices;i++ )
+  {
+    matrix +=  arma::conv_to<arma::mat>::from( voxels.slice(i) );
+  }
+  matrix /= voxels.n_slices;
+}
+
+void VoxelMaterial::projectionXZ( arma::mat &matrix ) const
+{
+  matrix.fill(0.0);
+  for ( unsigned int i=0;i<voxels.n_rows;i++ )
+  {
+    arma::mat next;
+    fillArmaMat( voxels.tube( i, 0, i, voxels.n_cols-1 ), next );
+    matrix += next;
+  }
+  matrix /= voxels.n_rows;
+}
+
+void VoxelMaterial::projectionYZ( arma::mat &matrix ) const
+{
+  matrix.fill(0.0);
+  for ( unsigned int i=0;i<voxels.n_cols;i++ )
+  {
+    arma::mat next;
+    fillArmaMat( voxels.tube( 0, i, voxels.n_rows-1, i ), next );
+    matrix += next;
+  }
+  matrix /= voxels.n_cols;
+}
 ////////////////////////////////////////////////////////////////////////////////
 double CaCO3Cocco::eps( const meep::vec &r )
 {
