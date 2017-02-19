@@ -6,6 +6,7 @@
 
 typedef std::complex<double> cdouble;
 enum class MainPropDirection_t{ X, Y, Z };
+enum class SourcePosition_t{TOP, BOTTOM};
 
 class CoccolithSimulation
 {
@@ -36,6 +37,9 @@ public:
 
   /** Set the number of timesteps to save */
   void setNumberOfImgSave( unsigned int newnSave){ nSave = newnSave; };
+
+  /** Set side for the source. TOP: Close to the border indexed 0, BOTTOM: close to the opposite border */
+  void setSourceSide( SourcePosition_t newPos ){ srcPos = newPos; };
 private:
   CaCO3Cocco material;
   MainPropDirection_t propagationDir{MainPropDirection_t::Z};
@@ -66,6 +70,8 @@ private:
   meep::vec crn1;
   meep::vec crn2;
 
+  SourcePosition_t srcPos{SourcePosition_t::TOP};
+
   /** Add a source volume */
   void addSourceVolume();
 
@@ -80,6 +86,21 @@ private:
 
   /** Add DFT flux planes */
   void addFluxPlanes();
+
+  /** Get the position of the source plane */
+  double getSrcPos() const;
+
+  /** Get the position of the flux plane next to the source */
+  double getSrcFluxPos() const;
+
+  /** Get the position of the flux plane after the scatterer */
+  double getTransFluxPos() const;
+
+  /** Returns the position of the lower indexed border in the propagation direction */
+  double getLowerBorderInPropDir() const;
+
+  /** Returns the position of the upper indexed border in the propagation direction */
+  double getUpperBorderInPropDir() const;
 
   /** Returns the PML thickness in pixel units */
   double getPMLThickness() const;

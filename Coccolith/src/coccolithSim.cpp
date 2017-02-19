@@ -198,3 +198,54 @@ void CoccolithSimulation::addFluxPlanes()
   srcFlux = new meep::dft_flux( field->add_dft_flux_plane( *dftVolSource, centerFrequency-freqWidth/2.0, centerFrequency+freqWidth/2.0, nfreq ) );
   transmitFlux = new meep::dft_flux( field->add_dft_flux_plane( *dftVolTransmit, centerFrequency-freqWidth/2.0, centerFrequency+freqWidth/2.0, nfreq ) );
 }
+
+
+double CoccolithSimulation::getLowerBorderInPropDir() const
+{
+  return pmlThicknessInWavelengths*getWavelength();
+}
+
+double CoccolithSimulation::getUpperBorderInPropDir() const
+{
+  switch( propagationDir )
+  {
+    case MainPropDirection_t::X:
+      return material.sizeX() - pmlThicknessInWavelengths*getWavelength();
+    case MainPropDirection_t::Y:
+      return material.sizeY() - pmlThicknessInWavelengths*getWavelength();
+    case MainPropDirection_t::Z:
+      return material.sizeZ() - pmlThicknessInWavelengths*getWavelength();
+  }
+}
+double CoccolithSimulation::getSrcPos() const
+{
+  switch( srcPos )
+  {
+    case SourcePosition_t::TOP:
+      return getLowerBorderInPropDir();
+    case SourcePosition_t::BOTTOM:
+      return getUpperBorderInPropDir();
+  }
+}
+
+double CoccolithSimulation::getSrcFluxPos() const
+{
+  switch( srcPos )
+  {
+    case SourcePosition_t::TOP:
+      return getSrcPos()+5.0;
+    case SourcePosition_t::BOTTOM:
+      return getSrcPos() - 5.0;
+  }
+}
+
+double CoccolithSimulation::getTransFluxPos() const
+{
+  switch( srcPos )
+  {
+    case SourcePosition_t::TOP:
+      return getUpperBorderInPropDir();
+    case SourcePosition_t::BOTTOM:
+      return getLowerBorderInPropDir();
+  }
+}
