@@ -5,6 +5,8 @@
 #include "fieldMonitors.hpp"
 #include <complex>
 #include <visa/visa.hpp>
+#include <cstdlib>
+#define UID_MAX 10000000
 
 typedef std::complex<double> cdouble;
 enum class MainPropDirection_t{ X, Y, Z };
@@ -57,6 +59,9 @@ public:
 
   /** Print info about the domain */
   void domainInfo() const;
+
+  /** Exporting results */
+  void exportResults();
 private:
   CaCO3Cocco material;
   MainPropDirection_t propagationDir{MainPropDirection_t::Z};
@@ -107,6 +112,8 @@ private:
 
   SourcePosition_t srcPos{SourcePosition_t::TOP};
 
+  meep::h5file *file{NULL};
+
   /** Add a source volume */
   void addSourceVolume();
 
@@ -146,8 +153,14 @@ private:
   /** Project the epsilon along specified axis */
   void projectedEpsilon( arma::mat &matrix, IntegrationDir_t dir );
 
+  /** Stores the results from the DFT spectrums */
+  void saveDFTSpectrum();
+
+  /** Save parameters specific to the geometry and source */
+  void saveGeometry();
+
   /** Computes the position corresponding to position in matrix given a certin plane*/
-  static void getPos( unsigned int row, unsigned int col, Plane_t proj, double dx, double dy, double dz, meep::vec &pos );
+  void getPos( unsigned int row, unsigned int col, Plane_t proj, double dx, double dy, double dz, meep::vec &pos ) const;
 
   static meep::vec waveVec;
 

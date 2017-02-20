@@ -2,6 +2,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <cmath>
+#include <sstream>
 
 using namespace std;
 
@@ -140,6 +141,7 @@ void CoccolithSimulation::init()
     throw( runtime_error("No material loaded! Call loadVoxels!") );
   }
   domainInfo();
+  material.setDomainSize( gdvol );
   addSourceVolume();
   addStructure();
   addFields();
@@ -161,39 +163,38 @@ void CoccolithSimulation::addFluxPlanes()
   {
     throw( runtime_error("A source profile needs to be set before flux planes are added!") );
   }
-  meep::vec diagonal = crn2 - crn1;
-  meep::vec displacement;
-  const double ZERO = 1E-12;
 
-  // This vector should be in a plane --> one component is zero
-  if (( abs(diagonal.x()) < ZERO ) && ( abs(diagonal.y() > ZERO) ) && ( abs(diagonal.z() > ZERO ) ))
-  {
-    displacement = meep::vec(1.0, 0, 0 );
-  }
-  else if (( abs(diagonal.y()) < ZERO ) && ( abs(diagonal.z() > ZERO) ) && ( abs(diagonal.x() > ZERO ) ))
-  {
-    displacement = meep::vec(0.0, 1.0, 0.0 );
-  }
-  else if (( abs(diagonal.z()) < ZERO ) && ( abs(diagonal.x() > ZERO) ) && ( abs(diagonal.y() > ZERO ) ))
-  {
-    displacement = meep::vec( 0.0, 0.0, 1.0  );
-  }
-  else
-  {
-    throw ( runtime_error("The diagonal vector obtained from the corners does not lie in a plane orthogonal to one of the coordinate axes!"));
-  }
+  meep::vec sourceDFTCrn1;
+  meep::vec sourceDFTCrn2;
+  meep::vec transDFTCrn1;
+  meep::vec transDFTCrn2;
 
-  meep::vec sourceDFTCrn1 = crn1 + displacement*getSrcFluxPos();
-  meep::vec sourceDFTCrn2 = crn2 + displacement*getSrcFluxPos();
+  switch ( propagationDir )
+  {
+    case MainPropDirection_t::X:
+      sourceDFTCrn1 = meep::vec( getSrcFluxPos(), gdvol.ymin(), gdvol.zmin() );
+      sourceDFTCrn2 = meep::vec( getSrcFluxPos(), gdvol.ymax(), gdvol.zmax() );
+      transDFTCrn1 = meep::vec( getTransFluxPos(), gdvol.ymin(), gdvol.zmin() );
+      transDFTCrn2 = meep::vec( getTransFluxPos(), gdvol.ymax(), gdvol.zmax() );
+      break;
+    case MainPropDirection_t::Y:
+      sourceDFTCrn1 = meep::vec( gdvol.xmin(), getSrcFluxPos(), gdvol.zmin() );
+      sourceDFTCrn2 = meep::vec( gdvol.xmax(), getSrcFluxPos(), gdvol.zmax() );
+      transDFTCrn1 = meep::vec( gdvol.xmin(), getTransFluxPos(), gdvol.zmin() );
+      transDFTCrn2 = meep::vec( gdvol.xmax(), getTransFluxPos(), gdvol.zmax() );
+      break;
+    case MainPropDirection_t::Z:
+      sourceDFTCrn1 = meep::vec( gdvol.xmin(), gdvol.ymin(), getSrcFluxPos() );
+      sourceDFTCrn2 = meep::vec( gdvol.xmax(), gdvol.ymax(), getSrcFluxPos() );
+      transDFTCrn1 = meep::vec( gdvol.xmin(), gdvol.ymin(), getTransFluxPos() );
+      transDFTCrn2 = meep::vec( gdvol.xmax(), gdvol.ymax(), getTransFluxPos() );
+      break;
+  }
 
   if ( dftVolSource != NULL ) delete dftVolSource;
   dftVolSource = new meep::volume( sourceDFTCrn1, sourceDFTCrn2 );
 
-  meep::vec domainDiagonal( material.sizeX(), material.sizeY(), material.sizeZ() );
-  double size = domainDiagonal&displacement; // In MEEP: & is dot product
 
-  meep::vec transDFTCrn1 = crn1 + displacement*( getTransFluxPos() - pmlThicknessInWavelengths*getWavelength() );
-  meep::vec transDFTCrn2 = crn2 + displacement*( getTransFluxPos() - pmlThicknessInWavelengths*getWavelength() );
 
   if ( dftVolTransmit != NULL ) delete dftVolTransmit;
   dftVolTransmit = new meep::volume( transDFTCrn1, transDFTCrn2 );
@@ -246,9 +247,9 @@ double CoccolithSimulation::getSrcFluxPos() const
   switch( srcPos )
   {
     case SourcePosition_t::TOP:
-      return getSrcPos()+5.0;
+      return getSrcPos() + 5.0*material.getVoxelSize();
     case SourcePosition_t::BOTTOM:
-      return getSrcPos() - 5.0;
+      return getSrcPos() - 5.0*material.getVoxelSize();
   }
 }
 
@@ -413,21 +414,21 @@ void CoccolithSimulation::projectedEpsilon( arma::mat &values, IntegrationDir_t 
       plane = Plane_t::YZ;
       nIntegr = nMonitorX;
       dx =  nMonitorX/( gdvol.xmax()-gdvol.xmin() );
-      dy = values.n_cols/( gdvol.ymax()-gdvol.ymin() );
+      dy = values.n_cols/( gdvol.ymax() - gdvol.ymin() );
       dz = values.n_rows/( gdvol.zmax() - gdvol.zmin() );
       break;
     case IntegrationDir_t::Y:
       nIntegr = nMonitorY;
       plane = Plane_t::XZ;
-      dx =  values.n_cols/( gdvol.xmax()-gdvol.xmin() );
-      dy = nMonitorY/( gdvol.ymax()-gdvol.ymin() );
+      dx =  values.n_cols/( gdvol.xmax() - gdvol.xmin() );
+      dy = nMonitorY/( gdvol.ymax() - gdvol.ymin() );
       dz = values.n_rows/( gdvol.zmax() - gdvol.zmin() );
       break;
     case IntegrationDir_t::Z:
       plane = Plane_t::XY;
       nIntegr = nMonitorZ;
-      dx =  values.n_cols/( gdvol.xmax()-gdvol.xmin() );
-      dy = values.n_rows/( gdvol.ymax()-gdvol.ymin() );
+      dx =  values.n_cols/( gdvol.xmax() - gdvol.xmin() );
+      dy = values.n_rows/( gdvol.ymax() - gdvol.ymin() );
       dz = nMonitorZ/( gdvol.zmax() - gdvol.zmin() );
       break;
   }
@@ -440,17 +441,17 @@ void CoccolithSimulation::projectedEpsilon( arma::mat &values, IntegrationDir_t 
     {
       for ( unsigned int k=0;k<nIntegr;k++ )
       {
-        getPos( j,i, plane, dx, dy, dz, pos );
+        getPos( j, i, plane, dx, dy, dz, pos );
         switch( dir )
         {
           case IntegrationDir_t::X:
-            pos += meep::vec( k*dx, 0.0, 0.0 );
+            pos += meep::vec( gdvol.xmin() + k*dx, 0.0, 0.0 );
             break;
           case IntegrationDir_t::Y:
-            pos += meep::vec( 0.0, k*dy, 0.0 );
+            pos += meep::vec( 0.0, gdvol.ymin() + k*dy, 0.0 );
             break;
           case IntegrationDir_t::Z:
-            pos += meep::vec( 0.0, 0.0, k*dz );
+            pos += meep::vec( 0.0, 0.0, gdvol.zmin() + k*dz );
             break;
         }
         values(j,i) += material.eps( pos );
@@ -460,21 +461,95 @@ void CoccolithSimulation::projectedEpsilon( arma::mat &values, IntegrationDir_t 
   }
 }
 
-void CoccolithSimulation::getPos( unsigned int row, unsigned int col, Plane_t plane, double dx, double dy, double dz, meep::vec &res )
+void CoccolithSimulation::getPos( unsigned int row, unsigned int col, Plane_t plane, double dx, double dy, double dz, meep::vec &res ) const
 {
   switch( plane )
   {
     case Plane_t::XY:
       // col: x, row: y
-      res = meep::vec(col*dx, row*dy,0.0);
+      res = meep::vec( gdvol.xmin() + col*dx, gdvol.ymin() + row*dy,0.0);
       return;
     case Plane_t::XZ:
       // col: x, row: y
-      res = meep::vec( col*dx, 0.0, row*dz );
+      res = meep::vec( gdvol.xmin() + col*dx, 0.0, gdvol.zmin() + row*dz );
       return;
     case Plane_t::YZ:
       // col: y, row: z
-      res = meep::vec( 0.0, col*dy, row*dz );
+      res = meep::vec( 0.0, gdvol.ymin() + col*dy, gdvol.zmin() + row*dz );
       return;
   }
+}
+
+void CoccolithSimulation::exportResults()
+{
+  uid = rand()%UID_MAX;
+
+  stringstream ss;
+  ss << "data/voxelMaterialSim_" << uid << ".h5";
+  file = field->open_h5file( ss.str().c_str() );
+
+  saveDFTSpectrum();
+  saveGeometry();
+
+  clog << "Results written to " << ss.str() << endl;
+}
+
+void CoccolithSimulation::saveDFTSpectrum()
+{
+  assert( file != NULL );
+  int length = srcFlux->Nfreq;
+  file->write( "spectrumAtSource", 1, &length, srcFlux->flux(), false );
+
+  length = transmitFlux->Nfreq;
+  file->write( "spectrumTransmitted", 1, &length, transmitFlux->flux(), false );
+
+  const int nParams = 3;
+  double stat[nParams];
+  stat[0] = srcFlux->freq_min;
+  stat[1] = srcFlux->dfreq;
+  stat[2] = srcFlux->Nfreq;
+
+  // Write parameters
+  file->write( "spectrumFreqs", 1, &nParams, stat, false );
+
+  // Write geometrical positions
+  meep::vec mincrn = dftVolSource->get_min_corner();
+  meep::vec maxcrn = dftVolSource->get_max_corner();
+  int nCrns = 6;
+  double corners[nCrns] = {mincrn.x(), mincrn.y(), mincrn.z(), maxcrn.x(), maxcrn.y(), maxcrn.z()};
+  file->write( "spectrumCornersSource", 1, &nCrns, corners, false );
+
+  mincrn = dftVolTransmit->get_min_corner();
+  maxcrn = dftVolTransmit->get_max_corner();
+  double cornersTrans[nCrns] = {mincrn.x(), mincrn.y(), mincrn.z(), maxcrn.x(), maxcrn.y(), maxcrn.z()};
+  file->write( "spectrumCornersTransmit", 1, &nCrns, cornersTrans, false );
+}
+
+void CoccolithSimulation::saveGeometry()
+{
+  assert( file != NULL );
+
+  meep::vec mincrn = srcVol->get_min_corner();
+  meep::vec maxcrn = srcVol->get_max_corner();
+  int nCrn = 6;
+  double corners[6] = {mincrn.x(), mincrn.y(), mincrn.z(), maxcrn.x(), maxcrn.y(), maxcrn.z()};
+  file->write( "geometrySourceVolume", 1, &nCrn, corners, false );
+
+  int ndim = 3;
+  double incWaveVec[ndim] = {waveVec.x(), waveVec.y(), waveVec.z()};
+  file->write( "geometryIncWavevector", 1, &ndim, incWaveVec, false );
+
+  int single = 1;
+  double wavelength = getWavelength();
+  file->write( "geometryWavelength", 1, &single, &wavelength, false );
+
+  int nFreqParam = 2;
+  double freqParam[2] = {centerFrequency, freqWidth};
+  file->write( "geometryDimlessAngularFreq", 1, &nFreqParam, freqParam, false );
+
+  double domainSize[nCrn] = {gdvol.xmin(), gdvol.xmax(), gdvol.ymin(), gdvol.ymax(), gdvol.zmin(), gdvol.zmax()};
+  file->write( "geometryDomainSize", 1, &nCrn, domainSize, false );
+
+  double pmlThickness = getPMLThickness();
+  file->write( "geometryPmlThickness", 1, &single, &pmlThickness, false );
 }

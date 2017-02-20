@@ -13,6 +13,13 @@ struct InfoFromFilename
   unsigned int Nz{0};
 };
 
+struct DomainSize
+{
+  double xmin, xmax;
+  double ymin, ymax;
+  double zmin, zmax;
+};
+
 class VoxelMaterial: public meep::material_function
 {
 public:
@@ -50,6 +57,9 @@ public:
 
   /** Returns the voxel size in nano meters */
   double getVoxelSize() const{ return vxsize; };
+
+  /** Set the domain size. NOTE: Assumed to correspond to the array */
+  void setDomainSize( const meep::grid_volume &gvol );
 protected:
   /** Extracts the dimension of the data from the filename */
   static void extractDimsFromFilename( const std::string &fname, InfoFromFilename &info );
@@ -61,6 +71,11 @@ protected:
 
   /** Print statistics of voxels */
   void showStatistics() const;
+
+  /** Translate meep coordinates to index in voxel array */
+  void meepVecToIndx( const meep::vec &r, unsigned int indx[3] );
+
+  DomainSize domain;
 
   double vxsize{1.0};
 

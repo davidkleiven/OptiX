@@ -220,15 +220,66 @@ void VoxelMaterial::projectionYZ( arma::mat &matrix ) const
   matrix /= voxels.n_cols;
 }
 
+void VoxelMaterial::setDomainSize( const meep::grid_volume &gvol )
+{
+  domain.xmin = gvol.xmin();
+  domain.xmax = gvol.xmax();
+  domain.ymin = gvol.ymin();
+  domain.ymax = gvol.ymax();
+  domain.zmin = gvol.zmin();
+  domain.zmax = gvol.zmax();
+}
+
+void VoxelMaterial::meepVecToIndx( const meep::vec &r, unsigned int indx[3] )
+{
+  if ( r.x() > domain.xmax )
+  {
+    indx[0] = voxels.n_rows-1;
+  }
+  else if ( r.x() < domain.xmin )
+  {
+    indx[0] = 0;
+  }
+  else
+  {
+    indx[0] = ( r.x() - domain.xmin )*(voxels.n_rows-1)/( domain.xmax - domain.xmin );
+  }
+
+  if ( r.y() > domain.ymax )
+  {
+    indx[1] = voxels.n_cols-1;
+  }
+  else if ( r.y() < domain.ymin )
+  {
+    indx[1] = 0;
+  }
+  else
+  {
+    indx[1] = (r.y() - domain.ymin)*(voxels.n_cols-1)/( domain.ymax-domain.ymin );
+  }
+
+  if ( r.z() > domain.zmax )
+  {
+    indx[2] = voxels.n_slices-1;
+  }
+  else if ( r.z() < domain.zmin )
+  {
+    indx[2] = 0;
+  }
+  else
+  {
+    indx[2] = ( r.z() - domain.zmin )*( voxels.n_slices-1)/( domain.zmax - domain.zmin );
+  }
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 double CaCO3Cocco::eps( const meep::vec &r )
 {
-  if (( r.x() >= voxels.n_rows ) || ( r.y() >= voxels.n_cols ) || ( r.z() >= voxels.n_slices ))
-  {
-    return 1.0;
-  }
 
-  if ( voxels( r.x(), r.y(), r.z() ) == 1 )
+  unsigned int indx[3];
+  meepVecToIndx( r, indx );
+
+  if ( voxels( indx[0], indx[1], indx[2] ) == 1 )
   {
     return epsilon;
   }
