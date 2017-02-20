@@ -8,6 +8,9 @@
 
 typedef std::complex<double> cdouble;
 enum class MainPropDirection_t{ X, Y, Z };
+typedef MainPropDirection_t IntegrationDir_t;
+enum class Plane_t{XY, XZ, YZ};
+
 enum class SourcePosition_t{TOP, BOTTOM};
 
 class CoccolithSimulation
@@ -67,7 +70,7 @@ private:
   std::string outdir{"data/"};
   unsigned int nSave{30};
   bool isInitialized{false};
-  unsigned int plotUpdateFreq{20};
+  unsigned int plotUpdateFreq{30};
 
   double pmlThicknessInWavelengths{3.0};
   double centerFrequency{1.0};
@@ -93,6 +96,9 @@ private:
   // Monitor planes 1
   FieldMonitor *monitor1{NULL};
   FieldMonitor *monitor2{NULL};
+
+  arma::mat bkg1;
+  arma::mat bkg2;
 
 
   // Source corners
@@ -136,6 +142,12 @@ private:
 
   /** Sets two monitor planes passing through the center of the computational domain */
   void setMonitorPlanes();
+
+  /** Project the epsilon along specified axis */
+  void projectedEpsilon( arma::mat &matrix, IntegrationDir_t dir );
+
+  /** Computes the position corresponding to position in matrix given a certin plane*/
+  static void getPos( unsigned int row, unsigned int col, Plane_t proj, double dx, double dy, double dz, meep::vec &pos );
 
   static meep::vec waveVec;
 

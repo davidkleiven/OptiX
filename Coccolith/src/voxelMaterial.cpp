@@ -187,6 +187,7 @@ void VoxelMaterial::fillArmaMat( const arma::Mat<unsigned char> &values, arma::m
 
 void VoxelMaterial::projectionXY( arma::mat &matrix ) const
 {
+  matrix.set_size( voxels.n_rows, voxels.n_cols );
   matrix.fill(0.0);
   for ( unsigned int i=0;i<voxels.n_slices;i++ )
   {
@@ -218,9 +219,15 @@ void VoxelMaterial::projectionYZ( arma::mat &matrix ) const
   }
   matrix /= voxels.n_cols;
 }
+
 ////////////////////////////////////////////////////////////////////////////////
 double CaCO3Cocco::eps( const meep::vec &r )
 {
+  if (( r.x() >= voxels.n_rows ) || ( r.y() >= voxels.n_cols ) || ( r.z() >= voxels.n_slices ))
+  {
+    return 1.0;
+  }
+
   if ( voxels( r.x(), r.y(), r.z() ) == 1 )
   {
     return epsilon;

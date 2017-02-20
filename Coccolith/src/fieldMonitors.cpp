@@ -23,14 +23,13 @@ void FieldMonitor::setDisplacementVectors( const meep::vec &v1, const meep::vec 
   displacement2 = v2;
 }
 
-/** Set intensity */
 void FieldMonitor::setIntensity( const meep::fields &field )
 {
   for ( int i=0;i<poynting->n_cols;i++ )
   {
     for ( int j=0;j<poynting->n_rows;j++ )
     {
-      meep::vec pos = origin + displacement1*(j-poynting->n_rows*0.5) + displacement2*(i-poynting->n_rows*0.5);
+      meep::vec pos = origin + displacement1*(j-poynting->n_rows*0.5) + displacement2*(i-poynting->n_cols*0.5);
       (*poynting)(j,i) = 0.5*pow( abs(field.get_field( meep::Sx, pos )), 2 );
       (*poynting)(j,i) += 0.5*pow( abs(field.get_field( meep::Sy, pos )), 2 );
       (*poynting)(j,i) += 0.5*pow( abs(field.get_field( meep::Sz, pos )), 2 );
