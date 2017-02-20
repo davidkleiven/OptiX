@@ -5,15 +5,14 @@ project( Waveguide )
 set( CMAKE_CXX_STANDARD 11 )
 
 include_directories( include )
-add_subdirectory(src)
 set( CMAKE_LIBRARY_PATH /usr/lib/x86_64-linux-gnu )
 
+###################### FIND STATIC LIBRARIES ###################################
 # Meep library
 find_library( LIBMEEP meep  PATH "/usr/lib/x86_64-linux-gnu" )
 if ( NOT LIBMEEP )
   MESSAGE( FATAL_ERROR "Did not find the MEEP library!")
 endif()
-set( LIB ${LIBMEEP} )
 
 find_path( MEEPH "meep.hpp" )
 if ( NOT MEEPH )
@@ -25,12 +24,27 @@ find_library( LIBHARM harminv )
 if ( NOT LIBHARM )
   MESSAGE( FATAL_ERROR "Did not find the harminv library!" )
 endif()
-set( LIB ${LIB} ${LIBHARM} )
+
 find_path( HARMH "harminv.h" )
 if ( NOT HARMH )
   MESSAGE( FATAL_ERROR "Did not find the harminv header files!" )
 endif()
 
+# Add subdirectory and create a static library from the source files
+add_subdirectory(src)
+
+################# FIND SHARED LIBRARIES ########################################
+
+# Lapack
+find_package( LAPACK REQUIRED )
+set( LIB ${LIB} ${LAPACK_LIBRARIES})
+
+# FFTW library
+find_library( FFTWLIB fftw3 )
+if ( NOT FFTWLIB )
+  MESSAGE( FATAL_ERROR "Did not find the FFTW3 library!")
+endif()
+set( LIB ${LIB} ${FFTWLIB})
 # Armadillo library
 find_package( Armadillo REQUIRED )
 include_directories(${ARMADILLO_INCLUDE_DIRS})
