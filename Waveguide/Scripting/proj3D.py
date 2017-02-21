@@ -31,6 +31,7 @@ class Plotter3D:
         self.cbLoc = None
         self.cbTick = None
         self.cbLog = True
+        self.equalXYDim = True
 
     def getXlim( self ):
         return self.limits.xmin, self.limits.xmax
@@ -64,6 +65,7 @@ class Plotter3D:
         ax = fig.add_subplot(1,1,1)
         xmin, xmax = self.getXlim()
         ymin, ymax = self.getYlim()
+
         extent = [xmin, xmax, ymin, ymax]
         aspect = self.aspectRatio( extent )
         if ( self.cbLog ):

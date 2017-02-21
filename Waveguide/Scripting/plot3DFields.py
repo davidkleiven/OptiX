@@ -27,17 +27,24 @@ def main( argv ):
     with h5.File( fname, 'r' ) as hf:
         group = hf.get("/data")
         ffset = hf.get("/data/farField")
-        ffPlot.data = np.flipud( np.array( ffset ).T )
-        phasePlot.data = np.flipud( np.array( hf.get("/data/exitPhase") ).T )
-        intensityPlot.data = np.flipud( np.array( hf.get("/data/exitIntensity") ).T )
+        ffPlot.data = np.array( ffset ).T
+        phasePlot.data = np.array( hf.get("/data/exitPhase") ).T
+        intensityPlot.data = np.array( hf.get("/data/exitIntensity") ).T
         lim.zmin = group.attrs.get("zmin")
         lim.zmax = group.attrs.get("zmax")
         lim.xmin = group.attrs.get("xmin")/1000.0
         lim.xmax = group.attrs.get("xmax")/1000.0
         lim.qmin = ffset.attrs.get("qmin")
         lim.qmax = ffset.attrs.get("qmax")
-        lim.ymin = lim.xmin
-        lim.ymax = lim.xmax
+        if ( "ymin" in group.attrs ):
+            lim.ymin = group.attrs.get("ymin")/1000.0
+        else:
+            lim.ymin = lim.xmin
+        if ( "ymax" in group.attrs ):
+            lim.ymax = group.attrs.get("ymax")/1000.0
+        else:
+            lim.ymax = lim.xmax
+
         ffPlot.uid = group.attrs.get("uid")
         ampPlot.uid = ffPlot.uid
         phasePlot.uid = ffPlot.uid
