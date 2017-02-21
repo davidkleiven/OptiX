@@ -13,9 +13,10 @@ CoccolithSimulation::~CoccolithSimulation()
   if ( srcVol != NULL ) delete srcVol;
   if ( struc != NULL ) delete struc;
   if ( field != NULL ) delete field;
-  if ( source != NULL ) delete source;
+  //if ( source != NULL ) delete source;
   if ( dftVolTransmit != NULL ) delete dftVolTransmit;
-  if ( transmitFlux != NULL ) delete transmitFlux;
+  //if ( transmitFlux != NULL ) delete transmitFlux;
+  // Sources and flux are deleted in the destructor of field
   if ( monitor1 != NULL ) delete monitor1;
   if ( monitor2 != NULL ) delete monitor2;
 }
@@ -321,7 +322,15 @@ void CoccolithSimulation::run()
   }
 
   unsigned int iter = 0;
-  while ( field->time() < tEnd )
+  double simStop = source->last_time() + estimatedTimeToPropagateAcrossDomain();
+
+  if ( userOverridedEndTime )
+  {
+    simStop = tEnd;
+  }
+
+  clog << "End time: " << simStop << endl;
+  while ( field->time() < simStop )
   {
     field->step();
 
@@ -479,9 +488,6 @@ void CoccolithSimulation::exportResults()
   }
 
   saveDFTSpectrum();
-
-  field->reset();
-
   clog << "Results written to " << ss.str() << endl;
 }
 
@@ -555,4 +561,27 @@ void CoccolithSimulation::setReferenceRun()
 void CoccolithSimulation::runWithScatterer()
 {
   material.setReferenceRun( false );
+}
+
+void CoccolithSimulation::reset()
+{
+  field->reset();
+  addSource();
+  addFluxPlanes();
+}
+
+void CoccolithSimulation::setEndTime( double newtime )
+{
+  tEnd = newtime;
+  userOverridedEndTime = true;
+}
+
+double CoccolithSimulation::estimatedTimeToPropagateAcrossDomain() const
+{
+  arma::uvec sizes(3);
+  sizes(0) = material.sizeX();
+  sizes(1) = material.sizeY();
+  sizes(2) = material.sizeZ();
+
+  return sizes.max();
 }

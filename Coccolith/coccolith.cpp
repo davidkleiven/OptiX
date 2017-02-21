@@ -23,13 +23,15 @@ int main( int argc, char** argv )
     sim.setSourceSide( SourcePosition_t::BOTTOM );
     sim.initSource( 0.25, 0.25);
     sim.setPMLInWavelengths( 2.0 );
-    sim.setEndTime( 400.0 );
-    sim.init();
+    //sim.setEndTime( 50.0 );
 
     sim.setReferenceRun();
+    sim.init();
+
     sim.run();
     sim.exportResults();
 
+    sim.reset();
     sim.runWithScatterer();
     sim.run();
     sim.exportResults();

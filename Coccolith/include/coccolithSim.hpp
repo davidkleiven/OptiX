@@ -55,7 +55,7 @@ public:
   void setSourceSide( SourcePosition_t newPos ){ srcPos = newPos; };
 
   /** Set the end time */
-  void setEndTime( double t ){ tEnd = t; };
+  void setEndTime( double t );
 
   /** Print info about the domain */
   void domainInfo() const;
@@ -68,6 +68,9 @@ public:
 
   /** Add scatterer */
   void runWithScatterer();
+
+  /** Resets the simulation */
+  void reset();
 private:
   CaCO3Cocco material;
   MainPropDirection_t propagationDir{MainPropDirection_t::Z};
@@ -94,6 +97,7 @@ private:
   unsigned int nMonitorZ{256};
   double tEnd{100.0};
   visa::WindowHandler plots;
+  bool userOverridedEndTime{false};
 
   /** Visualized intensity */
   void visualize();
@@ -165,6 +169,9 @@ private:
 
   /** Computes the position corresponding to position in matrix given a certin plane*/
   void getPos( unsigned int row, unsigned int col, Plane_t proj, double dx, double dy, double dz, meep::vec &pos ) const;
+
+  /** Returns an estimated time to cross the domain in MEEP units */
+  double estimatedTimeToPropagateAcrossDomain() const;
 
   static meep::vec waveVec;
 
