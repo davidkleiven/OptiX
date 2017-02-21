@@ -275,6 +275,7 @@ void VoxelMaterial::meepVecToIndx( const meep::vec &r, unsigned int indx[3] )
 ////////////////////////////////////////////////////////////////////////////////
 double CaCO3Cocco::eps( const meep::vec &r )
 {
+  if ( referenceRun ) return 1.0;
 
   unsigned int indx[3];
   meepVecToIndx( r, indx );

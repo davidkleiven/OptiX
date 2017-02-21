@@ -62,6 +62,12 @@ public:
 
   /** Exporting results */
   void exportResults();
+
+  /** The run is a reference run */
+  void setReferenceRun();
+
+  /** Add scatterer */
+  void runWithScatterer();
 private:
   CaCO3Cocco material;
   MainPropDirection_t propagationDir{MainPropDirection_t::Z};
@@ -93,9 +99,7 @@ private:
   void visualize();
 
   // Flux planes
-  meep::volume *dftVolSource{NULL};
   meep::volume *dftVolTransmit{NULL};
-  meep::dft_flux *srcFlux{NULL};
   meep::dft_flux *transmitFlux{NULL};
 
   // Monitor planes 1

@@ -60,6 +60,12 @@ public:
 
   /** Set the domain size. NOTE: Assumed to correspond to the array */
   void setDomainSize( const meep::grid_volume &gvol );
+
+  /** If set to true the refractive index is 1 in the entire domain */
+  void setReferenceRun( bool newval ){ referenceRun = newval; };
+
+  /** True if the run is a reference run */
+  bool isReferenceRun() const{ return referenceRun; };
 protected:
   /** Extracts the dimension of the data from the filename */
   static void extractDimsFromFilename( const std::string &fname, InfoFromFilename &info );
@@ -80,6 +86,8 @@ protected:
   double vxsize{1.0};
 
   arma::Cube<unsigned char> voxels;
+
+  bool referenceRun{false};
 };
 
 class CaCO3Cocco: public VoxelMaterial

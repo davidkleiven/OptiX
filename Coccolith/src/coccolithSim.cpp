@@ -14,9 +14,7 @@ CoccolithSimulation::~CoccolithSimulation()
   if ( struc != NULL ) delete struc;
   if ( field != NULL ) delete field;
   if ( source != NULL ) delete source;
-  if ( dftVolSource != NULL ) delete dftVolSource;
   if ( dftVolTransmit != NULL ) delete dftVolTransmit;
-  if ( srcFlux != NULL ) delete srcFlux;
   if ( transmitFlux != NULL ) delete transmitFlux;
   if ( monitor1 != NULL ) delete monitor1;
   if ( monitor2 != NULL ) delete monitor2;
@@ -164,44 +162,29 @@ void CoccolithSimulation::addFluxPlanes()
     throw( runtime_error("A source profile needs to be set before flux planes are added!") );
   }
 
-  meep::vec sourceDFTCrn1;
-  meep::vec sourceDFTCrn2;
   meep::vec transDFTCrn1;
   meep::vec transDFTCrn2;
 
   switch ( propagationDir )
   {
     case MainPropDirection_t::X:
-      sourceDFTCrn1 = meep::vec( getSrcFluxPos(), gdvol.ymin(), gdvol.zmin() );
-      sourceDFTCrn2 = meep::vec( getSrcFluxPos(), gdvol.ymax(), gdvol.zmax() );
       transDFTCrn1 = meep::vec( getTransFluxPos(), gdvol.ymin(), gdvol.zmin() );
       transDFTCrn2 = meep::vec( getTransFluxPos(), gdvol.ymax(), gdvol.zmax() );
       break;
     case MainPropDirection_t::Y:
-      sourceDFTCrn1 = meep::vec( gdvol.xmin(), getSrcFluxPos(), gdvol.zmin() );
-      sourceDFTCrn2 = meep::vec( gdvol.xmax(), getSrcFluxPos(), gdvol.zmax() );
       transDFTCrn1 = meep::vec( gdvol.xmin(), getTransFluxPos(), gdvol.zmin() );
       transDFTCrn2 = meep::vec( gdvol.xmax(), getTransFluxPos(), gdvol.zmax() );
       break;
     case MainPropDirection_t::Z:
-      sourceDFTCrn1 = meep::vec( gdvol.xmin(), gdvol.ymin(), getSrcFluxPos() );
-      sourceDFTCrn2 = meep::vec( gdvol.xmax(), gdvol.ymax(), getSrcFluxPos() );
       transDFTCrn1 = meep::vec( gdvol.xmin(), gdvol.ymin(), getTransFluxPos() );
       transDFTCrn2 = meep::vec( gdvol.xmax(), gdvol.ymax(), getTransFluxPos() );
       break;
   }
 
-  if ( dftVolSource != NULL ) delete dftVolSource;
-  dftVolSource = new meep::volume( sourceDFTCrn1, sourceDFTCrn2 );
-
-
-
   if ( dftVolTransmit != NULL ) delete dftVolTransmit;
   dftVolTransmit = new meep::volume( transDFTCrn1, transDFTCrn2 );
 
-  if ( srcFlux != NULL ) delete srcFlux;
   if ( transmitFlux != NULL ) delete transmitFlux;
-  srcFlux = new meep::dft_flux( field->add_dft_flux_plane( *dftVolSource, centerFrequency-freqWidth/2.0, centerFrequency+freqWidth/2.0, nfreq ) );
   transmitFlux = new meep::dft_flux( field->add_dft_flux_plane( *dftVolTransmit, centerFrequency-freqWidth/2.0, centerFrequency+freqWidth/2.0, nfreq ) );
 }
 
@@ -482,14 +465,22 @@ void CoccolithSimulation::getPos( unsigned int row, unsigned int col, Plane_t pl
 
 void CoccolithSimulation::exportResults()
 {
-  uid = rand()%UID_MAX;
+  if ( uid == 0 )
+  {
+    uid = rand()%UID_MAX;
+  }
 
   stringstream ss;
   ss << "data/voxelMaterialSim_" << uid << ".h5";
-  file = field->open_h5file( ss.str().c_str() );
+  if ( file == NULL )
+  {
+    file = field->open_h5file( ss.str().c_str() );
+    saveGeometry();
+  }
 
   saveDFTSpectrum();
-  saveGeometry();
+
+  field->reset();
 
   clog << "Results written to " << ss.str() << endl;
 }
@@ -497,30 +488,32 @@ void CoccolithSimulation::exportResults()
 void CoccolithSimulation::saveDFTSpectrum()
 {
   assert( file != NULL );
-  int length = srcFlux->Nfreq;
-  file->write( "spectrumAtSource", 1, &length, srcFlux->flux(), false );
 
-  length = transmitFlux->Nfreq;
-  file->write( "spectrumTransmitted", 1, &length, transmitFlux->flux(), false );
+  if ( material.isReferenceRun() )
+  {
+    int length = transmitFlux->Nfreq;
+    file->write( "spectrumReference", 1, &length, transmitFlux->flux(), false );
+    return;
+  }
+  else
+  {
+    int length = transmitFlux->Nfreq;
+    file->write( "spectrumTransmitted", 1, &length, transmitFlux->flux(), false );
+  }
 
   const int nParams = 3;
   double stat[nParams];
-  stat[0] = srcFlux->freq_min;
-  stat[1] = srcFlux->dfreq;
-  stat[2] = srcFlux->Nfreq;
+  stat[0] = transmitFlux->freq_min;
+  stat[1] = transmitFlux->dfreq;
+  stat[2] = transmitFlux->Nfreq;
 
   // Write parameters
   file->write( "spectrumFreqs", 1, &nParams, stat, false );
 
   // Write geometrical positions
-  meep::vec mincrn = dftVolSource->get_min_corner();
-  meep::vec maxcrn = dftVolSource->get_max_corner();
+  meep::vec mincrn = dftVolTransmit->get_min_corner();
+  meep::vec maxcrn = dftVolTransmit->get_max_corner();
   int nCrns = 6;
-  double corners[nCrns] = {mincrn.x(), mincrn.y(), mincrn.z(), maxcrn.x(), maxcrn.y(), maxcrn.z()};
-  file->write( "spectrumCornersSource", 1, &nCrns, corners, false );
-
-  mincrn = dftVolTransmit->get_min_corner();
-  maxcrn = dftVolTransmit->get_max_corner();
   double cornersTrans[nCrns] = {mincrn.x(), mincrn.y(), mincrn.z(), maxcrn.x(), maxcrn.y(), maxcrn.z()};
   file->write( "spectrumCornersTransmit", 1, &nCrns, cornersTrans, false );
 }
@@ -552,4 +545,14 @@ void CoccolithSimulation::saveGeometry()
 
   double pmlThickness = getPMLThickness();
   file->write( "geometryPmlThickness", 1, &single, &pmlThickness, false );
+}
+
+void CoccolithSimulation::setReferenceRun()
+{
+  material.setReferenceRun( true );
+}
+
+void CoccolithSimulation::runWithScatterer()
+{
+  material.setReferenceRun( false );
 }
