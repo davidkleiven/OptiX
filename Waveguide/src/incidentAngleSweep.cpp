@@ -140,10 +140,9 @@ void IncidentAngleSweep::solve()
 
       if ( picDir != "" )
       {
-        auto image = vis->get(plotname.c_str()).capture();
         stringstream ss;
         ss << picDir << "/img" << i << ".png";
-        image.saveToFile(ss.str().c_str());
+        vis->saveImg( ss.str().c_str() );
       }
     }
     proceedToNextAngle();

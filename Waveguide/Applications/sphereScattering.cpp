@@ -49,6 +49,10 @@ int main( int argc, char **argv )
   params["mode"] = 0;
   params["coatThicknessIn_nm"] = 100.0; // Thickness of the coating in nano meters
   params["farFieldSaveSize"] = 512;     // Dimenstion of the farfield matrices to be saved
+  params["intensityMinVis"] = 0.0;      // Minimum intensity for visualization
+  params["intensityMaxVis"] = 1.1;      // Maximum intensity for visualization
+  params["phaseMinVis"] = -1.58;        // Minimum phase for visualization
+  params["phaseMaxVis"] = 1.58;         // Maximum phase for visualization
 
   pei::DialogBox dialog( params );
   dialog.show();
@@ -150,13 +154,19 @@ int main( int argc, char **argv )
     // Compute real solution
     scatterer->reset();
     scatterer->setLongitudinalDiscretization( zmin, zmax, dz, params.at("downSampleZ") );
-    scatterer->setMaterial( "SiO2" );
+    //scatterer->setMaterial( "SiO2" );
+    scatterer->setMaterial( "Au" );
     coated.setCoatingMaterial( "Au" );
 
     solver.visualizeRealSpace();
     //solver.visualizeFourierSpace();
-    solver.setIntensityMinMax( 0.0, 1.0 );
-    solver.setPhaseMinMax( -1.58, 1.58 );
+    solver.setIntensityMinMax( params.at("intensityMinVis"), params.at("intensityMaxVis") );
+    solver.setPhaseMinMax( params.at("phaseMinVis"), params.at("phaseMaxVis") );
+    if ( argc > 1 )
+    {
+      string imgname(argv[1]);
+      solver.storeImages( imgname.c_str() );
+    }
 
     scatterer->setSolver( solver );
     scatterer->setBoundaryConditions( gbeam );
@@ -186,6 +196,7 @@ int main( int argc, char **argv )
 
     // Perform some plots of different projections
     visa::WindowHandler plots;
+    plots.setLayout(2,3);
     typedef visa::Colormaps::Colormap_t cmap_t;
     plots.addPlot("IntensityXY");
     plots.addPlot("PhaseXY");
@@ -220,18 +231,14 @@ int main( int argc, char **argv )
     plots.get("IntensityXZ").fillVertexArray( solution );
     solution = arma::arg( scatterer->getSolver().getSolution3D().tube( 0, col, params.at("Nt")/params.at("downSampleT")-1, col ) );
     plots.get("PhaseXZ").fillVertexArray( solution );
+    plots.show();
 
     // Store all pictures
     if ( static_cast<int>(params.at("savePlots")) )
     {
-      for ( unsigned int i=0;i<plots.nPlots();i++ )
-      {
-        stringstream fname;
-        fname << "Figures/sphere" << plots.get(i).getName() << ctl.getUID() << ".jpg";
-        sf::Image img = plots.get(i).capture();
-        img.saveToFile( fname.str() );
-        clog << "Image " << fname.str() << " saved...\n";
-      }
+      stringstream fname;
+      fname << "Figures/sphere" << ctl.getUID() << ".jpg";
+      plots.saveImg( fname.str().c_str() );
     }
     plots.show();
     for ( unsigned int i=0;i<KEEP_PLOT_FOR_SEC;i++ )

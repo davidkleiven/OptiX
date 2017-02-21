@@ -165,8 +165,9 @@ void FFTSolver3D::refraction( unsigned int step )
     arma::mat values = arma::flipud( arma::abs( *currentSolution ) );
     plots.get("Intensity").setCmap( cmap_t::NIPY_SPECTRAL );
     plots.get("Intensity").setOpacity(1.0);
-    plots.get("Intensity").setColorLim( 0.0, 1.1 );
-    plots.get("Intensity").fillVertexArray( values );
+    plots.get("Intensity").setColorLim( intensityMin, intensityMax );
+    plots.get("Intensity").setImg( values );
+    plots.draw();
 
     if ( overlayRefractiveIndex )
     {
@@ -178,26 +179,29 @@ void FFTSolver3D::refraction( unsigned int step )
       double refrMax = arma::max( arma::max(refr) );
 
       //plots.get("Intensity").setColorLim( refrMin, refrMax );
-      plots.get("Intensity").fillVertexArray( refr );
+      plots.get("Intensity").setImg( refr );
+      plots.draw();
     }
+
+    values = -arma::arg( *currentSolution );
+    plots.get("Phase").setImg( values );
+    plots.draw();
+    plots.show();
 
     if ( createAnimation )
     {
       stringstream ss;
       ss << imageName << imgCounter++ << ".png";
-      sf::Image img = plots.get("Intensity").capture();
-      img.saveToFile( ss.str() );
+      plots.saveImg( ss.str().c_str() );
     }
-
-    values = -arma::arg( *currentSolution );
-    plots.get("Phase").fillVertexArray( values );
-    plots.show();
   }
 }
 
 void FFTSolver3D::visualizeRealSpace()
 {
   visRealSpace = true;
+  plots.setLayout(2,1);
+  plots.useSeparateDrawing();
   plots.addPlot("Intensity");
   plots.addPlot("Phase");
   plots.get("Intensity").setCmap( cmap_t::NIPY_SPECTRAL );
@@ -212,6 +216,8 @@ void FFTSolver3D::visualizeFourierSpace()
 
 void FFTSolver3D::setIntensityMinMax( double min, double max )
 {
+  intensityMin = min;
+  intensityMax = max;
   plots.get("Intensity").setColorLim( min, max );
 }
 

@@ -53,6 +53,9 @@ private:
   /** Performs absorbing boundary conditions */
   void applyAbsorbingBC();
 
+  double intensityMin{0.0};
+  double intensityMax{1.1};
+
   fftw_complex *curr{NULL};
   fftw_complex *prev{NULL};
   fftw_plan ftforw;
