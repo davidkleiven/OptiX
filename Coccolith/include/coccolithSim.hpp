@@ -64,13 +64,16 @@ public:
   void exportResults();
 
   /** The run is a reference run */
-  void setReferenceRun();
+  void runWithoutScatterer();
 
   /** Add scatterer */
   void runWithScatterer();
 
   /** Resets the simulation */
   void reset();
+
+  /** Sets the frequency between every time the graphics is updated */
+  void setPlotUpdateFreq( unsigned int everyIter ){ plotUpdateFreq = everyIter; };
 private:
   CaCO3Cocco material;
   MainPropDirection_t propagationDir{MainPropDirection_t::Z};
@@ -98,6 +101,7 @@ private:
   double tEnd{100.0};
   visa::WindowHandler plots;
   bool userOverridedEndTime{false};
+  bool plotGeom{true};
 
   /** Visualized intensity */
   void visualize();

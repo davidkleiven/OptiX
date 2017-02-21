@@ -39,7 +39,7 @@ def main( argv ):
 
     specPlot = Spectrum()
     with h5.File( fname, 'r' ) as hf:
-        specPlot.data = np.array( hf.get("spectrumTransmitted") )
+        specPlot.data = np.array( hf.get("spectrumTransmitted") )/np.array( hf.get("spectrumReference"))
         freqs = np.array( hf.get("spectrumFreqs") )
         specPlot.freqmin = freqs[0]
         specPlot.dfreq = freqs[1]

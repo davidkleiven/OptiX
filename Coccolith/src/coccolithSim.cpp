@@ -10,13 +10,13 @@ meep::vec CoccolithSimulation::waveVec;
 
 CoccolithSimulation::~CoccolithSimulation()
 {
+  // Sources and flux are deleted in the destructor of field
   if ( srcVol != NULL ) delete srcVol;
   if ( struc != NULL ) delete struc;
   if ( field != NULL ) delete field;
-  //if ( source != NULL ) delete source;
   if ( dftVolTransmit != NULL ) delete dftVolTransmit;
-  //if ( transmitFlux != NULL ) delete transmitFlux;
-  // Sources and flux are deleted in the destructor of field
+  if ( source != NULL ) delete source;
+
   if ( monitor1 != NULL ) delete monitor1;
   if ( monitor2 != NULL ) delete monitor2;
 }
@@ -42,7 +42,6 @@ void CoccolithSimulation::setMainPropagationDirection( MainPropDirection_t propD
 
 void CoccolithSimulation::addSourceVolume()
 {
-  double pml = getPMLThickness();
   switch( propagationDir )
   {
     case MainPropDirection_t::X:
@@ -310,6 +309,8 @@ void CoccolithSimulation::setMonitorPlanes()
   // Add plots
   plots.addPlot( monitor1->getName().c_str() );
   plots.addPlot( monitor2->getName().c_str() );
+  plots.setLayout( 1, 2 );
+  plots.useSeparateDrawing(); // Do not show result on screen before show
 
   clog << "Finished\n";
 }
@@ -364,18 +365,20 @@ void CoccolithSimulation::visualize()
   plt2.setOpacity( 1.0 );
   plt1.setCmap( cmap_t::NIPY_SPECTRAL );
   plt2.setCmap( cmap_t::NIPY_SPECTRAL );
-  plt1.fillVertexArray( monitor1->get() );
-  plt2.fillVertexArray( monitor2->get() );
+  plt1.setImg( monitor1->get() );
+  plt2.setImg( monitor2->get() );
+  plots.draw();
 
   // Overlay refractive index profile
   plt1.setCmap( cmap_t::GREYSCALE );
   plt2.setCmap( cmap_t::GREYSCALE );
   plt1.setColorLim( 0.99*bkg1.min(), 1.01*bkg1.max() );
   plt2.setColorLim( 0.99*bkg2.min(), 1.01*bkg2.max() );
-  plt1.setOpacity( 0.5 );
-  plt2.setOpacity( 0.5 );
-  plt1.fillVertexArray( bkg1 );
-  plt2.fillVertexArray( bkg2 );
+  plt1.setOpacity( 0.6 );
+  plt2.setOpacity( 0.6 );
+  plt1.setImg( bkg1 );
+  plt2.setImg( bkg2 );
+  plots.draw();
 
   plots.show();
 }
@@ -480,7 +483,7 @@ void CoccolithSimulation::exportResults()
   }
 
   stringstream ss;
-  ss << "data/voxelMaterialSim_" << uid << ".h5";
+  ss << "data/voxelMaterialSim_" << uid; // File extension added automatically
   if ( file == NULL )
   {
     file = field->open_h5file( ss.str().c_str() );
@@ -553,7 +556,7 @@ void CoccolithSimulation::saveGeometry()
   file->write( "geometryPmlThickness", 1, &single, &pmlThickness, false );
 }
 
-void CoccolithSimulation::setReferenceRun()
+void CoccolithSimulation::runWithoutScatterer()
 {
   material.setReferenceRun( true );
 }
@@ -568,6 +571,7 @@ void CoccolithSimulation::reset()
   field->reset();
   addSource();
   addFluxPlanes();
+  setMonitorPlanes();
 }
 
 void CoccolithSimulation::setEndTime( double newtime )

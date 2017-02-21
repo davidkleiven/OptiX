@@ -115,7 +115,7 @@ void VoxelMaterial::slideThroughVoxelArray() const
     this_thread::sleep_for( duration );
   }
 
-  plots.get("Voxelvalues").clear();
+  plots.clear();
   clog << "Showing YZ plane\n";
   for ( unsigned int i=0;i<voxels.n_rows;i++ )
   {
@@ -126,7 +126,6 @@ void VoxelMaterial::slideThroughVoxelArray() const
     this_thread::sleep_for( duration );
   }
 
-  plots.get("Voxelvalues").clear();
   clog << "Showing XZ plane\n";
   for ( unsigned int i=0;i<voxels.n_cols;i++ )
   {
@@ -142,26 +141,27 @@ void VoxelMaterial::showProjections() const
 {
   unsigned int holdForSec = 15;
   visa::WindowHandler plots;
+  plots.setLayout(2,2);
   plots.addPlot( "XY-plane" );
   plots.get( "XY-plane" ).setCmap( visa::Colormaps::Colormap_t::GREYSCALE );
 
   // Project in z-direction
   arma::mat values( voxels.n_rows, voxels.n_cols );
   projectionXY( values );
-  plots.getActive().fillVertexArray( values );
+  plots.getActive().setImg( values );
 
   plots.addPlot( "XZ-plane" );
   plots.get( "XZ-plane" ).setCmap( visa::Colormaps::Colormap_t::GREYSCALE );
   values.set_size( voxels.n_cols, voxels.n_slices );
   projectionXZ( values );
-  plots.get("XZ-plane").fillVertexArray( values );
+  plots.get("XZ-plane").setImg( values );
 
   plots.addPlot( "YZ-plane" );
   plots.get( "YZ-plane" ).setCmap( visa::Colormaps::Colormap_t::GREYSCALE );
   values.set_size( voxels.n_rows, voxels.n_slices );
 
   projectionYZ( values );
-  plots.get("YZ-plane").fillVertexArray( values );
+  plots.get("YZ-plane").setImg( values );
 
   chrono::seconds duration(1);
   for ( unsigned int i=0;i<holdForSec;i++ )
