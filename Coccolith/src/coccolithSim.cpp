@@ -3,6 +3,7 @@
 #include <stdexcept>
 #include <cmath>
 #include <sstream>
+#include <omp.h>
 
 using namespace std;
 
@@ -19,12 +20,12 @@ CoccolithSimulation::~CoccolithSimulation()
 
   if ( monitor1 != NULL ) delete monitor1;
   if ( monitor2 != NULL ) delete monitor2;
+  if ( plots != NULL ) delete plots;
 }
 
 void CoccolithSimulation::loadVoxels( const char* fname )
 {
   material.loadRaw( fname );
-  gdvol = meep::vol3d( material.sizeX(), material.sizeY(), material.sizeZ(), resolution );
   materialLoaded = true;
 }
 
@@ -69,7 +70,11 @@ void CoccolithSimulation::addStructure()
   {
     throw( runtime_error("The source profile needs to be initialized before the structure is added!\n") );
   }
-  if ( struc != NULL ) delete struc;
+  if ( struc != NULL )
+  {
+    delete struc;
+  }
+
 
   struc = new meep::structure( gdvol, material, meep::pml( getPMLThickness() ) );
 }
@@ -93,6 +98,10 @@ void CoccolithSimulation::addFields()
 
 void CoccolithSimulation::initSource( double freq, double fwidth )
 {
+  if ( geoIsInitialized )
+  {
+    throw( runtime_error("Geometry is already initialized! PML layers may behave strangely if the frequencies change!") );
+  }
   centerFrequency = freq;
   freqWidth = fwidth;
 
@@ -139,7 +148,9 @@ void CoccolithSimulation::init()
     throw( runtime_error("No material loaded! Call loadVoxels!") );
   }
   domainInfo();
-  material.setDomainSize( gdvol );
+  initializeGeometry();
+
+  material.setDomainSize( gdvol, getPMLThickness() );
   addSourceVolume();
   addStructure();
   addFields();
@@ -306,11 +317,17 @@ void CoccolithSimulation::setMonitorPlanes()
   monitor1->setOrigin( gdvol.center() );
   monitor2->setOrigin( gdvol.center() );
 
-  // Add plots
-  plots.addPlot( monitor1->getName().c_str() );
-  plots.addPlot( monitor2->getName().c_str() );
-  plots.setLayout( 1, 2 );
-  plots.useSeparateDrawing(); // Do not show result on screen before show
+  if ( realTimeVisualization )
+  {
+    if ( plots != NULL ) delete plots;
+
+    plots = new visa::WindowHandler();
+    // Add plots
+    plots->addPlot( monitor1->getName().c_str() );
+    plots->addPlot( monitor2->getName().c_str() );
+    plots->setLayout( 1, 2 );
+    plots->useSeparateDrawing(); // Do not show result on screen before show
+  }
 
   clog << "Finished\n";
 }
@@ -335,7 +352,7 @@ void CoccolithSimulation::run()
   {
     field->step();
 
-    if ( iter%plotUpdateFreq == 0 )
+    if (( iter%plotUpdateFreq == 0 ) && ( realTimeVisualization ))
     {
       visualize();
     }
@@ -350,14 +367,16 @@ void CoccolithSimulation::visualize()
     throw (runtime_error("No monitors set for visulization!") );
   }
 
+  assert( plots != NULL );
+
   monitor1->setIntensity( *field );
   monitor2->setIntensity( *field );
   // Set colorbar limits
 
   typedef visa::Colormaps::Colormap_t cmap_t;
 
-  visa::Visualizer& plt1 = plots.get( monitor1->getName().c_str() );
-  visa::Visualizer& plt2 = plots.get( monitor2->getName().c_str() );
+  visa::Visualizer& plt1 = plots->get( monitor1->getName().c_str() );
+  visa::Visualizer& plt2 = plots->get( monitor2->getName().c_str() );
 
   plt1.setColorLim( monitor1->get().min(), monitor1->get().max() );
   plt2.setColorLim( monitor2->get().min(), monitor2->get().max() );
@@ -367,7 +386,7 @@ void CoccolithSimulation::visualize()
   plt2.setCmap( cmap_t::NIPY_SPECTRAL );
   plt1.setImg( monitor1->get() );
   plt2.setImg( monitor2->get() );
-  plots.draw();
+  plots->draw();
 
   // Overlay refractive index profile
   plt1.setCmap( cmap_t::GREYSCALE );
@@ -378,9 +397,9 @@ void CoccolithSimulation::visualize()
   plt2.setOpacity( 0.6 );
   plt1.setImg( bkg1 );
   plt2.setImg( bkg2 );
-  plots.draw();
+  plots->draw();
 
-  plots.show();
+  plots->show();
 }
 
 void CoccolithSimulation::domainInfo() const
@@ -408,27 +427,28 @@ void CoccolithSimulation::projectedEpsilon( arma::mat &values, IntegrationDir_t 
     case IntegrationDir_t::X:
       plane = Plane_t::YZ;
       nIntegr = nMonitorX;
-      dx =  nMonitorX/( gdvol.xmax()-gdvol.xmin() );
-      dy = values.n_cols/( gdvol.ymax() - gdvol.ymin() );
-      dz = values.n_rows/( gdvol.zmax() - gdvol.zmin() );
+      dx = ( gdvol.xmax()-gdvol.xmin() )/nMonitorX;
+      dy = ( gdvol.ymax() - gdvol.ymin() )/values.n_cols;
+      dz = ( gdvol.zmax() - gdvol.zmin() )/values.n_rows;
       break;
     case IntegrationDir_t::Y:
       nIntegr = nMonitorY;
       plane = Plane_t::XZ;
-      dx =  values.n_cols/( gdvol.xmax() - gdvol.xmin() );
-      dy = nMonitorY/( gdvol.ymax() - gdvol.ymin() );
-      dz = values.n_rows/( gdvol.zmax() - gdvol.zmin() );
+      dx = ( gdvol.xmax() - gdvol.xmin() )/values.n_cols;
+      dy = ( gdvol.ymax() - gdvol.ymin() )/nMonitorY;
+      dz = ( gdvol.zmax() - gdvol.zmin() )/values.n_rows;
       break;
     case IntegrationDir_t::Z:
       plane = Plane_t::XY;
       nIntegr = nMonitorZ;
-      dx =  values.n_cols/( gdvol.xmax() - gdvol.xmin() );
-      dy = values.n_rows/( gdvol.ymax() - gdvol.ymin() );
-      dz = nMonitorZ/( gdvol.zmax() - gdvol.zmin() );
+      dx = ( gdvol.xmax() - gdvol.xmin() )/values.n_cols;
+      dy = ( gdvol.ymax() - gdvol.ymin() )/values.n_rows;
+      dz = ( gdvol.zmax() - gdvol.zmin() )/nMonitorZ;
       break;
   }
 
   values.fill(0.0);
+
   meep::vec pos;
   for ( unsigned int i=0;i<values.n_cols;i++ )
   {
@@ -491,6 +511,11 @@ void CoccolithSimulation::exportResults()
   }
 
   saveDFTSpectrum();
+
+  if ( !material.isReferenceRun() )
+  {
+    field->output_hdf5( meep::Dielectric, gdvol.surroundings(), file, false, true );
+  }
   clog << "Results written to " << ss.str() << endl;
 }
 
@@ -569,9 +594,7 @@ void CoccolithSimulation::runWithScatterer()
 void CoccolithSimulation::reset()
 {
   field->reset();
-  addSource();
-  addFluxPlanes();
-  setMonitorPlanes();
+  init();
 }
 
 void CoccolithSimulation::setEndTime( double newtime )
@@ -588,4 +611,25 @@ double CoccolithSimulation::estimatedTimeToPropagateAcrossDomain() const
   sizes(2) = material.sizeZ();
 
   return sizes.max();
+}
+
+void CoccolithSimulation::initializeGeometry()
+{
+  if ( !materialLoaded )
+  {
+    throw ( runtime_error("Material needs to be loaded before the geometry is initialize!") );
+  }
+
+  double pmlThickPx = getPMLThickness();
+  gdvol = meep::vol3d( material.sizeX()+2.0*pmlThickPx, material.sizeY()+2.0*pmlThickPx, material.sizeZ()+2.0*pmlThickPx, resolution );
+  geoIsInitialized = true;
+}
+
+void CoccolithSimulation::setPMLInWavelengths( double pmlInWav )
+{
+  if ( geoIsInitialized )
+  {
+    throw( runtime_error("Geometry is already initialized. It has no effect to change the PML thickness now!"));
+  }
+  pmlThicknessInWavelengths = pmlInWav;
 }

@@ -59,7 +59,7 @@ public:
   double getVoxelSize() const{ return vxsize; };
 
   /** Set the domain size. NOTE: Assumed to correspond to the array */
-  void setDomainSize( const meep::grid_volume &gvol );
+  void setDomainSize( const meep::grid_volume &gvol, double PMLThickInPx );
 
   /** If set to true the refractive index is 1 in the entire domain */
   void setReferenceRun( bool newval ){ referenceRun = newval; };
@@ -100,6 +100,9 @@ public:
 
   /** Returns the conductivity as a function of position */
   virtual double conductivity( meep::component c, const meep::vec &r ) override;
+
+  /** MEEP function that has to implemented in order to get it to work */
+  virtual double chi1p1(meep::field_type ft, const meep::vec &r) { return eps(r); }
 
 private:
   double epsilon{2.72};

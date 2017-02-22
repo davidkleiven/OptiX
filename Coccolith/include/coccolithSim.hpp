@@ -34,7 +34,7 @@ public:
   double getWavelength() const;
 
   /** Set the PML thickness in number of wavelengths */
-  void setPMLInWavelengths( double newThick ){ pmlThicknessInWavelengths = newThick; };
+  void setPMLInWavelengths( double newThick );
 
   /** Run the simulation */
   void run();
@@ -74,6 +74,9 @@ public:
 
   /** Sets the frequency between every time the graphics is updated */
   void setPlotUpdateFreq( unsigned int everyIter ){ plotUpdateFreq = everyIter; };
+
+  /** Runs without visualization */
+  void disableRealTimeVisualization(){ realTimeVisualization = false; };
 private:
   CaCO3Cocco material;
   MainPropDirection_t propagationDir{MainPropDirection_t::Z};
@@ -99,9 +102,10 @@ private:
   unsigned int nMonitorY{256};
   unsigned int nMonitorZ{256};
   double tEnd{100.0};
-  visa::WindowHandler plots;
+  visa::WindowHandler *plots{NULL};
   bool userOverridedEndTime{false};
-  bool plotGeom{true};
+  bool realTimeVisualization{true};
+  bool geoIsInitialized{false};
 
   /** Visualized intensity */
   void visualize();
@@ -176,6 +180,9 @@ private:
 
   /** Returns an estimated time to cross the domain in MEEP units */
   double estimatedTimeToPropagateAcrossDomain() const;
+
+  /** Initialize the geometry based on */
+  void initializeGeometry();
 
   static meep::vec waveVec;
 
