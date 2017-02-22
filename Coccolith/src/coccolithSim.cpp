@@ -449,14 +449,17 @@ void CoccolithSimulation::projectedEpsilon( arma::mat &values, IntegrationDir_t 
 
   values.fill(0.0);
 
-  meep::vec pos;
-  for ( unsigned int i=0;i<values.n_cols;i++ )
+  #pragma omp parallel
   {
-    for ( unsigned int j=0;j<values.n_rows;j++ )
+    meep::vec pos;
+    #pragma omp for
+    for ( unsigned int i=0;i<values.n_cols*values.n_rows;i++ )
     {
+      unsigned int row = i%values.n_rows;
+      unsigned int col = i/values.n_rows;
       for ( unsigned int k=0;k<nIntegr;k++ )
       {
-        getPos( j, i, plane, dx, dy, dz, pos );
+        getPos( col, row, plane, dx, dy, dz, pos );
         switch( dir )
         {
           case IntegrationDir_t::X:
@@ -469,9 +472,9 @@ void CoccolithSimulation::projectedEpsilon( arma::mat &values, IntegrationDir_t 
             pos += meep::vec( 0.0, 0.0, gdvol.zmin() + k*dz );
             break;
         }
-        values(j,i) += material.eps( pos );
+        values(col,row) += material.eps( pos );
       }
-      values(j,i) /= nIntegr;
+      values(col,row) /= nIntegr;
     }
   }
 }

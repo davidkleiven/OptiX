@@ -7,6 +7,9 @@ set( CMAKE_CXX_STANDARD 11 )
 include_directories( include )
 set( CMAKE_LIBRARY_PATH /usr/lib/x86_64-linux-gnu )
 
+add_definitions( -O2 )
+set( CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-fopenmp")
+
 ###################### FIND STATIC LIBRARIES ###################################
 # Meep library
 find_library( LIBMEEP meep  PATH "/usr/lib/x86_64-linux-gnu" )
@@ -34,6 +37,10 @@ endif()
 add_subdirectory(src)
 
 ################# FIND SHARED LIBRARIES ########################################
+find_package( OpenMP )
+if ( OpenMP_found )
+  set ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}" )
+endif()
 
 # Lapack
 find_package( LAPACK REQUIRED )
