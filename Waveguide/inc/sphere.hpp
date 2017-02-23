@@ -1,6 +1,7 @@
 #ifndef GEOMETRY_SPHERE_H
 #define GEOMETRY_SPHERE_H
-#include "paraxialSimulation.hpp"
+#include "materialFunction.hpp"
+#include <cmath>
 
 struct Point3D
 {
@@ -9,7 +10,7 @@ struct Point3D
   double z;
 };
 
-class Sphere: public ParaxialSimulation
+class Sphere: public MaterialFunction
 {
 public:
   Sphere( const Point3D &center, double radius );
@@ -17,16 +18,12 @@ public:
   /** Return the material properties of the cylinder */
   virtual void getXrayMatProp( double x, double y, double z, double &delta, double &beta ) const override;
 
-  /** Add additional attributes specific to this simulation */
-  virtual void setGroupAttributes() override;
-
   /** Set the cylinder material */
-  void setMaterial( const char* name );
+  void setMaterial( const char* name, double energy );
 
   /** Run the simulation without absorption */
   void noAbsorption(){ withAbsorption = false; };
 protected:
-  Sphere( const Point3D &inCenter, double radius, const char* name );
   Point3D center;
   double radius{1.0};
   double delta{0.0};
@@ -37,19 +34,13 @@ protected:
 class CoatedSphere: public Sphere
 {
 public:
-  CoatedSphere( const Point3D &center, double radius ): Sphere(center, radius, "CoatedSphere"){};
+  CoatedSphere( const Point3D &center, double radius, double thickness ): Sphere(center, radius), thickness(thickness){};
 
   /** Set the material of the coating */
-  void setCoatingMaterial( const char* name );
-
-  /** Set the thickness of the coating in nano meters */
-  void setThickness( double newThickness ){ thickness = newThickness; };
+  void setCoatingMaterial( const char* name, double energy );
 
   /** Return the material properties */
   virtual void getXrayMatProp( double x, double y, double z, double &delta, double &beta ) const override;
-
-  /** Set attributes specific to this simulation */
-  virtual void setGroupAttributes() override;
 private:
   double deltaCoat{0.0};
   double betaCoat{0.0};

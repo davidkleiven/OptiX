@@ -1,11 +1,9 @@
 #include "sphere.hpp"
 #include "planeWave.hpp"
 #include "paraxialEquation.hpp"
-#include "gaussianBeam.hpp"
+#include "genericScattering.hpp"
 #include "crankNicholson.hpp"
 #include "controlFile.hpp"
-#include "postProcessMod.hpp"
-#include "fftSolver3D.hpp"
 #include <iostream>
 #include <visa/visa.hpp>
 #include <pei/dialogBox.hpp>
@@ -17,8 +15,6 @@
 //#define FAKE_RESULT_WITH_PURE_PHASE_SHIFT
 
 using namespace std;
-
-void generatePhaseObjectSolution( const map<string,double> &params, const arma::cx_mat &reference, arma::cx_mat &newSolution );
 
 enum class Geometry_t{SPHERE, COATED_SPHERE};
 int main( int argc, char **argv )
@@ -85,167 +81,55 @@ int main( int argc, char **argv )
   center.y = center.x;
   center.z = (zmax+zmin)/2.0;
 
-  post::Phase phase; // Only used for visualization
-  post::ExitField ef;
-  post::ExitIntensity ei;
-  post::ExitPhase ep;
-  post::FarField ff;
+  GenericScattering simulation("sphere");
+  simulation.xmin = xmin;
+  simulation.xmax = xmax;
+  simulation.ymin = xmin;
+  simulation.ymax = xmax;
+  simulation.zmin = zmin;
+  simulation.zmax = zmax;
+  simulation.dx = dx;
+  simulation.dy = dx;
+  simulation.dz = dz;
+  simulation.downSampleX = params.at("downSampleT");
+  simulation.downSampleY = params.at("downSampleY");
+  simulation.downSampleZ = params.at("downSampleZ");
+  simulation.wavelength = params.at("wavelength");
 
-  unsigned int exportNx = 512;
-  unsigned int exportNy = 512;
-  ef.setExportDimensions( exportNx, exportNy );
-  ei.setExportDimensions( exportNx, exportNy );
-  ep.setExportDimensions( exportNx, exportNy );
-  ff.setExportDimensions( params.at("farFieldSaveSize"), params.at("farFieldSaveSize") );
-
-  Sphere *scatterer = NULL;
   Sphere sphere( center, r );
-  CoatedSphere coated( center, r );
-  coated.setThickness( params.at("coatThicknessIn_nm") );
+  CoatedSphere coated( center, r, params.at("coatThicknessIn_nm") );
+
+  if ( disableAbsorption )
+  {
+    sphere.noAbsorption();
+    coated.noAbsorption();
+  }
 
   switch( geom )
   {
     case Geometry_t::SPHERE:
-      scatterer = &sphere;
+      simulation.setMaterial( sphere );
       break;
     case Geometry_t::COATED_SPHERE:
-      scatterer = &coated;
+      simulation.setMaterial( coated );
       break;
   }
 
-  if ( disableAbsorption )
-  {
-    scatterer->noAbsorption();
-  }
   try
   {
+    sphere.setMaterial( "SiO2", simulation.getEnergy() );
+    coated.setMaterial( "SiO2", simulation.getEnergy() );
+    coated.setCoatingMaterial( "Au", simulation.getEnergy() );
 
-    scatterer->setWaveLength( params.at("wavelength") );
-
-    // Reference run
-    scatterer->setMaterial( "Vacuum" );
-    coated.setCoatingMaterial( "Vacuum" );
-
-    scatterer->setTransverseDiscretization( xmin, xmax, dx, params.at("downSampleT") );
-    scatterer->setVerticalDiscretization( xmin, xmax, dx );
-    scatterer->setLongitudinalDiscretization( zmin, zmax, (zmax-zmin)/3.0, 1 );
-
-    #ifdef FAKE_RESULT_WITH_PURE_PHASE_SHIFT
-      FFT3DSolverDebug solver;
-    #else
-      FFTSolver3D solver;
-    #endif
-
-    PlaneWave pw;
-    pw.setWavelength( params.at("wavelength") );
-    pw.setDim( ParaxialSource::Dim_t::THREE_D );
-
-    GaussianBeam gbeam;
-    gbeam.setWavelength( params.at("wavelength") );
-    gbeam.setDim( ParaxialSource::Dim_t::THREE_D );
-    gbeam.setWaist( 400.0*r );
-
-    scatterer->setSolver( solver );
-    scatterer->setBoundaryConditions( gbeam );
-    scatterer->solve();
-    arma::cx_mat ref = solver.getLastSolution3D();
-    clog << "Reference solution computed\n";
-
-    // Compute real solution
-    scatterer->reset();
-    scatterer->setLongitudinalDiscretization( zmin, zmax, dz, params.at("downSampleZ") );
-    scatterer->setMaterial( "SiO2" );
-    //scatterer->setMaterial( "Au" );
-    coated.setCoatingMaterial( "Au" );
-
-    solver.visualizeRealSpace();
-    solver.setIntensityMinMax( params.at("intensityMinVis"), params.at("intensityMaxVis") );
-    solver.setPhaseMinMax( params.at("phaseMinVis"), params.at("phaseMaxVis") );
     if ( argc > 1 )
     {
-      string imgname(argv[1]);
-      solver.storeImages( imgname.c_str() );
+      simulation.imgname = argv[1];
     }
 
-    scatterer->setSolver( solver );
-    scatterer->setBoundaryConditions( gbeam );
-
-    #ifndef FAKE_RESULT_WITH_PURE_PHASE_SHIFT
-      clog << "Solving system...";
-      scatterer->solve();
-    clog << "done\n";
-    #endif
-
+    simulation.solve();
     ControlFile ctl("data/sphere");
-
-    #ifdef FAKE_RESULT_WITH_PURE_PHASE_SHIFT
-      clog << "Using fake solution to test the far field routine!\n";
-      arma::cx_mat fakeSolution;
-      generatePhaseObjectSolution( params, ref, fakeSolution );
-      solver.getLastSolution3D() = fakeSolution;
-    #endif
-
-    ff.setAngleRange( -anglemax, anglemax );
-    ff.setPadLength( params.at("padLength")+0.5 );
-    ff.setPadding( post::FarField::Pad_t::ZERO );
-    ff.setReference( ref );
-    *scatterer << ef << ei << ep << ff;
-    scatterer->save( ctl );
+    simulation.save( ctl );
     ctl.save();
-
-    // Perform some plots of different projections
-    visa::WindowHandler plots;
-    plots.setLayout(2,3);
-    typedef visa::Colormaps::Colormap_t cmap_t;
-    plots.addPlot("IntensityXY");
-    plots.addPlot("PhaseXY");
-    plots.get("IntensityXY").setCmap( cmap_t::GREYSCALE );
-    plots.get("PhaseXY").setCmap( cmap_t::GREYSCALE );
-    unsigned int sliceNumber = params.at("Nz")/( 2.0*params.at("downSampleZ") );
-    arma::mat solution = arma::abs( scatterer->getSolver().getSolution3D().slice(sliceNumber) );
-    plots.get("IntensityXY").fillVertexArray( solution );
-    arma::cube phaseField;
-    phase.result( solver, phaseField );
-    solution = phaseField.slice(sliceNumber);
-    plots.get("PhaseXY").fillVertexArray(solution);
-
-    // YZ plane
-    plots.addPlot( "IntensityYZ" );
-    plots.addPlot( "PhaseYZ" );
-    plots.get("IntensityYZ").setCmap( cmap_t::GREYSCALE );
-    plots.get("PhaseYZ").setCmap( cmap_t::GREYSCALE );
-    unsigned int row = params.at("Nt")/( 2.0*params.at("downSampleT") );
-    solution = arma::abs( scatterer->getSolver().getSolution3D().tube( row, 0, row, params.at("Nt")/params.at("downSampleT")-1 ) );
-    plots.get("IntensityYZ").fillVertexArray( solution );
-    solution = arma::arg( scatterer->getSolver().getSolution3D().tube( row, 0, row, params.at("Nt")/params.at("downSampleT")-1 ) );
-    plots.get("PhaseYZ").fillVertexArray( solution );
-
-    // XZ plane
-    plots.addPlot( "IntensityXZ" );
-    plots.addPlot( "PhaseXZ" );
-    plots.get("IntensityXZ").setCmap( cmap_t::GREYSCALE );
-    plots.get("PhaseXZ").setCmap( cmap_t::GREYSCALE );
-    unsigned int col = params.at("Nt")/(2.0*params.at("downSampleT"));
-    solution = arma::abs( scatterer->getSolver().getSolution3D().tube( 0, col, params.at("Nt")/params.at("downSampleT")-1, col ) );
-    plots.get("IntensityXZ").fillVertexArray( solution );
-    solution = arma::arg( scatterer->getSolver().getSolution3D().tube( 0, col, params.at("Nt")/params.at("downSampleT")-1, col ) );
-    plots.get("PhaseXZ").fillVertexArray( solution );
-    plots.show();
-
-    // Store all pictures
-    if ( static_cast<int>(params.at("savePlots")) )
-    {
-      stringstream fname;
-      fname << "Figures/sphere" << ctl.getUID() << ".jpg";
-      plots.saveImg( fname.str().c_str() );
-    }
-    plots.show();
-    for ( unsigned int i=0;i<KEEP_PLOT_FOR_SEC;i++ )
-    {
-      plots.show();
-      this_thread::sleep_for( chrono::seconds(1) );
-      clog << "Closes in " << KEEP_PLOT_FOR_SEC-i << " seconds \r";
-    }
   }
   catch ( exception &exc )
   {
@@ -259,38 +143,4 @@ int main( int argc, char **argv )
   }
 
   return 0;
-}
-
-// Helper functions
-void generatePhaseObjectSolution( const map<string,double> &params, const arma::cx_mat &reference, arma::cx_mat &newSolution )
-{
-  assert( reference.is_square() );
-  double xmin = params.at("xmin_r")*params.at("radius");
-  double xmax = params.at("xmax_r")*params.at("radius");
-  double R = params.at("radius");
-  double dx = (xmax-xmin)/reference.n_rows;
-  double delta = 8.90652E-6;
-  double k = 2.0*3.14159/params.at("wavelength");
-  cdouble im( 0.0, 1.0 );
-  newSolution.set_size( reference.n_rows, reference.n_cols );
-  for ( unsigned int i=0;i<reference.n_cols;i++ )
-  {
-    double x = xmin + i*dx;
-    for ( unsigned int j=0;j<reference.n_rows;j++ )
-    {
-      double y = xmin+j*dx;
-      double r = sqrt( x*x+y*y );
-      if ( r > R )
-      {
-        newSolution(j,i) = reference(j,i);
-      }
-      else
-      {
-        double phase = -2.0*delta*k*sqrt( R*R - r*r );
-        phase = -2.0*delta*k*R;
-        newSolution(j,i) = abs(reference(j,i))*exp(im*phase);
-      }
-      //newSolution(j,i) = 2.0*reference(j,i);
-    }
-  }
 }

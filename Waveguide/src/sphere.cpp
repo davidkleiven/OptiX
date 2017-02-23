@@ -4,20 +4,18 @@
 
 using namespace std;
 
-Sphere::Sphere( const Point3D &inCenter, double radius ): Sphere(inCenter, radius, "SingleSpehre" ){};
 
-Sphere::Sphere( const Point3D &inCenter, double radius, const char* name ): ParaxialSimulation(name), radius(radius)
+Sphere::Sphere( const Point3D &inCenter, double radius): radius(radius)
 {
   center.x = inCenter.x;
   center.y = inCenter.y;
   center.z = inCenter.z;
 }
 
-void Sphere::setMaterial( const char* name )
+void Sphere::setMaterial( const char* name, double energy )
 {
   RefractiveIndex refr;
   refr.load(name);
-  double energy = getEnergy();
   delta = refr.getDelta( energy );
 
   if ( withAbsorption )
@@ -45,6 +43,7 @@ void Sphere::getXrayMatProp( double x, double y, double z, double &matDelta, dou
   matBeta = 0.0;
 }
 
+/*
 void Sphere::setGroupAttributes()
 {
   if ( maingroup == NULL ) return;
@@ -65,6 +64,7 @@ void Sphere::setGroupAttributes()
   att = maingroup->createAttribute( "withAbsorption", H5::PredType::NATIVE_HBOOL, attribSpace );
   att.write( H5::PredType::NATIVE_HBOOL, &withAbsorption );
 }
+*/
 
 ////////////////////////////////////////////////////////////////////////////////
 void CoatedSphere::getXrayMatProp( double x, double y, double z, double &matDelta, double &matBeta ) const
@@ -90,11 +90,10 @@ void CoatedSphere::getXrayMatProp( double x, double y, double z, double &matDelt
   matBeta = 0.0;
 }
 
-void CoatedSphere::setCoatingMaterial( const char* name )
+void CoatedSphere::setCoatingMaterial( const char* name, double energy )
 {
   RefractiveIndex refr;
   refr.load(name);
-  double energy = getEnergy();
   deltaCoat = refr.getDelta( energy );
 
   if ( withAbsorption )
@@ -107,6 +106,7 @@ void CoatedSphere::setCoatingMaterial( const char* name )
   }
 }
 
+/*
 void CoatedSphere::setGroupAttributes()
 {
   if ( maingroup == NULL ) return;
@@ -123,3 +123,4 @@ void CoatedSphere::setGroupAttributes()
   att = maingroup->createAttribute( "coatThickness", H5::PredType::NATIVE_DOUBLE, attribSpace );
   att.write( H5::PredType::NATIVE_DOUBLE, &thickness );
 }
+*/
