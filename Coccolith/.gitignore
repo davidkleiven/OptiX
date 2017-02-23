@@ -1,0 +1,10 @@
+CMakeCache.txt
+CMakeFiles/*
+*.out
+Makefile
+*.cmake
+data/*
+src/CMakeFiles/*
+src/*.a
+src/sourcefiles.dir/*
+src/sourcfiles.dir/*
