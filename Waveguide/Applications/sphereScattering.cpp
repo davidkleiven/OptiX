@@ -154,12 +154,11 @@ int main( int argc, char **argv )
     // Compute real solution
     scatterer->reset();
     scatterer->setLongitudinalDiscretization( zmin, zmax, dz, params.at("downSampleZ") );
-    //scatterer->setMaterial( "SiO2" );
-    scatterer->setMaterial( "Au" );
+    scatterer->setMaterial( "SiO2" );
+    //scatterer->setMaterial( "Au" );
     coated.setCoatingMaterial( "Au" );
 
     solver.visualizeRealSpace();
-    //solver.visualizeFourierSpace();
     solver.setIntensityMinMax( params.at("intensityMinVis"), params.at("intensityMaxVis") );
     solver.setPhaseMinMax( params.at("phaseMinVis"), params.at("phaseMaxVis") );
     if ( argc > 1 )
