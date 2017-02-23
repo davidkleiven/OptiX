@@ -81,8 +81,7 @@ void CoccolithSimulation::addStructure()
 
 double CoccolithSimulation::getWavelength() const
 {
-  double PI = acos(-1.0);
-  return 2*PI/centerFrequency; // In MEEP units c=1
+  return 1.0/centerFrequency; // In MEEP units c=1
 }
 
 void CoccolithSimulation::addFields()
@@ -412,8 +411,8 @@ void CoccolithSimulation::domainInfo() const
   cout << "SizeX: " << material.sizeX()*L << " nm, SizeY: " << material.sizeY()*L << " nm. SizeZ: " << material.sizeZ()*L << " nm\n";
   cout << "dx=dy=dz = " << L/resolution << " nm\n";
   cout << "PML thickness: " << getPMLThickness()*L << " nm\n";
-  cout << "Main frequency: " << centerFrequency*speedOfLight/(2.0*PI*L*1000.0) << " (THz)\n";
-  cout << "Frequency width: " << freqWidth*speedOfLight/(2.0*PI*L*1000.0) << " (THz)\n";
+  cout << "Main frequency: " << centerFrequency*speedOfLight/(L*1000.0) << " (THz)\n";
+  cout << "Frequency width: " << freqWidth*speedOfLight/(L*1000.0) << " (THz)\n";
   cout << "Wavelength: " << getWavelength()*L << " nm\n";
 }
 
