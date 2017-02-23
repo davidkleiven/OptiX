@@ -108,13 +108,6 @@ def main( argv ):
         control.plots.axes[0].ax.plot( q, Fc, color="#4daf4a", label=r"\$F_c(q)\$")
 
     control.plots.axes[0].ax.legend( loc="upper left", frameon=False, labelspacing=0.01, borderpad=0.0, handletextpad=0.3, handlelength=0.1 )
-
-    # Plot difference between exact and numerical
-    diff = np.abs( ffPlot.data - F )
-    fig = plt.figure()
-    ax = fig.add_subplot(1,1,1)
-    ax.plot( q, diff, color="black")
-    plt.show( block=False )
     root.mainloop()
 
 if __name__ == "__main__":
