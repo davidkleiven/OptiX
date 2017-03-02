@@ -9,6 +9,7 @@
 #include "postProcessing.hpp"
 #include "postProcessMod.hpp"
 #include <vector>
+#include <string>
 class Solver;
 class ControlFile;
 class ParaxialSource;
@@ -24,6 +25,7 @@ struct Disctretization
   unsigned int downsamplingRatio{1};
 };
 typedef std::complex<double> cdouble;
+
 /** Base class for all paraxial simulations */
 class ParaxialSimulation
 {
@@ -164,6 +166,9 @@ public:
 
   /** Pad the exit signal */
   virtual cdouble padExitField( double x, double z ) const { return farParam.padValue; };
+
+  /** Add a description of the simulation that will be added in the HDF5 file */
+  std::string description{""};
 protected:
   Solver *solver{NULL};
   Disctretization *xDisc; // Transverse
