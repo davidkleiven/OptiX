@@ -56,6 +56,8 @@ void GenericScattering::solve()
     throw( runtime_error("No material set!") );
   }
   init();
+  printInfo();
+  
   // Reference run
   ParaxialSimulation::solve();
 
@@ -68,4 +70,21 @@ void GenericScattering::solve()
   // Set resolution for higher
   setLongitudinalDiscretization( zmin, zmax, dz, downSampleZ );
   ParaxialSimulation::solve();
+}
+
+void GenericScattering::printInfo() const
+{
+  cout << "===================== SIMULATION INFO ===========================\n";
+  cout << "Maximum size of matrices for export: Nx= " << exportNx << " Ny=" << exportNy << endl;
+  cout << "FFT pad length: " << FFTPadLength << endl;
+  cout << "Domain size: x=[" << xmin << "," << xmax << "], y=[" << ymin << "," << ymax << "], z=["<<zmin<<","<<zmax<<"]\n";
+  cout << "Stepsize: dx=" << dx << ", dy="<<dy<<", dz="<<dz<<endl;
+  cout << "Downsample 3D solution by factor: downX=" << downSampleX << " downY=" << downSampleY << " downZ="<<downSampleZ << endl;
+  cout << "Wavelength: " << wavelength << endl;
+  cout << "Intensity limit for realtime visualization: Imin=" << intensityMin << " Imax=" << intensityMax << endl;
+  cout << "Phase limit for realtime visualization: Pmin=" << phaseMin << " Pmax=" << phaseMax << endl;
+  cout << "Image are saved to: " << imgname << endl;
+  cout << "Gaussian beam waist: " << gbeam.getWaist() << endl;
+  cout << "Scattering angle: [" << ff.getMinScatteringAngle() << "," << ff.getMaxScatteringAngle() << "]\n";
+  cout << "==================================================================\n";
 }

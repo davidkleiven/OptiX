@@ -25,6 +25,9 @@ public:
 
   /** Fills a JSON object with parameters specific to this class */
   void info( Json::Value &obj ) const override;
+
+  /** Returns the waist */
+  double getWaist() const{ return waist; };
 private:
   double waist{1.0};
   double centerX{0.0};

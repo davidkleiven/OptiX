@@ -61,6 +61,12 @@ public:
   /** Link a paraxial simulation object */
   void linkParaxialSim( const ParaxialSimulation &simulation ){ sim = &simulation; };
 
+  /** Returns the maximum scattering angle */
+  double getMaxScatteringAngle() const { return phiMax; };
+
+  /** Return the minimum scattering angle */
+  double getMinScatteringAngle() const { return phiMin; };
+
   /** Add attributes */
   virtual void addAttrib( std::vector<H5Attr> &attr ) const override final;
 private:

@@ -25,6 +25,9 @@ public:
   /** Gets the X-ray material properties */
   virtual void getXrayMatProp( double x, double y, double z, double &delta, double &beta );
 
+  /** Prints all the attributes */
+  void printInfo() const;
+
   // Attributes
   unsigned int exportNx{512};
   unsigned int exportNy{512};
