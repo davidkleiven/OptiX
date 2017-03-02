@@ -335,6 +335,12 @@ void ParaxialSimulation::addAttribute( H5::DataSet &ds, const char* name, int va
 
 void ParaxialSimulation::setBoundaryConditions( const ParaxialSource &source )
 {
+
+  if ( solver == NULL )
+  {
+    throw ( runtime_error("Solver needs to be set before boundary conditions!") );
+  }
+
   src = &source;
   unsigned int Nx = nodeNumberTransverse();
 
@@ -452,4 +458,12 @@ void ParaxialSimulation::setGroupAttributes()
 
   att = maingroup->createAttribute( "wavenumber", H5::PredType::NATIVE_DOUBLE, attribSpace );
   att.write( H5::PredType::NATIVE_DOUBLE, &wavenumber );
+
+  if ( description != "" )
+  {
+    H5::StrType strDataType( H5::PredType::C_S1, description.length() );
+    H5std_string strBuffer( description.c_str() );
+    att = maingroup->createAttribute( "description", strDataType, attribSpace );
+    att.write( strDataType, strBuffer );
+  }
 }

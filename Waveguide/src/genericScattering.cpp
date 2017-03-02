@@ -1,5 +1,6 @@
 #include "genericScattering.hpp"
 #include <stdexcept>
+//#define PRINT_DEBUG
 
 using namespace std;
 GenericScattering::GenericScattering( const char* name ): ParaxialSimulation(name)
@@ -14,18 +15,42 @@ void GenericScattering::setMaxScatteringAngle( double anglemax )
 
 void GenericScattering::init()
 {
+  #ifdef PRINT_DEBUG
+    clog << "Initialization started...\n";
+    clog << "Set export dimensions and padlength...\n";
+  #endif
+
   ef.setExportDimensions( exportNx, exportNy );
   ei.setExportDimensions( exportNx, exportNy );
   ep.setExportDimensions( exportNx, exportNy );
   ff.setPadLength( FFTPadLength );
+
+  #ifdef PRINT_DEBUG
+    clog << "Set reference solution array...\n";
+  #endif
+
   ff.setReference( reference );
+
+  #ifdef PRINT_DEBUG
+    clog << "Set discretization...\n";
+  #endif
 
   setTransverseDiscretization( xmin, xmax, dx, downSampleX );
   setVerticalDiscretization( ymin, ymax, dy );
   setLongitudinalDiscretization( zmin, zmax, (zmax-zmin)/3.0, 1 ); // Settings for reference run
+
+  #ifdef PRINT_DEBUG
+    clog << "Set wavelength...\n";
+  #endif
+
   setWaveLength( wavelength );
   gbeam.setWavelength( wavelength );
-  setBoundaryConditions( gbeam );
+
+  #ifdef PRINT_DEBUG
+    clog << "Set visualization phase min/max and intensity min/max...\n";
+  #endif
+
+  //fft3Dsolver.visualizeRealSpace();
   fft3Dsolver.setIntensityMinMax( intensityMin, intensityMax );
   fft3Dsolver.setPhaseMinMax( phaseMin, phaseMax );
 
@@ -34,8 +59,23 @@ void GenericScattering::init()
     fft3Dsolver.storeImages( imgname.c_str() );
   }
 
+  #ifdef PRINT_DEBUG
+    clog << "Set solver and post processing modules...\n";
+  #endif
+
   setSolver( fft3Dsolver );
+
+  #ifdef PRINT_DEBUG
+    clog << "Set boundary conditions from Gaussian beam...\n";
+  #endif
+
+  setBoundaryConditions( gbeam );
+
   *this << ef << ei << ep << ff;
+
+  #ifdef PRINT_DEBUG
+    clog << "Initialization finished...\n";
+  #endif
 }
 
 void GenericScattering::getXrayMatProp( double x, double y, double z, double &delta, double &beta )
@@ -57,7 +97,7 @@ void GenericScattering::solve()
   }
   init();
   printInfo();
-  
+
   // Reference run
   ParaxialSimulation::solve();
 

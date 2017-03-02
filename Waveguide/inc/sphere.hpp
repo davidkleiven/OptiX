@@ -23,6 +23,12 @@ public:
 
   /** Run the simulation without absorption */
   void noAbsorption(){ withAbsorption = false; };
+
+  /** Returns delta */
+  double getDelta() const{ return delta; };
+
+  /** Returns beta */
+  double getBeta() const { return beta; };
 protected:
   Point3D center;
   double radius{1.0};
@@ -41,6 +47,12 @@ public:
 
   /** Return the material properties */
   virtual void getXrayMatProp( double x, double y, double z, double &delta, double &beta ) const override;
+
+  /** Returns delta of coating */
+  double getDeltaCoating() const{ return deltaCoat; };
+
+  /** Returns beta of coating */
+  double getBetaCoating() const{ return betaCoat; };
 private:
   double deltaCoat{0.0};
   double betaCoat{0.0};

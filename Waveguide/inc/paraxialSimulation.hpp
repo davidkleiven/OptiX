@@ -9,6 +9,7 @@
 #include "postProcessing.hpp"
 #include "postProcessMod.hpp"
 #include <vector>
+#include <string>
 class Solver;
 class ControlFile;
 class ParaxialSource;
@@ -164,6 +165,9 @@ public:
 
   /** Pad the exit signal */
   virtual cdouble padExitField( double x, double z ) const { return farParam.padValue; };
+
+  /** Add a description of the simulation that will be added in the HDF5 file */
+  std::string description{""};
 protected:
   Solver *solver{NULL};
   Disctretization *xDisc; // Transverse

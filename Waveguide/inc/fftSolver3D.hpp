@@ -60,7 +60,7 @@ private:
   fftw_complex *prev{NULL};
   fftw_plan ftforw;
   fftw_plan ftback;
-  visa::WindowHandler plots;
+  visa::WindowHandler *plots{NULL};
   bool planInitialized{false};
   bool overlayRefractiveIndex{false};
   bool createAnimation{false};

@@ -20,6 +20,8 @@ FFTSolver3D::~FFTSolver3D()
     fftw_destroy_plan( ftforw );
     fftw_destroy_plan( ftback );
   }
+
+  if ( plots != NULL ) delete plots;
 }
 
 cdouble FFTSolver3D::kernel( double kx, double ky ) const
@@ -106,9 +108,10 @@ void FFTSolver3D::propagate()
 
   if ( visFourierSpace )
   {
+    assert( plots != NULL ); // Just in case, should never happen at this stage
     arma::mat fourierIntensity = arma::abs(*currentSolution );
-    plots.get("FourierIntensity").fillVertexArray( fourierIntensity );
-    plots.show();
+    plots->get("FourierIntensity").fillVertexArray( fourierIntensity );
+    plots->show();
   }
 
   #pragma omp parallel for
@@ -162,68 +165,95 @@ void FFTSolver3D::refraction( unsigned int step )
 
   if ( visRealSpace )
   {
+    assert( plots != NULL ); // Just in case, should never happen at this stage
     arma::mat values = arma::flipud( arma::abs( *currentSolution ) );
-    plots.get("Intensity").setCmap( cmap_t::NIPY_SPECTRAL );
-    plots.get("Intensity").setOpacity(1.0);
-    plots.get("Intensity").setColorLim( intensityMin, intensityMax );
-    plots.get("Intensity").setImg( values );
-    plots.draw();
+    plots->get("Intensity").setCmap( cmap_t::NIPY_SPECTRAL );
+    plots->get("Intensity").setOpacity(1.0);
+    plots->get("Intensity").setColorLim( intensityMin, intensityMax );
+    plots->get("Intensity").setImg( values );
+    plots->draw();
 
     if ( overlayRefractiveIndex )
     {
-      plots.get("Intensity").setCmap( cmap_t::GREYSCALE );
-      plots.get("Intensity").setOpacity(0.5);
+      plots->get("Intensity").setCmap( cmap_t::GREYSCALE );
+      plots->get("Intensity").setOpacity(0.5);
       arma::mat refr(values);
       evaluateRefractiveIndex( refr, z1 );
       double refrMin = arma::min( arma::min(refr) );
       double refrMax = arma::max( arma::max(refr) );
 
-      //plots.get("Intensity").setColorLim( refrMin, refrMax );
-      plots.get("Intensity").setImg( refr );
-      plots.draw();
+      //plots->get("Intensity").setColorLim( refrMin, refrMax );
+      plots->get("Intensity").setImg( refr );
+      plots->draw();
     }
 
     values = -arma::arg( *currentSolution );
-    plots.get("Phase").setImg( values );
-    plots.draw();
-    plots.show();
+    plots->get("Phase").setImg( values );
+    plots->draw();
+    plots->show();
 
     if ( createAnimation )
     {
       stringstream ss;
       ss << imageName << imgCounter++ << ".png";
-      plots.saveImg( ss.str().c_str() );
+      plots->saveImg( ss.str().c_str() );
     }
   }
 }
 
 void FFTSolver3D::visualizeRealSpace()
 {
+  if ( plots == NULL )
+  {
+    plots = new visa::WindowHandler;
+  }
+
   visRealSpace = true;
-  plots.setLayout(2,1);
-  plots.useSeparateDrawing();
-  plots.addPlot("Intensity");
-  plots.addPlot("Phase");
-  plots.get("Intensity").setCmap( cmap_t::NIPY_SPECTRAL );
-  plots.get("Phase").setCmap( cmap_t::NIPY_SPECTRAL );
+  plots->setLayout(2,1);
+  plots->useSeparateDrawing();
+  plots->addPlot("Intensity");
+  plots->addPlot("Phase");
+  plots->get("Intensity").setCmap( cmap_t::NIPY_SPECTRAL );
+  plots->get("Phase").setCmap( cmap_t::NIPY_SPECTRAL );
 }
 
 void FFTSolver3D::visualizeFourierSpace()
 {
+  if ( plots == NULL )
+  {
+    plots = new visa::WindowHandler;
+  }
   visFourierSpace = true;
-  plots.addPlot("FourierIntensity");
+  plots->addPlot("FourierIntensity");
 }
 
 void FFTSolver3D::setIntensityMinMax( double min, double max )
 {
   intensityMin = min;
   intensityMax = max;
-  plots.get("Intensity").setColorLim( min, max );
+
+  if ( visRealSpace )
+  {
+    assert( plots != NULL );
+    plots->get("Intensity").setColorLim( min, max );
+  }
+  else
+  {
+    clog << "Warning! visualizeRealSpace not called. setIntensityMinMax will have no effet\n";
+  }
 }
 
 void FFTSolver3D::setPhaseMinMax( double min, double max )
 {
-  plots.get("Phase").setColorLim( min, max );
+  if ( visRealSpace )
+  {
+    assert( plots != NULL );
+    plots->get("Phase").setColorLim( min, max );
+  }
+  else
+  {
+    clog << "Warning! visualizeRealSpace not called. setPhaseMinMax will have no effect\n";
+  }
 }
 
 void FFTSolver3D::refractionIntegral( double x, double y, double z1 , double z2, double &delta, double &beta )

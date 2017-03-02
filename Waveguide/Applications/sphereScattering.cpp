@@ -11,6 +11,7 @@
 #include <chrono>
 #include <thread>
 #include <map>
+#include <sstream>
 #define KEEP_PLOT_FOR_SEC 3
 //#define FAKE_RESULT_WITH_PURE_PHASE_SHIFT
 
@@ -82,6 +83,10 @@ int main( int argc, char **argv )
   center.z = (zmax+zmin)/2.0;
 
   GenericScattering simulation("sphere");
+  stringstream ss;
+  ss << "Simulation of a SiO2 sphere of radius " << r << " nm. ";
+  simulation.setBeamWaist( 400.0*r );
+  simulation.setMaxScatteringAngle( anglemax );
   simulation.xmin = xmin;
   simulation.xmax = xmax;
   simulation.ymin = xmin;
@@ -92,15 +97,20 @@ int main( int argc, char **argv )
   simulation.dy = dx;
   simulation.dz = dz;
   simulation.downSampleX = params.at("downSampleT");
-  simulation.downSampleY = params.at("downSampleY");
+  simulation.downSampleY = params.at("downSampleT");
   simulation.downSampleZ = params.at("downSampleZ");
   simulation.wavelength = params.at("wavelength");
+  simulation.phaseMin = params.at("phaseMinVis");
+  simulation.phaseMax = params.at("phaseMaxVis");
+  simulation.intensityMin = params.at("intensityMinVis");
+  simulation.intensityMax = params.at("intensityMaxVis");
 
   Sphere sphere( center, r );
   CoatedSphere coated( center, r, params.at("coatThicknessIn_nm") );
 
   if ( disableAbsorption )
   {
+    ss << "Absorption was disabled. ";
     sphere.noAbsorption();
     coated.noAbsorption();
   }
@@ -111,6 +121,7 @@ int main( int argc, char **argv )
       simulation.setMaterial( sphere );
       break;
     case Geometry_t::COATED_SPHERE:
+      ss << "The sphere was coated with a Au layer of thickness " << params.at("coatThicknessIn_nm") << " nm. ";
       simulation.setMaterial( coated );
       break;
   }
@@ -121,11 +132,18 @@ int main( int argc, char **argv )
     coated.setMaterial( "SiO2", simulation.getEnergy() );
     coated.setCoatingMaterial( "Au", simulation.getEnergy() );
 
+    ss << "Delta sphere: " << sphere.getDelta() << ". Beta sphere: " << sphere.getBeta();
+    if ( geom == Geometry_t::COATED_SPHERE )
+    {
+      ss << "Delta coating: " << coated.getDeltaCoating() << ". Beta coating: " << coated.getBetaCoating();
+    }
+
     if ( argc > 1 )
     {
       simulation.imgname = argv[1];
     }
 
+    simulation.description = ss.str();
     simulation.solve();
     ControlFile ctl("data/sphere");
     simulation.save( ctl );
