@@ -104,6 +104,8 @@ int main( int argc, char **argv )
   simulation.phaseMax = params.at("phaseMaxVis");
   simulation.intensityMin = params.at("intensityMinVis");
   simulation.intensityMax = params.at("intensityMaxVis");
+  simulation.realTimeVisualization = false;
+  simulation.FFTPadLength = params.at("padLength");
 
   Sphere sphere( center, r );
   CoatedSphere coated( center, r, params.at("coatThicknessIn_nm") );

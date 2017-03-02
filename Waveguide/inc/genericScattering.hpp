@@ -23,7 +23,7 @@ public:
   virtual void solve() override;
 
   /** Gets the X-ray material properties */
-  virtual void getXrayMatProp( double x, double y, double z, double &delta, double &beta );
+  virtual void getXrayMatProp( double x, double y, double z, double &delta, double &beta ) const override;
 
   /** Prints all the attributes */
   void printInfo() const;
@@ -39,6 +39,7 @@ public:
   double intensityMin{0.0}, intensityMax{1.0};
   double phaseMin{-3.14159}, phaseMax{3.14159};
   std::string imgname{""};
+  bool realTimeVisualization{false};
 private:
   const MaterialFunction *material{NULL};
   post::ExitField ef;

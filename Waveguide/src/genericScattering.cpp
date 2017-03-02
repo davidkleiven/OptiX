@@ -29,8 +29,6 @@ void GenericScattering::init()
     clog << "Set reference solution array...\n";
   #endif
 
-  ff.setReference( reference );
-
   #ifdef PRINT_DEBUG
     clog << "Set discretization...\n";
   #endif
@@ -50,9 +48,12 @@ void GenericScattering::init()
     clog << "Set visualization phase min/max and intensity min/max...\n";
   #endif
 
-  //fft3Dsolver.visualizeRealSpace();
-  fft3Dsolver.setIntensityMinMax( intensityMin, intensityMax );
-  fft3Dsolver.setPhaseMinMax( phaseMin, phaseMax );
+  if ( realTimeVisualization )
+  {
+    fft3Dsolver.visualizeRealSpace();
+    fft3Dsolver.setIntensityMinMax( intensityMin, intensityMax );
+    fft3Dsolver.setPhaseMinMax( phaseMin, phaseMax );
+  }
 
   if ( imgname != "" )
   {
@@ -78,7 +79,7 @@ void GenericScattering::init()
   #endif
 }
 
-void GenericScattering::getXrayMatProp( double x, double y, double z, double &delta, double &beta )
+void GenericScattering::getXrayMatProp( double x, double y, double z, double &delta, double &beta ) const
 {
   if ( isReferenceRun )
   {
@@ -102,11 +103,16 @@ void GenericScattering::solve()
   ParaxialSimulation::solve();
 
   reference = fft3Dsolver.getLastSolution3D();
+  ff.setReference( reference );
   clog << "Reference solution computed\n";
 
   reset();
+  isReferenceRun = false;
 
-  fft3Dsolver.visualizeRealSpace();
+  if ( realTimeVisualization )
+  {
+    fft3Dsolver.visualizeRealSpace();
+  }
   // Set resolution for higher
   setLongitudinalDiscretization( zmin, zmax, dz, downSampleZ );
   ParaxialSimulation::solve();

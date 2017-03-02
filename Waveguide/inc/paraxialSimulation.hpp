@@ -25,6 +25,7 @@ struct Disctretization
   unsigned int downsamplingRatio{1};
 };
 typedef std::complex<double> cdouble;
+
 /** Base class for all paraxial simulations */
 class ParaxialSimulation
 {

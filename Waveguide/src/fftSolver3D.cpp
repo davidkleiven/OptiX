@@ -6,7 +6,6 @@
 #include <sstream>
 #include <omp.h>
 #include <ctime>
-//#define USE_FFTW_MULTITHREAD
 //#define PRINT_TIMING_INFO
 #define UPDATE_MESSAGE_FREQUENCY 10
 using namespace std;
@@ -179,8 +178,8 @@ void FFTSolver3D::refraction( unsigned int step )
       plots->get("Intensity").setOpacity(0.5);
       arma::mat refr(values);
       evaluateRefractiveIndex( refr, z1 );
-      double refrMin = arma::min( arma::min(refr) );
-      double refrMax = arma::max( arma::max(refr) );
+      double refrMin = refr.min();
+      double refrMax = refr.max();
 
       //plots->get("Intensity").setColorLim( refrMin, refrMax );
       plots->get("Intensity").setImg( refr );
