@@ -27,7 +27,7 @@ int main( int argc, char** argv )
     sim.setPlotUpdateFreq( 30 );
     //sim.setEndTime( 5.0);
 
-//    sim.runWithoutScatterer();
+    sim.runWithoutScatterer();
     sim.init();
 
     sim.run();
