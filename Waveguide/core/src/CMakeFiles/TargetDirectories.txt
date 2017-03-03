@@ -1,3 +1,0 @@
-/home/dkleiven/Documents/OptiX/Waveguide/core/src/CMakeFiles/rebuild_cache.dir
-/home/dkleiven/Documents/OptiX/Waveguide/core/src/CMakeFiles/edit_cache.dir
-/home/dkleiven/Documents/OptiX/Waveguide/core/src/CMakeFiles/paraxialSimulation.dir
