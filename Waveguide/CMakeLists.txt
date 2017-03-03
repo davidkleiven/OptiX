@@ -8,12 +8,15 @@ set( CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-fopenmp")
 
 # Add libraries
 include_directories(inc)
+include_directories(core/include)
 include_directories(/usr/include/jsoncpp)
 include_directories( /usr/local/include )
+include_directories( /usr/local/include/PaxPro )
 include_directories( /usr/lib/x86_64-linux-gnu/hdf5/serial/include )
 
 link_directories( /usr/local/lib )
 link_directories( /usr/lib/x86_64-linux-gnu )
+link_directories( ${CMAKE_CURRENT_SOURCE_DIR}/core/src )
 set( CMAKE_LIBRARY_PATH /usr/lib/x86_64-linux-gnu )
 
 # Find required packages
@@ -152,9 +155,15 @@ set( LIB ${LIB} ${FFTW_LIB} )
 set( LIB ${LIB} "m") # Add C-math library
 include_directories( FFTW_INC )
 
+find_library( PAXPRO NAMES libpaxpro.a paxpro )
+if ( NOT PAXPRO )
+  MESSAGE( FATAL_ERROR "Could not find the PaxPro library!" )
+endif()
+
+set( LIB ${LIB} ${PAXPRO} ) # It should find this library
 add_subdirectory(src)
 
-# Add executables
+#======================== COMPILE EXECUTABLES ==================================
 add_executable( curvedWG.out Applications/curvedWGCartesian.cpp )
 target_link_libraries( curvedWG.out ${LIB} src )
 
