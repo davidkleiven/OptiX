@@ -43,7 +43,7 @@ public:
   void initSource( double freq, double fwidth );
 
   /** Initialize the simulation */
-  void init();
+  virtual void init();
 
   /** Set the number of frequencies to be used in the harmonic inversion */
   void setNfreqFT( unsigned int numberOfFreq ){ nfreq = numberOfFreq; };

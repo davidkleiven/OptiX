@@ -49,3 +49,20 @@ void SteadyCoccolithSim::exportResults()
   field->output_hdf5( meep::EnergyDensity, gdvol.surroundings(), file, false, true );
   clog << "Results written to " << ss.str() << endl;
 }
+
+void SteadyCoccolithSim::init()
+{
+  if ( !materialLoaded )
+  {
+    throw( runtime_error("No material loaded! Call loadVoxels!") );
+  }
+  domainInfo();
+  initializeGeometry();
+
+  material.setDomainSize( gdvol, getPMLThickness() );
+  addSourceVolume();
+  addStructure();
+  addFields();
+  addSource();
+  isInitialized = true;
+}

@@ -127,3 +127,6 @@ set( LIB ${LIB} ${FLTK_FORMS_LIBRARY} )
 set( LIB ${LIB} sourcefiles)
 add_executable( coccolith.out coccolith.cpp )
 target_link_libraries( coccolith.out ${LIB} )
+
+add_executable(steadyCoccolith.out steadyCoccolith.cpp )
+target_link_libraries(steadyCoccolith.out ${LIB} )

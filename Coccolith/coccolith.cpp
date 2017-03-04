@@ -3,7 +3,7 @@
 #include <stdexcept>
 #include <iostream>
 #include <cstdlib>
-#include<ctime>
+#include <ctime>
 
 using namespace std;
 

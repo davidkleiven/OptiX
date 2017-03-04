@@ -16,6 +16,9 @@ public:
 
   /** Export results */
   virtual void exportResults() override;
+
+  /** Initializes the simulation */
+  virtual void init() override;
 private:
   meep::continuous_src_time *contSource{NULL};
 };
