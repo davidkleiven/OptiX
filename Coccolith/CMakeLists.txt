@@ -130,3 +130,6 @@ target_link_libraries( coccolith.out ${LIB} )
 
 add_executable(steadyCoccolith.out steadyCoccolith.cpp )
 target_link_libraries(steadyCoccolith.out ${LIB} )
+
+add_executable(cwSolveMWE.out cwSolveMWE.cpp )
+target_link_libraries(cwSolveMWE.out ${LIB} )
