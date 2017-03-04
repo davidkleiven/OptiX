@@ -85,6 +85,7 @@ private:
   meep::structure* struc{NULL};
   meep::grid_volume gdvol;
   meep::fields* field{NULL};
+  meep::src_time *sourceTime{NULL}; // Do not delete this pointer
   meep::gaussian_src_time *source{NULL};
   unsigned int uid{0};
   std::string outdir{"data/"};

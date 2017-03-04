@@ -106,6 +106,7 @@ void CoccolithSimulation::initSource( double freq, double fwidth )
 
   if ( source != NULL ) delete source;
   source = new meep::gaussian_src_time( freq, fwidth );
+  sourceTime = source; // Default is to use a gaussian source
 }
 
 void CoccolithSimulation::addSource()
@@ -114,7 +115,7 @@ void CoccolithSimulation::addSource()
   {
     throw( runtime_error("Field needs to be added before a source is added!\n") );
   }
-  if ( source == NULL )
+  if ( sourceTime == NULL )
   {
     throw( runtime_error("A source profile needs to be added before a source is added! Call initSource!\n") );
   }
@@ -137,7 +138,7 @@ void CoccolithSimulation::addSource()
       break;
   }
 
-  field->add_volume_source( fieldComp, *source, *srcVol, amplitude );
+  field->add_volume_source( fieldComp, *sourceTime, *srcVol, amplitude );
 }
 
 void CoccolithSimulation::init()
@@ -167,7 +168,7 @@ double CoccolithSimulation::getPMLThickness() const
 void CoccolithSimulation::addFluxPlanes()
 {
 
-  if ( source == NULL )
+  if ( sourceTime == NULL )
   {
     throw( runtime_error("A source profile needs to be set before flux planes are added!") );
   }
