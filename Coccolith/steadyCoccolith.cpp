@@ -19,6 +19,7 @@ int main( int argc, char** argv )
     sim.initSource( 0.036 );
     sim.setPMLInWavelengths( 2.0 );
     sim.init();
+    sim.BiCStabL = 2; // 2 is default, converges faster with large L, but the memory usage increases
     sim.run();
     sim.exportResults();
   }
@@ -30,7 +31,5 @@ int main( int argc, char** argv )
   {
     cout << "Unrecognized exception!\n";
   }
-
-  clog << "Everything has gone out of scope by now. Why is it segfaulting here?\n";
   return 0;
 }

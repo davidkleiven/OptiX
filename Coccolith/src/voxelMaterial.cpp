@@ -251,7 +251,6 @@ bool VoxelMaterial::isInsideDomain( const meep::vec &r ) const
 ////////////////////////////////////////////////////////////////////////////////
 double CaCO3Cocco::eps( const meep::vec &r )
 {
-
   if ( referenceRun )
   {
     return 1.0;

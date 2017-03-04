@@ -17,6 +17,7 @@ void SteadyCoccolithSim::initSource( double freq )
   }
 
   if ( contSource != NULL ) delete contSource;
+  centerFrequency = freq;
   contSource = new meep::continuous_src_time( freq );
   sourceTime = contSource;
 }
@@ -28,7 +29,14 @@ void SteadyCoccolithSim::run()
     throw( runtime_error("Simulation is not initialized!") );
   }
 
-  field->solve_cw();
+  bool success = field->solve_cw( tolerance, maxiters, BiCStabL );
+  //bool success = field->solve_cw();
+
+
+  if ( !success )
+  {
+    clog << "Convergence failed!\n";
+  }
 }
 
 void SteadyCoccolithSim::exportResults()
