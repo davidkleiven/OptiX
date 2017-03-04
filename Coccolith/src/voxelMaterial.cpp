@@ -235,51 +235,31 @@ void VoxelMaterial::setDomainSize( const meep::grid_volume &gvol, double PMLThic
 
 void VoxelMaterial::meepVecToIndx( const meep::vec &r, unsigned int indx[3] )
 {
-  if ( r.x() > domain.xmax )
-  {
-    indx[0] = voxels.n_rows-1;
-  }
-  else if ( r.x() < domain.xmin )
-  {
-    indx[0] = 0;
-  }
-  else
-  {
+    assert( isInsideDomain(r) );
     indx[0] = ( r.x() - domain.xmin )*(voxels.n_rows-1)/( domain.xmax - domain.xmin );
-  }
-
-  if ( r.y() > domain.ymax )
-  {
-    indx[1] = voxels.n_cols-1;
-  }
-  else if ( r.y() < domain.ymin )
-  {
-    indx[1] = 0;
-  }
-  else
-  {
     indx[1] = (r.y() - domain.ymin)*(voxels.n_cols-1)/( domain.ymax-domain.ymin );
-  }
-
-  if ( r.z() > domain.zmax )
-  {
-    indx[2] = voxels.n_slices-1;
-  }
-  else if ( r.z() < domain.zmin )
-  {
-    indx[2] = 0;
-  }
-  else
-  {
     indx[2] = ( r.z() - domain.zmin )*( voxels.n_slices-1)/( domain.zmax - domain.zmin );
-  }
+}
+
+bool VoxelMaterial::isInsideDomain( const meep::vec &r ) const
+{
+  return ( r.x() > domain.xmin ) && ( r.x() < domain.xmax ) && \
+         ( r.y() > domain.ymin ) && ( r.y() < domain.ymax ) && \
+         ( r.z() > domain.zmin ) && ( r.z() < domain.zmax );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 double CaCO3Cocco::eps( const meep::vec &r )
 {
 
-  if ( referenceRun ) return 1.0;
+  if ( referenceRun )
+  {
+    return 1.0;
+  }
+  else if ( !isInsideDomain(r) )
+  {
+    return 1.0;
+  }
 
   unsigned int indx[3];
   meepVecToIndx( r, indx );

@@ -88,6 +88,9 @@ protected:
   arma::Cube<unsigned char> voxels;
 
   bool referenceRun{false};
+
+  /** Returns true if the position inside the domain */
+  bool isInsideDomain( const meep::vec &r ) const;
 };
 
 class CaCO3Cocco: public VoxelMaterial
