@@ -37,7 +37,7 @@ public:
   void setPMLInWavelengths( double newThick );
 
   /** Run the simulation */
-  void run();
+  virtual void run();
 
   /** Initialize the source profile */
   void initSource( double freq, double fwidth );
@@ -61,7 +61,7 @@ public:
   void domainInfo() const;
 
   /** Exporting results */
-  void exportResults();
+  virtual void exportResults();
 
   /** The run is a reference run */
   void runWithoutScatterer();
@@ -77,7 +77,7 @@ public:
 
   /** Runs without visualization */
   void disableRealTimeVisualization(){ realTimeVisualization = false; };
-private:
+protected:
   CaCO3Cocco material;
   MainPropDirection_t propagationDir{MainPropDirection_t::Z};
 

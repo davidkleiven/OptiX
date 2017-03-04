@@ -66,7 +66,7 @@ void CoccolithSimulation::addSourceVolume()
 void CoccolithSimulation::addStructure()
 {
 
-  if ( source == NULL )
+  if ( sourceTime == NULL )
   {
     throw( runtime_error("The source profile needs to be initialized before the structure is added!\n") );
   }
@@ -351,7 +351,6 @@ void CoccolithSimulation::run()
   while ( field->time() < simStop )
   {
     field->step();
-
     if (( iter%plotUpdateFreq == 0 ) && ( realTimeVisualization ))
     {
       visualize();
