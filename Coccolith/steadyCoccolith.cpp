@@ -20,6 +20,7 @@ int main( int argc, char** argv )
     sim.setPMLInWavelengths( 2.0 );
     sim.init();
     sim.BiCStabL = 2; // 2 is default, converges faster with large L, but the memory usage increases
+    sim.maxiters = 100000; // 10000 is default
     sim.run();
     sim.exportResults();
   }

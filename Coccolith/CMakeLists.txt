@@ -7,12 +7,45 @@ set( CMAKE_CXX_STANDARD 11 )
 include_directories( include )
 set( CMAKE_LIBRARY_PATH /usr/lib/x86_64-linux-gnu )
 
+set( USE_MPI TRUE )
+if ( USE_MPI )
+  MESSAGE( STATUS "Compiling applications with mpic++" )
+  set(CMAKE_CXX_COMPILER mpic++)
+else()
+  MESSAGE( STATUS "Compiling applications with g++")
+  set(CMAKE_CXX_COMPILER g++)
+endif()
+
 add_definitions( -O2 )
-set( CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-fopenmp")
+if ( NOT USE_MPI )
+  MESSAGE( STATUS "Compiling with openmp flag")
+  set( CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-fopenmp")
+endif()
 
 ###################### FIND STATIC LIBRARIES ###################################
+# Static HDF5 library
+if( USE_MPI )
+  MESSAGE( STATUS "Using the openMPI version of HDF5" )
+  find_package( HDF5 REQUIRED COMPONENTS C CXX HL )
+
+  set( HDF5_ROOT "/usr/lib64/openmpi/lib/")
+  find_package( HDF5 REQUIRED COMPONENTS C CXX HL )
+  #if ( NOT HDF5_IS_PARALLEL )
+  #  MESSAGE( FATAL_ERROR "Did not find HDF5 version with parallel IO support")
+#endif()
+  include_directories( ${HDF5_INCLUDE_DIRS} )
+
+  set(LIB ${LIB} ${HDF5_LIBRARIES} ${HDF5_HL_LIBRARIES} ${HDF5_CXX_LIBRARIES})
+endif()
+
 # Meep library
-find_library( LIBMEEP meep  PATH "/usr/lib/x86_64-linux-gnu" )
+if ( USE_MPI )
+  MESSAGE( STATUS "Compiling with MPI version of MEEP" )
+  find_library( LIBMEEP meep_mpi )
+else()
+  MESSAGE( STATUS "Compiling with single core version of MEEP" )
+  find_library( LIBMEEP meep  PATH "/usr/lib/x86_64-linux-gnu" )
+endif()
 if ( NOT LIBMEEP )
   MESSAGE( FATAL_ERROR "Did not find the MEEP library!")
 endif()
@@ -58,11 +91,15 @@ include_directories(${ARMADILLO_INCLUDE_DIRS})
 set(LIB ${LIB} ${ARMADILLO_LIBRARIES})
 
 # HDF5 library
-find_package( HDF5 REQUIRED COMPONENTS C CXX HL)
-include_directories( ${HDF5_INCLUDE_DIRS} )
+if( NOT USE_MPI )
+  MESSAGE( STATUS "Using the serial version of HDF5")
+  find_package( HDF5 REQUIRED COMPONENTS C CXX HL)
+  include_directories( ${HDF5_INCLUDE_DIRS} )
 
-MESSAGE( STATUS ${HDF5_INCLUDE_DIRS} )
-set(LIB ${LIB} ${HDF5_LIBRARIES} ${HDF5_HL_LIBRARIES} ${HDF5_CXX_LIBRARIES})
+  set(LIB ${LIB} ${HDF5_LIBRARIES} ${HDF5_HL_LIBRARIES} ${HDF5_CXX_LIBRARIES})
+  MESSAGE( STATUS ${HDF5_LIBRARIES} ${HDF5_HL_LIBRARIES} ${HDF5_CXX_LIBRARIES} )
+endif()
+
 # Find the PEI library
 find_library( PEI_LIB pei )
 set( LIB ${LIB} ${PEI_LIB} )

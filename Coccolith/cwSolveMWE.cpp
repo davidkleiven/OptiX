@@ -17,13 +17,13 @@ double eps( const meep::vec&r )
 int main(int argc, char **argv) {
   initialize mpi(argc, argv); // do this even for non-MPI Meep
   double resolution = 20; // pixels per distance
-  grid_volume v = vol2d(5,10, resolution); // 5x10 2d cell
+  grid_volume v = vol3d(5,10, 2.5, resolution); // 5x10 2d cell
   structure s(v, eps, pml(1.0));
   fields f(&s);
 
   double freq = 0.3, fwidth = 0.1;
   continuous_src_time src(freq, fwidth);
-  f.add_point_source(Ey, src, vec(1.1, 2.3));
+  f.add_point_source(Ey, src, vec(1.1, 2.3, 1.25));
 
   double tol = 1E-8;
   int maxiter = 10000;
