@@ -14,6 +14,9 @@ public:
   /** Runs the simulation */
   virtual void run() override;
 
+  /** Run in time domain for a given time */
+  void stepForTime( double sec );
+
   /** Export results */
   virtual void exportResults() override;
 

@@ -39,6 +39,19 @@ void SteadyCoccolithSim::run()
   }
 }
 
+void SteadyCoccolithSim::stepForTime( double endTime )
+{
+  if ( !isInitialized )
+  {
+    throw( runtime_error("Simulation is not initialized!") );
+  }
+
+  while ( field->time() < endTime )
+  {
+    field->step();
+  }
+}
+
 void SteadyCoccolithSim::exportResults()
 {
   if ( uid == 0 )
@@ -55,6 +68,7 @@ void SteadyCoccolithSim::exportResults()
   }
   field->output_hdf5( meep::Dielectric, gdvol.surroundings(), file, false, true );
   field->output_hdf5( meep::EnergyDensity, gdvol.surroundings(), file, false, true );
+  //field->output_hdf5( fieldComp, gdvol.surroundings(), file, false, true );
   clog << "Results written to " << ss.str() << endl;
 }
 

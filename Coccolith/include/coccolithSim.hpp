@@ -80,6 +80,7 @@ public:
 protected:
   CaCO3Cocco material;
   MainPropDirection_t propagationDir{MainPropDirection_t::Z};
+  meep::component fieldComp{meep::Ex};
 
   meep::volume* srcVol{NULL};
   meep::structure* struc{NULL};

@@ -124,7 +124,6 @@ void CoccolithSimulation::addSource()
     throw( runtime_error("A source volume needs to be added before a source is added!\n") );
   }
 
-  meep::component fieldComp;
   switch( propagationDir )
   {
     case MainPropDirection_t::X:
@@ -271,7 +270,11 @@ void CoccolithSimulation::setMonitorPlanes()
   meep::vec vy = meep::vec(0.0, dy, 0.0 );
   meep::vec vz = meep::vec(0.0, 0.0, dz );
 
-  clog << "Setting up monitors and computing projections of epsilon...\n";
+  if ( meep::my_rank() == 0 )
+  {
+    clog << "Setting up monitors and computing projections of epsilon...\n";
+  }
+
   switch ( propagationDir )
   {
     case MainPropDirection_t::X:
@@ -329,7 +332,11 @@ void CoccolithSimulation::setMonitorPlanes()
     plots->useSeparateDrawing(); // Do not show result on screen before show
   }
 
-  clog << "Finished\n";
+  if ( meep::my_rank() == 0 )
+  {
+    clog << "Finished\n";
+  }
+
 }
 
 void CoccolithSimulation::run()
@@ -347,7 +354,11 @@ void CoccolithSimulation::run()
     simStop = tEnd;
   }
 
-  clog << "End time: " << simStop << endl;
+  if ( meep::my_rank() == 0 )
+  {
+    clog << "End time: " << simStop << endl;
+  }
+
   while ( field->time() < simStop )
   {
     field->step();
@@ -403,17 +414,20 @@ void CoccolithSimulation::visualize()
 
 void CoccolithSimulation::domainInfo() const
 {
-  double speedOfLight = 2.997E8; // nm/ns
-  double L = material.getVoxelSize(); // In nm
-  double PI = acos(-1.0);
-  cout << "-----------------------------------------------------------\n";
-  cout << "Domain info:\n";
-  cout << "SizeX: " << material.sizeX()*L << " nm, SizeY: " << material.sizeY()*L << " nm. SizeZ: " << material.sizeZ()*L << " nm\n";
-  cout << "dx=dy=dz = " << L/resolution << " nm\n";
-  cout << "PML thickness: " << getPMLThickness()*L << " nm\n";
-  cout << "Main frequency: " << centerFrequency*speedOfLight/(L*1000.0) << " (THz)\n";
-  cout << "Frequency width: " << freqWidth*speedOfLight/(L*1000.0) << " (THz)\n";
-  cout << "Wavelength: " << getWavelength()*L << " nm\n";
+  if ( meep::my_rank() == 0 )
+  {
+    double speedOfLight = 2.997E8; // nm/ns
+    double L = material.getVoxelSize(); // In nm
+    double PI = acos(-1.0);
+    cout << "-----------------------------------------------------------\n";
+    cout << "Domain info:\n";
+    cout << "SizeX: " << material.sizeX()*L << " nm, SizeY: " << material.sizeY()*L << " nm. SizeZ: " << material.sizeZ()*L << " nm\n";
+    cout << "dx=dy=dz = " << L/resolution << " nm\n";
+    cout << "PML thickness: " << getPMLThickness()*L << " nm\n";
+    cout << "Main frequency: " << centerFrequency*speedOfLight/(L*1000.0) << " (THz)\n";
+    cout << "Frequency width: " << freqWidth*speedOfLight/(L*1000.0) << " (THz)\n";
+    cout << "Wavelength: " << getWavelength()*L << " nm\n";
+  }
 }
 
 void CoccolithSimulation::projectedEpsilon( arma::mat &values, IntegrationDir_t dir )
@@ -518,7 +532,10 @@ void CoccolithSimulation::exportResults()
   {
     field->output_hdf5( meep::Dielectric, gdvol.surroundings(), file, false, true );
   }
-  clog << "Results written to " << ss.str() << endl;
+  if ( meep::my_rank() == 0 )
+  {
+      clog << "Results written to " << ss.str() << endl;
+  }
 }
 
 void CoccolithSimulation::saveDFTSpectrum()

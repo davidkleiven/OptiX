@@ -9,6 +9,7 @@ using namespace std;
 
 int main( int argc, char** argv )
 {
+  meep::initialize mpi( argc, argv );
   srand( time(0) );
   try
   {
@@ -25,13 +26,13 @@ int main( int argc, char** argv )
     sim.initSource( 0.036, 0.018 );
     sim.setPMLInWavelengths( 2.0 );
     sim.setPlotUpdateFreq( 30 );
+    sim.disableRealTimeVisualization();
     //sim.setEndTime( 5.0);
 
     sim.runWithoutScatterer();
     sim.init();
 
     sim.run();
-
     sim.exportResults();
 
     cout << "===============================================================\n";

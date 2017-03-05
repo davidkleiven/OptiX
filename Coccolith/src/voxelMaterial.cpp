@@ -95,10 +95,13 @@ void VoxelMaterial::showStatistics() const
         }
       }
 
-  cout << "--------------------\n";
-  cout << "Number of voxels outside material: " << numberOfZeros << endl;
-  cout << "Number of voxels inside material: " << numberOfOnes << endl;
-  cout << "--------------------\n";
+  if ( meep::my_rank() == 0 )
+  {
+    cout << "---------------------------------------------------------------\n";
+    cout << "Number of voxels outside material: " << numberOfZeros << endl;
+    cout << "Number of voxels inside material: " << numberOfOnes << endl;
+    cout << "---------------------------------------------------------------\n";
+  }
 }
 
 void VoxelMaterial::slideThroughVoxelArray() const
