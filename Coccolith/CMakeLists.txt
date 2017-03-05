@@ -30,9 +30,9 @@ if( USE_MPI )
 
   set( HDF5_ROOT "/usr/lib64/openmpi/lib/")
   find_package( HDF5 REQUIRED COMPONENTS C CXX HL )
-  #if ( NOT HDF5_IS_PARALLEL )
-  #  MESSAGE( FATAL_ERROR "Did not find HDF5 version with parallel IO support")
-#endif()
+  if ( NOT HDF5_IS_PARALLEL )
+    MESSAGE( FATAL_ERROR "Did not find HDF5 version with parallel IO support")
+  endif()
   include_directories( ${HDF5_INCLUDE_DIRS} )
 
   set(LIB ${LIB} ${HDF5_LIBRARIES} ${HDF5_HL_LIBRARIES} ${HDF5_CXX_LIBRARIES})
