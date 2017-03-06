@@ -288,6 +288,8 @@ double CaCO3Cocco::chi1p1( meep::field_type ft, const meep::vec &r )
 ////////////////////////////////////////////////////////////////////////////////
 double VoxelSusceptibility::conductivity( meep::component, const meep::vec &r )
 {
+  if ( isReferenceRun() ) return 0.0;
+
   if ( isInsideDomain(r) )
   {
     return sigma;

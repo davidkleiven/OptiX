@@ -22,7 +22,7 @@ struct Lorentzian
 class RefractiveIndexInfoMaterial
 {
 public:
-  RefractiveIndexInfoMaterial();
+  RefractiveIndexInfoMaterial(){};
 
   /** Loads material parameters from JSON file */
   void load( const char* fname );
@@ -33,6 +33,12 @@ public:
 
   /** Returns the number of lorentzians used in the approximation */
   unsigned int nLorentzians() const{ return lorentzians.size(); };
+
+  /** Returns epsilon value corresponding to the given wavelength (in um)*/
+  double getEpsilon( double lambda ) const;
+
+  /** Returns epsilon corresponding to the given MEEP frequency (dimless) and lengthscale (in um) */
+  double getEpsilon( double lengthscale, double MEEPangFreq ) const;
 protected:
   std::string fname{""};
   std::vector<Lorentzian> lorentzians;

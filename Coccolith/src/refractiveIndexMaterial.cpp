@@ -74,3 +74,20 @@ void RefractiveIndexInfoMaterial::getMEEPLorentzian( double lengthscaleInMicroMe
   sigma = lorentzians[indx].preFactor;
   resonnanceAngularFreq = pow( 2.0*PI*lengthscaleInMicroMeter, 2 )/lorentzians[indx].resonanceWavelength;
 }
+
+double RefractiveIndexInfoMaterial::getEpsilon( double lambda ) const
+{
+  double eps = epsInf;
+  for ( unsigned int i=0;i<lorentzians.size();i++ )
+  {
+    eps += lorentzians[i].preFactor*lambda*lambda/( lambda*lambda - lorentzians[i].resonanceWavelength );
+  }
+  return eps;
+}
+
+double RefractiveIndexInfoMaterial::getEpsilon( double lengthscale, double MEEPangFreq ) const
+{
+  double PI = acos(-1.0);
+  double lambda = MEEPangFreq*lengthscale/(2.0*PI);
+  return getEpsilon( lambda );
+}

@@ -11,12 +11,23 @@ int main( int argc, char** argv )
 {
   meep::initialize mpi( argc, argv );
   srand( time(0) );
+  bool useDispersive = false;
   try
   {
     CoccolithSimulation sim;
     CaCO3Cocco material;
-    material.loadRaw( "data/cocco8cv4Rotated_216_182_249_253.raw" );
-    sim.setMaterial( material );
+    DispersiveVoxel materialDisp;
+    if ( useDispersive )
+    {
+      materialDisp.loadRaw( "data/cocco8cv4Rotated_216_182_249_253.raw" );
+      materialDisp.load( "Materials/CaCO3.json" );
+      sim.setMaterial( materialDisp );
+    }
+    else
+    {
+      material.loadRaw( "data/cocco8cv4Rotated_216_182_249_253.raw" );
+      sim.setMaterial( material );
+    }
     sim.setMainPropagationDirection( MainPropDirection_t::X );
     sim.setSourceSide( SourcePosition_t::BOTTOM );
     sim.setNfreqFT( 200 );
@@ -28,6 +39,9 @@ int main( int argc, char** argv )
 
     sim.runWithoutScatterer();
     sim.init();
+
+    // If the material is dispersive the structure needs to be updated
+    materialDisp.updateStructure( sim.getStructure() );
 
     sim.run();
     sim.exportResults();

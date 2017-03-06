@@ -77,6 +77,9 @@ public:
 
   /** Runs without visualization */
   void disableRealTimeVisualization(){ realTimeVisualization = false; };
+
+  /** Returns a reference to the structure */
+  meep::structure& getStructure(){ return *struc; };
 protected:
   VoxelMaterial *material{NULL};
   MainPropDirection_t propagationDir{MainPropDirection_t::Z};
