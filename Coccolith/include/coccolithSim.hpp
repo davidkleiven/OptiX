@@ -21,8 +21,8 @@ public:
   CoccolithSimulation(){};
   virtual ~CoccolithSimulation();
 
-  /** Load voxel model from raw binary file */
-  void loadVoxels( const char* fname );
+  /** LSet voxel material to use in the simulation */
+  void setMaterial( VoxelMaterial &mat ){ material = &mat; };
 
   /** Set the incident wavevector. Note that this is a static member */
   void setIncWaveVector( const meep::vec &wave ){ waveVec = wave; };
@@ -78,7 +78,7 @@ public:
   /** Runs without visualization */
   void disableRealTimeVisualization(){ realTimeVisualization = false; };
 protected:
-  CaCO3Cocco material;
+  VoxelMaterial *material{NULL};
   MainPropDirection_t propagationDir{MainPropDirection_t::Z};
   meep::component fieldComp{meep::Ex};
 

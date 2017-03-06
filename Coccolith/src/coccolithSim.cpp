@@ -9,6 +9,7 @@ using namespace std;
 
 meep::vec CoccolithSimulation::waveVec;
 
+// TODO: Check that material is not zero in all functions that dereference the material  pointer
 CoccolithSimulation::~CoccolithSimulation()
 {
   // Sources and flux are deleted in the destructor of field
@@ -21,12 +22,6 @@ CoccolithSimulation::~CoccolithSimulation()
   if ( monitor1 != NULL ) delete monitor1;
   if ( monitor2 != NULL ) delete monitor2;
   if ( plots != NULL ) delete plots;
-}
-
-void CoccolithSimulation::loadVoxels( const char* fname )
-{
-  material.loadRaw( fname );
-  materialLoaded = true;
 }
 
 cdouble CoccolithSimulation::amplitude( const meep::vec &r )
@@ -76,7 +71,7 @@ void CoccolithSimulation::addStructure()
   }
 
 
-  struc = new meep::structure( gdvol, material, meep::pml( getPMLThickness() ) );
+  struc = new meep::structure( gdvol, *material, meep::pml( getPMLThickness() ) );
 }
 
 double CoccolithSimulation::getWavelength() const
@@ -142,14 +137,14 @@ void CoccolithSimulation::addSource()
 
 void CoccolithSimulation::init()
 {
-  if ( !materialLoaded )
+  if ( material == NULL )
   {
     throw( runtime_error("No material loaded! Call loadVoxels!") );
   }
   domainInfo();
   initializeGeometry();
 
-  material.setDomainSize( gdvol, getPMLThickness() );
+  material->setDomainSize( gdvol, getPMLThickness() );
   addSourceVolume();
   addStructure();
   addFields();
@@ -240,9 +235,9 @@ double CoccolithSimulation::getSrcFluxPos() const
   switch( srcPos )
   {
     case SourcePosition_t::TOP:
-      return getSrcPos() + 5.0*material.getVoxelSize();
+      return getSrcPos() + 5.0*material->getVoxelSize();
     case SourcePosition_t::BOTTOM:
-      return getSrcPos() - 5.0*material.getVoxelSize();
+      return getSrcPos() - 5.0*material->getVoxelSize();
   }
 }
 
@@ -262,9 +257,9 @@ void CoccolithSimulation::setMonitorPlanes()
   if ( monitor1 != NULL ) delete monitor1;
   if ( monitor2 != NULL ) delete monitor2;
 
-  double dx = static_cast<double>(material.sizeX())/static_cast<double>(nMonitorX);
-  double dy = static_cast<double>(material.sizeY())/static_cast<double>(nMonitorY);
-  double dz = static_cast<double>(material.sizeZ())/static_cast<double>(nMonitorZ);
+  double dx = static_cast<double>(material->sizeX())/static_cast<double>(nMonitorX);
+  double dy = static_cast<double>(material->sizeY())/static_cast<double>(nMonitorY);
+  double dz = static_cast<double>(material->sizeZ())/static_cast<double>(nMonitorZ);
 
   meep::vec vx = meep::vec(dx, 0.0, 0.0 );
   meep::vec vy = meep::vec(0.0, dy, 0.0 );
@@ -306,8 +301,8 @@ void CoccolithSimulation::setMonitorPlanes()
       monitor2 = new FieldMonitor( nMonitorZ, nMonitorY );
       monitor1->setName( "XZ-plane" );
       monitor2->setName( "YZ-plane" );
-      material.projectionXZ( bkg1 );
-      material.projectionYZ( bkg2 );
+      material->projectionXZ( bkg1 );
+      material->projectionYZ( bkg2 );
       monitor1->setDisplacementVectors( vz, vx );
       monitor2->setDisplacementVectors( vz, vy );
       bkg1.set_size( nMonitorZ, nMonitorX );
@@ -417,11 +412,11 @@ void CoccolithSimulation::domainInfo() const
   if ( meep::my_rank() == 0 )
   {
     double speedOfLight = 2.997E8; // nm/ns
-    double L = material.getVoxelSize(); // In nm
+    double L = material->getVoxelSize(); // In nm
     double PI = acos(-1.0);
     cout << "-----------------------------------------------------------\n";
     cout << "Domain info:\n";
-    cout << "SizeX: " << material.sizeX()*L << " nm, SizeY: " << material.sizeY()*L << " nm. SizeZ: " << material.sizeZ()*L << " nm\n";
+    cout << "SizeX: " << material->sizeX()*L << " nm, SizeY: " << material->sizeY()*L << " nm. SizeZ: " << material->sizeZ()*L << " nm\n";
     cout << "dx=dy=dz = " << L/resolution << " nm\n";
     cout << "PML thickness: " << getPMLThickness()*L << " nm\n";
     cout << "Main frequency: " << centerFrequency*speedOfLight/(L*1000.0) << " (THz)\n";
@@ -485,7 +480,7 @@ void CoccolithSimulation::projectedEpsilon( arma::mat &values, IntegrationDir_t 
             pos += meep::vec( 0.0, 0.0, gdvol.zmin() + k*dz );
             break;
         }
-        values(col,row) += material.eps( pos );
+        values(col,row) += material->eps( pos );
       }
       values(col,row) /= nIntegr;
     }
@@ -528,7 +523,7 @@ void CoccolithSimulation::exportResults()
 
   saveDFTSpectrum();
 
-  if ( !material.isReferenceRun() )
+  if ( !material->isReferenceRun() )
   {
     field->output_hdf5( meep::Dielectric, gdvol.surroundings(), file, false, true );
   }
@@ -542,7 +537,7 @@ void CoccolithSimulation::saveDFTSpectrum()
 {
   assert( file != NULL );
 
-  if ( material.isReferenceRun() )
+  if ( material->isReferenceRun() )
   {
     int length = transmitFlux->Nfreq;
     file->write( "spectrumReference", 1, &length, transmitFlux->flux(), false );
@@ -602,12 +597,12 @@ void CoccolithSimulation::saveGeometry()
 
 void CoccolithSimulation::runWithoutScatterer()
 {
-  material.setReferenceRun( true );
+  material->setReferenceRun( true );
 }
 
 void CoccolithSimulation::runWithScatterer()
 {
-  material.setReferenceRun( false );
+  material->setReferenceRun( false );
 }
 
 void CoccolithSimulation::reset()
@@ -625,10 +620,9 @@ void CoccolithSimulation::setEndTime( double newtime )
 double CoccolithSimulation::estimatedTimeToPropagateAcrossDomain() const
 {
   arma::uvec sizes(3);
-  sizes(0) = material.sizeX();
-  sizes(1) = material.sizeY();
-  sizes(2) = material.sizeZ();
-
+  sizes(0) = material->sizeX();
+  sizes(1) = material->sizeY();
+  sizes(2) = material->sizeZ();
   return sizes.max();
 }
 
@@ -640,7 +634,7 @@ void CoccolithSimulation::initializeGeometry()
   }
 
   double pmlThickPx = getPMLThickness();
-  gdvol = meep::vol3d( material.sizeX()+2.0*pmlThickPx, material.sizeY()+2.0*pmlThickPx, material.sizeZ()+2.0*pmlThickPx, resolution );
+  gdvol = meep::vol3d( material->sizeX()+2.0*pmlThickPx, material->sizeY()+2.0*pmlThickPx, material->sizeZ()+2.0*pmlThickPx, resolution );
   geoIsInitialized = true;
 }
 
