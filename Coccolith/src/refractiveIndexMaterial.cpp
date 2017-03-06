@@ -73,5 +73,4 @@ void RefractiveIndexInfoMaterial::getMEEPLorentzian( double lengthscaleInMicroMe
 
   sigma = lorentzians[indx].preFactor;
   resonnanceAngularFreq = pow( 2.0*PI*lengthscaleInMicroMeter, 2 )/lorentzians[indx].resonanceWavelength;
-
 }

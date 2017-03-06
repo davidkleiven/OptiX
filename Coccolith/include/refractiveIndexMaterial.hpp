@@ -33,7 +33,7 @@ public:
 
   /** Returns the number of lorentzians used in the approximation */
   unsigned int nLorentzians() const{ return lorentzians.size(); };
-private:
+protected:
   std::string fname{""};
   std::vector<Lorentzian> lorentzians;
 

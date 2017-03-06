@@ -277,3 +277,46 @@ double CaCO3Cocco::conductivity( meep::component c, const meep::vec &r )
 {
   return 0.0;
 }
+
+////////////////////////////////////////////////////////////////////////////////
+double VoxelSusceptibility::conductivity( meep::component, const meep::vec &r )
+{
+  if ( isInsideDomain(r) )
+  {
+    return sigma;
+  }
+  return 0.0;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+void DispersiveVoxel::load( const char* fname )
+{
+  RefractiveIndexInfoMaterial::load( fname );
+
+  for ( unsigned int i=0;i<lorentzians.size();i++ )
+  {
+    double sigma, omega0;
+
+    // The voxel size is the length scale and it is given in nano meter
+    getMEEPLorentzian( vxsize*1E-3, i, sigma, omega0 );
+    E_materialfunctions.push_back( new VoxelSusceptibility(sigma) );
+    E_susceptibilities.push_back( new meep::lorentzian_susceptibility(omega0, 0.0) );
+  }
+}
+
+DispersiveVoxel::~DispersiveVoxel()
+{
+  for ( unsigned int i=0;i<E_materialfunctions.size();i++ )
+  {
+    delete E_materialfunctions[i];
+    delete E_susceptibilities[i];
+  }
+}
+
+void DispersiveVoxel::updateStructure( meep::structure &struc ) const
+{
+  for ( unsigned int i=0;i<E_materialfunctions.size();i++ )
+  {
+    struc.add_susceptibility( *E_materialfunctions[i], meep::E_stuff, *E_susceptibilities[i] );
+  }
+}

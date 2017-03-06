@@ -3,6 +3,8 @@
 #include <meep.hpp>
 #include <armadillo>
 #include <string>
+#include "refractiveIndexMaterial.hpp"
+#include <vector>
 
 /** Read info from filename */
 struct InfoFromFilename
@@ -106,9 +108,36 @@ public:
 
   /** MEEP function that has to implemented in order to get it to work */
   virtual double chi1p1(meep::field_type ft, const meep::vec &r) { return eps(r); }
-
 private:
   double epsilon{2.72};
+};
+
+class VoxelSusceptibility: public VoxelMaterial
+{
+public:
+  VoxelSusceptibility( double sigma ): sigma(sigma){};
+
+  /** Returns the sigma value */
+  virtual double conductivity( meep::component c, const meep::vec &r ) override;
+private:
+  double sigma{0.0};
+};
+
+class DispersiveVoxel: public VoxelMaterial, RefractiveIndexInfoMaterial
+{
+public:
+  DispersiveVoxel(){};
+  ~DispersiveVoxel();
+
+  /** Loads data from JSON file */
+  void load( const char* fname );
+
+  /** Pass all susceptibilities to the structure */
+  void updateStructure( meep::structure &struc ) const;
+private:
+    // Used when the voxel material is dispersive
+    std::vector<meep::material_function*> E_materialfunctions;
+    std::vector<meep::susceptibility*> E_susceptibilities;
 };
 
 #endif
