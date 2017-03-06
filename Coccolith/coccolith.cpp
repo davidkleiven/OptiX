@@ -15,7 +15,7 @@ int main( int argc, char** argv )
   try
   {
     CoccolithSimulation sim;
-    CaCO3Cocco material;
+    CaCO3Cocco material( 2.72 );
     DispersiveVoxel materialDisp;
     if ( useDispersive )
     {

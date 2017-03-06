@@ -15,7 +15,7 @@ int main( int argc, char** argv )
   try
   {
     SteadyCoccolithSim sim;
-    CaCO3Cocco material;
+    CaCO3Cocco material( 2.72 );
     material.loadRaw( "data/cocco8cv4Rotated_216_182_249_253.raw" );
     sim.setMaterial( material );
     sim.setMainPropagationDirection( MainPropDirection_t::X );

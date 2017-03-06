@@ -98,7 +98,7 @@ protected:
 class CaCO3Cocco: public VoxelMaterial
 {
 public:
-  CaCO3Cocco(){};
+  CaCO3Cocco( double epsilon):epsilon(epsilon){};
 
   /** Returns the dielectric function as a function of position */
   virtual double eps( const meep::vec &r ) override;
@@ -109,7 +109,7 @@ public:
   /** MEEP function that has to implemented in order to get it to work */
   virtual double chi1p1(meep::field_type ft, const meep::vec &r);
 private:
-  double epsilon{2.72};
+  double epsilon{1.0};
 };
 
 class VoxelSusceptibility: public VoxelMaterial
