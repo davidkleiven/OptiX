@@ -23,7 +23,7 @@ int main( int argc, char** argv )
     sim.setMainPropagationDirection( MainPropDirection_t::X );
     sim.setSourceSide( SourcePosition_t::BOTTOM );
     sim.setNfreqFT( 200 );
-    sim.initSource( 0.036, 0.018 );
+    sim.initSource( 0.045, 0.03 );
     sim.setPMLInWavelengths( 2.0 );
     sim.setPlotUpdateFreq( 30 );
     sim.disableRealTimeVisualization();

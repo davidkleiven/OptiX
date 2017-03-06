@@ -25,16 +25,16 @@ endif()
 ###################### FIND STATIC LIBRARIES ###################################
 # Static HDF5 library
 if( USE_MPI )
-  set( HDF5_USE_STATIC_LIBRARIES TRUE )
+  #set( HDF5_USE_STATIC_LIBRARIES TRUE )
   MESSAGE( STATUS "Using the openMPI version of HDF5" )
   find_package( HDF5 REQUIRED COMPONENTS C CXX HL )
 
   #set( HDF5_ROOT "/usr/lib64/openmpi/lib/")
   #find_package( HDF5 REQUIRED COMPONENTS C CXX HL )
   #MESSAGE( STATUS ${HDF5_LIBRARIES})
-  if ( NOT HDF5_IS_PARALLEL )
-    MESSAGE( FATAL_ERROR "Did not find HDF5 version with parallel IO support")
-  endif()
+  #if ( NOT HDF5_IS_PARALLEL )
+  #  MESSAGE( FATAL_ERROR "Did not find HDF5 version with parallel IO support")
+#endif()
   include_directories( ${HDF5_INCLUDE_DIRS} )
 
   set(LIB ${LIB} ${HDF5_LIBRARIES} ${HDF5_HL_LIBRARIES} ${HDF5_CXX_LIBRARIES})

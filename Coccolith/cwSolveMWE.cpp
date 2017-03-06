@@ -16,7 +16,7 @@ double eps( const meep::vec&r )
 
 int main(int argc, char **argv) {
   initialize mpi(argc, argv); // do this even for non-MPI Meep
-  double resolution = 20; // pixels per distance
+  double resolution = 2; // pixels per distance
   grid_volume v = vol3d(5,10, 2.5, resolution); // 5x10 2d cell
   structure s(v, eps, pml(1.0));
   fields f(&s);
