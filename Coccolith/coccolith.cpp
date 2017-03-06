@@ -13,11 +13,6 @@ int main( int argc, char** argv )
   srand( time(0) );
   try
   {
-    //VoxelMaterial material;
-    //material.loadRaw( "data/cocco8cv4_216_182_249_253.raw" );
-    //material.slideThroughVoxelArray();
-    //material.showProjections();
-
     CoccolithSimulation sim;
     CaCO3Cocco material;
     material.loadRaw( "data/cocco8cv4Rotated_216_182_249_253.raw" );

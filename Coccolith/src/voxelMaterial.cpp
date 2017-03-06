@@ -278,6 +278,13 @@ double CaCO3Cocco::conductivity( meep::component c, const meep::vec &r )
   return 0.0;
 }
 
+double CaCO3Cocco::chi1p1( meep::field_type ft, const meep::vec &r )
+{
+  if ( ft != meep::E_stuff ) return 1.0;
+
+  return eps(r);
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 double VoxelSusceptibility::conductivity( meep::component, const meep::vec &r )
 {
@@ -319,4 +326,27 @@ void DispersiveVoxel::updateStructure( meep::structure &struc ) const
   {
     struc.add_susceptibility( *E_materialfunctions[i], meep::E_stuff, *E_susceptibilities[i] );
   }
+}
+
+double DispersiveVoxel::chi1p1( meep::field_type ft, const meep::vec &r )
+{
+  if ( ft != meep::E_stuff ) return 1.0;
+
+  if ( referenceRun )
+  {
+    return 1.0;
+  }
+  else if ( !isInsideDomain(r) )
+  {
+    return 1.0;
+  }
+
+  unsigned int indx[3];
+  meepVecToIndx( r, indx );
+
+  if ( voxels( indx[0], indx[1], indx[2] ) == 1 )
+  {
+    return epsInf;
+  }
+  return 1.0;
 }

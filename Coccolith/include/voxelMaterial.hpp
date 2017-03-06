@@ -107,7 +107,7 @@ public:
   virtual double conductivity( meep::component c, const meep::vec &r ) override;
 
   /** MEEP function that has to implemented in order to get it to work */
-  virtual double chi1p1(meep::field_type ft, const meep::vec &r) { return eps(r); }
+  virtual double chi1p1(meep::field_type ft, const meep::vec &r);
 private:
   double epsilon{2.72};
 };
@@ -134,6 +134,9 @@ public:
 
   /** Pass all susceptibilities to the structure */
   void updateStructure( meep::structure &struc ) const;
+
+  /** MEEP function that has to implemented in order to get it to work */
+  virtual double chi1p1(meep::field_type ft, const meep::vec &r);
 private:
     // Used when the voxel material is dispersive
     std::vector<meep::material_function*> E_materialfunctions;
