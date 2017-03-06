@@ -9,7 +9,6 @@ using namespace std;
 
 meep::vec CoccolithSimulation::waveVec;
 
-// TODO: Check that material is not zero in all functions that dereference the material  pointer
 CoccolithSimulation::~CoccolithSimulation()
 {
   // Sources and flux are deleted in the destructor of field
@@ -139,7 +138,7 @@ void CoccolithSimulation::init()
 {
   if ( material == NULL )
   {
-    throw( runtime_error("No material loaded! Call loadVoxels!") );
+    throw( runtime_error("No material set! Needs to be set before call init()!") );
   }
   domainInfo();
   initializeGeometry();
@@ -232,6 +231,10 @@ double CoccolithSimulation::getSrcPos() const
 
 double CoccolithSimulation::getSrcFluxPos() const
 {
+  if ( material == NULL )
+  {
+    throw( runtime_error("Material needs to be set before call getSrcFluxPos()!") );
+  }
   switch( srcPos )
   {
     case SourcePosition_t::TOP:
@@ -254,6 +257,10 @@ double CoccolithSimulation::getTransFluxPos() const
 
 void CoccolithSimulation::setMonitorPlanes()
 {
+  if ( material == NULL )
+  {
+    throw( runtime_error("Material needs to be set before calling setMonitorPlanes()!") );
+  }
   if ( monitor1 != NULL ) delete monitor1;
   if ( monitor2 != NULL ) delete monitor2;
 
@@ -411,6 +418,10 @@ void CoccolithSimulation::domainInfo() const
 {
   if ( meep::my_rank() == 0 )
   {
+    if ( material == NULL )
+    {
+      throw( runtime_error("Material needs to set be before calling domainInfo()!") );
+    }
     double speedOfLight = 2.997E8; // nm/ns
     double L = material->getVoxelSize(); // In nm
     double PI = acos(-1.0);
@@ -427,6 +438,10 @@ void CoccolithSimulation::domainInfo() const
 
 void CoccolithSimulation::projectedEpsilon( arma::mat &values, IntegrationDir_t dir )
 {
+  if ( material == NULL )
+  {
+    throw( runtime_error("Material needs to be set before calling projectedEpsilon()!") );
+  }
   double dx, dy, dz;
   unsigned int nIntegr = 0;
   Plane_t plane;
@@ -512,6 +527,10 @@ void CoccolithSimulation::exportResults()
   {
     uid = rand()%UID_MAX;
   }
+  if ( material == NULL )
+  {
+    throw( runtime_error("Material needs to be set before calling exportResults()!") );
+  }
 
   stringstream ss;
   ss << "data/voxelMaterialSim_" << uid; // File extension added automatically
@@ -536,6 +555,7 @@ void CoccolithSimulation::exportResults()
 void CoccolithSimulation::saveDFTSpectrum()
 {
   assert( file != NULL );
+  assert( material != NULL );
 
   if ( material->isReferenceRun() )
   {
@@ -597,11 +617,19 @@ void CoccolithSimulation::saveGeometry()
 
 void CoccolithSimulation::runWithoutScatterer()
 {
+  if ( material == NULL )
+  {
+    throw( runtime_error("Material needs to be set before calling runWithoutScatterer()!") );
+  }
   material->setReferenceRun( true );
 }
 
 void CoccolithSimulation::runWithScatterer()
 {
+  if ( material == NULL )
+  {
+    throw( runtime_error("Material needs to be set before calling runWithScatterer()!") );
+  }
   material->setReferenceRun( false );
 }
 
@@ -619,6 +647,10 @@ void CoccolithSimulation::setEndTime( double newtime )
 
 double CoccolithSimulation::estimatedTimeToPropagateAcrossDomain() const
 {
+  if ( material == NULL )
+  {
+    throw( runtime_error("Material needs to be set before calling estimatedTimeToPropagateAcrossDomain()!") );
+  }
   arma::uvec sizes(3);
   sizes(0) = material->sizeX();
   sizes(1) = material->sizeY();
@@ -628,7 +660,7 @@ double CoccolithSimulation::estimatedTimeToPropagateAcrossDomain() const
 
 void CoccolithSimulation::initializeGeometry()
 {
-  if ( !materialLoaded )
+  if ( material == NULL )
   {
     throw ( runtime_error("Material needs to be loaded before the geometry is initialize!") );
   }
