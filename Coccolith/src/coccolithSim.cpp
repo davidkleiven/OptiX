@@ -534,8 +534,8 @@ void CoccolithSimulation::setUID()
   {
     time_t t = time(NULL);
     stringstream ss;
-    ss << localtime(&t)->tm_year+1900 <<"_"<< localtime(&t)->tm_mon <<"_"<< localtime(&t)->tm_mday <<"_"<<
-    localtime(&t)->tm_hour << "_"<<localtime(&t)->tm_min << "_"<<localtime(&t)->tm_sec;
+    ss << localtime(&t)->tm_year+1900 << localtime(&t)->tm_mon << localtime(&t)->tm_mday <<"_"<<
+    localtime(&t)->tm_hour <<localtime(&t)->tm_min << localtime(&t)->tm_sec;
     uid = ss.str();
   }
 }

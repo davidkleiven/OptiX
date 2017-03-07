@@ -26,7 +26,7 @@ int main( int argc, char** argv )
     sim.BiCStabL = 2; // 2 is default, converges faster with large L, but the memory usage increases
     sim.maxiters = 100000; // 10000 is default
     //sim.run();
-    sim.stepForTime( 100.0 );
+    sim.stepForTime( 3000.0 );
     sim.exportResults();
   }
   catch( exception &exc )

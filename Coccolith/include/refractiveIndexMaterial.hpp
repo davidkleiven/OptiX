@@ -1,6 +1,7 @@
 #ifndef REFRACTIVE_INDEX_MATERIAL_H
 #define REFRACTIVE_INDEX_MATERIAL_H
 #include <vector>
+#include "config.h"
 #include <json/reader.h>
 
 struct Lorentzian

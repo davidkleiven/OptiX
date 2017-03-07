@@ -65,13 +65,13 @@ void SteadyCoccolithSim::exportResults()
   }
   field->output_hdf5( meep::Dielectric, gdvol.surroundings(), file, false, true );
   field->output_hdf5( meep::EnergyDensity, gdvol.surroundings(), file, false, true );
-  //field->output_hdf5( fieldComp, gdvol.surroundings(), file, false, true );
+  field->output_hdf5( fieldComp, gdvol.surroundings(), file, false, true );
   clog << "Results written to " << ss.str() << endl;
 }
 
 void SteadyCoccolithSim::init()
 {
-  if ( !materialLoaded )
+  if ( material == NULL )
   {
     throw( runtime_error("No material loaded! Call loadVoxels!") );
   }
