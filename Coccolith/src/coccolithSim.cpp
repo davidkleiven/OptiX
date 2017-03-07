@@ -12,15 +12,15 @@ meep::vec CoccolithSimulation::waveVec;
 CoccolithSimulation::~CoccolithSimulation()
 {
   // Sources and flux are deleted in the destructor of field
-  if ( srcVol != NULL ) delete srcVol;
-  if ( struc != NULL ) delete struc;
-  if ( field != NULL ) delete field;
-  if ( dftVolTransmit != NULL ) delete dftVolTransmit;
-  if ( source != NULL ) delete source;
+  if ( srcVol != NULL ) delete srcVol; srcVol=NULL;
+  if ( struc != NULL ) delete struc; struc=NULL;
+  if ( field != NULL ) delete field; field=NULL;
+  if ( dftVolTransmit != NULL ) delete dftVolTransmit; dftVolTransmit=NULL;
+  if ( source != NULL ) delete source; source=NULL;
 
-  if ( monitor1 != NULL ) delete monitor1;
-  if ( monitor2 != NULL ) delete monitor2;
-  if ( plots != NULL ) delete plots;
+  if ( monitor1 != NULL ) delete monitor1; monitor1=NULL;
+  if ( monitor2 != NULL ) delete monitor2; monitor2=NULL;
+  if ( plots != NULL ) delete plots; plots=NULL;
 }
 
 cdouble CoccolithSimulation::amplitude( const meep::vec &r )
