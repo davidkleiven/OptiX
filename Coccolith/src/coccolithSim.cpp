@@ -4,6 +4,7 @@
 #include <cmath>
 #include <sstream>
 #include <omp.h>
+#include <ctime>
 
 using namespace std;
 
@@ -20,7 +21,9 @@ CoccolithSimulation::~CoccolithSimulation()
 
   if ( monitor1 != NULL ) delete monitor1; monitor1=NULL;
   if ( monitor2 != NULL ) delete monitor2; monitor2=NULL;
-  if ( plots != NULL ) delete plots; plots=NULL;
+  #ifdef HAVE_LIB_VISA
+    if ( plots != NULL ) delete plots; plots=NULL;
+  #endif
 }
 
 cdouble CoccolithSimulation::amplitude( const meep::vec &r )
@@ -324,14 +327,16 @@ void CoccolithSimulation::setMonitorPlanes()
 
   if ( realTimeVisualization )
   {
-    if ( plots != NULL ) delete plots;
+    #ifdef HAVE_LIB_VISA
+      if ( plots != NULL ) delete plots;
 
-    plots = new visa::WindowHandler();
-    // Add plots
-    plots->addPlot( monitor1->getName().c_str() );
-    plots->addPlot( monitor2->getName().c_str() );
-    plots->setLayout( 1, 2 );
-    plots->useSeparateDrawing(); // Do not show result on screen before show
+      plots = new visa::WindowHandler();
+      // Add plots
+      plots->addPlot( monitor1->getName().c_str() );
+      plots->addPlot( monitor2->getName().c_str() );
+      plots->setLayout( 1, 2 );
+      plots->useSeparateDrawing(); // Do not show result on screen before show
+    #endif
   }
 
   if ( meep::my_rank() == 0 )
@@ -374,44 +379,46 @@ void CoccolithSimulation::run()
 
 void CoccolithSimulation::visualize()
 {
-  if (( monitor1 == NULL ) || ( monitor2 == NULL ))
-  {
-    throw (runtime_error("No monitors set for visulization!") );
-  }
+  #ifdef HAVE_LIB_VISA
+    if (( monitor1 == NULL ) || ( monitor2 == NULL ))
+    {
+      throw (runtime_error("No monitors set for visulization!") );
+    }
 
-  assert( plots != NULL );
+    assert( plots != NULL );
 
-  monitor1->setIntensity( *field );
-  monitor2->setIntensity( *field );
-  // Set colorbar limits
+    monitor1->setIntensity( *field );
+    monitor2->setIntensity( *field );
+    // Set colorbar limits
 
-  typedef visa::Colormaps::Colormap_t cmap_t;
+    typedef visa::Colormaps::Colormap_t cmap_t;
 
-  visa::Visualizer& plt1 = plots->get( monitor1->getName().c_str() );
-  visa::Visualizer& plt2 = plots->get( monitor2->getName().c_str() );
+    visa::Visualizer& plt1 = plots->get( monitor1->getName().c_str() );
+    visa::Visualizer& plt2 = plots->get( monitor2->getName().c_str() );
 
-  plt1.setColorLim( monitor1->get().min(), monitor1->get().max() );
-  plt2.setColorLim( monitor2->get().min(), monitor2->get().max() );
-  plt1.setOpacity( 1.0 );
-  plt2.setOpacity( 1.0 );
-  plt1.setCmap( cmap_t::NIPY_SPECTRAL );
-  plt2.setCmap( cmap_t::NIPY_SPECTRAL );
-  plt1.setImg( monitor1->get() );
-  plt2.setImg( monitor2->get() );
-  plots->draw();
+    plt1.setColorLim( monitor1->get().min(), monitor1->get().max() );
+    plt2.setColorLim( monitor2->get().min(), monitor2->get().max() );
+    plt1.setOpacity( 1.0 );
+    plt2.setOpacity( 1.0 );
+    plt1.setCmap( cmap_t::NIPY_SPECTRAL );
+    plt2.setCmap( cmap_t::NIPY_SPECTRAL );
+    plt1.setImg( monitor1->get() );
+    plt2.setImg( monitor2->get() );
+    plots->draw();
 
-  // Overlay refractive index profile
-  plt1.setCmap( cmap_t::GREYSCALE );
-  plt2.setCmap( cmap_t::GREYSCALE );
-  plt1.setColorLim( 0.99*bkg1.min(), 1.01*bkg1.max() );
-  plt2.setColorLim( 0.99*bkg2.min(), 1.01*bkg2.max() );
-  plt1.setOpacity( 0.6 );
-  plt2.setOpacity( 0.6 );
-  plt1.setImg( bkg1 );
-  plt2.setImg( bkg2 );
-  plots->draw();
+    // Overlay refractive index profile
+    plt1.setCmap( cmap_t::GREYSCALE );
+    plt2.setCmap( cmap_t::GREYSCALE );
+    plt1.setColorLim( 0.99*bkg1.min(), 1.01*bkg1.max() );
+    plt2.setColorLim( 0.99*bkg2.min(), 1.01*bkg2.max() );
+    plt1.setOpacity( 0.6 );
+    plt2.setOpacity( 0.6 );
+    plt1.setImg( bkg1 );
+    plt2.setImg( bkg2 );
+    plots->draw();
 
-  plots->show();
+    plots->show();
+  #endif
 }
 
 void CoccolithSimulation::domainInfo() const
@@ -521,12 +528,21 @@ void CoccolithSimulation::getPos( unsigned int row, unsigned int col, Plane_t pl
   }
 }
 
+void CoccolithSimulation::setUID()
+{
+  if ( uid == "" )
+  {
+    time_t t = time(NULL);
+    stringstream ss;
+    ss << localtime(&t)->tm_year+1900 <<"_"<< localtime(&t)->tm_mon <<"_"<< localtime(&t)->tm_mday <<"_"<<
+    localtime(&t)->tm_hour << "_"<<localtime(&t)->tm_min << "_"<<localtime(&t)->tm_sec;
+    uid = ss.str();
+  }
+}
 void CoccolithSimulation::exportResults()
 {
-  if ( uid == 0 )
-  {
-    uid = rand()%UID_MAX;
-  }
+  setUID();
+
   if ( material == NULL )
   {
     throw( runtime_error("Material needs to be set before calling exportResults()!") );

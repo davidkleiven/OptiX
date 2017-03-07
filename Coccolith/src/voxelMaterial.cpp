@@ -1,7 +1,10 @@
 #include "voxelMaterial.hpp"
+#include "config.h"
 #include <iostream>
 #include <stdexcept>
-#include <visa/visa.hpp>
+#ifdef HAVE_LIB_VISA
+  #include <visa/visa.hpp>
+#endif
 #include <chrono>
 #include <thread>
 
@@ -106,74 +109,82 @@ void VoxelMaterial::showStatistics() const
 
 void VoxelMaterial::slideThroughVoxelArray() const
 {
-  clog << "Showing XY plane\n";
-  visa::WindowHandler plots;
-  plots.addPlot( "Voxelvalues" );
-  chrono::milliseconds duration(50);
-  for ( unsigned int i=0;i<voxels.n_slices;i++ )
-  {
-    arma::mat values = arma::conv_to<arma::mat>::from( voxels.slice(i) );
-    plots.getActive().fillVertexArray( values );
-    plots.show();
-    this_thread::sleep_for( duration );
-  }
+  #ifdef HAVE_LIB_VISA
+    clog << "Showing XY plane\n";
+    visa::WindowHandler plots;
+    plots.addPlot( "Voxelvalues" );
+    chrono::milliseconds duration(50);
+    for ( unsigned int i=0;i<voxels.n_slices;i++ )
+    {
+      arma::mat values = arma::conv_to<arma::mat>::from( voxels.slice(i) );
+      plots.getActive().fillVertexArray( values );
+      plots.show();
+      this_thread::sleep_for( duration );
+    }
 
-  plots.clear();
-  clog << "Showing YZ plane\n";
-  for ( unsigned int i=0;i<voxels.n_rows;i++ )
-  {
-    arma::mat values;
-    fillArmaMat( voxels.tube( i, 0, i, voxels.n_cols-1 ), values );
-    plots.getActive().fillVertexArray( values );
-    plots.show();
-    this_thread::sleep_for( duration );
-  }
+    plots.clear();
+    clog << "Showing YZ plane\n";
+    for ( unsigned int i=0;i<voxels.n_rows;i++ )
+    {
+      arma::mat values;
+      fillArmaMat( voxels.tube( i, 0, i, voxels.n_cols-1 ), values );
+      plots.getActive().fillVertexArray( values );
+      plots.show();
+      this_thread::sleep_for( duration );
+    }
 
-  clog << "Showing XZ plane\n";
-  for ( unsigned int i=0;i<voxels.n_cols;i++ )
-  {
-    arma::mat values;
-    fillArmaMat( voxels.tube( 0, i, voxels.n_rows-1, i ), values );
-    plots.getActive().fillVertexArray( values );
-    plots.show();
-    this_thread::sleep_for( duration );
-  }
+    clog << "Showing XZ plane\n";
+    for ( unsigned int i=0;i<voxels.n_cols;i++ )
+    {
+      arma::mat values;
+      fillArmaMat( voxels.tube( 0, i, voxels.n_rows-1, i ), values );
+      plots.getActive().fillVertexArray( values );
+      plots.show();
+      this_thread::sleep_for( duration );
+    }
+  #else
+    clog << "Compiled without libVISA!\n";
+  #endif
 }
 
 void VoxelMaterial::showProjections() const
 {
-  unsigned int holdForSec = 15;
-  visa::WindowHandler plots;
-  plots.setLayout(2,2);
-  plots.addPlot( "XY-plane" );
-  plots.get( "XY-plane" ).setCmap( visa::Colormaps::Colormap_t::GREYSCALE );
+  #ifdef HAVE_LIB_VISA
+    unsigned int holdForSec = 15;
+    visa::WindowHandler plots;
+    plots.setLayout(2,2);
+    plots.addPlot( "XY-plane" );
+    plots.get( "XY-plane" ).setCmap( visa::Colormaps::Colormap_t::GREYSCALE );
 
-  // Project in z-direction
-  arma::mat values( voxels.n_rows, voxels.n_cols );
-  projectionXY( values );
-  plots.getActive().setImg( values );
+    // Project in z-direction
+    arma::mat values( voxels.n_rows, voxels.n_cols );
+    projectionXY( values );
+    plots.getActive().setImg( values );
 
-  plots.addPlot( "XZ-plane" );
-  plots.get( "XZ-plane" ).setCmap( visa::Colormaps::Colormap_t::GREYSCALE );
-  values.set_size( voxels.n_cols, voxels.n_slices );
-  projectionXZ( values );
-  plots.get("XZ-plane").setImg( values );
+    plots.addPlot( "XZ-plane" );
+    plots.get( "XZ-plane" ).setCmap( visa::Colormaps::Colormap_t::GREYSCALE );
+    values.set_size( voxels.n_cols, voxels.n_slices );
+    projectionXZ( values );
+    plots.get("XZ-plane").setImg( values );
 
-  plots.addPlot( "YZ-plane" );
-  plots.get( "YZ-plane" ).setCmap( visa::Colormaps::Colormap_t::GREYSCALE );
-  values.set_size( voxels.n_rows, voxels.n_slices );
+    plots.addPlot( "YZ-plane" );
+    plots.get( "YZ-plane" ).setCmap( visa::Colormaps::Colormap_t::GREYSCALE );
+    values.set_size( voxels.n_rows, voxels.n_slices );
 
-  projectionYZ( values );
-  plots.get("YZ-plane").setImg( values );
+    projectionYZ( values );
+    plots.get("YZ-plane").setImg( values );
 
-  chrono::seconds duration(1);
-  for ( unsigned int i=0;i<holdForSec;i++ )
-  {
-    plots.show();
-    clog << "Closes in " << holdForSec-i << " seconds\r";
-    this_thread::sleep_for( duration );
-  }
-  clog << endl;
+    chrono::seconds duration(1);
+    for ( unsigned int i=0;i<holdForSec;i++ )
+    {
+      plots.show();
+      clog << "Closes in " << holdForSec-i << " seconds\r";
+      this_thread::sleep_for( duration );
+    }
+    clog << endl;
+  #else
+    clog << "Compiled without libvisa!\n";
+  #endif
 }
 
 void VoxelMaterial::fillArmaMat( const arma::Mat<unsigned char> &values, arma::mat &matrix )

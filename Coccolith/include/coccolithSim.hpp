@@ -1,10 +1,13 @@
 #ifndef COCCOLITH_SIMULATION_H
 #define COCCOLITH_SIMULATION_H
+#include "config.h"
 #include <string>
 #include "voxelMaterial.hpp"
 #include "fieldMonitors.hpp"
 #include <complex>
-#include <visa/visa.hpp>
+#ifdef HAVE_LIB_VISA
+  #include <visa/visa.hpp>
+#endif
 #include <cstdlib>
 #define UID_MAX 10000000
 
@@ -91,7 +94,7 @@ protected:
   meep::fields* field{NULL};
   meep::src_time *sourceTime{NULL}; // Do not delete this pointer
   meep::gaussian_src_time *source{NULL};
-  unsigned int uid{0};
+  std::string uid{""};
   std::string outdir{"data/"};
   unsigned int nSave{30};
   bool isInitialized{false};
@@ -107,7 +110,9 @@ protected:
   unsigned int nMonitorY{256};
   unsigned int nMonitorZ{256};
   double tEnd{100.0};
-  visa::WindowHandler *plots{NULL};
+  #ifdef HAVE_LIB_VISA
+    visa::WindowHandler *plots{NULL};
+  #endif
   bool userOverridedEndTime{false};
   bool realTimeVisualization{true};
   bool geoIsInitialized{false};
@@ -192,6 +197,9 @@ protected:
   static meep::vec waveVec;
 
   static cdouble amplitude( const meep::vec &r );
+
+  /** Sets the UID based on local time */
+  void setUID();
 };
 
 #endif

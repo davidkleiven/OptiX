@@ -54,10 +54,7 @@ void SteadyCoccolithSim::stepForTime( double endTime )
 
 void SteadyCoccolithSim::exportResults()
 {
-  if ( uid == 0 )
-  {
-    uid = rand()%UID_MAX;
-  }
+  setUID();
 
   stringstream ss;
   ss << "data/voxelMaterialSimSteady_" << uid; // File extension added automatically

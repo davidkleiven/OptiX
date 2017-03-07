@@ -142,20 +142,25 @@ if ( NOT FLTK_IMAGE_LIBRARY)
 endif()
 find_package( OpenGL REQUIRED )
 
-find_package(SFML REQUIRED system window graphics network audio)
-include_directories(SFML_INCLUDE_DIR)
-set( LIB ${LIB} ${SFML_LIBRARIES} )
 
 # Check for the VISA library
 find_library( VISA_LIB visa HINTS /usr/local/lib )
-if ( NOT VISA_LIB )
-  MESSAGE (FATAL_ERROR "Did not find the VISA library")
-endif ( NOT VISA_LIB )
-set( LIB ${LIB} ${VISA_LIB} )
+if ( VISA_LIB )
+  set( LIB ${LIB} ${VISA_LIB} )
+  set( HAVE_LIB_VISA 1 )
+
+  find_package(SFML REQUIRED system window graphics network audio)
+  include_directories(SFML_INCLUDE_DIR)
+  set( LIB ${LIB} ${SFML_LIBRARIES} )
+else()
+  MESSAGE ( STATUS "Did not find the VISA library")
+  set( HAVE_LIB_VISA 0 )
+endif ()
 
 find_path( VISA_HEADER visa/ )
 if ( NOT VISA_HEADER )
   MESSAGE(FATAL_ERROR "Did not find the VISA header files!")
+  set( HAVE_LIB_VISA 0 )
 endif( NOT VISA_HEADER )
 
 include_directories( FLTK_INCLUDE_DIR )
@@ -176,6 +181,8 @@ if ( NOT JSON_HEADER )
   MESSAGE( FATAL_ERROR "Did not find the json headers!")
 endif( NOT JSON_HEADER )
 
+
+configure_file( "include/config.h.in" "include/config.h" )
 set( LIB ${LIB} sourcefiles)
 add_executable( coccolith.out coccolith.cpp )
 target_link_libraries( coccolith.out ${LIB} )
