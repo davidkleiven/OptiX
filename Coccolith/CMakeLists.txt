@@ -102,44 +102,12 @@ if( NOT USE_MPI )
   MESSAGE( STATUS ${HDF5_LIBRARIES} ${HDF5_HL_LIBRARIES} ${HDF5_CXX_LIBRARIES} )
 endif()
 
-# Find the PEI library
-find_library( PEI_LIB pei )
-set( LIB ${LIB} ${PEI_LIB} )
-if ( NOT PEI_LIB )
-  MESSAGE( FATAL_ERROR "Did not find the pei library!")
-endif ( NOT PEI_LIB )
-find_path( PEI_HEADER pei/ )
-if ( NOT PEI_HEADER )
-  MESSAGE( FATAL_ERROR "Did not find the pei headers!")
-endif ( NOT PEI_HEADER )
-
 # Find pthreads library
 find_package( OpenMP )
 if ( OpenMP_found )
   set ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}" )
 endif()
 
-set ( FLTK_SKIP_FLUID True )
-set( CMAKE_LIBRARY_PATH "/usr/lib/x86_64-linux-gnu")
-#find_package( FLTK REQUIRED )
-
-# Manual find the FLTK libraries
-find_library( FLTK_BASE_LIBRARY fltk )
-if( NOT FLTK_BASE_LIBRARY )
-  MESSAGE( FATAL_ERROR "Did not find the fltk library")
-endif()
-find_library( FLTK_GL_LIBRARY fltk_gl)
-if ( NOT FLTK_GL_LIBRARY )
-  MESSAGE( FATAL_ERROR "Did not find the fltk_gl library!")
-endif()
-find_library( FLTK_FORMS fltk_forms )
-if ( NOT FLTK_FORMS )
-  MESSAGE( FATAL_ERROR "Did not find the fltk_forms library!")
-endif()
-find_library( FLTK_IMAGE_LIBRARY fltk_images)
-if ( NOT FLTK_IMAGE_LIBRARY)
-  MESSAGE( FATAL_ERROR "Did not find the fltk_images library!")
-endif()
 find_package( OpenGL REQUIRED )
 
 
