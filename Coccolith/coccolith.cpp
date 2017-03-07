@@ -11,7 +11,7 @@ int main( int argc, char** argv )
 {
   meep::initialize mpi( argc, argv );
   srand( time(0) );
-  bool useDispersive = false;
+  bool useDispersive = true;
   try
   {
     CoccolithSimulation sim;
@@ -41,7 +41,10 @@ int main( int argc, char** argv )
     sim.init();
 
     // If the material is dispersive the structure needs to be updated
-    materialDisp.updateStructure( sim.getStructure() );
+    if ( useDispersive )
+    {
+      materialDisp.updateStructure( sim.getStructure() );
+    }
 
     sim.run();
     sim.exportResults();

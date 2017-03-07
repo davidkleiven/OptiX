@@ -51,7 +51,7 @@ void RefractiveIndexInfoMaterial::checkRequiredFields( const Json::Value &root )
   // Check all lorentzians
   for ( unsigned int i=0;i<root["lorentzians"].size();i++ )
   {
-    if ( !root["lorentzians"][i].isMember("preFactor") )
+    if ( !root["lorentzians"][i].isMember("prefactor") )
     {
       stringstream msg;
       msg << "No field named prefactor in element " << i << " of the lorentzians!";

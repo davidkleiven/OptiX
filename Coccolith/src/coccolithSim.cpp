@@ -629,6 +629,9 @@ void CoccolithSimulation::saveGeometry()
 
   double pmlThickness = getPMLThickness();
   file->write( "geometryPmlThickness", 1, &single, &pmlThickness, false );
+
+  double vxsize = material->getVoxelSize();
+  file->write( "voxelsizeInNanoMeter", 1, &single, &vxsize, false );
 }
 
 void CoccolithSimulation::runWithoutScatterer()
