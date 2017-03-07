@@ -339,6 +339,11 @@ void DispersiveVoxel::updateStructure( meep::structure &struc ) const
   {
     struc.add_susceptibility( *E_materialfunctions[i], meep::E_stuff, *E_susceptibilities[i] );
   }
+
+  if ( meep::my_rank() == 0 )
+  {
+    clog << "Added " << E_materialfunctions.size() << " to the MEEP structure...\n";
+  }
 }
 
 double DispersiveVoxel::chi1p1( meep::field_type ft, const meep::vec &r )
