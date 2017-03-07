@@ -14,6 +14,7 @@ class Spectrum:
         self.dfreq = 0.0
         self.Nfreq = 0.0
         self.uid = 0
+        self.voxelSize = -1.0 # In nano meters
 
     def freqmax( self ):
         return self.freqmin + self.dfreq*self.Nfreq
@@ -23,10 +24,14 @@ class Spectrum:
         ax = fig.add_subplot(1,1,1)
         f = np.linspace( self.freqmin, self.freqmax(), len( self.data ) )
         ax.plot( f, self.data, color="black" )
-        ax.set_xlabel("\$\omega (c/L)\$")
-        ax.set_ylabel("Transmittivity")
-        ax.spines["right"].set_visible( False )
-        ax.spines["top"].set_visible( False )
+        ax.set_xlabel("Frequency \$(c/L)\$")
+        ax.set_ylabel("Transmittivity (\$I_e/I_0\$)")
+        if ( self.voxelSize > 0.0 ):
+            ax2 = ax.twiny()
+            ax2.set_xlim( self.voxelSize/self.freqmin, self.voxelSize/self.freqmax() )
+            ax2ticks = [self.voxelSize/ax1tick for ax1tick in ax.get_xticks()]
+            ax2.set_xticks( ax2ticks )
+            ax2.set_xlabel("Wavelength (nm)")
         ax.yaxis.set_ticks_position("left")
         ax.xaxis.set_ticks_position("bottom")
         return fig, ax
@@ -44,7 +49,11 @@ def main( argv ):
         specPlot.freqmin = freqs[0]
         specPlot.dfreq = freqs[1]
         specPlot.Nfreq = freqs[2]
+        if ( "voxelsizeInNanoMeter" in hf.keys() ):
+            specPlot.voxelSize = np.array( hf.get("voxelsizeInNanoMeter") )[0]
 
+    # Tweak
+    specPlot.voxelSize = 21.6
     fig, ax = specPlot.plot()
     plt.show()
 
