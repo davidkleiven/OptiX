@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <cmath>
 #include <cassert>
+#include <iostream>
 
 using namespace std;
 
@@ -30,7 +31,7 @@ void RefractiveIndexInfoMaterial::load( const char* infname )
   for ( unsigned int i=0;i<root["lorentzians"].size();i++ )
   {
     Lorentzian lor;
-    lor.preFactor = root["lorentzians"][i]["preFactor"].asDouble();
+    lor.preFactor = root["lorentzians"][i]["prefactor"].asDouble();
     lor.resonanceWavelength = root["lorentzians"][i]["resonance"].asDouble();
     lorentzians.push_back( lor );
   }
@@ -87,7 +88,7 @@ double RefractiveIndexInfoMaterial::getEpsilon( double lambda ) const
 
 double RefractiveIndexInfoMaterial::getEpsilon( double lengthscale, double MEEPangFreq ) const
 {
-  double PI = acos(-1.0);
-  double lambda = MEEPangFreq*lengthscale/(2.0*PI);
+  const double PI = acos(-1.0);
+  double lambda = 2.0*PI*lengthscale/MEEPangFreq;
   return getEpsilon( lambda );
 }

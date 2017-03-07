@@ -83,6 +83,8 @@ public:
 
   /** Returns a reference to the structure */
   meep::structure& getStructure(){ return *struc; };
+
+    double resolution{1.0};
 protected:
   VoxelMaterial *material{NULL};
   MainPropDirection_t propagationDir{MainPropDirection_t::Z};
@@ -103,7 +105,6 @@ protected:
   double pmlThicknessInWavelengths{3.0};
   double centerFrequency{1.0};
   double freqWidth{0.5};
-  double resolution{1.0};
   bool materialLoaded{false};
   unsigned int nfreq{100};
   unsigned int nMonitorX{256};

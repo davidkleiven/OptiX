@@ -5,6 +5,7 @@
 #include <sstream>
 #include <omp.h>
 #include <ctime>
+#include <iomanip>
 
 using namespace std;
 
@@ -533,9 +534,12 @@ void CoccolithSimulation::setUID()
   if ( uid == "" )
   {
     time_t t = time(NULL);
+    auto tm = *localtime(&t);
     stringstream ss;
-    ss << localtime(&t)->tm_year+1900 << localtime(&t)->tm_mon << localtime(&t)->tm_mday <<"_"<<
-    localtime(&t)->tm_hour <<localtime(&t)->tm_min << localtime(&t)->tm_sec;
+    ss << put_time( &tm, "%Y%m%d_%H%M%S");
+    /*
+    ss << localtime(&t)->tm_year+1900 << localtime(&t)->tm_mon+1 << localtime(&t)->tm_mday <<"_"<<
+    localtime(&t)->tm_hour <<localtime(&t)->tm_min << localtime(&t)->tm_sec;*/
     uid = ss.str();
   }
 }

@@ -342,7 +342,7 @@ void DispersiveVoxel::updateStructure( meep::structure &struc ) const
 
   if ( meep::my_rank() == 0 )
   {
-    clog << "Added " << E_materialfunctions.size() << " to the MEEP structure...\n";
+    clog << "Added " << E_materialfunctions.size() << " lorentzian susceptibilities to the MEEP structure...\n";
   }
 }
 

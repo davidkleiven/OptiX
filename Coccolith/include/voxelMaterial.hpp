@@ -123,7 +123,7 @@ private:
   double sigma{0.0};
 };
 
-class DispersiveVoxel: public VoxelMaterial, RefractiveIndexInfoMaterial
+class DispersiveVoxel: public VoxelMaterial, public RefractiveIndexInfoMaterial
 {
 public:
   DispersiveVoxel(){};
