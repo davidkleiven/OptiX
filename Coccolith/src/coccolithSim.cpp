@@ -575,7 +575,7 @@ void CoccolithSimulation::exportResults()
       saveGeometry();
       Json::StyledWriter sw;
       ofstream of;
-      string fname = prefix+"parameters.json";
+      string fname = outdir+prefix+"parameters.json";
       of.open( fname.c_str() );
       if ( !of.good() )
       {
