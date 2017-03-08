@@ -320,6 +320,7 @@ void VoxelSusceptibility::sigma_row( meep::component c, double sigrow[3], const 
 void DispersiveVoxel::load( const char* fname )
 {
   RefractiveIndexInfoMaterial::load( fname );
+  const double PI = acos(-1.0);
 
   for ( unsigned int i=0;i<lorentzians.size();i++ )
   {
@@ -328,7 +329,7 @@ void DispersiveVoxel::load( const char* fname )
     // The voxel size is the length scale and it is given in nano meter
     getMEEPLorentzian( vxsize*1E-3, i, sigma, omega0 );
     E_materialfunctions.push_back( new VoxelSusceptibility(sigma) );
-    E_susceptibilities.push_back( new meep::lorentzian_susceptibility(omega0, 0.0) );
+    E_susceptibilities.push_back( new meep::lorentzian_susceptibility(omega0/(2.0*PI), 0.0) );
   }
 }
 

@@ -556,7 +556,11 @@ void CoccolithSimulation::exportResults()
   {
     field->output_hdf5( meep::Dielectric, gdvol.surroundings(), NULL, false, true, prefix.c_str() );
   }
-  saveDFTSpectrum();
+
+  if ( meep::my_rank() == 0 )
+  {
+    saveDFTSpectrum();
+  }
 
   /*
   stringstream ss;
@@ -593,21 +597,31 @@ void CoccolithSimulation::saveDFTSpectrum()
   //assert( file != NULL );
   assert( material != NULL );
 
+  string newpref("");
   if ( material->isReferenceRun() )
   {
-    string newpref = prefix+"-referenceflux";
-    transmitFlux->save_hdf5( *field, newpref.c_str() );
+    newpref = outdir+prefix+"-referenceflux.bin";
+    //transmitFlux->save_hdf5( *field, newpref.c_str() );
     //int length = transmitFlux->Nfreq;
     //file->write( "spectrumReference", 1, &length, transmitFlux->flux(), false );
     return;
   }
   else
   {
-    string newpref = prefix+"-transmittedflux";
-    transmitFlux->save_hdf5( *field, newpref.c_str() );
+    newpref = outdir+prefix+"-transmittedflux.bin";
+    //transmitFlux->save_hdf5( *field, newpref.c_str() );
     //int length = transmitFlux->Nfreq;
     //file->write( "spectrumTransmitted", 1, &length, transmitFlux->flux(), false );
   }
+  ofstream of;
+  of.open( newpref.c_str(), ios::binary );
+  if ( !of.good() )
+  {
+    clog << "Could not open file " << newpref << endl;
+    return;
+  }
+  of.write( reinterpret_cast<char*>(transmitFlux->flux()), transmitFlux->Nfreq*sizeof(double) );
+  of.close();
 }
 
 void CoccolithSimulation::saveDFTParameters()
