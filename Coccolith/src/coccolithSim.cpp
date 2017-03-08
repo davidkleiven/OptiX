@@ -545,13 +545,20 @@ void CoccolithSimulation::setUID()
 }
 void CoccolithSimulation::exportResults()
 {
-  setUID();
-
   if ( material == NULL )
   {
     throw( runtime_error("Material needs to be set before calling exportResults()!") );
   }
 
+  setUID();
+  prefix = "uid"+uid;
+  if ( !material->isReferenceRun() )
+  {
+    field->output_hdf5( meep::Dielectric, gdvol.surroundings(), NULL, false, true, prefix.c_str() );
+  }
+  saveDFTSpectrum();
+
+  /*
   stringstream ss;
   ss << "data/voxelMaterialSim_" << uid; // File extension added automatically
   if ( file == NULL )
@@ -559,83 +566,117 @@ void CoccolithSimulation::exportResults()
     file = field->open_h5file( ss.str().c_str() );
     saveGeometry();
   }
+  */
 
-  saveDFTSpectrum();
-
-  if ( !material->isReferenceRun() )
+  if (( meep::my_rank() == 0 ) && (!material->isReferenceRun() ))
   {
-    field->output_hdf5( meep::Dielectric, gdvol.surroundings(), file, false, true );
-  }
-  if ( meep::my_rank() == 0 )
-  {
-      clog << "Results written to " << ss.str() << endl;
+      clog << "Saving parameters...\n";
+      saveDFTParameters();
+      saveGeometry();
+      Json::StyledWriter sw;
+      ofstream of;
+      string fname = outdir+prefix+"parameters.json";
+      of.open( fname.c_str() );
+      if ( !of.good() )
+      {
+        clog << "Could not open JSON file " << fname << endl;
+        return;
+      }
+      of << sw.write(root) << endl;
+      of.close();
+      clog << "Results written to " << fname << endl;
   }
 }
 
 void CoccolithSimulation::saveDFTSpectrum()
 {
-  assert( file != NULL );
+  //assert( file != NULL );
   assert( material != NULL );
 
   if ( material->isReferenceRun() )
   {
-    int length = transmitFlux->Nfreq;
-    file->write( "spectrumReference", 1, &length, transmitFlux->flux(), false );
+    string newpref = prefix+"-reference";
+    transmitFlux->save_hdf5( *field, newpref.c_str() );
+    //int length = transmitFlux->Nfreq;
+    //file->write( "spectrumReference", 1, &length, transmitFlux->flux(), false );
     return;
   }
   else
   {
-    int length = transmitFlux->Nfreq;
-    file->write( "spectrumTransmitted", 1, &length, transmitFlux->flux(), false );
+    string newpref = prefix+"-transmitted";
+    transmitFlux->save_hdf5( *field, newpref.c_str() );
+    //int length = transmitFlux->Nfreq;
+    //file->write( "spectrumTransmitted", 1, &length, transmitFlux->flux(), false );
   }
+}
 
-  const int nParams = 3;
-  double stat[nParams];
-  stat[0] = transmitFlux->freq_min;
-  stat[1] = transmitFlux->dfreq;
-  stat[2] = transmitFlux->Nfreq;
-
-  // Write parameters
-  file->write( "spectrumFreqs", 1, &nParams, stat, false );
+void CoccolithSimulation::saveDFTParameters()
+{
+  Json::Value dftParams;
+  dftParams["freqmin"] = transmitFlux->freq_min;
+  dftParams["dfreq"] = transmitFlux->dfreq;
+  dftParams["Nfreq"] = transmitFlux->Nfreq;
 
   // Write geometrical positions
   meep::vec mincrn = dftVolTransmit->get_min_corner();
   meep::vec maxcrn = dftVolTransmit->get_max_corner();
-  int nCrns = 6;
-  double cornersTrans[nCrns] = {mincrn.x(), mincrn.y(), mincrn.z(), maxcrn.x(), maxcrn.y(), maxcrn.z()};
-  file->write( "spectrumCornersTransmit", 1, &nCrns, cornersTrans, false );
+  Json::Value corner(Json::arrayValue);
+  corner.append( mincrn.x() );
+  corner.append( mincrn.y() );
+  corner.append( mincrn.z() );
+  dftParams["corner1"] = corner;
+
+  Json::Value corner2(Json::arrayValue);
+  corner2.append( maxcrn.x() );
+  corner2.append( maxcrn.y() );
+  corner2.append( maxcrn.z() );
+  dftParams["corner2"] = corner2;
+  root["dft"] = dftParams;
 }
 
 void CoccolithSimulation::saveGeometry()
 {
-  assert( file != NULL );
+  //assert( file != NULL );
+  Json::Value geometry;
 
   meep::vec mincrn = srcVol->get_min_corner();
   meep::vec maxcrn = srcVol->get_max_corner();
-  int nCrn = 6;
-  double corners[6] = {mincrn.x(), mincrn.y(), mincrn.z(), maxcrn.x(), maxcrn.y(), maxcrn.z()};
-  file->write( "geometrySourceVolume", 1, &nCrn, corners, false );
 
-  int ndim = 3;
-  double incWaveVec[ndim] = {waveVec.x(), waveVec.y(), waveVec.z()};
-  file->write( "geometryIncWavevector", 1, &ndim, incWaveVec, false );
+  Json::Value corner1(Json::arrayValue);
+  corner1.append( mincrn.x() );
+  corner1.append( mincrn.y() );
+  corner1.append( mincrn.z() );
+  geometry["corner1"] = corner1;
+  Json::Value corner2(Json::arrayValue);
+  corner2.append( maxcrn.x() );
+  corner2.append( maxcrn.y() );
+  corner2.append( maxcrn.z() );
+  geometry["corner2"] = corner2;
+
+  Json::Value waveVector(Json::arrayValue);
+  waveVector.append( waveVec.x() );
+  waveVector.append( waveVec.y() );
+  waveVector.append( waveVec.z() );
+  geometry["wavVector"] = waveVector;
 
   int single = 1;
-  double wavelength = getWavelength();
-  file->write( "geometryWavelength", 1, &single, &wavelength, false );
+  geometry["wavelength"] = getWavelength();
 
   int nFreqParam = 2;
   double freqParam[2] = {centerFrequency, freqWidth};
-  file->write( "geometryDimlessAngularFreq", 1, &nFreqParam, freqParam, false );
+  geometry["dimLessAngularFreq"] = centerFrequency;
+  geometry["dimLessFreqWidth"] = freqWidth;
+  geometry["xmin"] = gdvol.xmin();
+  geometry["xmax"] = gdvol.xmax();
+  geometry["ymin"] = gdvol.ymin();
+  geometry["ymax"] = gdvol.ymax();
+  geometry["zmin"] = gdvol.zmin();
+  geometry["zmax"] = gdvol.zmax();
 
-  double domainSize[nCrn] = {gdvol.xmin(), gdvol.xmax(), gdvol.ymin(), gdvol.ymax(), gdvol.zmin(), gdvol.zmax()};
-  file->write( "geometryDomainSize", 1, &nCrn, domainSize, false );
+  geometry["pmlThickness"] = getPMLThickness();
 
-  double pmlThickness = getPMLThickness();
-  file->write( "geometryPmlThickness", 1, &single, &pmlThickness, false );
-
-  double vxsize = material->getVoxelSize();
-  file->write( "voxelsizeInNanoMeter", 1, &single, &vxsize, false );
+  geometry["voxelSize"] = material->getVoxelSize();
+  root["geometry"] = geometry;
 }
 
 void CoccolithSimulation::runWithoutScatterer()

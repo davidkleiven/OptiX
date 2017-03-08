@@ -5,6 +5,7 @@
 #include "voxelMaterial.hpp"
 #include "fieldMonitors.hpp"
 #include <complex>
+#include <json/writer.h>
 #ifdef HAVE_LIB_VISA
   #include <visa/visa.hpp>
 #endif
@@ -98,9 +99,11 @@ protected:
   meep::gaussian_src_time *source{NULL};
   std::string uid{""};
   std::string outdir{"data/"};
+  std::string prefix{""};
   unsigned int nSave{30};
   bool isInitialized{false};
   unsigned int plotUpdateFreq{30};
+  Json::Value root;
 
   double pmlThicknessInWavelengths{3.0};
   double centerFrequency{1.0};
@@ -182,6 +185,9 @@ protected:
 
   /** Stores the results from the DFT spectrums */
   void saveDFTSpectrum();
+
+  /** Save DFT parameters */
+  void saveDFTParameters();
 
   /** Save parameters specific to the geometry and source */
   void saveGeometry();
