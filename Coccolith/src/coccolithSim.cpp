@@ -617,13 +617,29 @@ void CoccolithSimulation::saveDFTSpectrum()
   //  clog << "Could not open file " << newpref << endl;
   //  return;
   //}
+  meep::begin_critical_section(87);
   FILE* of = meep::master_fopen( newpref.c_str(), "wb" );
   if ( meep::am_master() )
   {
-    fwrite( transmitFlux->flux(), sizeof(double)*transmitFlux->Nfreq, 1, of );
+    if ( of == NULL )
+    {
+      clog << "Could not open file " << newpref << endl;
+    }
+    else
+    {
+      clog << "Size: " << sizeof(double) << " nfreq= " << transmitFlux->Nfreq << endl;
+      std::fwrite( transmitFlux->flux(), sizeof(double), transmitFlux->Nfreq, of );
+    }
   }
   meep::master_fclose( of );
-  clog << "DFT flux spectrum written to " << newpref << endl;
+
+  if ( meep::am_master() )
+  {
+    clog << "DFT flux spectrum written to " << newpref << endl;
+  }
+  meep::end_critical_section(87);
+  clog << "Process " << meep::my_rank() << " is waiting...\n";
+  meep::all_wait(); // Wait until all processes reach this point
 }
 
 void CoccolithSimulation::saveDFTParameters()
