@@ -87,7 +87,8 @@ protected:
 
   double vxsize{1.0};
 
-  arma::Cube<unsigned char> voxels;
+  static arma::Cube<unsigned char> voxels; // This is shared among all instances of VoxelMaterial
+  static bool materialIsLoaded;
 
   bool referenceRun{false};
 
@@ -117,8 +118,8 @@ class VoxelSusceptibility: public VoxelMaterial
 public:
   VoxelSusceptibility( double sigma ): sigma(sigma){};
 
-  /** Returns the sigma value */
-  virtual double conductivity( meep::component c, const meep::vec &r ) override;
+  /** Returns a row of the sigma tensor */
+  virtual void sigma_row(meep::component c, double sigrow[3], const meep::vec &r);
 private:
   double sigma{0.0};
 };

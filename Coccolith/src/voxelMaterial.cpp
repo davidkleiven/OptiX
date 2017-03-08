@@ -10,6 +10,9 @@
 
 using namespace std;
 
+arma::Cube<unsigned char> VoxelMaterial::voxels;
+bool VoxelMaterial::materialIsLoaded = false;
+
 void VoxelMaterial::extractDimsFromFilename( const string &fname, InfoFromFilename &info )
 {
   unsigned int values[4];
@@ -41,6 +44,10 @@ void VoxelMaterial::loadRaw( const char* fname )
 
 void VoxelMaterial::loadRaw( const string &fname )
 {
+  if ( materialIsLoaded )
+  {
+    clog << "Warning! The voxels have already been loaded. This will change the behaviour of all voxel materials\n";
+  }
   InfoFromFilename info;
   extractDimsFromFilename( fname, info );
   vxsize = info.voxelsize;
@@ -59,6 +66,7 @@ void VoxelMaterial::loadRaw( const string &fname )
   voxels.reshape( info.Nx, info.Ny, info.Nz );
   applyThreshold();
   showStatistics();
+  materialIsLoaded = true;
 }
 
 void VoxelMaterial::applyThreshold()
@@ -297,15 +305,15 @@ double CaCO3Cocco::chi1p1( meep::field_type ft, const meep::vec &r )
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-double VoxelSusceptibility::conductivity( meep::component, const meep::vec &r )
+void VoxelSusceptibility::sigma_row( meep::component c, double sigrow[3], const meep::vec &r )
 {
-  if ( isReferenceRun() ) return 0.0;
+  sigrow[0] = sigrow[1] = sigrow[2] = 0.0;
+  if ( isReferenceRun() ) return;
 
   if ( isInsideDomain(r) )
   {
-    return sigma;
+    sigrow[meep::component_index(c)] = sigma;
   }
-  return 0.0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -330,7 +338,11 @@ DispersiveVoxel::~DispersiveVoxel()
   {
     delete E_materialfunctions[i];
     delete E_susceptibilities[i];
+    E_materialfunctions[i] = NULL;
+    E_susceptibilities[i] = NULL;
   }
+  E_materialfunctions.resize(0);
+  E_susceptibilities.resize(0);
 }
 
 void DispersiveVoxel::updateStructure( meep::structure &struc ) const
