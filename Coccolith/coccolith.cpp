@@ -12,6 +12,7 @@ using namespace std;
 int main( int argc, char** argv )
 {
   meep::initialize mpi( argc, argv );
+  
   Json::Value root;
   Json::Reader reader;
   ifstream infile;
@@ -58,7 +59,7 @@ int main( int argc, char** argv )
     sim.init();
 
     // If the material is dispersive the structure needs to be updated
-    if ( useDispersive )
+    if (( useDispersive ) && (meep::my_rank() == 0 ))
     {
       materialDisp.updateStructure( sim.getStructure() );
       clog << "Epsilon at center frequency " << materialDisp.getEpsilon( materialDisp.getVoxelSize()*1E-3, 2.0*3.14159*centerFreq ) << endl;
