@@ -53,7 +53,7 @@ int main( int argc, char** argv )
     sim.setPMLInWavelengths( 2.0 );
     sim.setPlotUpdateFreq( 30 );
     sim.disableRealTimeVisualization();
-    sim.setEndTime( 20.0);
+    //sim.setEndTime( 10.0);
 
     sim.runWithoutScatterer();
     sim.init();

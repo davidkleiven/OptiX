@@ -37,8 +37,11 @@ int main(int argc, char **argv) {
       clog << "Solution did not converge!\n";
     }
 
-    f.output_hdf5( meep::Dielectric, v.surroundings(), NULL, false, true, "cwe" );
-    f.output_hdf5(EnergyDensity, v.surroundings());
+    meep::h5file *file = f.open_h5file("data/cwMWE.h5");
+    f.output_hdf5( meep::Dielectric, v.surroundings(), file, false, true );
+    file->prevent_deadlock();
+    f.output_hdf5(EnergyDensity, v.surroundings(), file, false, true );
+    file->prevent_deadlock();
   }
   catch(...)
   {

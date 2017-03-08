@@ -19,6 +19,7 @@ CoccolithSimulation::~CoccolithSimulation()
   if ( field != NULL ) delete field; field=NULL;
   if ( dftVolTransmit != NULL ) delete dftVolTransmit; dftVolTransmit=NULL;
   if ( source != NULL ) delete source; source=NULL;
+  delete file; file=NULL;
 
   if ( monitor1 != NULL ) delete monitor1; monitor1=NULL;
   if ( monitor2 != NULL ) delete monitor2; monitor2=NULL;
@@ -553,21 +554,27 @@ void CoccolithSimulation::exportResults()
 
   setUID();
   prefix = "uid"+uid;
-  if ( !material->isReferenceRun() )
-  {
-    field->output_hdf5( meep::Dielectric, gdvol.surroundings(), NULL, false, true, prefix.c_str() );
-  }
-  saveDFTSpectrum();
 
-  /*
+
   stringstream ss;
-  ss << "data/voxelMaterialSim_" << uid; // File extension added automatically
+  ss << "voxelMaterialSim_" << uid; // File extension added automatically
   if ( file == NULL )
   {
     file = field->open_h5file( ss.str().c_str() );
     saveGeometry();
+    saveDFTParameters();
   }
-  */
+  if ( !material->isReferenceRun() )
+  {
+    field->output_hdf5( meep::Dielectric, gdvol.surroundings(), file, false, true );
+    file->prevent_deadlock();
+  }
+  saveDFTSpectrum();
+
+  if (( meep::am_master() ) && (!material->isReferenceRun() ))
+  {
+    clog << "Results written to " << ss.str() << endl;
+  }
 
   /*
   if (( meep::am_master() ) && (!material->isReferenceRun() ))
@@ -586,7 +593,6 @@ void CoccolithSimulation::exportResults()
       }
       of << sw.write(root) << endl;
       of.close();
-      clog << "Results written to " << fname << endl;
   */
 }
 
@@ -598,52 +604,39 @@ void CoccolithSimulation::saveDFTSpectrum()
   string newpref("");
   if ( material->isReferenceRun() )
   {
-    newpref = outdir+"/"+prefix+"-referenceflux.bin";
-    //transmitFlux->save_hdf5( *field, newpref.c_str() );
-    //int length = transmitFlux->Nfreq;
-    //file->write( "spectrumReference", 1, &length, transmitFlux->flux(), false );
+    int length = transmitFlux->Nfreq;
+    file->write( "spectrumReference", 1, &length, transmitFlux->flux(), false );
+    file->prevent_deadlock();
   }
   else
   {
-    newpref = outdir+"/"+prefix+"-transmittedflux.bin";
-    //transmitFlux->save_hdf5( *field, newpref.c_str() );
-    //int length = transmitFlux->Nfreq;
-    //file->write( "spectrumTransmitted", 1, &length, transmitFlux->flux(), false );
+    int length = transmitFlux->Nfreq;
+    file->write( "spectrumTransmitted", 1, &length, transmitFlux->flux(), false );
+    file->prevent_deadlock();
   }
-  //ofstream of;
-  //of.open( newpref.c_str(), ios::binary );
-  //if ( !of.good() )
-  //{
-  //  clog << "Could not open file " << newpref << endl;
-  //  return;
-  //}
-  meep::begin_critical_section(87);
-  FILE* of = meep::master_fopen( newpref.c_str(), "wb" );
-  if ( meep::am_master() )
-  {
-    if ( of == NULL )
-    {
-      clog << "Could not open file " << newpref << endl;
-    }
-    else
-    {
-      clog << "Size: " << sizeof(double) << " nfreq= " << transmitFlux->Nfreq << endl;
-      std::fwrite( transmitFlux->flux(), sizeof(double), transmitFlux->Nfreq, of );
-    }
-  }
-  meep::master_fclose( of );
-
-  if ( meep::am_master() )
-  {
-    clog << "DFT flux spectrum written to " << newpref << endl;
-  }
-  meep::end_critical_section(87);
-  clog << "Process " << meep::my_rank() << " is waiting...\n";
-  meep::all_wait(); // Wait until all processes reach this point
 }
 
 void CoccolithSimulation::saveDFTParameters()
 {
+  const int nParams = 3;
+  double stat[nParams];
+  stat[0] = transmitFlux->freq_min;
+  stat[1] = transmitFlux->dfreq;
+  stat[2] = transmitFlux->Nfreq;
+
+  // Write parameters
+  file->write( "spectrumFreqs", 1, &nParams, stat, false );
+  file->prevent_deadlock();
+
+  // Write geometrical positions
+  meep::vec mincrn = dftVolTransmit->get_min_corner();
+  meep::vec maxcrn = dftVolTransmit->get_max_corner();
+  int nCrns = 6;
+  double cornersTrans[nCrns] = {mincrn.x(), mincrn.y(), mincrn.z(), maxcrn.x(), maxcrn.y(), maxcrn.z()};
+  file->write( "spectrumCornersTransmit", 1, &nCrns, cornersTrans, false );
+  file->prevent_deadlock();
+
+  /*
   Json::Value dftParams;
   dftParams["freqmin"] = transmitFlux->freq_min;
   dftParams["dfreq"] = transmitFlux->dfreq;
@@ -664,10 +657,52 @@ void CoccolithSimulation::saveDFTParameters()
   corner2.append( maxcrn.z() );
   dftParams["corner2"] = corner2;
   root["dft"] = dftParams;
+  */
 }
 
 void CoccolithSimulation::saveGeometry()
 {
+  assert( file != NULL );
+
+  meep::vec mincrn = srcVol->get_min_corner();
+  meep::vec maxcrn = srcVol->get_max_corner();
+  int nCrn = 6;
+  double corners[6] = {mincrn.x(), mincrn.y(), mincrn.z(), maxcrn.x(), maxcrn.y(), maxcrn.z()};
+  file->write( "geometrySourceVolume", 1, &nCrn, corners, false );
+  file->prevent_deadlock();
+
+
+  int ndim = 3;
+  double incWaveVec[ndim] = {waveVec.x(), waveVec.y(), waveVec.z()};
+  file->write( "geometryIncWavevector", 1, &ndim, incWaveVec, false );
+  file->prevent_deadlock();
+
+  int single = 1;
+  double wavelength = getWavelength();
+  file->write( "geometryWavelength", 1, &single, &wavelength, false );
+  file->prevent_deadlock();
+
+
+  int nFreqParam = 2;
+  double freqParam[nFreqParam] = {centerFrequency, freqWidth};
+  file->write( "geometryAngFreq", 1, &nFreqParam, freqParam, false );
+  file->prevent_deadlock();
+
+
+  double domainSize[nCrn] = {gdvol.xmin(), gdvol.xmax(), gdvol.ymin(), gdvol.ymax(), gdvol.zmin(), gdvol.zmax()};
+  file->write( "geometryDomainSize", 1, &nCrn, domainSize, false );
+  file->prevent_deadlock();
+
+
+  double pmlThickness = getPMLThickness();
+  file->write( "geometryPmlT", 1, &single, &pmlThickness, false );
+  file->prevent_deadlock();
+
+  double vxsize = material->getVoxelSize();
+  file->write( "vxSizeNM", 1, &single, &vxsize, false );
+  file->prevent_deadlock();
+
+  /*
   //assert( file != NULL );
   Json::Value geometry;
 
@@ -708,7 +743,7 @@ void CoccolithSimulation::saveGeometry()
   geometry["pmlThickness"] = getPMLThickness();
 
   geometry["voxelSize"] = material->getVoxelSize();
-  root["geometry"] = geometry;
+  root["geometry"] = geometry;*/
 }
 
 void CoccolithSimulation::runWithoutScatterer()
