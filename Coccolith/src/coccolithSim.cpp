@@ -575,7 +575,7 @@ void CoccolithSimulation::exportResults()
       saveGeometry();
       Json::StyledWriter sw;
       ofstream of;
-      string fname = outdir+prefix+"parameters.json";
+      string fname = outdir+prefix+"-parameters.json";
       of.open( fname.c_str() );
       if ( !of.good() )
       {
@@ -595,7 +595,7 @@ void CoccolithSimulation::saveDFTSpectrum()
 
   if ( material->isReferenceRun() )
   {
-    string newpref = prefix+"-reference";
+    string newpref = prefix+"-referenceflux";
     transmitFlux->save_hdf5( *field, newpref.c_str() );
     //int length = transmitFlux->Nfreq;
     //file->write( "spectrumReference", 1, &length, transmitFlux->flux(), false );
@@ -603,7 +603,7 @@ void CoccolithSimulation::saveDFTSpectrum()
   }
   else
   {
-    string newpref = prefix+"-transmitted";
+    string newpref = prefix+"-transmittedflux";
     transmitFlux->save_hdf5( *field, newpref.c_str() );
     //int length = transmitFlux->Nfreq;
     //file->write( "spectrumTransmitted", 1, &length, transmitFlux->flux(), false );
