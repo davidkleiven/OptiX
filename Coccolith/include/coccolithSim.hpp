@@ -98,7 +98,7 @@ protected:
   meep::src_time *sourceTime{NULL}; // Do not delete this pointer
   meep::gaussian_src_time *source{NULL};
   std::string uid{""};
-  std::string outdir{"data/"};
+  std::string outdir{"data"};
   std::string prefix{""};
   unsigned int nSave{30};
   bool isInitialized{false};

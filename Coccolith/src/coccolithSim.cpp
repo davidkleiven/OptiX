@@ -75,6 +75,7 @@ void CoccolithSimulation::addStructure()
 
 
   struc = new meep::structure( gdvol, *material, meep::pml( getPMLThickness() ) );
+  struc->set_output_directory( outdir.c_str() );
 }
 
 double CoccolithSimulation::getWavelength() const
@@ -276,7 +277,7 @@ void CoccolithSimulation::setMonitorPlanes()
   meep::vec vy = meep::vec(0.0, dy, 0.0 );
   meep::vec vz = meep::vec(0.0, 0.0, dz );
 
-  if ( meep::my_rank() == 0 )
+  if ( meep::am_master() )
   {
     clog << "Setting up monitors and computing projections of epsilon...\n";
   }
@@ -340,7 +341,7 @@ void CoccolithSimulation::setMonitorPlanes()
     #endif
   }
 
-  if ( meep::my_rank() == 0 )
+  if ( meep::am_master() )
   {
     clog << "Finished\n";
   }
@@ -362,7 +363,7 @@ void CoccolithSimulation::run()
     simStop = tEnd;
   }
 
-  if ( meep::my_rank() == 0 )
+  if ( meep::am_master() )
   {
     clog << "End time: " << simStop << endl;
   }
@@ -424,7 +425,7 @@ void CoccolithSimulation::visualize()
 
 void CoccolithSimulation::domainInfo() const
 {
-  if ( meep::my_rank() == 0 )
+  if ( meep::am_master() )
   {
     if ( material == NULL )
     {
@@ -556,11 +557,7 @@ void CoccolithSimulation::exportResults()
   {
     field->output_hdf5( meep::Dielectric, gdvol.surroundings(), NULL, false, true, prefix.c_str() );
   }
-
-  if ( meep::my_rank() == 0 )
-  {
-    saveDFTSpectrum();
-  }
+  saveDFTSpectrum();
 
   /*
   stringstream ss;
@@ -572,14 +569,15 @@ void CoccolithSimulation::exportResults()
   }
   */
 
-  if (( meep::my_rank() == 0 ) && (!material->isReferenceRun() ))
+  /*
+  if (( meep::am_master() ) && (!material->isReferenceRun() ))
   {
       clog << "Saving parameters...\n";
       saveDFTParameters();
       saveGeometry();
       Json::StyledWriter sw;
       ofstream of;
-      string fname = outdir+prefix+"-parameters.json";
+      string fname = outdir+"/"+prefix+"-parameters.json";
       of.open( fname.c_str() );
       if ( !of.good() )
       {
@@ -589,7 +587,7 @@ void CoccolithSimulation::exportResults()
       of << sw.write(root) << endl;
       of.close();
       clog << "Results written to " << fname << endl;
-  }
+  */
 }
 
 void CoccolithSimulation::saveDFTSpectrum()
@@ -600,28 +598,32 @@ void CoccolithSimulation::saveDFTSpectrum()
   string newpref("");
   if ( material->isReferenceRun() )
   {
-    newpref = outdir+prefix+"-referenceflux.bin";
+    newpref = outdir+"/"+prefix+"-referenceflux.bin";
     //transmitFlux->save_hdf5( *field, newpref.c_str() );
     //int length = transmitFlux->Nfreq;
     //file->write( "spectrumReference", 1, &length, transmitFlux->flux(), false );
-    return;
   }
   else
   {
-    newpref = outdir+prefix+"-transmittedflux.bin";
+    newpref = outdir+"/"+prefix+"-transmittedflux.bin";
     //transmitFlux->save_hdf5( *field, newpref.c_str() );
     //int length = transmitFlux->Nfreq;
     //file->write( "spectrumTransmitted", 1, &length, transmitFlux->flux(), false );
   }
-  ofstream of;
-  of.open( newpref.c_str(), ios::binary );
-  if ( !of.good() )
+  //ofstream of;
+  //of.open( newpref.c_str(), ios::binary );
+  //if ( !of.good() )
+  //{
+  //  clog << "Could not open file " << newpref << endl;
+  //  return;
+  //}
+  FILE* of = meep::master_fopen( newpref.c_str(), "wb" );
+  if ( meep::am_master() )
   {
-    clog << "Could not open file " << newpref << endl;
-    return;
+    fwrite( transmitFlux->flux(), sizeof(double)*transmitFlux->Nfreq, 1, of );
   }
-  of.write( reinterpret_cast<char*>(transmitFlux->flux()), transmitFlux->Nfreq*sizeof(double) );
-  of.close();
+  meep::master_fclose( of );
+  clog << "DFT flux spectrum written to " << newpref << endl;
 }
 
 void CoccolithSimulation::saveDFTParameters()

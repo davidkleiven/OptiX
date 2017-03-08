@@ -11,6 +11,8 @@ using namespace std;
 
 int main( int argc, char** argv )
 {
+  try
+  {
   meep::initialize mpi( argc, argv );
 
   Json::Value root;
@@ -29,8 +31,6 @@ int main( int argc, char** argv )
   double centerFreq = root["centerFreq"].asDouble();
   double freqwidth = root["fwidth"].asDouble();
   bool useDispersive = root["useDispersive"].asBool();
-  try
-  {
     CoccolithSimulation sim;
     CaCO3Cocco material( 2.72 );
     DispersiveVoxel materialDisp;
@@ -53,7 +53,7 @@ int main( int argc, char** argv )
     sim.setPMLInWavelengths( 2.0 );
     sim.setPlotUpdateFreq( 30 );
     sim.disableRealTimeVisualization();
-    //sim.setEndTime( 50.0);
+    sim.setEndTime( 50.0);
 
     sim.runWithoutScatterer();
     sim.init();
@@ -80,6 +80,8 @@ int main( int argc, char** argv )
     sim.reset();
     sim.run();
     sim.exportResults();
+
+    clog << "Process " << meep::my_rank() << " finished\n";
   }
   catch( exception &exc )
   {
@@ -89,7 +91,5 @@ int main( int argc, char** argv )
   {
     cout << "Unrecognized exception!\n";
   }
-
-  clog << "Everything has gone out of scope by now. Why is it segfaulting here?\n";
   return 0;
 }

@@ -106,7 +106,7 @@ void VoxelMaterial::showStatistics() const
         }
       }
 
-  if ( meep::my_rank() == 0 )
+  if ( meep::am_master() )
   {
     cout << "---------------------------------------------------------------\n";
     cout << "Number of voxels outside material: " << numberOfZeros << endl;
@@ -353,7 +353,7 @@ void DispersiveVoxel::updateStructure( meep::structure &struc ) const
     struc.add_susceptibility( *E_materialfunctions[i], meep::E_stuff, *E_susceptibilities[i] );
   }
 
-  if ( meep::my_rank() == 0 )
+  if ( meep::am_master() )
   {
     clog << "Added " << E_materialfunctions.size() << " lorentzian susceptibilities to the MEEP structure...\n";
   }
