@@ -590,12 +590,12 @@ void CoccolithSimulation::exportResults()
 
 void CoccolithSimulation::saveDFTSpectrum()
 {
-  assert( file != NULL );
+  //assert( file != NULL );
   assert( material != NULL );
 
   if ( material->isReferenceRun() )
   {
-    string newpref = prefix+"-reference.h5";
+    string newpref = prefix+"-reference";
     transmitFlux->save_hdf5( *field, newpref.c_str() );
     //int length = transmitFlux->Nfreq;
     //file->write( "spectrumReference", 1, &length, transmitFlux->flux(), false );
@@ -603,7 +603,7 @@ void CoccolithSimulation::saveDFTSpectrum()
   }
   else
   {
-    string newpref = prefix+"-transmitted.h5";
+    string newpref = prefix+"-transmitted";
     transmitFlux->save_hdf5( *field, newpref.c_str() );
     //int length = transmitFlux->Nfreq;
     //file->write( "spectrumTransmitted", 1, &length, transmitFlux->flux(), false );
@@ -636,7 +636,7 @@ void CoccolithSimulation::saveDFTParameters()
 
 void CoccolithSimulation::saveGeometry()
 {
-  assert( file != NULL );
+  //assert( file != NULL );
   Json::Value geometry;
 
   meep::vec mincrn = srcVol->get_min_corner();

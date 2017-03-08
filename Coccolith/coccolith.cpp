@@ -12,7 +12,7 @@ using namespace std;
 int main( int argc, char** argv )
 {
   meep::initialize mpi( argc, argv );
-  
+
   Json::Value root;
   Json::Reader reader;
   ifstream infile;
@@ -53,12 +53,13 @@ int main( int argc, char** argv )
     sim.setPMLInWavelengths( 2.0 );
     sim.setPlotUpdateFreq( 30 );
     sim.disableRealTimeVisualization();
-    //sim.setEndTime( 5.0);
+    sim.setEndTime( 50.0);
 
     sim.runWithoutScatterer();
     sim.init();
 
     // If the material is dispersive the structure needs to be updated
+    /*
     if (( useDispersive ) && (meep::my_rank() == 0 ))
     {
       materialDisp.updateStructure( sim.getStructure() );
@@ -66,13 +67,15 @@ int main( int argc, char** argv )
       clog << "Epsilon at lower frequency " << materialDisp.getEpsilon( materialDisp.getVoxelSize()*1E-3, 2.0*3.14159*(centerFreq-freqwidth)) << endl;
       clog << "Epsilon at upper frequency " <<  materialDisp.getEpsilon( materialDisp.getVoxelSize()*1E-3, 2.0*3.14159*(centerFreq+freqwidth)) << endl;
     }
+    */
+
 
     sim.run();
     sim.exportResults();
 
-    cout << "===============================================================\n";
-    cout << "================= RUNNING WITH SCATTERER ======================\n";
-    cout << "===============================================================\n";
+    //cout << "===============================================================\n";
+    //cout << "================= RUNNING WITH SCATTERER ======================\n";
+    //cout << "===============================================================\n";
     sim.runWithScatterer();
     sim.reset();
     sim.run();
