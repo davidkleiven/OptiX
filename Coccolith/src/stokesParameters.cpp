@@ -124,3 +124,9 @@ void StokesParameters::computeUV( meep::dft_chunk* Efield )
     V[i] = Vsum[i]/nElem;
   }
 }
+
+void StokesParameters::compute( meep::dft_chunk *Efield )
+{
+  computeIQ( Efield );
+  computeUV( Efield );
+}

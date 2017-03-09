@@ -13,12 +13,12 @@ meep::vec CoccolithSimulation::waveVec;
 
 CoccolithSimulation::~CoccolithSimulation()
 {
-  // Sources and flux are deleted in the destructor of field
   if ( srcVol != NULL ) delete srcVol; srcVol=NULL;
+  // Sources and flux are deleted in the destructor of field
   if ( struc != NULL ) delete struc; struc=NULL;
   if ( field != NULL ) delete field; field=NULL;
   if ( dftVolTransmit != NULL ) delete dftVolTransmit; dftVolTransmit=NULL;
-  if ( source != NULL ) delete source; source=NULL;
+  //if ( source != NULL ) delete source; source=NULL; // Should be deleted by MEEP
   delete file; file=NULL;
 
   if ( monitor1 != NULL ) delete monitor1; monitor1=NULL;
@@ -538,10 +538,8 @@ void CoccolithSimulation::setUID()
     time_t t = time(NULL);
     auto tm = *localtime(&t);
     stringstream ss;
-    ss << put_time( &tm, "%Y%m%d_%H%M%S");
-    /*
-    ss << localtime(&t)->tm_year+1900 << localtime(&t)->tm_mon+1 << localtime(&t)->tm_mday <<"_"<<
-    localtime(&t)->tm_hour <<localtime(&t)->tm_min << localtime(&t)->tm_sec;*/
+    // Skip seconds as different processes reach this point slightly different, but a minute change in minutes is more unlikely
+    ss << put_time( &tm, "%Y%m%d_%H%M");
     uid = ss.str();
   }
 }
@@ -553,16 +551,20 @@ void CoccolithSimulation::exportResults()
   }
 
   setUID();
-  prefix = "uid"+uid;
-
-
   stringstream ss;
   ss << "voxelMaterialSim_" << uid; // File extension added automatically
   if ( file == NULL )
   {
-    file = field->open_h5file( ss.str().c_str() );
-    saveGeometry();
-    saveDFTParameters();
+    if ( material->isReferenceRun() )
+    {
+      file = field->open_h5file( ss.str().c_str() );
+      saveGeometry();
+      saveDFTParameters();
+    }
+    else
+    {
+      file = field->open_h5file( ss.str().c_str(), meep::h5file::READWRITE );
+    }
   }
   if ( !material->isReferenceRun() )
   {
@@ -570,6 +572,7 @@ void CoccolithSimulation::exportResults()
     file->prevent_deadlock();
   }
   saveDFTSpectrum();
+  //saveDFTStokes();
 
   if (( meep::am_master() ) && (!material->isReferenceRun() ))
   {
@@ -808,4 +811,37 @@ void CoccolithSimulation::setPMLInWavelengths( double pmlInWav )
     throw( runtime_error("Geometry is already initialized. It has no effect to change the PML thickness now!"));
   }
   pmlThicknessInWavelengths = pmlInWav;
+}
+
+void CoccolithSimulation::saveDFTStokes()
+{
+  if ( transmitFlux == NULL )
+  {
+    throw( runtime_error("Flux plane needs to be set before saving DFT stokes parameters!") );
+  }
+  stokes.compute( transmitFlux->E );
+  int length = stokes.getI().size();
+  if ( material->isReferenceRun() )
+  {
+    file->write( "stokeRefI", 1, &length, &stokes.getI()[0], false );
+    file->prevent_deadlock();
+    file->write( "stokeRefQ", 1, &length, &stokes.getQ()[0], false );
+    file->prevent_deadlock();
+    file->write( "stokeRefU", 1, &length, &stokes.getU()[0], false );
+    file->prevent_deadlock();
+    file->write( "stokeRefV", 1, &length, &stokes.getV()[0], false );
+    file->prevent_deadlock();
+  }
+  else
+  {
+    file->write( "stokeTransI", 1, &length, &stokes.getI()[0], false );
+    file->prevent_deadlock();
+    file->write( "stokeTransQ", 1, &length, &stokes.getQ()[0], false );
+    file->prevent_deadlock();
+    file->write( "stokeTransU", 1, &length, &stokes.getU()[0], false );
+    file->prevent_deadlock();
+    file->write( "stokeTransV", 1, &length, &stokes.getV()[0], false );
+    file->prevent_deadlock();
+  }
+
 }

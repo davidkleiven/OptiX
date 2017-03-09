@@ -10,6 +10,18 @@ public:
 
   /** Computes the Fourier Transformed stokes parameters from the fields */
   void compute( meep::dft_chunk *Efield );
+
+  /** Get the Fourier transformed I */
+  std::vector<double>& getI() { return I; };
+
+  /** Get the Fourier transformed Q */
+  std::vector<double>& getQ() { return Q; };
+
+  /** Get the Fourier transformed U */
+  std::vector<double>& getU() { return U; };
+
+  /** Get the Fourier transformed V */
+  std::vector<double>& getV() { return V; };
 private:
   meep::component comps[2];
 

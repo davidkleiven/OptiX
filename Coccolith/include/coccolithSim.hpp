@@ -6,6 +6,7 @@
 #include "fieldMonitors.hpp"
 #include <complex>
 #include <json/writer.h>
+#include "stokesParameters.hpp"
 #ifdef HAVE_LIB_VISA
   #include <visa/visa.hpp>
 #endif
@@ -85,7 +86,8 @@ public:
   /** Returns a reference to the structure */
   meep::structure& getStructure(){ return *struc; };
 
-    double resolution{1.0};
+  double resolution{1.0};
+  std::string uid{""};
 protected:
   VoxelMaterial *material{NULL};
   MainPropDirection_t propagationDir{MainPropDirection_t::Z};
@@ -95,9 +97,8 @@ protected:
   meep::structure* struc{NULL};
   meep::grid_volume gdvol;
   meep::fields* field{NULL};
-  meep::src_time *sourceTime{NULL}; // Do not delete this pointer
+  meep::src_time *sourceTime{NULL}; // Deleted by MEEP
   meep::gaussian_src_time *source{NULL};
-  std::string uid{""};
   std::string outdir{"data"};
   std::string prefix{""};
   unsigned int nSave{30};
@@ -114,6 +115,7 @@ protected:
   unsigned int nMonitorY{256};
   unsigned int nMonitorZ{256};
   double tEnd{100.0};
+  StokesParameters stokes;
   #ifdef HAVE_LIB_VISA
     visa::WindowHandler *plots{NULL};
   #endif
@@ -188,6 +190,9 @@ protected:
 
   /** Save DFT parameters */
   void saveDFTParameters();
+
+  /** Save the Fourier transformed Stokes parameters */
+  void saveDFTStokes();
 
   /** Save parameters specific to the geometry and source */
   void saveGeometry();

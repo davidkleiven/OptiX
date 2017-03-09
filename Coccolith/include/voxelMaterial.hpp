@@ -90,7 +90,7 @@ protected:
   static arma::Cube<unsigned char> voxels; // This is shared among all instances of VoxelMaterial
   static bool materialIsLoaded;
 
-  bool referenceRun{false};
+  static bool referenceRun;
 
   /** Returns true if the position inside the domain */
   bool isInsideDomain( const meep::vec &r ) const;
@@ -119,8 +119,16 @@ public:
   VoxelSusceptibility( double sigma ): sigma(sigma){};
 
   /** Returns a row of the sigma tensor */
-  virtual void sigma_row(meep::component c, double sigrow[3], const meep::vec &r);
+  virtual void sigma_row(meep::component c, double sigrow[3], const meep::vec &r) override;
+  virtual double chi1p1(meep::field_type ft, const meep::vec &r) override { (void)ft; return f(r); }
+  virtual double eps(const meep::vec &r) override { return f(r); }
+  virtual double mu(const meep::vec &r) override { return f(r); }
+  virtual double conductivity(meep::component c, const meep::vec &r) override {
+  (void)c; return f(r); }
+  virtual double chi3(meep::component c, const meep::vec &r) override { (void)c; return f(r); }
+  virtual double chi2(meep::component c, const meep::vec &r) override { (void)c; return f(r); }
 private:
+  double f( const meep::vec &r );
   double sigma{0.0};
 };
 
@@ -128,7 +136,6 @@ class DispersiveVoxel: public VoxelMaterial, public RefractiveIndexInfoMaterial
 {
 public:
   DispersiveVoxel(){};
-  ~DispersiveVoxel();
 
   /** Loads data from JSON file */
   void load( const char* fname );
@@ -138,10 +145,6 @@ public:
 
   /** MEEP function that has to implemented in order to get it to work */
   virtual double chi1p1(meep::field_type ft, const meep::vec &r);
-private:
-    // Used when the voxel material is dispersive
-    std::vector<meep::material_function*> E_materialfunctions;
-    std::vector<meep::susceptibility*> E_susceptibilities;
 };
 
 #endif
