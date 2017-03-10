@@ -145,7 +145,7 @@ int main( int argc, char** argv )
     gbeam.setCenter( 0.0, 0.5*params.at("depth")/2.0 );
 
     solver.visualizeRealSpace();
-    solver.setIntensityMinMax( 0.0, 1.0 );
+    solver.setIntensityMinMax( 0.0, 2.0 );
 
     ControlFile ctl( "data/waveguide3D" );
     switch ( wgtype )
@@ -158,7 +158,7 @@ int main( int argc, char** argv )
         straightWG.setTransverseDiscretization( xmin, xmax, dx, params.at("downSampleT") );
         straightWG.setVerticalDiscretization( ymin, ymax, dy );
         straightWG.setLongitudinalDiscretization( 0.0, params.at("zmax"), dz, params.at("downSampleZ") );
-        straightWG.setCladdingMaterial( "Ta" );
+        straightWG.setCladdingMaterial( "MatProp/indexRefrTa.txt" );
         straightWG.setSolver( solver );
 
         double absorbWidth = params.at("absorberWidthInWavelengths")*params.at("wavelength");
@@ -174,9 +174,15 @@ int main( int argc, char** argv )
         clog << "Running curved waveguide...\n";
         curvedWG << ef << ei << ep << ff;
         curvedWG.setTransverseDiscretization( xmin, xmax, dx, params.at("downSampleT") );
+        curvedWG.setVerticalDiscretization( ymin, ymax, dy );
         curvedWG.setLongitudinalDiscretization( 0.0, params.at("zmax"), dz, params.at("downSampleZ") );
-        curvedWG.setCladdingMaterial( "Ta" );
+        curvedWG.setCladdingMaterial( "MatProp/indexRefrTa.txt" );
         curvedWG.setSolver( solver );
+
+        double absorbWidth = params.at("absorberWidthInWavelengths")*params.at("wavelength");
+        double damping = params.at("absorberDampingInWavelengths")*params.at("wavelength");
+        solver.absorbingBC( absorbWidth, damping );
+
         curvedWG.setBoundaryConditions( gbeam );
         curvedWG.solve();
         curvedWG.save( ctl );

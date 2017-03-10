@@ -25,7 +25,18 @@ template<class wgPath, class wgShape>
 void Waveguide3D<wgPath,wgShape>::setCladdingMaterial( const char* name )
 {
   RefractiveIndex refr;
-  refr.load(name);
+  std::string arg(name);
+
+  // Quick fix to load file from a non standard location
+  if ( arg.find("/") != std::string::npos )
+  {
+    // A file name was specified
+    refr.loadUserDefinedFile( arg.c_str() );
+  }
+  else
+  {
+    refr.load(name);
+  }
   double energy = getEnergy();
   delta = refr.getDelta( energy );
   beta = refr.getBeta( energy );
