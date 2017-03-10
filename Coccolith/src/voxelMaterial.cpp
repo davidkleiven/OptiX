@@ -13,6 +13,8 @@ using namespace std;
 arma::Cube<unsigned char> VoxelMaterial::voxels;
 bool VoxelMaterial::materialIsLoaded = false;
 bool VoxelMaterial::referenceRun = false;
+double VoxelMaterial::vxsize = 1.0;
+DomainSize VoxelMaterial::domain;
 
 void VoxelMaterial::extractDimsFromFilename( const string &fname, InfoFromFilename &info )
 {
@@ -264,7 +266,7 @@ void VoxelMaterial::meepVecToIndx( const meep::vec &r, unsigned int indx[3] )
     indx[2] = ( r.z() - domain.zmin )*( voxels.n_slices-1)/( domain.zmax - domain.zmin );
 }
 
-bool VoxelMaterial::isInsideDomain( const meep::vec &r ) const
+bool VoxelMaterial::isInsideDomain( const meep::vec &r )
 {
   return ( r.x() > domain.xmin ) && ( r.x() < domain.xmax ) && \
          ( r.y() > domain.ymin ) && ( r.y() < domain.ymax ) && \
@@ -315,7 +317,14 @@ void VoxelSusceptibility::sigma_row( meep::component c, double sigrow[3], const 
 double VoxelSusceptibility::f( const meep::vec &r )
 {
   if ( isReferenceRun() ) return referenceReturnVal;
-  return parameter;
+  unsigned int indx[3];
+  meepVecToIndx( r, indx );
+
+  if ( voxels( indx[0], indx[1], indx[2] ) == 1 )
+  {
+    return parameter;
+  }
+  return referenceReturnVal;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

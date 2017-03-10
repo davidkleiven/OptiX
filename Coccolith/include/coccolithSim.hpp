@@ -126,13 +126,19 @@ protected:
   bool userOverridedEndTime{false};
   bool realTimeVisualization{true};
   bool geoIsInitialized{false};
+  std::string reflFluxPlaneBackup{"reflectedFlux"};
+  std::string reflFluxBoxBackup{"reflectedFluxBox"};
 
   /** Visualized intensity */
   void visualize();
 
   // Flux planes
   meep::volume *dftVolTransmit{NULL};
+  meep::volume *dftVolRefl{NULL};
+  meep::volume *dftVolBox{NULL};
   meep::dft_flux *transmitFlux{NULL};
+  meep::dft_flux *reflFlux{NULL};
+  meep::dft_flux *fluxBox{NULL};
 
   // Monitor planes 1
   FieldMonitor *monitor1{NULL};

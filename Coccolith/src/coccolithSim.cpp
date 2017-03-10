@@ -26,7 +26,11 @@ CoccolithSimulation::~CoccolithSimulation()
   if ( field != NULL ) delete field; field=NULL;
   if ( struc != NULL ) delete struc; struc=NULL;
   if ( dftVolTransmit != NULL ) delete dftVolTransmit; dftVolTransmit=NULL;
-  //if ( source != NULL ) delete source; source=NULL; // Should be deleted by MEEP
+  delete dftVolRefl; dftVolRefl = NULL;
+  delete dftVolBox; dftVolBox = NULL;
+  delete transmitFlux; transmitFlux = NULL;
+  delete reflFlux; reflFlux = NULL;
+  delete fluxBox; fluxBox = NULL;
   delete file; file=NULL;
 
   if ( monitor1 != NULL ) delete monitor1; monitor1=NULL;
@@ -188,28 +192,53 @@ void CoccolithSimulation::addFluxPlanes()
 
   meep::vec transDFTCrn1;
   meep::vec transDFTCrn2;
+  meep::vec reflDFTCrn1;
+  meep::vec reflDFTCrn2;
+
+  // Coordinates for flux box
+  meep::vec boxCrn1 = meep::vec( gdvol.xmin()+getPMLThickness(), gdvol.ymin()+getPMLThickness(), gdvol.zmin()+getPMLThickness() );
+  meep::vec boxCrn2 = meep::vec( gdvol.xmax()-getPMLThickness(), gdvol.ymax()-getPMLThickness(), gdvol.zmax()-getPMLThickness() );
 
   switch ( propagationDir )
   {
     case MainPropDirection_t::X:
       transDFTCrn1 = meep::vec( getTransFluxPos(), gdvol.ymin(), gdvol.zmin() );
       transDFTCrn2 = meep::vec( getTransFluxPos(), gdvol.ymax(), gdvol.zmax() );
+      reflDFTCrn1 = meep::vec( getSrcFluxPos(), gdvol.ymin(), gdvol.zmin() );
+      reflDFTCrn2 = meep::vec( getSrcFluxPos(), gdvol.ymax(), gdvol.zmax() );
       break;
     case MainPropDirection_t::Y:
       transDFTCrn1 = meep::vec( gdvol.xmin(), getTransFluxPos(), gdvol.zmin() );
       transDFTCrn2 = meep::vec( gdvol.xmax(), getTransFluxPos(), gdvol.zmax() );
+      reflDFTCrn1 = meep::vec( gdvol.xmin(), getSrcFluxPos(), gdvol.zmin() );
+      reflDFTCrn2 = meep::vec( gdvol.xmax(), getSrcFluxPos(), gdvol.zmax() );
       break;
     case MainPropDirection_t::Z:
       transDFTCrn1 = meep::vec( gdvol.xmin(), gdvol.ymin(), getTransFluxPos() );
       transDFTCrn2 = meep::vec( gdvol.xmax(), gdvol.ymax(), getTransFluxPos() );
+      reflDFTCrn1 = meep::vec( gdvol.xmin(), gdvol.ymin(), getSrcFluxPos() );
+      reflDFTCrn2 = meep::vec( gdvol.xmax(), gdvol.ymax(), getSrcFluxPos() );
       break;
   }
 
   if ( dftVolTransmit != NULL ) delete dftVolTransmit;
   dftVolTransmit = new meep::volume( transDFTCrn1, transDFTCrn2 );
 
-  if ( transmitFlux != NULL ) delete transmitFlux;
   transmitFlux = new meep::dft_flux( field->add_dft_flux_plane( *dftVolTransmit, centerFrequency-freqWidth/2.0, centerFrequency+freqWidth/2.0, nfreq ) );
+
+  dftVolRefl = new meep::volume( reflDFTCrn1, reflDFTCrn2 );
+  dftVolBox = new meep::volume( boxCrn1, boxCrn2 );
+  reflFlux = new meep::dft_flux( field->add_dft_flux_plane( *dftVolRefl, centerFrequency-freqWidth/2.0, centerFrequency+freqWidth/2.0, nfreq ) );
+  fluxBox = new meep::dft_flux( field->add_dft_flux_box( *dftVolBox, centerFrequency-freqWidth/2.0, centerFrequency+freqWidth/2.0, nfreq ) );
+
+  if ( !material->isReferenceRun() )
+  {
+    // There should be a backup file with the fluxes stored from the reference run
+    reflFlux->load_hdf5( *field, reflFluxPlaneBackup.c_str() );
+    fluxBox->load_hdf5( *field, reflFluxBoxBackup.c_str() );
+    reflFlux->scale_dfts(-1.0);
+    fluxBox->scale_dfts(-1.0);
+  }
 }
 
 
@@ -261,17 +290,6 @@ double CoccolithSimulation::getSrcFluxPos() const
       return getSrcPos() + 5.0*material->getVoxelSize();
     case SourcePosition_t::BOTTOM:
       return getSrcPos() - 5.0*material->getVoxelSize();
-  }
-}
-
-double CoccolithSimulation::getTransFluxPos() const
-{
-  switch( srcPos )
-  {
-    case SourcePosition_t::TOP:
-      return getUpperBorderInPropDir();
-    case SourcePosition_t::BOTTOM:
-      return getLowerBorderInPropDir();
   }
 }
 
@@ -613,6 +631,17 @@ void CoccolithSimulation::exportResults()
   */
 }
 
+double CoccolithSimulation::getTransFluxPos() const
+{
+  switch( srcPos )
+  {
+    case SourcePosition_t::TOP:
+      return getUpperBorderInPropDir();
+    case SourcePosition_t::BOTTOM:
+      return getLowerBorderInPropDir();
+  }
+}
+
 void CoccolithSimulation::saveDFTSpectrum()
 {
   //assert( file != NULL );
@@ -624,6 +653,13 @@ void CoccolithSimulation::saveDFTSpectrum()
     int length = transmitFlux->Nfreq;
     file->write( "spectrumReference", 1, &length, transmitFlux->flux(), false );
     file->prevent_deadlock();
+    file->write( "boxFluxRef", 1, &length, fluxBox->flux(), false );
+    file->prevent_deadlock();
+    file->write("reflPlaneRef", 1, &length, reflFlux->flux(), false );
+    file->prevent_deadlock();
+    // Save backup fields
+    fluxBox->save_hdf5( *field, reflFluxBoxBackup.c_str() );
+    reflFlux->save_hdf5( *field, reflFluxPlaneBackup.c_str() );
   }
   else
   {

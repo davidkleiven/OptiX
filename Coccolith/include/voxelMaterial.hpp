@@ -61,13 +61,13 @@ public:
   double getVoxelSize() const{ return vxsize; };
 
   /** Set the domain size. NOTE: Assumed to correspond to the array */
-  void setDomainSize( const meep::grid_volume &gvol, double PMLThickInPx );
+  static void setDomainSize( const meep::grid_volume &gvol, double PMLThickInPx );
 
   /** If set to true the refractive index is 1 in the entire domain */
-  void setReferenceRun( bool newval ){ referenceRun = newval; };
+  static void setReferenceRun( bool newval ){ referenceRun = newval; };
 
   /** True if the run is a reference run */
-  bool isReferenceRun() const{ return referenceRun; };
+  static bool isReferenceRun() { return referenceRun; };
 
   /** Updates the structure in case of dispersion. Default: do nothing */
   virtual void updateStructure( meep::structure &struc ) const {};
@@ -78,17 +78,17 @@ protected:
   static void fillArmaMat( const arma::Mat<unsigned char> &values, arma::mat &matrix );
 
   /** Separates the data in two sets */
-  void applyThreshold();
+  static void applyThreshold();
 
   /** Print statistics of voxels */
   void showStatistics() const;
 
   /** Translate meep coordinates to index in voxel array */
-  void meepVecToIndx( const meep::vec &r, unsigned int indx[3] );
+  static void meepVecToIndx( const meep::vec &r, unsigned int indx[3] );
 
-  DomainSize domain;
+  static DomainSize domain;
 
-  double vxsize{1.0};
+  static double vxsize;
 
   static arma::Cube<unsigned char> voxels; // This is shared among all instances of VoxelMaterial
   static bool materialIsLoaded;
@@ -96,7 +96,7 @@ protected:
   static bool referenceRun;
 
   /** Returns true if the position inside the domain */
-  bool isInsideDomain( const meep::vec &r ) const;
+  static bool isInsideDomain( const meep::vec &r );
 };
 
 class CaCO3Cocco: public VoxelMaterial
