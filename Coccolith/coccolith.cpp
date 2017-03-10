@@ -38,9 +38,9 @@ int main( int argc, char** argv )
     CoccolithSimulation *sim = new CoccolithSimulation();
     SellmeierMaterial sellmeier;
     sim->resolution = root["resolution"].asDouble();
-    sellmeier.load( "Materials/CaCO3.json" );
+    sellmeier.load( root["material"].asString().c_str() );
     VoxelSusceptibility material( sellmeier.epsInf, 1.0 );
-    material.loadRaw( "data/cocco8cv4Rotated_216_182_249_253.raw" );
+    material.loadRaw( root["voxels"].asString().c_str() );
     sim->setMaterial( material );
 
     unsigned int nFreq = 200;

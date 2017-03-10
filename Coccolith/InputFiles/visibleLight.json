@@ -2,5 +2,7 @@
   "centerFreq":0.045,
   "fwidth":0.03,
   "resolution":1.0,
-  "useDispersive":true
+  "useDispersive":true,
+  "material":"Materials/CaCO3.json",
+  "voxels":"data/cocco8cv4Rotated_216_182_249_253.raw"
 }

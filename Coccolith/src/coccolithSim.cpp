@@ -876,9 +876,8 @@ void CoccolithSimulation::updateStructure()
   {
     double sigma, omega0;
     sellmeier->getMEEPLorentzian( material->getVoxelSize()*1E-3, i, sigma, omega0 );
-    //if ( i == 0 ) sigma = 300.0;
     VoxelSusceptibility matFunc( sigma, 0.0 );
-    struc->add_susceptibility( sigmaTest, meep::E_stuff, meep::lorentzian_susceptibility(omega0/(2.0*PI), 0.0) );
+    struc->add_susceptibility( matFunc, meep::E_stuff, meep::lorentzian_susceptibility(omega0/(2.0*PI), 0.0) );
   }
 
   if ( meep::am_master() )
