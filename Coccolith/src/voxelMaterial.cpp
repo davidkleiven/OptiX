@@ -316,7 +316,7 @@ void VoxelSusceptibility::sigma_row( meep::component c, double sigrow[3], const 
 
 double VoxelSusceptibility::f( const meep::vec &r )
 {
-  if ( isReferenceRun() ) return referenceReturnVal;
+  if ( isReferenceRun() || !isInsideDomain(r)) return referenceReturnVal;
   unsigned int indx[3];
   meepVecToIndx( r, indx );
 
