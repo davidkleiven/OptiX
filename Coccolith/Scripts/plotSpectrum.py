@@ -9,7 +9,8 @@ import h5py as h5
 
 class Spectrum:
     def __init__( self ):
-        self.data = []
+        self.ref = []
+        self.trans = []
         self.freqmin = 0.0
         self.dfreq = 0.0
         self.Nfreq = 0.0
@@ -22,8 +23,8 @@ class Spectrum:
     def plot( self ):
         fig = plt.figure()
         ax = fig.add_subplot(1,1,1)
-        f = np.linspace( self.freqmin, self.freqmax(), len( self.data ) )
-        ax.plot( f, self.data, color="black" )
+        f = np.linspace( self.freqmin, self.freqmax(), len( self.ref ) )
+        ax.plot( f, self.trans/self.ref, color="black" )
         ax.set_xlabel("Frequency \$(c/L)\$")
         ax.set_ylabel("Transmittivity (\$I_e/I_0\$)")
         if ( self.voxelSize > 0.0 ):
@@ -36,6 +37,15 @@ class Spectrum:
         ax.xaxis.set_ticks_position("bottom")
         return fig, ax
 
+    def plotDiff( self ):
+        fig = plt.figure()
+        ax = fig.add_subplot(1,1,1)
+        f = np.linspace( self.freqmin, self.freqmax(), len( self.ref) )
+        ax.plot( f, 1.0-self.trans/self.ref, color="black" )
+        ax.set_xlabel( "Frequency \$(c/L)\$" )
+        ax.set_ylabel("\$1-T\$")
+        return fig, ax
+
 def main( argv ):
     if ( len(argv) != 1 ):
         print ("Usage: python plotSpectrum.py <file.h5>")
@@ -44,7 +54,8 @@ def main( argv ):
 
     specPlot = Spectrum()
     with h5.File( fname, 'r' ) as hf:
-        specPlot.data = np.array( hf.get("spectrumTransmitted") )/np.array( hf.get("spectrumReference"))
+        specPlot.ref = np.array( hf.get("spectrumReference"))
+        specPlot.trans = np.array( hf.get("spectrumTransmitted"))
         freqs = np.array( hf.get("spectrumFreqs") )
         specPlot.freqmin = freqs[0]
         specPlot.dfreq = freqs[1]
@@ -55,6 +66,7 @@ def main( argv ):
     # Tweak
     specPlot.voxelSize = 21.6
     fig, ax = specPlot.plot()
+    fig2, ax2 = specPlot.plotDiff()
     plt.show()
 
 if __name__ == "__main__":
