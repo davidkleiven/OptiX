@@ -68,6 +68,9 @@ public:
 
   /** True if the run is a reference run */
   bool isReferenceRun() const{ return referenceRun; };
+
+  /** Updates the structure in case of dispersion. Default: do nothing */
+  virtual void updateStructure( meep::structure &struc ) const {};
 protected:
   /** Extracts the dimension of the data from the filename */
   static void extractDimsFromFilename( const std::string &fname, InfoFromFilename &info );
@@ -113,10 +116,11 @@ private:
   double epsilon{1.0};
 };
 
+/** Basically a copy of the meep::simple_material function */
 class VoxelSusceptibility: public VoxelMaterial
 {
 public:
-  VoxelSusceptibility( double sigma ): sigma(sigma){};
+  VoxelSusceptibility( double sigma, double referenceReturnVal ): parameter(sigma), referenceReturnVal(referenceReturnVal){};
 
   /** Returns a row of the sigma tensor */
   virtual void sigma_row(meep::component c, double sigrow[3], const meep::vec &r) override;
@@ -129,22 +133,7 @@ public:
   virtual double chi2(meep::component c, const meep::vec &r) override { (void)c; return f(r); }
 private:
   double f( const meep::vec &r );
-  double sigma{0.0};
+  double parameter{0.0};
+  double referenceReturnVal{0.0};
 };
-
-class DispersiveVoxel: public VoxelMaterial, public RefractiveIndexInfoMaterial
-{
-public:
-  DispersiveVoxel(){};
-
-  /** Loads data from JSON file */
-  void load( const char* fname );
-
-  /** Pass all susceptibilities to the structure */
-  void updateStructure( meep::structure &struc ) const;
-
-  /** MEEP function that has to implemented in order to get it to work */
-  virtual double chi1p1(meep::field_type ft, const meep::vec &r);
-};
-
 #endif

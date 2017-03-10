@@ -9,7 +9,7 @@
 
 using namespace std;
 
-void RefractiveIndexInfoMaterial::load( const char* infname )
+void SellmeierMaterial::load( const char* infname )
 {
   fname = infname;
 
@@ -38,7 +38,7 @@ void RefractiveIndexInfoMaterial::load( const char* infname )
   epsInf = root["epsInf"].asDouble();
 }
 
-void RefractiveIndexInfoMaterial::checkRequiredFields( const Json::Value &root ) const
+void SellmeierMaterial::checkRequiredFields( const Json::Value &root ) const
 {
   if ( !root.isMember("epsInf") )
   {
@@ -67,7 +67,7 @@ void RefractiveIndexInfoMaterial::checkRequiredFields( const Json::Value &root )
   }
 }
 
-void RefractiveIndexInfoMaterial::getMEEPLorentzian( double lengthscaleInMicroMeter, unsigned int indx, double &sigma, double &resonnanceAngularFreq ) const
+void SellmeierMaterial::getMEEPLorentzian( double lengthscaleInMicroMeter, unsigned int indx, double &sigma, double &resonnanceAngularFreq ) const
 {
   assert( indx < lorentzians.size() );
   double PI = acos(-1.0);
@@ -76,7 +76,7 @@ void RefractiveIndexInfoMaterial::getMEEPLorentzian( double lengthscaleInMicroMe
   resonnanceAngularFreq = pow( 2.0*PI*lengthscaleInMicroMeter, 2 )/lorentzians[indx].resonanceWavelength;
 }
 
-double RefractiveIndexInfoMaterial::getEpsilon( double lambda ) const
+double SellmeierMaterial::getEpsilon( double lambda ) const
 {
   double eps = epsInf;
   for ( unsigned int i=0;i<lorentzians.size();i++ )
@@ -86,7 +86,7 @@ double RefractiveIndexInfoMaterial::getEpsilon( double lambda ) const
   return eps;
 }
 
-double RefractiveIndexInfoMaterial::getEpsilon( double lengthscale, double MEEPangFreq ) const
+double SellmeierMaterial::getEpsilon( double lengthscale, double MEEPangFreq ) const
 {
   const double PI = acos(-1.0);
   double lambda = 2.0*PI*lengthscale/MEEPangFreq;

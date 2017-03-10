@@ -13,7 +13,6 @@ using namespace std;
 arma::Cube<unsigned char> VoxelMaterial::voxels;
 bool VoxelMaterial::materialIsLoaded = false;
 bool VoxelMaterial::referenceRun = false;
-static VoxelSusceptibility matFuncStatic( 300.0 );
 
 void VoxelMaterial::extractDimsFromFilename( const string &fname, InfoFromFilename &info )
 {
@@ -315,53 +314,8 @@ void VoxelSusceptibility::sigma_row( meep::component c, double sigrow[3], const 
 
 double VoxelSusceptibility::f( const meep::vec &r )
 {
-  if ( isReferenceRun() ) return 0.0;
-  return sigma;
+  if ( isReferenceRun() ) return referenceReturnVal;
+  return parameter;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-void DispersiveVoxel::load( const char* fname )
-{
-  RefractiveIndexInfoMaterial::load( fname );
-}
-
-void DispersiveVoxel::updateStructure( meep::structure &struc ) const
-{
-  const double PI = acos(-1.0);
-  for ( unsigned int i=0;i<lorentzians.size();i++ )
-  {
-    double sigma, omega0;
-    getMEEPLorentzian( vxsize*1E-3, i, sigma, omega0 );
-    if ( i == 0 ) sigma = 300.0;
-    VoxelSusceptibility matFunc( sigma );
-    struc.add_susceptibility( matFuncStatic, meep::E_stuff, meep::lorentzian_susceptibility(omega0/(2.0*PI), 0.0) );
-  }
-
-  if ( meep::am_master() )
-  {
-    clog << "Added " << lorentzians.size() << " lorentzian susceptibilities to the MEEP structure...\n";
-  }
-}
-
-double DispersiveVoxel::chi1p1( meep::field_type ft, const meep::vec &r )
-{
-  if ( ft != meep::E_stuff ) return 1.0;
-
-  if ( referenceRun )
-  {
-    return 1.0;
-  }
-  else if ( !isInsideDomain(r) )
-  {
-    return 1.0;
-  }
-
-  unsigned int indx[3];
-  meepVecToIndx( r, indx );
-
-  if ( voxels( indx[0], indx[1], indx[2] ) == 1 )
-  {
-    return epsInf;
-  }
-  return 1.0;
-}

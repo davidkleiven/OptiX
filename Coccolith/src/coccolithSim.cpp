@@ -11,12 +11,20 @@ using namespace std;
 
 meep::vec CoccolithSimulation::waveVec;
 
+// Only for debugging
+double sigmaTest( const meep::vec &r )
+{
+  return 1.0;
+}
+
 CoccolithSimulation::~CoccolithSimulation()
 {
   if ( srcVol != NULL ) delete srcVol; srcVol=NULL;
   // Sources and flux are deleted in the destructor of field
-  if ( struc != NULL ) delete struc; struc=NULL;
+
+  // Apperently it looks like field needs to be deleted before struc. Bug??
   if ( field != NULL ) delete field; field=NULL;
+  if ( struc != NULL ) delete struc; struc=NULL;
   if ( dftVolTransmit != NULL ) delete dftVolTransmit; dftVolTransmit=NULL;
   //if ( source != NULL ) delete source; source=NULL; // Should be deleted by MEEP
   delete file; file=NULL;
@@ -77,6 +85,12 @@ void CoccolithSimulation::addStructure()
 
   struc = new meep::structure( gdvol, *material, meep::pml( getPMLThickness() ) );
   struc->set_output_directory( outdir.c_str() );
+  //struc->add_susceptibility( sigmaTest, meep::E_stuff, meep::lorentzian_susceptibility(0.1, 0.0) );
+
+  if ( sellmeier != NULL )
+  {
+    updateStructure();
+  }
 }
 
 double CoccolithSimulation::getWavelength() const
@@ -844,4 +858,31 @@ void CoccolithSimulation::saveDFTStokes()
     file->prevent_deadlock();
   }
 
+}
+
+void CoccolithSimulation::updateStructure()
+{
+  if ( struc == NULL )
+  {
+    throw (runtime_error("Structure is not initialized!") );
+  }
+
+  if ( sellmeier == NULL )
+  {
+    throw( runtime_error("Sellmeier material not specified!") );
+  }
+  const double PI = acos(-1.0);
+  for ( unsigned int i=0;i<sellmeier->nLorentzians();i++ )
+  {
+    double sigma, omega0;
+    sellmeier->getMEEPLorentzian( material->getVoxelSize()*1E-3, i, sigma, omega0 );
+    //if ( i == 0 ) sigma = 300.0;
+    VoxelSusceptibility matFunc( sigma, 0.0 );
+    struc->add_susceptibility( sigmaTest, meep::E_stuff, meep::lorentzian_susceptibility(omega0/(2.0*PI), 0.0) );
+  }
+
+  if ( meep::am_master() )
+  {
+    clog << "Added " << sellmeier->nLorentzians() << " lorentzian susceptibilities to the MEEP structure...\n";
+  }
 }

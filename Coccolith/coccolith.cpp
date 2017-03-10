@@ -19,7 +19,6 @@ int main( int argc, char** argv )
   try
   {
     meep::initialize mpi( argc, argv );
-    DispersiveVoxel materialDisp;
     Json::Value root;
     Json::Reader reader;
     ifstream infile;
@@ -37,19 +36,13 @@ int main( int argc, char** argv )
     double freqwidth = root["fwidth"].asDouble();
     bool useDispersive = root["useDispersive"].asBool();
     CoccolithSimulation *sim = new CoccolithSimulation();
-    CaCO3Cocco material( 2.72 );
+    SellmeierMaterial sellmeier;
     sim->resolution = root["resolution"].asDouble();
-    if ( useDispersive )
-    {
-      materialDisp.loadRaw( "data/cocco8cv4Rotated_216_182_249_253.raw" );
-      materialDisp.load( "Materials/CaCO3.json" );
-      sim->setMaterial( materialDisp );
-    }
-    else
-    {
-      material.loadRaw( "data/cocco8cv4Rotated_216_182_249_253.raw" );
-      sim->setMaterial( material );
-    }
+    sellmeier.load( "Materials/CaCO3.json" );
+    VoxelSusceptibility material( sellmeier.epsInf, 1.0 );
+    material.loadRaw( "data/cocco8cv4Rotated_216_182_249_253.raw" );
+    sim->setMaterial( material );
+
     unsigned int nFreq = 200;
     double pmlThick = 2.0;
     sim->setMainPropagationDirection( MainPropDirection_t::X );
@@ -58,7 +51,7 @@ int main( int argc, char** argv )
     sim->initSource( centerFreq, freqwidth );
     sim->setPMLInWavelengths( pmlThick );
     sim->disableRealTimeVisualization();
-    //sim->setEndTime( 10.0);
+    sim->setEndTime( 10.0);
     sim->runWithoutScatterer();
     sim->init();
     sim->run();
@@ -71,12 +64,9 @@ int main( int argc, char** argv )
     sim->uid = uid;
     if ( useDispersive )
     {
-      sim->setMaterial( materialDisp );
+      sim->setSellmeierMaterial( sellmeier );
     }
-    else
-    {
-      sim->setMaterial( material );
-    }
+    sim->setMaterial( material );
     sim->setMainPropagationDirection( MainPropDirection_t::X );
     sim->setSourceSide( SourcePosition_t::BOTTOM );
     sim->setNfreqFT( nFreq );
@@ -86,10 +76,6 @@ int main( int argc, char** argv )
     //sim->setEndTime( 10.0);
     sim->runWithScatterer();
     sim->init();
-    if ( useDispersive )
-    {
-      materialDisp.updateStructure( sim->getStructure() );
-    }
     sim->run();
     sim->exportResults();
     clog << "Process " << meep::my_rank() << " finished\n";

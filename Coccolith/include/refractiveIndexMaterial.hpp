@@ -20,10 +20,10 @@ struct Lorentzian
 *         x^2 - b
 * where a is named preFactor in the JSON file and b is named resonance.
 */
-class RefractiveIndexInfoMaterial
+class SellmeierMaterial
 {
 public:
-  RefractiveIndexInfoMaterial(){};
+  SellmeierMaterial(){};
 
   /** Loads material parameters from JSON file */
   void load( const char* fname );

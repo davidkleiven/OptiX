@@ -88,8 +88,12 @@ public:
 
   double resolution{1.0};
   std::string uid{""};
+
+  /** Set a Sellmeier material */
+  void setSellmeierMaterial( const SellmeierMaterial &mat ){ sellmeier = &mat; };
 protected:
   VoxelMaterial *material{NULL};
+  const SellmeierMaterial *sellmeier{NULL};
   MainPropDirection_t propagationDir{MainPropDirection_t::Z};
   meep::component fieldComp{meep::Ex};
 
@@ -212,6 +216,9 @@ protected:
 
   /** Sets the UID based on local time */
   void setUID();
+
+  /** Adds susceptibilities to the structure */
+  void updateStructure();
 };
 
 #endif
