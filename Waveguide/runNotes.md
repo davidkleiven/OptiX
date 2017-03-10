@@ -207,3 +207,4 @@
 271014 | Gold sphere r=2000nm no abs | Demonstrates that form factor cannot be used with strong scatterers |
 873353 | SiO2 sphere, Au shell, r=500 nm, d=50 nm | Looks good, a bit softer in the zeros |
 620657 | SiO2 sphere, Au shell, r=50 nm, d=5 nm | Looks very good |
+764726 | 2D WG conformal map, verify Salditt | Spikes not present in 2D |

@@ -159,6 +159,7 @@ find_library( PAXPRO NAMES libpaxpro.a paxpro )
 if ( NOT PAXPRO )
   MESSAGE( FATAL_ERROR "Could not find the PaxPro library!" )
 endif()
+include_directories( "usr/local/include/PaXPro")
 
 set( LIB ${LIB} ${PAXPRO} ) # It should find this library
 add_subdirectory(src)
