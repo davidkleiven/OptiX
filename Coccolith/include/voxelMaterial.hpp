@@ -3,6 +3,8 @@
 #include <meep.hpp>
 #include <armadillo>
 #include <string>
+#include "refractiveIndexMaterial.hpp"
+#include <vector>
 
 /** Read info from filename */
 struct InfoFromFilename
@@ -59,13 +61,16 @@ public:
   double getVoxelSize() const{ return vxsize; };
 
   /** Set the domain size. NOTE: Assumed to correspond to the array */
-  void setDomainSize( const meep::grid_volume &gvol, double PMLThickInPx );
+  static void setDomainSize( const meep::grid_volume &gvol, double PMLThickInPx );
 
   /** If set to true the refractive index is 1 in the entire domain */
-  void setReferenceRun( bool newval ){ referenceRun = newval; };
+  static void setReferenceRun( bool newval ){ referenceRun = newval; };
 
   /** True if the run is a reference run */
-  bool isReferenceRun() const{ return referenceRun; };
+  static bool isReferenceRun() { return referenceRun; };
+
+  /** Updates the structure in case of dispersion. Default: do nothing */
+  virtual void updateStructure( meep::structure &struc ) const {};
 protected:
   /** Extracts the dimension of the data from the filename */
   static void extractDimsFromFilename( const std::string &fname, InfoFromFilename &info );
@@ -73,27 +78,31 @@ protected:
   static void fillArmaMat( const arma::Mat<unsigned char> &values, arma::mat &matrix );
 
   /** Separates the data in two sets */
-  void applyThreshold();
+  static void applyThreshold();
 
   /** Print statistics of voxels */
   void showStatistics() const;
 
   /** Translate meep coordinates to index in voxel array */
-  void meepVecToIndx( const meep::vec &r, unsigned int indx[3] );
+  static void meepVecToIndx( const meep::vec &r, unsigned int indx[3] );
 
-  DomainSize domain;
+  static DomainSize domain;
 
-  double vxsize{1.0};
+  static double vxsize;
 
-  arma::Cube<unsigned char> voxels;
+  static arma::Cube<unsigned char> voxels; // This is shared among all instances of VoxelMaterial
+  static bool materialIsLoaded;
 
-  bool referenceRun{false};
+  static bool referenceRun;
+
+  /** Returns true if the position inside the domain */
+  static bool isInsideDomain( const meep::vec &r );
 };
 
 class CaCO3Cocco: public VoxelMaterial
 {
 public:
-  CaCO3Cocco(){};
+  CaCO3Cocco( double epsilon):epsilon(epsilon){};
 
   /** Returns the dielectric function as a function of position */
   virtual double eps( const meep::vec &r ) override;
@@ -102,10 +111,29 @@ public:
   virtual double conductivity( meep::component c, const meep::vec &r ) override;
 
   /** MEEP function that has to implemented in order to get it to work */
-  virtual double chi1p1(meep::field_type ft, const meep::vec &r) { return eps(r); }
-
+  virtual double chi1p1(meep::field_type ft, const meep::vec &r);
 private:
-  double epsilon{2.72};
+  double epsilon{1.0};
 };
 
+/** Basically a copy of the meep::simple_material function */
+class VoxelSusceptibility: public VoxelMaterial
+{
+public:
+  VoxelSusceptibility( double sigma, double referenceReturnVal ): parameter(sigma), referenceReturnVal(referenceReturnVal){};
+
+  /** Returns a row of the sigma tensor */
+  virtual void sigma_row(meep::component c, double sigrow[3], const meep::vec &r) override;
+  virtual double chi1p1(meep::field_type ft, const meep::vec &r) override { (void)ft; return f(r); }
+  virtual double eps(const meep::vec &r) override { return f(r); }
+  virtual double mu(const meep::vec &r) override { return f(r); }
+  virtual double conductivity(meep::component c, const meep::vec &r) override {
+  (void)c; return f(r); }
+  virtual double chi3(meep::component c, const meep::vec &r) override { (void)c; return f(r); }
+  virtual double chi2(meep::component c, const meep::vec &r) override { (void)c; return f(r); }
+private:
+  double f( const meep::vec &r );
+  double parameter{0.0};
+  double referenceReturnVal{0.0};
+};
 #endif

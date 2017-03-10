@@ -3,44 +3,82 @@
 #include <stdexcept>
 #include <iostream>
 #include <cstdlib>
-#include<ctime>
+#include <ctime>
+#include <json/reader.h>
+#include <fstream>
 
 using namespace std;
 
+void setupSim( CoccolithSimulation &sim )
+{
+
+}
+
 int main( int argc, char** argv )
 {
-  srand( time(0) );
   try
   {
-    //VoxelMaterial material;
-    //material.loadRaw( "data/cocco8cv4_216_182_249_253.raw" );
-    //material.slideThroughVoxelArray();
-    //material.showProjections();
+    meep::initialize mpi( argc, argv );
+    Json::Value root;
+    Json::Reader reader;
+    ifstream infile;
+    infile.open(argv[1]);
+    if ( !infile.good() )
+    {
+      clog << "Could not open input file " << argv[1] << endl;
+      return 1;
+    }
+    reader.parse( infile, root );
+    infile.close();
 
-    CoccolithSimulation sim;
-    sim.loadVoxels( "data/cocco8cv4Rotated_216_182_249_253.raw" );
-    sim.setMainPropagationDirection( MainPropDirection_t::X );
-    sim.setSourceSide( SourcePosition_t::BOTTOM );
-    sim.setNfreqFT( 200 );
-    sim.initSource( 0.036, 0.018 );
-    sim.setPMLInWavelengths( 2.0 );
-    sim.setPlotUpdateFreq( 30 );
-    //sim.setEndTime( 5.0);
+    // Visible light: centerFreq = 0.045, fwidth 0.03 looks good
+    double centerFreq = root["centerFreq"].asDouble();
+    double freqwidth = root["fwidth"].asDouble();
+    bool useDispersive = root["useDispersive"].asBool();
+    CoccolithSimulation *sim = new CoccolithSimulation();
+    SellmeierMaterial sellmeier;
+    sim->resolution = root["resolution"].asDouble();
+    sellmeier.load( root["material"].asString().c_str() );
+    VoxelSusceptibility material( sellmeier.epsInf, 1.0 );
+    material.loadRaw( root["voxels"].asString().c_str() );
+    sim->setMaterial( material );
 
-    sim.runWithoutScatterer();
-    sim.init();
+    unsigned int nFreq = 200;
+    double pmlThick = 2.0;
+    sim->setMainPropagationDirection( MainPropDirection_t::X );
+    sim->setSourceSide( SourcePosition_t::BOTTOM );
+    sim->setNfreqFT( nFreq );
+    sim->initSource( centerFreq, freqwidth );
+    sim->setPMLInWavelengths( pmlThick );
+    sim->disableRealTimeVisualization();
+    //sim->setEndTime( 10.0);
+    sim->runWithoutScatterer();
+    sim->init();
+    sim->run();
+    sim->exportResults();
+    string uid = sim->uid;
+    delete sim;
 
-    sim.run();
-
-    sim.exportResults();
-
-    cout << "===============================================================\n";
-    cout << "================= RUNNING WITH SCATTERER ======================\n";
-    cout << "===============================================================\n";
-    sim.runWithScatterer();
-    sim.reset();
-    sim.run();
-    sim.exportResults();
+    sim = new CoccolithSimulation();
+    sim->resolution = root["resolution"].asDouble();
+    sim->uid = uid;
+    if ( useDispersive )
+    {
+      sim->setSellmeierMaterial( sellmeier );
+    }
+    sim->setMaterial( material );
+    sim->setMainPropagationDirection( MainPropDirection_t::X );
+    sim->setSourceSide( SourcePosition_t::BOTTOM );
+    sim->setNfreqFT( nFreq );
+    sim->initSource( centerFreq, freqwidth );
+    sim->setPMLInWavelengths( pmlThick );
+    sim->disableRealTimeVisualization();
+    //sim->setEndTime( 10.0);
+    sim->runWithScatterer();
+    sim->init();
+    sim->run();
+    sim->exportResults();
+    clog << "Process " << meep::my_rank() << " finished\n";
   }
   catch( exception &exc )
   {
@@ -50,7 +88,5 @@ int main( int argc, char** argv )
   {
     cout << "Unrecognized exception!\n";
   }
-
-  clog << "Everything has gone out of scope by now. Why is it segfaulting here?\n";
   return 0;
 }

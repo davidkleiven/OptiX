@@ -1,10 +1,15 @@
 #ifndef COCCOLITH_SIMULATION_H
 #define COCCOLITH_SIMULATION_H
+#include "config.h"
 #include <string>
 #include "voxelMaterial.hpp"
 #include "fieldMonitors.hpp"
 #include <complex>
-#include <visa/visa.hpp>
+#include <json/writer.h>
+#include "stokesParameters.hpp"
+#ifdef HAVE_LIB_VISA
+  #include <visa/visa.hpp>
+#endif
 #include <cstdlib>
 #define UID_MAX 10000000
 
@@ -21,8 +26,8 @@ public:
   CoccolithSimulation(){};
   virtual ~CoccolithSimulation();
 
-  /** Load voxel model from raw binary file */
-  void loadVoxels( const char* fname );
+  /** LSet voxel material to use in the simulation */
+  void setMaterial( VoxelMaterial &mat ){ material = &mat; };
 
   /** Set the incident wavevector. Note that this is a static member */
   void setIncWaveVector( const meep::vec &wave ){ waveVec = wave; };
@@ -37,13 +42,13 @@ public:
   void setPMLInWavelengths( double newThick );
 
   /** Run the simulation */
-  void run();
+  virtual void run();
 
   /** Initialize the source profile */
   void initSource( double freq, double fwidth );
 
   /** Initialize the simulation */
-  void init();
+  virtual void init();
 
   /** Set the number of frequencies to be used in the harmonic inversion */
   void setNfreqFT( unsigned int numberOfFreq ){ nfreq = numberOfFreq; };
@@ -61,7 +66,7 @@ public:
   void domainInfo() const;
 
   /** Exporting results */
-  void exportResults();
+  virtual void exportResults();
 
   /** The run is a reference run */
   void runWithoutScatterer();
@@ -77,42 +82,63 @@ public:
 
   /** Runs without visualization */
   void disableRealTimeVisualization(){ realTimeVisualization = false; };
-private:
-  CaCO3Cocco material;
+
+  /** Returns a reference to the structure */
+  meep::structure& getStructure(){ return *struc; };
+
+  double resolution{1.0};
+  std::string uid{""};
+
+  /** Set a Sellmeier material */
+  void setSellmeierMaterial( const SellmeierMaterial &mat ){ sellmeier = &mat; };
+protected:
+  VoxelMaterial *material{NULL};
+  const SellmeierMaterial *sellmeier{NULL};
   MainPropDirection_t propagationDir{MainPropDirection_t::Z};
+  meep::component fieldComp{meep::Ex};
 
   meep::volume* srcVol{NULL};
   meep::structure* struc{NULL};
   meep::grid_volume gdvol;
   meep::fields* field{NULL};
+  meep::src_time *sourceTime{NULL}; // Deleted by MEEP
   meep::gaussian_src_time *source{NULL};
-  unsigned int uid{0};
-  std::string outdir{"data/"};
+  std::string outdir{"data"};
+  std::string prefix{""};
   unsigned int nSave{30};
   bool isInitialized{false};
   unsigned int plotUpdateFreq{30};
+  Json::Value root;
 
   double pmlThicknessInWavelengths{3.0};
   double centerFrequency{1.0};
   double freqWidth{0.5};
-  double resolution{1.0};
   bool materialLoaded{false};
   unsigned int nfreq{100};
   unsigned int nMonitorX{256};
   unsigned int nMonitorY{256};
   unsigned int nMonitorZ{256};
   double tEnd{100.0};
-  visa::WindowHandler *plots{NULL};
+  StokesParameters stokes;
+  #ifdef HAVE_LIB_VISA
+    visa::WindowHandler *plots{NULL};
+  #endif
   bool userOverridedEndTime{false};
   bool realTimeVisualization{true};
   bool geoIsInitialized{false};
+  std::string reflFluxPlaneBackup{"reflectedFlux"};
+  std::string reflFluxBoxBackup{"reflectedFluxBox"};
 
   /** Visualized intensity */
   void visualize();
 
   // Flux planes
   meep::volume *dftVolTransmit{NULL};
+  meep::volume *dftVolRefl{NULL};
+  meep::volume *dftVolBox{NULL};
   meep::dft_flux *transmitFlux{NULL};
+  meep::dft_flux *reflFlux{NULL};
+  meep::dft_flux *fluxBox{NULL};
 
   // Monitor planes 1
   FieldMonitor *monitor1{NULL};
@@ -172,6 +198,12 @@ private:
   /** Stores the results from the DFT spectrums */
   void saveDFTSpectrum();
 
+  /** Save DFT parameters */
+  void saveDFTParameters();
+
+  /** Save the Fourier transformed Stokes parameters */
+  void saveDFTStokes();
+
   /** Save parameters specific to the geometry and source */
   void saveGeometry();
 
@@ -187,6 +219,12 @@ private:
   static meep::vec waveVec;
 
   static cdouble amplitude( const meep::vec &r );
+
+  /** Sets the UID based on local time */
+  void setUID();
+
+  /** Adds susceptibilities to the structure */
+  void updateStructure();
 };
 
 #endif
