@@ -10,3 +10,4 @@ src/sourcefiles.dir/*
 src/sourcfiles.dir/*
 include/config.h
 ParaviewStates/*
+Figures/*
