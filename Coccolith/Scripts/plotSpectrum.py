@@ -11,6 +11,9 @@ class Spectrum:
     def __init__( self ):
         self.ref = []
         self.trans = []
+        self.boxScattered = []
+        self.sourceFluxReference = []
+        self.crossSectionInPx = -1.0
         self.freqmin = 0.0
         self.dfreq = 0.0
         self.Nfreq = 0.0
@@ -46,6 +49,30 @@ class Spectrum:
         ax.set_ylabel("\$1-T\$")
         return fig, ax
 
+    def scatteringCrossSection( self ):
+        fig = plt.figure()
+        ax = fig.add_subplot(1,1,1)
+        if ( len(self.sourceFluxReference) == 0 ):
+            print ("No source flux given!")
+            return fig, ax
+        if ( len(self.boxScattered) == 0 ):
+            print ("No scattered box flux given!")
+        if ( self.crossSectionInPx < 0.0 ):
+            print ("No cross section in pixels given!")
+
+        f = np.linspace( self.freqmin, self.freqmax(), len( self.ref ) )
+        intensityRatio = np.abs( self.boxScattered/self.sourceFluxReference )
+        area = self.crossSectionInPx*self.voxelSize*self.voxelSize/1E6
+        ax.plot( f, intensityRatio*area, color="black")
+        ax.set_xlabel("Frequency \$(c/L)\$")
+        ax.set_ylabel("Scattering cross section (\$\SI{}{\micro\meter\squared}\$)")
+        ax2 = ax.twiny()
+        ax2.set_xlim( self.voxelSize/self.freqmin, self.voxelSize/self.freqmax() )
+        ax2ticks = [self.voxelSize/ax1tick for ax1tick in ax.get_xticks()]
+        ax2.set_xticks( ax2ticks )
+        ax2.set_xlabel("Wavelength (nm)")
+        return fig, ax
+
 def main( argv ):
     if ( len(argv) != 1 ):
         print ("Usage: python plotSpectrum.py <file.h5>")
@@ -63,10 +90,25 @@ def main( argv ):
         if ( "voxelsizeInNanoMeter" in hf.keys() ):
             specPlot.voxelSize = np.array( hf.get("voxelsizeInNanoMeter") )[0]
 
+        if ( "boxFluxScat" in hf.keys() ):
+            specPlot.boxScattered = np.array( hf.get("boxFluxScat") )
+
+        if ( "reflPlaneRef" in hf.keys() ):
+            specPlot.sourceFluxReference = np.array( hf.get("reflPlaneRef") )
+
+        if ( "geometrySourceVolume" in hf.keys() ):
+            val = np.array( hf.get("geometrySourceVolume") )
+            dx = val[3]-val[0]
+            dy = val[4]-val[1]
+            dz = val[5]-val[2]
+            crossSections = np.array( [dx*dy,dx*dz,dy*dz] )
+            specPlot.crossSectionInPx = np.max( crossSections )
+
     # Tweak
     specPlot.voxelSize = 21.6
     fig, ax = specPlot.plot()
     fig2, ax2 = specPlot.plotDiff()
+    fig3, ax3 = specPlot.scatteringCrossSection()
     plt.show()
 
 if __name__ == "__main__":

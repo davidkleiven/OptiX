@@ -24,7 +24,7 @@ class Geometry:
             print ("Reflection plane not in HDf5 file!")
             self.refPlane = None
 
-        if ( "trGeo" in hdf.keys() ):
+        if ( "trPGeo" in hdf.keys() ):
             self.trPlane = np.array( hdf.get("trPGeo") )
         else:
             print ("Transmission plane not in HDF5 file!")
@@ -93,20 +93,21 @@ class Geometry:
         self.plotSrc()
         self.plotRefPlane()
         self.plotTransPlane()
+        self.plotFluxBox()
         self.ax3.legend(fancybox=True, shadow=True, bbox_to_anchor=(3.0,1.0))
 
     def plotFluxBox( self ):
         if ( self.boxGeo is None ):
             return
         color = "#984ea3"
-        rect = ptc.Rectangle( (self.boxGeo[0],self.boxGeo[1]), self.boxGeo[3]-self.boxGeo[0], self.boxGeo[4]-self.boxGeo[1], fill=False, ec=color )
+        rect = ptc.Rectangle( (self.boxGeo[1],self.boxGeo[0]), self.boxGeo[4]-self.boxGeo[1], self.boxGeo[3]-self.boxGeo[0], fill=False, ec=color )
         self.ax1.add_patch( rect )
 
         rect = ptc.Rectangle( (self.boxGeo[2],self.boxGeo[0]), self.boxGeo[5]-self.boxGeo[2], self.boxGeo[3]-self.boxGeo[0], fill=False, ec=color )
         self.ax2.add_patch( rect )
 
         rect = ptc.Rectangle( (self.boxGeo[2],self.boxGeo[1]), self.boxGeo[5]-self.boxGeo[2], self.boxGeo[4]-self.boxGeo[1], fill=False, ec=color )
-        self.ax2.add_patch( rect )
+        self.ax3.add_patch( rect )
 
 def main( argv ):
     if ( len(argv) != 1 ):

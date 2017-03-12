@@ -282,8 +282,8 @@ void VoxelMaterial::boundingBox( unsigned int lowerCrn[3], unsigned int upperCrn
   upperCrn[1] = 0;
   upperCrn[2] = 0;
   for ( unsigned int z=0;z<voxels.n_slices;z++ )
-  for (unsigned int y=0;y<voxels.n_cols;y++ )
-  for (unsigned int x=0;x<voxels.n_rows;x++ )
+  for ( unsigned int y=0;y<voxels.n_cols;y++ )
+  for ( unsigned int x=0;x<voxels.n_rows;x++ )
   {
     if ( voxels(x,y,z) == 1 )
     {
