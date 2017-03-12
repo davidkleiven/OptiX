@@ -273,6 +273,30 @@ bool VoxelMaterial::isInsideDomain( const meep::vec &r )
          ( r.z() > domain.zmin ) && ( r.z() < domain.zmax );
 }
 
+void VoxelMaterial::boundingBox( unsigned int lowerCrn[3], unsigned int upperCrn[3] ) const
+{
+  lowerCrn[0] = voxels.n_rows-1;
+  lowerCrn[1] = voxels.n_cols-1;
+  lowerCrn[2] = voxels.n_slices-1;
+  upperCrn[0] = 0;
+  upperCrn[1] = 0;
+  upperCrn[2] = 0;
+  for ( unsigned int z=0;z<voxels.n_slices;z++ )
+  for (unsigned int y=0;y<voxels.n_cols;y++ )
+  for (unsigned int x=0;x<voxels.n_rows;x++ )
+  {
+    if ( voxels(x,y,z) == 1 )
+    {
+      if ( x < lowerCrn[0] ) lowerCrn[0] = x;
+      if ( x > upperCrn[0] ) upperCrn[0] = x;
+      if ( y < lowerCrn[1] ) lowerCrn[1] = y;
+      if ( y > upperCrn[1] ) upperCrn[1] = y;
+      if ( z < lowerCrn[2] ) lowerCrn[2] = z;
+      if ( z > upperCrn[2] ) upperCrn[2] = z;
+    }
+  }
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 double CaCO3Cocco::eps( const meep::vec &r )
 {

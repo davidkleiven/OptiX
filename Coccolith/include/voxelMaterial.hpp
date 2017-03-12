@@ -60,6 +60,9 @@ public:
   /** Returns the voxel size in nano meters */
   double getVoxelSize() const{ return vxsize; };
 
+  /** Calculates the bounding box of the structure */
+  void boundingBox( unsigned int lowerCrn[3], unsigned int upperCrn[3] ) const;
+
   /** Set the domain size. NOTE: Assumed to correspond to the array */
   static void setDomainSize( const meep::grid_volume &gvol, double PMLThickInPx );
 
