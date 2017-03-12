@@ -32,7 +32,7 @@ class Spectrum:
         ax.set_ylabel("Transmittivity (\$I_e/I_0\$)")
         if ( self.voxelSize > 0.0 ):
             ax2 = ax.twiny()
-            ax2.set_xlim( self.voxelSize/self.freqmin, self.voxelSize/self.freqmax() )
+            #ax2.set_xlim( self.voxelSize/self.freqmin, self.voxelSize/self.freqmax() )
             ax2ticks = [self.voxelSize/ax1tick for ax1tick in ax.get_xticks()]
             ax2.set_xticks( ax2ticks )
             ax2.set_xlabel("Wavelength (nm)")
@@ -49,7 +49,7 @@ class Spectrum:
         ax.set_ylabel("\$1-T\$")
         return fig, ax
 
-    def scatteringCrossSection( self ):
+    def scatteringCrossSection( self, color="black", lw=1 ):
         fig = plt.figure()
         ax = fig.add_subplot(1,1,1)
         if ( len(self.sourceFluxReference) == 0 ):
@@ -63,22 +63,22 @@ class Spectrum:
         f = np.linspace( self.freqmin, self.freqmax(), len( self.ref ) )
         intensityRatio = np.abs( self.boxScattered/self.sourceFluxReference )
         area = self.crossSectionInPx*self.voxelSize*self.voxelSize/1E6
-        ax.plot( f, intensityRatio*area, color="black")
-        ax.set_xlabel("Frequency \$(c/L)\$")
+
+        wavelength = self.voxelSize/f
+        ax.plot( wavelength, intensityRatio*area, color=color, lw=lw)
         ax.set_ylabel("Scattering cross section (\$\SI{}{\micro\meter\squared}\$)")
-        ax2 = ax.twiny()
-        ax2.set_xlim( self.voxelSize/self.freqmin, self.voxelSize/self.freqmax() )
-        ax2ticks = [self.voxelSize/ax1tick for ax1tick in ax.get_xticks()]
-        ax2.set_xticks( ax2ticks )
-        ax2.set_xlabel("Wavelength (nm)")
+        ax.set_xlabel("Wavelength (nm)")
+        ax.spines["right"].set_visible(False)
+        ax.spines["top"].set_visible(False)
+        ax.xaxis.set_ticks_position("bottom")
+        ax.yaxis.set_ticks_position("left")
         return fig, ax
 
-def main( argv ):
-    if ( len(argv) != 1 ):
-        print ("Usage: python plotSpectrum.py <file.h5>")
-        return
-    fname = argv[0]
+    def getDimlessFreq( self, wavelenthInnm ):
+        dimlessWave = wavelenthInnm/self.voxelSize
+        return 1.0/dimlessWave
 
+def initSpectrum( fname ):
     specPlot = Spectrum()
     with h5.File( fname, 'r' ) as hf:
         specPlot.ref = np.array( hf.get("spectrumReference"))
@@ -87,8 +87,8 @@ def main( argv ):
         specPlot.freqmin = freqs[0]
         specPlot.dfreq = freqs[1]
         specPlot.Nfreq = freqs[2]
-        if ( "voxelsizeInNanoMeter" in hf.keys() ):
-            specPlot.voxelSize = np.array( hf.get("voxelsizeInNanoMeter") )[0]
+        if ( "vxSizeNM" in hf.keys() ):
+            specPlot.voxelSize = np.array( hf.get("vxSizeNM") )[0]
 
         if ( "boxFluxScat" in hf.keys() ):
             specPlot.boxScattered = np.array( hf.get("boxFluxScat") )
@@ -103,6 +103,14 @@ def main( argv ):
             dz = val[5]-val[2]
             crossSections = np.array( [dx*dy,dx*dz,dy*dz] )
             specPlot.crossSectionInPx = np.max( crossSections )
+    return specPlot
+
+def main( argv ):
+    if ( len(argv) != 1 ):
+        print ("Usage: python plotSpectrum.py <file.h5>")
+        return
+    fname = argv[0]
+    specPlot = initSpectrum( fname )
 
     # Tweak
     specPlot.voxelSize = 21.6

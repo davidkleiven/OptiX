@@ -206,9 +206,12 @@ void CoccolithSimulation::addFluxPlanes()
     lowerCrn[i] += getPMLThickness();
     upperCrn[i] += getPMLThickness();
   }
-  material->boundingBox( lowerCrn, upperCrn );
-  meep::vec boxCrn1( lowerCrn[0]-1.0, lowerCrn[1]-1.0, lowerCrn[2]-1.0 );
-  meep::vec boxCrn2( upperCrn[0]+1.0, upperCrn[1]+1.0, upperCrn[2]+1.0 );
+  //material->boundingBox( lowerCrn, upperCrn );
+  //meep::vec boxCrn1( lowerCrn[0]-1.0, lowerCrn[1]-1.0, lowerCrn[2]-1.0 );
+  //meep::vec boxCrn2( upperCrn[0]+1.0, upperCrn[1]+1.0, upperCrn[2]+1.0 );
+
+  meep::vec boxCrn1;
+  meep::vec boxCrn2;
 
   switch ( propagationDir )
   {
@@ -217,24 +220,24 @@ void CoccolithSimulation::addFluxPlanes()
       transDFTCrn2 = meep::vec( getTransFluxPos(), gdvol.ymax(), gdvol.zmax() );
       reflDFTCrn1 = meep::vec( getSrcFluxPos(), gdvol.ymin(), gdvol.zmin() );
       reflDFTCrn2 = meep::vec( getSrcFluxPos(), gdvol.ymax(), gdvol.zmax() );
-      //boxCrn1 = meep::vec( getTransFluxPos(), gdvol.ymin()+getPMLThickness(), gdvol.zmin()+getPMLThickness() );
-      //boxCrn2 = meep::vec( getSrcFluxPos(), gdvol.ymax()-getPMLThickness(), gdvol.zmax()-getPMLThickness() );
+      boxCrn1 = meep::vec( getTransFluxPos(), gdvol.ymin()+getPMLThickness(), gdvol.zmin()+getPMLThickness() );
+      boxCrn2 = meep::vec( getSrcFluxPos(), gdvol.ymax()-getPMLThickness(), gdvol.zmax()-getPMLThickness() );
       break;
     case MainPropDirection_t::Y:
       transDFTCrn1 = meep::vec( gdvol.xmin(), getTransFluxPos(), gdvol.zmin() );
       transDFTCrn2 = meep::vec( gdvol.xmax(), getTransFluxPos(), gdvol.zmax() );
       reflDFTCrn1 = meep::vec( gdvol.xmin(), getSrcFluxPos(), gdvol.zmin() );
       reflDFTCrn2 = meep::vec( gdvol.xmax(), getSrcFluxPos(), gdvol.zmax() );
-      //boxCrn1 = meep::vec( gdvol.xmin()+getPMLThickness(), getTransFluxPos(), gdvol.zmin()+getPMLThickness() );
-      //boxCrn2 = meep::vec( gdvol.xmax()-getPMLThickness(), getTransFluxPos(), gdvol.zmax()-getPMLThickness() );
+      boxCrn1 = meep::vec( gdvol.xmin()+getPMLThickness(), getTransFluxPos(), gdvol.zmin()+getPMLThickness() );
+      boxCrn2 = meep::vec( gdvol.xmax()-getPMLThickness(), getTransFluxPos(), gdvol.zmax()-getPMLThickness() );
       break;
     case MainPropDirection_t::Z:
       transDFTCrn1 = meep::vec( gdvol.xmin(), gdvol.ymin(), getTransFluxPos() );
       transDFTCrn2 = meep::vec( gdvol.xmax(), gdvol.ymax(), getTransFluxPos() );
       reflDFTCrn1 = meep::vec( gdvol.xmin(), gdvol.ymin(), getSrcFluxPos() );
       reflDFTCrn2 = meep::vec( gdvol.xmax(), gdvol.ymax(), getSrcFluxPos() );
-      //boxCrn1 = meep::vec( gdvol.xmin()+getPMLThickness(), gdvol.ymin()+getPMLThickness(),  getSrcFluxPos() );
-      //boxCrn2 = meep::vec( gdvol.xmax()-getPMLThickness(), gdvol.ymax()-getPMLThickness(), getTransFluxPos() );
+      boxCrn1 = meep::vec( gdvol.xmin()+getPMLThickness(), gdvol.ymin()+getPMLThickness(),  getSrcFluxPos() );
+      boxCrn2 = meep::vec( gdvol.xmax()-getPMLThickness(), gdvol.ymax()-getPMLThickness(), getTransFluxPos() );
       break;
   }
 
