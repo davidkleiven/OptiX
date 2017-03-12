@@ -1,0 +1,16 @@
+{
+ "url":"https://refractiveindex.info/?shelf=main&book=CaCO3&page=Ghosh-e",
+ "variable":"wavelength",
+ "unit":"um",
+ "epsInf":1.35859695,
+ "lorentzians":[
+   {
+     "prefactor":0.82427830,
+     "resonance":0.0106689543
+   },
+   {
+     "prefactor":0.14429128,
+     "resonance":120.0
+   }
+ ]
+}
