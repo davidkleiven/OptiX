@@ -33,6 +33,18 @@ public:
   /** Loads data from raw file */
   void loadRaw( const std::string &fname );
 
+  /** Returns the voxel values at indices x, y, z */
+  unsigned char get( unsigned int x, unsigned int y, unsigned int z ) const { return voxels(x,y,z); };
+
+  /** Number of nodes in the x-direction */
+  unsigned int Nx() const { return voxels.n_rows; };
+
+  /** Number of nodes in the y-direction */
+  unsigned int Ny() const{ return voxels.n_cols; };
+
+  /** Number of nodes in the z-direction */
+  unsigned int Nz() const{ return voxels.n_slices; };
+
   /** Shows an animation where it slides through the voxel array in different direction */
   void slideThroughVoxelArray() const;
 

@@ -164,3 +164,6 @@ target_link_libraries(cwSolveMWE.out ${LIB} )
 
 add_executable(scatteringCrossSectionSphere.out scatteringCrossSectionSphere.cpp )
 target_link_libraries(scatteringCrossSectionSphere.out ${LIB} )
+
+add_executable(testCylindricalBirefringence.out testCylindricalBirefringence.cpp )
+target_link_libraries(testCylindricalBirefringence.out ${LIB} )
