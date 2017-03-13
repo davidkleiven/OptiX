@@ -8,7 +8,7 @@ typedef complex<double> cdouble;
 // Global variables
 meep::h5file *file = NULL;
 double radius = 10.0;
-unsigned int numberOfFreq = 400;
+unsigned int numberOfFreq = 100;
 volatile bool overwriteFile = true;
 double freq = 0.4, fwidth = 0.2;
 double pmlThick = 3.0/freq;

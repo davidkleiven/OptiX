@@ -19,5 +19,14 @@ int main( int argc, char** argv )
   arma::vec axis;
   material.rotationAxis(axis);
   cout << "Rotation axis:\n" << axis << endl;
+
+  BirefringentEps biref;
+  biref.ordinary = 1.63;
+  biref.extraOrdinary = 1.3;
+
+  arma::mat epsilon;
+  meep::vec r(1.0,0.0,0.0);
+  material.dielectricTensor( r, epsilon, biref );
+  cout << "Dielectric tensor:\n" << epsilon << endl;
   return 0;
 }
