@@ -161,3 +161,6 @@ target_link_libraries(steadyCoccolith.out ${LIB} )
 
 add_executable(cwSolveMWE.out cwSolveMWE.cpp )
 target_link_libraries(cwSolveMWE.out ${LIB} )
+
+add_executable(scatteringCrossSectionSphere.out scatteringCrossSectionSphere.cpp )
+target_link_libraries(scatteringCrossSectionSphere.out ${LIB} )
