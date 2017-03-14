@@ -5,6 +5,7 @@ mpl.rcParams["font.size"] = 18
 mpl.rcParams["axes.unicode_minus"]=False
 from matplotlib import pyplot as plt
 import h5py as h5
+import pymiecoated as mie
 
 def cleanFileWebPlotDig( x, y ):
     xnew = np.zeros(len(x))
@@ -19,8 +20,6 @@ def cleanFileWebPlotDig( x, y ):
 
 def main():
     fname = "data/sphereCrossSection.h5"
-    fnameWiki = "data/wikipediaRCSMetallicSphere.csv"
-    #data = np.loadtxt( fnameWiki, delimiter="," )
     with h5.File(fname, 'r') as hf:
         refPlane = np.array( hf.get("refPlaneFlux") )
         boxFluxScat = np.array( hf.get("scatFluxBox") )
@@ -28,17 +27,23 @@ def main():
         eps = np.array( hf.get("eps") )
 
     R = 3.0
-    f = np.linspace( freq[0], freq[1]*freq[2], freq[1])
+    f = np.linspace( freq[0], freq[0]+freq[1]*freq[2], freq[1])
+    print (f)
     k = 2.0*np.pi*f
     ratio = np.abs( boxFluxScat/refPlane )
 
-    #exactX, exactY = cleanFileWebPlotDig( data[:,0], data[:,1] )
+    kRExact = np.linspace(f[0], f[-1], 501)*R*2.0*np.pi
+    exactScattering = np.zeros(len(kRExact))
+    for i in range(0, len(exactScattering)):
+        sphere = mie.Mie( x=kRExact[i], eps=2.0 )
+        exactScattering[i] = sphere.qsca()*np.pi*R**2
     # Normalize
     #ratio *= np.sum(data[:,1])*len(ratio)/(np.sum(ratio)*len(data[:,1]))
+    ratio *= np.sum(exactScattering)*len(ratio)/( np.sum(ratio)*len(exactScattering) )
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
-    ax.plot( k*R, ratio, color="#e41a1c", label="Simulated")
-    #ax.plot( exactX, exactY, color="#377eb8", label="Mie")
+    ax.plot( k*R, ratio, 'o', color="#e41a1c", label="Simulated")
+    ax.plot( kRExact, exactScattering, color="#377eb8", label="Mie")
     ax.legend(loc="lower left", frameon=False, labelspacing=0.05)
     #ax.set_yscale("log")
     ax.set_xlabel("kR")
