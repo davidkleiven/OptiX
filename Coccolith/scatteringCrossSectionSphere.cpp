@@ -38,7 +38,7 @@ double epsRef( const meep::vec &r )
 
 void run( double (*eps)(const meep::vec &r) )
 {
-  double resolution = 8.0; // pixels per distance
+  double resolution = 16.0; // pixels per distance
   meep::grid_volume v = meep::vol3d(Nx,Ny,Nz, resolution);
   meep::structure struc(v, eps, meep::pml(pmlThick));
   meep::fields f(&struc);
