@@ -168,7 +168,7 @@ void CoccolithSimulation::init()
   domainInfo();
   initializeGeometry();
 
-  material->setDomainSize( gdvol, getPMLThickness() );
+  material->setDomainSize( gdvol, getPMLThickness()+additionalVaccumLayerPx );
   addSourceVolume();
   addStructure();
   addFields();
@@ -830,7 +830,8 @@ void CoccolithSimulation::initializeGeometry()
   }
 
   double pmlThickPx = getPMLThickness();
-  gdvol = meep::vol3d( material->sizeX()+2.0*pmlThickPx, material->sizeY()+2.0*pmlThickPx, material->sizeZ()+2.0*pmlThickPx, resolution );
+  double extra = 2.0*pmlThickPx + 2.0*additionalVaccumLayerPx;
+  gdvol = meep::vol3d( material->sizeX()+extra, material->sizeY()+extra, material->sizeZ()+extra, resolution );
   geoIsInitialized = true;
 }
 

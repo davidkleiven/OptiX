@@ -88,6 +88,7 @@ public:
 
   double resolution{1.0};
   std::string uid{""};
+  double additionalVaccumLayerPx{0.0}; // Additional vacuum layer that will be added outside the region
 
   /** Set a Sellmeier material */
   void setSellmeierMaterial( const SellmeierMaterial &mat ){ sellmeier = &mat; };
