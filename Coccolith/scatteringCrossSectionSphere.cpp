@@ -36,11 +36,11 @@ double epsRef( const meep::vec &r )
   return 1.0;
 }
 
-void run( double (*eps)(const meep::vec &r) )
+void run( double (*epsilonFunc)(const meep::vec &r) )
 {
   double resolution = 7.0; // pixels per distance
   meep::grid_volume v = meep::vol3d(Nx,Ny,Nz, resolution); // 5x10 2d cell
-  meep::structure struc(v, eps, meep::pml(pmlThick));
+  meep::structure struc(v, epsilonFunc, meep::pml(pmlThick));
   meep::fields f(&struc);
   meep::gaussian_src_time src(freq, fwidth);
 
