@@ -604,7 +604,7 @@ void CoccolithSimulation::exportResults()
 
   setUID();
   stringstream ss;
-  ss << "voxelMaterialSim_" << uid; // File extension added automatically
+  ss << outdir << "/" << prefix << "_" << uid; // File extension added automatically
   if ( file == NULL )
   {
     if ( material->isReferenceRun() )

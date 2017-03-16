@@ -92,6 +92,9 @@ public:
 
   /** Set a Sellmeier material */
   void setSellmeierMaterial( const SellmeierMaterial &mat ){ sellmeier = &mat; };
+
+  /** Prefix that will be added to the filename */
+  std::string prefix{""};
 protected:
   VoxelMaterial *material{NULL};
   const SellmeierMaterial *sellmeier{NULL};
@@ -105,7 +108,6 @@ protected:
   meep::src_time *sourceTime{NULL}; // Deleted by MEEP
   meep::gaussian_src_time *source{NULL};
   std::string outdir{"data"};
-  std::string prefix{""};
   unsigned int nSave{30};
   bool isInitialized{false};
   unsigned int plotUpdateFreq{30};

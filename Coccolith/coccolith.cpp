@@ -36,6 +36,7 @@ int main( int argc, char** argv )
     double freqwidth = root["fwidth"].asDouble();
     bool useDispersive = root["useDispersive"].asBool();
     CoccolithSimulation *sim = new CoccolithSimulation();
+    sim->prefix = root["prefix"].asString();
     SellmeierMaterial sellmeier;
     sim->resolution = root["resolution"].asDouble();
     sellmeier.load( root["material"].asString().c_str() );
@@ -60,6 +61,7 @@ int main( int argc, char** argv )
     delete sim;
 
     sim = new CoccolithSimulation();
+    sim->prefix = root["prefix"].asString();
     sim->resolution = root["resolution"].asDouble();
     sim->uid = uid;
     if ( useDispersive )
