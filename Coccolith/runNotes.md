@@ -9,3 +9,4 @@
 20170310_1643 | The simulation with dispersion seems to work fine! | Looks good |
 20170312_1414 | First success full scattering cross section run | Max scattering 48 um^2 |
 20170312_1849 | Scattering cross section with ne refractive index | minimum scattering coincide with cholorphyll spikes |
+sphereCrossSectionRes8.h5 | Scattering cross secrion for a sphere with resolution 8 | Can be better |

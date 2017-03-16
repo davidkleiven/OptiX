@@ -16,7 +16,7 @@ class Chlorophyll:
         self.wavelength = []
 
     def load( self, fname ):
-        data = np.loadtxt( fname, delimiter=" " )
+        data = np.loadtxt( fname, delimiter="," )
         self.wavelength = data[:,0]
         self.chla = data[:,1]
         self.chlb = data[:,2]
@@ -30,7 +30,7 @@ def main( argv ):
     spec = pspec.initSpectrum( argv[0] )
     fig, ax = spec.scatteringCrossSection( color="#e41a1c", lw=3 )
     chloro = Chlorophyll()
-    chloro.load( "Materials/chlorofyll.txt" )
+    chloro.load( "Materials/chlorophyll.csv" )
     f = spec.getDimlessFreq( chloro.wavelength )
     ax2 = ax.twinx()
     ax2.plot( chloro.wavelength, chloro.chla, color="#377eb8", label="A" )
