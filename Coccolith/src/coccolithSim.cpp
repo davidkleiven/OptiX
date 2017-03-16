@@ -604,6 +604,10 @@ void CoccolithSimulation::exportResults()
 
   setUID();
   stringstream ss;
+  if ( prefix == "" )
+  {
+    prefix = "defaultFilename";
+  }
   ss << outdir << "/" << prefix << "_" << uid; // File extension added automatically
   if ( file == NULL )
   {
