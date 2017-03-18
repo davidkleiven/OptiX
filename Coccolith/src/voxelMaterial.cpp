@@ -79,10 +79,12 @@ void VoxelMaterial::applyThreshold()
   unsigned char threshold = 0;
   if ( userSpecifiedAbsoluteThreshold )
   {
+    meep::master_printf("Applying user defined threshold...\n");
     threshold = userSpecifiedThreshold;
   }
   else
   {
+    meep::master_printf("Using the 50 percent largest values...\n");
     unsigned char maxval = voxels.max();
     unsigned char threshold = 0.5*maxval;
   }
