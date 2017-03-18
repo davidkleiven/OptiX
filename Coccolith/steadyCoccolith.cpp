@@ -21,7 +21,7 @@ int main( int argc, char** argv )
     sim.setMaterial( material );
     sim.setMainPropagationDirection( MainPropDirection_t::X );
     sim.setSourceSide( SourcePosition_t::BOTTOM );
-    sim.initSource( 0.036 );
+    sim.initSource( 0.048 );
     sim.setPMLInWavelengths( 2.0 );
     sim.init();
     sim.BiCStabL = 2; // 2 is default, converges faster with large L, but the memory usage increases

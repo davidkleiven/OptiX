@@ -1,0 +1,10 @@
+{
+  "centerFreq":0.045,
+  "fwidth":0.03,
+  "resolution":1.0,
+  "useDispersive":true,
+  "material":"Materials/SiO2.json",
+  "voxels":"data/cocco8cv4Rotated_216_182_249_253.raw",
+  "prefix":"DiatomSiO2",
+  "threshold":127
+}

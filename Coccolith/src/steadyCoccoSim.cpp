@@ -57,7 +57,7 @@ void SteadyCoccolithSim::exportResults()
   setUID();
 
   stringstream ss;
-  ss << "data/voxelMaterialSimSteady_" << uid; // File extension added automatically
+  ss << "voxelMaterialSimSteady_" << uid; // File extension added automatically
   if ( file == NULL )
   {
     file = field->open_h5file( ss.str().c_str() );

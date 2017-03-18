@@ -68,6 +68,10 @@ int main( int argc, char** argv )
     {
       sim->setSellmeierMaterial( sellmeier );
     }
+    if ( root.isMember("threshold") )
+    {
+      material.setThreshold( root["threshold"].asUInt() );
+    }
     sim->setMaterial( material );
     sim->setMainPropagationDirection( MainPropDirection_t::X );
     sim->setSourceSide( SourcePosition_t::BOTTOM );
