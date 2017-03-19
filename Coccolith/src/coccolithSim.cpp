@@ -608,7 +608,7 @@ void CoccolithSimulation::exportResults()
   {
     prefix = "defaultFilename";
   }
-  ss << outdir << "/" << prefix << "_" << uid; // File extension added automatically
+  ss << prefix << "_" << uid; // File extension added automatically
   if ( file == NULL )
   {
     if ( material->isReferenceRun() )
