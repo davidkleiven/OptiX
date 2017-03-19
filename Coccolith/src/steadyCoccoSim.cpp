@@ -4,11 +4,6 @@
 
 using namespace std;
 
-SteadyCoccolithSim::~SteadyCoccolithSim()
-{
-  if ( contSource != NULL ) delete contSource;
-}
-
 void SteadyCoccolithSim::initSource( double freq )
 {
   if ( geoIsInitialized )
@@ -18,7 +13,7 @@ void SteadyCoccolithSim::initSource( double freq )
 
   if ( contSource != NULL ) delete contSource;
   centerFrequency = freq;
-  contSource = new meep::continuous_src_time( freq );
+  contSource = new meep::continuous_src_time( freq ); // Deleted by parent destructor
   sourceTime = contSource;
 }
 
@@ -63,12 +58,13 @@ void SteadyCoccolithSim::exportResults()
     file = field->open_h5file( ss.str().c_str() );
     saveGeometry();
   }
+  /*
   field->output_hdf5( meep::Dielectric, gdvol.surroundings(), file, false, true );
   file->prevent_deadlock();
   field->output_hdf5( meep::EnergyDensity, gdvol.surroundings(), file, false, true );
   file->prevent_deadlock();
   field->output_hdf5( fieldComp, gdvol.surroundings(), file, false, true );
-  file->prevent_deadlock();
+  file->prevent_deadlock();*/
   clog << "Results written to " << ss.str() << endl;
 }
 
