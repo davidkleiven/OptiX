@@ -1,0 +1,9 @@
+{
+  "centerFreq":0.045,
+  "fwidth":0.03,
+  "resolution":1.0,
+  "useDispersive":true,
+  "material":"Materials/CaCO3ne.json",
+  "voxels":"data/cocco8cv4Rotated30deg_216_182_249_253.raw",
+  "prefix":"CaCO3Coccolith30deg"
+}
