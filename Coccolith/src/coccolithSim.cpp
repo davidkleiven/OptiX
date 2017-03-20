@@ -764,23 +764,32 @@ void CoccolithSimulation::saveGeometry()
   file->write( "vxSizeNM", 1, &single, &vxsize, false );
   file->prevent_deadlock();
 
-  meep::vec bCrn1 = dftVolBox->get_min_corner();
-  meep::vec bCrn2 = dftVolBox->get_max_corner();
-  double bxCrn[nCrn] = {bCrn1.x(),bCrn1.y(),bCrn1.z(),bCrn2.x(),bCrn2.y(),bCrn2.z()};
-  file->write("boxGeo", 1,&nCrn,bxCrn,false);
-  file->prevent_deadlock();
+  if ( dftVolBox != NULL )
+  {
+    meep::vec bCrn1 = dftVolBox->get_min_corner();
+    meep::vec bCrn2 = dftVolBox->get_max_corner();
+    double bxCrn[nCrn] = {bCrn1.x(),bCrn1.y(),bCrn1.z(),bCrn2.x(),bCrn2.y(),bCrn2.z()};
+    file->write("boxGeo", 1,&nCrn,bxCrn,false);
+    file->prevent_deadlock();
+  }
 
-  meep::vec refPCrn1 = dftVolRefl->get_min_corner();
-  meep::vec refPCrn2 = dftVolRefl->get_max_corner();
-  double refVolCrn[nCrn] = {refPCrn1.x(),refPCrn1.y(),refPCrn1.z(),refPCrn2.x(),refPCrn2.y(),refPCrn2.z()};
-  file->write("refPGeo", 1, &nCrn, refVolCrn, false );
-  file->prevent_deadlock();
+  if ( dftVolRefl != NULL )
+  {
+    meep::vec refPCrn1 = dftVolRefl->get_min_corner();
+    meep::vec refPCrn2 = dftVolRefl->get_max_corner();
+    double refVolCrn[nCrn] = {refPCrn1.x(),refPCrn1.y(),refPCrn1.z(),refPCrn2.x(),refPCrn2.y(),refPCrn2.z()};
+    file->write("refPGeo", 1, &nCrn, refVolCrn, false );
+    file->prevent_deadlock();
+  }
 
-  meep::vec trPCrn1 = dftVolTransmit->get_min_corner();
-  meep::vec trPCrn2 = dftVolTransmit->get_max_corner();
-  double trVolCrn[nCrn] = {trPCrn1.x(),trPCrn1.y(),trPCrn1.z(),trPCrn2.x(),trPCrn2.y(),trPCrn2.z()};
-  file->write("trPGeo", 1, &nCrn, trVolCrn, false );
-  file->prevent_deadlock();
+  if ( dftVolTransmit != NULL )
+  {
+    meep::vec trPCrn1 = dftVolTransmit->get_min_corner();
+    meep::vec trPCrn2 = dftVolTransmit->get_max_corner();
+    double trVolCrn[nCrn] = {trPCrn1.x(),trPCrn1.y(),trPCrn1.z(),trPCrn2.x(),trPCrn2.y(),trPCrn2.z()};
+    file->write("trPGeo", 1, &nCrn, trVolCrn, false );
+    file->prevent_deadlock();
+  }
 }
 
 void CoccolithSimulation::runWithoutScatterer()
