@@ -58,13 +58,13 @@ void SteadyCoccolithSim::exportResults()
     file = field->open_h5file( ss.str().c_str() );
     saveGeometry();
   }
-  /*
+
   field->output_hdf5( meep::Dielectric, gdvol.surroundings(), file, false, true );
   file->prevent_deadlock();
   field->output_hdf5( meep::EnergyDensity, gdvol.surroundings(), file, false, true );
   file->prevent_deadlock();
   field->output_hdf5( fieldComp, gdvol.surroundings(), file, false, true );
-  file->prevent_deadlock();*/
+  file->prevent_deadlock();
   clog << "Results written to " << ss.str() << endl;
 }
 

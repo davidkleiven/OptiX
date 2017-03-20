@@ -28,6 +28,7 @@ int main( int argc, char** argv )
     sim.maxiters = 100000; // 10000 is default
     //sim.run();
     sim.stepForTime( 4000.0 );
+
     sim.exportResults();
   }
   catch( exception &exc )
