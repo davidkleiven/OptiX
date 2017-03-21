@@ -5,5 +5,6 @@
   "useDispersive":true,
   "material":"Materials/CaCO3ne.json",
   "voxels":"data/cocco8cv4Rotated30deg_216_182_249_253.raw",
-  "prefix":"CaCO3Coccolith30deg"
+  "prefix":"CaCO3Coccolith30deg",
+  "threshold":80
 }
