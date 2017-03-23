@@ -15,6 +15,7 @@ class Spectrum:
         self.boxScattered = []
         self.boxReference = []
         self.sourceFluxReference = []
+        self.asymmetry = []
         self.crossSectionInPx = -1.0
         self.freqmin = 0.0
         self.dfreq = 0.0
@@ -37,6 +38,18 @@ class Spectrum:
         ax.spines["top"].set_visible(False)
         ax.yaxis.set_ticks_position("left")
         ax.xaxis.set_ticks_position("bottom")
+        return fig, ax
+
+    def asymmetryFactor( self, color="black", lw=1 ):
+        if ( len(self.asymmetry) == 0 ):
+            raise (Exception("Assymmetry not given!"))
+        f = f = np.linspace( self.freqmin, self.freqmax(), len(self.asymmetry) )
+        wavelength = self.voxelSize/f
+        fig = plt.figure()
+        ax = fig.add_subplot(1,1,1)
+        ax.plot(wavelength, self.asymmetry, color=color, lw=lw)
+        ax.set_xlabel("Wavelength (nm)")
+        ax.set_ylabel("Asymmetry factor")
         return fig, ax
 
     def plotDiff( self ):
@@ -121,6 +134,9 @@ def initSpectrum( fname ):
 
         if ( "boxFluxRef" in hf.keys() ):
             specPlot.boxFluxRef = np.array( hf.get("boxFluxRef") )
+
+        if ( "Asymmetry" in hf.keys() ):
+            specPlot.asymmetry = np.array( hf.get("Asymmetry") )
     return specPlot
 
 def main( argv ):
@@ -137,6 +153,11 @@ def main( argv ):
     fig3, ax3 = specPlot.scatteringCrossSection()
     try:
         fig4, ax4 = specPlot.reflection()
+    except Exception as exc:
+        print (str(exc))
+
+    try:
+        fig5, ax5 = specPlot.asymmetryFactor()
     except Exception as exc:
         print (str(exc))
     plt.show()

@@ -6,6 +6,7 @@
 #include <omp.h>
 #include <ctime>
 #include <iomanip>
+#include <gsl/gsl_integration.h>
 #define DEBUG_N2F_INITIALIZATION
 
 using namespace std;
@@ -253,17 +254,18 @@ void CoccolithSimulation::addFluxPlanes()
   dftVolBox = new meep::volume( boxCrn1, boxCrn2 );
   reflFlux = new meep::dft_flux( field->add_dft_flux_plane( *dftVolRefl, centerFrequency-freqWidth/2.0, centerFrequency+freqWidth/2.0, nfreq ) );
   fluxBox = new meep::dft_flux( field->add_dft_flux_box( *dftVolBox, centerFrequency-freqWidth/2.0, centerFrequency+freqWidth/2.0, nfreq ) );
-  addN2FPlanes( *dftVolBox );
+
+  if ( computeAsymmetryFactor ) addN2FPlanes( *dftVolBox );
 
   if ( !material->isReferenceRun() )
   {
     // There should be a backup file with the fluxes stored from the reference run
     reflFlux->load_hdf5( *field, reflFluxPlaneBackup.c_str() );
     fluxBox->load_hdf5( *field, reflFluxBoxBackup.c_str() );
-    n2fBox->load_hdf5( *field, n2fBoxBackup.c_str() );
+    if ( n2fBox != NULL ) n2fBox->load_hdf5( *field, n2fBoxBackup.c_str() );
     reflFlux->scale_dfts(-1.0);
     fluxBox->scale_dfts(-1.0);
-    n2fBox->scale_dfts(-1.0);
+    if ( n2fBox != NULL ) n2fBox->scale_dfts(-1.0);
   }
 }
 
@@ -632,6 +634,16 @@ void CoccolithSimulation::exportResults()
   {
     field->output_hdf5( meep::Dielectric, gdvol.surroundings(), file, false, true );
     file->prevent_deadlock();
+
+    if ( computeAsymmetryFactor )
+    {
+      vector<double> asym;
+      scatteringAssymmetryFactor( asym, 4000.0, gaussLegendreOrder );
+      int length = asym.size();
+
+      file->write( "Asymmetry", 1, &length, &asym[0], false );
+      file->prevent_deadlock();
+    }
   }
   saveDFTSpectrum();
   //saveDFTStokes();
@@ -981,4 +993,99 @@ void CoccolithSimulation::addN2FPlanes( const meep::volume &box )
   #endif
 
   n2fBox = new meep::dft_near2far( field->add_dft_near2far(faces, centerFrequency-freqWidth/2.0, centerFrequency+freqWidth/2.0, nfreq ) );
+}
+
+
+void CoccolithSimulation::scatteringAssymmetryFactor( vector<double> &g, double R, unsigned int Nsteps ) const
+{
+  meep::master_printf( "Computing assymmetry factor...\n" );
+  g.resize( nfreq );
+  vector<double> normalization(g.size());
+  double PI = acos(-1.0);
+  gsl_integration_glfixed_table *gslTab = gsl_integration_glfixed_table_alloc(Nsteps);
+
+  vector<double> azimInt;
+  fill( g.begin(),g.end(),0.0);
+  for ( unsigned int i=0;i<Nsteps;i++ )
+  {
+    double theta;
+    double weight;
+    gsl_integration_glfixed_point( 0.0, PI, i, &theta, &weight, gslTab );
+    int percentageDone = static_cast<int>(i*100.0/Nsteps);
+    meep::master_printf("%d done...\r", percentageDone);
+    azimuthalIntagration( theta, R, Nsteps, azimInt);
+    for ( unsigned int f=0;f<nfreq;f++ )
+    {
+      g[f] += azimInt[f]*cos(theta)*weight;
+      normalization[f] += azimInt[f]*weight;
+    }
+  }
+  if ( meep::am_master() )
+  {
+    clog << endl;
+  }
+
+  // Normalize
+  for ( unsigned int i=0;i<g.size();i++ )
+  {
+    g[i] /= (normalization[i]);
+  }
+  gsl_integration_glfixed_table_free( gslTab );
+  meep::master_printf( "Finished computing assymmetry factor\n" );
+}
+
+void CoccolithSimulation::azimuthalIntagration( double theta, double R, unsigned int Nsteps, vector<double> &res ) const
+{
+  // Determine the weights and evaluation points for phi [0,2*pi]
+  gsl_integration_glfixed_table *gslTab = gsl_integration_glfixed_table_alloc(Nsteps);
+
+  if ( res.size() != nfreq ) res.resize(nfreq);
+  fill(res.begin(),res.end(),0.0);
+  cdouble *results = NULL;
+  double RsinTheta = R*sin(theta);
+  double RcosTheta = R*cos(theta);
+  double add = 0.0;
+  double PI = acos(-1.0);
+
+  // Apply trapezoidal integration scheme
+  for ( unsigned int n=0;n<Nsteps;n++ )
+  {
+    double phi, weight;
+    gsl_integration_glfixed_point(0.0, 2.0*PI, n, &phi, &weight, gslTab );
+    double x = RsinTheta*cos(phi);
+    double y = RsinTheta*sin(phi);
+    double z = RcosTheta;
+    permumteToFitPropDir(x,y,z);
+
+    results = n2fBox->farfield( meep::vec(x,y,z) );
+    for ( unsigned int i=0;i<nfreq;i++ )
+    {
+      add = pow(abs(results[6*i]),2) + pow(abs(results[6*i+1]),2) + pow(abs(results[6*i+2]),2);
+      res[i] += weight*add;
+    }
+    delete results; results=NULL;
+  }
+  gsl_integration_glfixed_table_free( gslTab );
+}
+
+void CoccolithSimulation::permumteToFitPropDir( double &x, double &y, double &z ) const
+{
+  double copyX = x;
+  double copyY = y;
+  double copyZ = z;
+  switch( propagationDir )
+  {
+    case MainPropDirection_t::X:
+      x = copyZ;
+      y = copyX;
+      z = copyY;
+      return;
+    case MainPropDirection_t::Y:
+      x = copyY;
+      y = copyZ;
+      z = copyX;
+      return;
+    case MainPropDirection_t::Z:
+      return;
+  }
 }

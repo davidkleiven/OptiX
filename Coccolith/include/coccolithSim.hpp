@@ -83,6 +83,9 @@ public:
   /** Runs without visualization */
   void disableRealTimeVisualization(){ realTimeVisualization = false; };
 
+  /** Computes the scattering assymetry factor for each frequency based on fields at distance R */
+  void scatteringAssymmetryFactor( std::vector<double> &g, double R, unsigned int Nsteps ) const;
+
   /** Returns a reference to the structure */
   meep::structure& getStructure(){ return *struc; };
 
@@ -95,6 +98,12 @@ public:
 
   /** Prefix that will be added to the filename */
   std::string prefix{""};
+
+  /** Set to true if the scattering assummetry factor should be computed */
+  bool computeAsymmetryFactor{false};
+
+  /** Set the order of the Gauss Legendre that is used for the asymmetry function calculation */
+  unsigned int gaussLegendreOrder{17};
 protected:
   VoxelMaterial *material{NULL};
   const SellmeierMaterial *sellmeier{NULL};
@@ -234,6 +243,13 @@ protected:
 
   /** Adds near to far field planes */
   void addN2FPlanes( const meep::volume &box );
+
+  /** Integrate the radial component of the poyntings vector in the azimuthal direction */
+  void azimuthalIntagration( double R, double theta, unsigned int Nsteps, std::vector<double> &res ) const;
+
+  /** Permute x,y,z given with propagation direction in Z to fit other propgation directions */
+  void permumteToFitPropDir( double &x, double &y, double &z ) const;
+
 };
 
 #endif
