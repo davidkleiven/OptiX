@@ -11,13 +11,20 @@ using namespace std;
 int main( int argc, char** argv )
 {
   meep::initialize mpi( argc, argv );
+
+  if ( argc != 2 )
+  {
+    meep::master_printf("No geometry filename specified!");
+    return 1;
+  }
+  string geometryFname(argv[1]);
   srand( time(0) );
   try
   {
     SteadyCoccolithSim sim;
     sim.prefix = "steadyCoccolith";
-    CaCO3Cocco material( 2.72 );
-    material.loadRaw( "data/cocco8cv4Rotated_216_182_249_253.raw" );
+    CaCO3Cocco material( 2.19 );
+    material.loadRaw( geometryFname.c_str() );
     sim.setMaterial( material );
     sim.setMainPropagationDirection( MainPropDirection_t::X );
     sim.setSourceSide( SourcePosition_t::BOTTOM );

@@ -11,3 +11,4 @@
 20170312_1849 | Scattering cross section with ne refractive index | minimum scattering coincide with cholorphyll spikes |
 sphereCrossSectionRes8.h5 | Scattering cross secrion for a sphere with resolution 8 | Can be better |
 20170320_08081 | Steady state of coccolith | Looks OK, used the epsilon for the ordinary axis. MEEP did not resolve all the details of the geometry |
+20170321_1141 | Steady state simulation of coccolith at 30 degree incident angle. Think the threshold for the coccolith should be much nicer now. | Not analysed |

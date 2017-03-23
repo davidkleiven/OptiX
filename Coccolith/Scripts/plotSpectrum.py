@@ -11,7 +11,9 @@ class Spectrum:
     def __init__( self ):
         self.ref = []
         self.trans = []
+        self.reflected = []
         self.boxScattered = []
+        self.boxReference = []
         self.sourceFluxReference = []
         self.crossSectionInPx = -1.0
         self.freqmin = 0.0
@@ -23,19 +25,16 @@ class Spectrum:
     def freqmax( self ):
         return self.freqmin + self.dfreq*self.Nfreq
 
-    def plot( self ):
+    def plot( self, color="black", lw=1 ):
         fig = plt.figure()
         ax = fig.add_subplot(1,1,1)
         f = np.linspace( self.freqmin, self.freqmax(), len( self.ref ) )
-        ax.plot( f, self.trans/self.ref, color="black" )
-        ax.set_xlabel("Frequency \$(c/L)\$")
+        wavelength = self.voxelSize/f
+        ax.plot( wavelength, self.trans/self.ref, color=color, lw=lw )
+        ax.set_xlabel("Wavelength (nm)")
         ax.set_ylabel("Transmittivity (\$I_e/I_0\$)")
-        if ( self.voxelSize > 0.0 ):
-            ax2 = ax.twiny()
-            #ax2.set_xlim( self.voxelSize/self.freqmin, self.voxelSize/self.freqmax() )
-            ax2ticks = [self.voxelSize/ax1tick for ax1tick in ax.get_xticks()]
-            ax2.set_xticks( ax2ticks )
-            ax2.set_xlabel("Wavelength (nm)")
+        ax.spines["right"].set_visible(False)
+        ax.spines["top"].set_visible(False)
         ax.yaxis.set_ticks_position("left")
         ax.xaxis.set_ticks_position("bottom")
         return fig, ax
@@ -44,8 +43,8 @@ class Spectrum:
         fig = plt.figure()
         ax = fig.add_subplot(1,1,1)
         f = np.linspace( self.freqmin, self.freqmax(), len( self.ref) )
-        ax.plot( f, 1.0-self.trans/self.ref, color="black" )
-        ax.set_xlabel( "Frequency \$(c/L)\$" )
+        ax.plot( self.voxelSize/f, 1.0-self.trans/self.ref, color="black" )
+        ax.set_xlabel( "Wavelength (nm)" )
         ax.set_ylabel("\$1-T\$")
         return fig, ax
 
@@ -61,7 +60,7 @@ class Spectrum:
             print ("No cross section in pixels given!")
 
         f = np.linspace( self.freqmin, self.freqmax(), len( self.ref ) )
-        intensityRatio = np.abs( self.boxScattered/self.sourceFluxReference )
+        intensityRatio = np.abs( (self.boxScattered-self.boxFluxRef)/self.sourceFluxReference )
         area = self.crossSectionInPx*self.voxelSize*self.voxelSize/1E6
 
         wavelength = self.voxelSize/f
@@ -77,6 +76,19 @@ class Spectrum:
     def getDimlessFreq( self, wavelenthInnm ):
         dimlessWave = wavelenthInnm/self.voxelSize
         return 1.0/dimlessWave
+
+    def reflection( self, color="black", lw=1 ):
+        if ( len(self.ref) == 0 ):
+            raise( Exception("Reflection not initialized!") )
+        fig = plt.figure()
+        ax = fig.add_subplot(1,1,1)
+        f = np.linspace( self.freqmin, self.freqmax(), len( self.ref ) )
+        wavelength = self.voxelSize/f
+        backScattered = np.abs( self.reflected/self.ref )
+        ax.plot( wavelength, backScattered, color=color, lw=lw )
+        ax.set_xlabel("Wavelength (nm)")
+        ax.set_ylabel("Reflectivity (\$I_r/I_0\$)")
+        return fig, ax
 
 def initSpectrum( fname ):
     specPlot = Spectrum()
@@ -103,6 +115,12 @@ def initSpectrum( fname ):
             dz = val[5]-val[2]
             crossSections = np.array( [dx*dy,dx*dz,dy*dz] )
             specPlot.crossSectionInPx = np.max( crossSections )
+
+        if ( "reflPlaneScat" in hf.keys() ):
+            specPlot.reflected = np.array( hf.get("reflPlaneScat") )
+
+        if ( "boxFluxRef" in hf.keys() ):
+            specPlot.boxFluxRef = np.array( hf.get("boxFluxRef") )
     return specPlot
 
 def main( argv ):
@@ -117,6 +135,10 @@ def main( argv ):
     fig, ax = specPlot.plot()
     fig2, ax2 = specPlot.plotDiff()
     fig3, ax3 = specPlot.scatteringCrossSection()
+    try:
+        fig4, ax4 = specPlot.reflection()
+    except Exception as exc:
+        print (str(exc))
     plt.show()
 
 if __name__ == "__main__":

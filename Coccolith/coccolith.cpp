@@ -79,7 +79,7 @@ int main( int argc, char** argv )
     sim->initSource( centerFreq, freqwidth );
     sim->setPMLInWavelengths( pmlThick );
     sim->disableRealTimeVisualization();
-    //sim->setEndTime( 10.0);
+    //sim->setEndTime( 10.0 );
     sim->runWithScatterer();
     sim->init();
     sim->run();

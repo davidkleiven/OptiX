@@ -86,8 +86,9 @@ void VoxelMaterial::applyThreshold()
   {
     meep::master_printf("Using the 50 percent largest values...\n");
     unsigned char maxval = voxels.max();
-    unsigned char threshold = 0.5*maxval;
+    threshold = 0.5*maxval;
   }
+  meep::master_printf("Using theshold: %.2f", threshold);
   for ( unsigned int k=0;k<voxels.n_slices;k++ )
     for ( unsigned int i=0;i<voxels.n_cols;i++ )
       for ( unsigned int j=0;j<voxels.n_rows;j++ )
