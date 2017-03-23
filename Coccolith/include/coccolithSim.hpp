@@ -131,6 +131,7 @@ protected:
   bool geoIsInitialized{false};
   std::string reflFluxPlaneBackup{"reflectedFlux"};
   std::string reflFluxBoxBackup{"reflectedFluxBox"};
+  std::string n2fBoxBackup{"n2fBox"};
 
   /** Visualized intensity */
   void visualize();
@@ -139,9 +140,11 @@ protected:
   meep::volume *dftVolTransmit{NULL};
   meep::volume *dftVolRefl{NULL};
   meep::volume *dftVolBox{NULL};
+  meep::volume_list *faces{NULL}; // N2F faces
   meep::dft_flux *transmitFlux{NULL};
   meep::dft_flux *reflFlux{NULL};
   meep::dft_flux *fluxBox{NULL};
+  meep::dft_near2far *n2fBox{NULL};
 
   // Monitor planes 1
   FieldMonitor *monitor1{NULL};
@@ -228,6 +231,9 @@ protected:
 
   /** Adds susceptibilities to the structure */
   void updateStructure();
+
+  /** Adds near to far field planes */
+  void addN2FPlanes( const meep::volume &box );
 };
 
 #endif

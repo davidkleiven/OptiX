@@ -6,6 +6,7 @@
 #include <omp.h>
 #include <ctime>
 #include <iomanip>
+#define DEBUG_N2F_INITIALIZATION
 
 using namespace std;
 
@@ -36,6 +37,8 @@ CoccolithSimulation::~CoccolithSimulation()
 
   delete monitor1; monitor1=NULL;
   delete monitor2; monitor2=NULL;
+  delete faces; faces=NULL;
+  delete n2fBox; n2fBox=NULL;
   #ifdef HAVE_LIB_VISA
     if ( plots != NULL ) delete plots; plots=NULL;
   #endif
@@ -250,14 +253,17 @@ void CoccolithSimulation::addFluxPlanes()
   dftVolBox = new meep::volume( boxCrn1, boxCrn2 );
   reflFlux = new meep::dft_flux( field->add_dft_flux_plane( *dftVolRefl, centerFrequency-freqWidth/2.0, centerFrequency+freqWidth/2.0, nfreq ) );
   fluxBox = new meep::dft_flux( field->add_dft_flux_box( *dftVolBox, centerFrequency-freqWidth/2.0, centerFrequency+freqWidth/2.0, nfreq ) );
+  addN2FPlanes( *dftVolBox );
 
   if ( !material->isReferenceRun() )
   {
     // There should be a backup file with the fluxes stored from the reference run
     reflFlux->load_hdf5( *field, reflFluxPlaneBackup.c_str() );
     fluxBox->load_hdf5( *field, reflFluxBoxBackup.c_str() );
+    n2fBox->load_hdf5( *field, n2fBoxBackup.c_str() );
     reflFlux->scale_dfts(-1.0);
     fluxBox->scale_dfts(-1.0);
+    n2fBox->scale_dfts(-1.0);
   }
 }
 
@@ -665,6 +671,7 @@ void CoccolithSimulation::saveDFTSpectrum()
     // Save backup fields
     fluxBox->save_hdf5( *field, reflFluxBoxBackup.c_str() );
     reflFlux->save_hdf5( *field, reflFluxPlaneBackup.c_str() );
+    n2fBox->save_hdf5( *field, n2fBoxBackup.c_str() );
   }
   else
   {
@@ -914,4 +921,64 @@ void CoccolithSimulation::updateStructure()
   {
     clog << "Added " << sellmeier->nLorentzians() << " lorentzian susceptibilities to the MEEP structure...\n";
   }
+}
+
+void CoccolithSimulation::addN2FPlanes( const meep::volume &box )
+{
+  delete faces;
+  delete n2fBox;
+  faces = NULL;
+  n2fBox = NULL;
+  const meep::vec mincrn = box.get_min_corner();
+  const meep::vec maxcrn = box.get_max_corner();
+
+  // Face to store flux in negative x-direction
+  meep::vec crn1 = mincrn;
+  meep::vec crn2( mincrn.x(), maxcrn.y(), maxcrn.z() );
+  faces = new meep::volume_list( meep::volume(crn1, crn2), meep::Sx, -1, faces );
+  #ifdef DEBUG_N2F_INITIALIZATION
+    meep::master_printf( "mincrn:%.1f,%.1f,%.1f, maxcrn=%.1f,%.1f,%.1f\n", crn1.x(), crn1.y(), crn1.z(), crn2.x(),crn2.y(),crn2.z() );
+  #endif
+
+  // Face to store flux in positive x-direction
+  crn1 = meep::vec( maxcrn.x(), mincrn.y(), mincrn.z() );
+  crn2 = maxcrn;
+  faces = new meep::volume_list( meep::volume(crn1, crn2), meep::Sx, 1 , faces);
+  #ifdef DEBUG_N2F_INITIALIZATION
+    meep::master_printf( "mincrn:%.1f,%.1f,%.1f, maxcrn=%.1f,%.1f,%.1f\n", crn1.x(), crn1.y(), crn1.z(), crn2.x(),crn2.y(),crn2.z() );
+  #endif
+
+  // Face to store flux in negative y-direction
+  crn1 = mincrn;
+  crn2 = meep::vec( maxcrn.x(), mincrn.y(), maxcrn.z() );
+  faces = new meep::volume_list( meep::volume(crn1, crn2), meep::Sy, -1, faces );
+  #ifdef DEBUG_N2F_INITIALIZATION
+    meep::master_printf( "mincrn:%.1f,%.1f,%.1f, maxcrn=%.1f,%.1f,%.1f\n", crn1.x(), crn1.y(), crn1.z(), crn2.x(),crn2.y(),crn2.z() );
+  #endif
+
+  // Face to store in positive y-direction
+  crn1 = meep::vec( mincrn.x(), maxcrn.y(), mincrn.z() );
+  crn2 = maxcrn;
+  faces = new meep::volume_list( meep::volume(crn1, crn2), meep::Sy, 1 , faces);
+  #ifdef DEBUG_N2F_INITIALIZATION
+    meep::master_printf( "mincrn:%.1f,%.1f,%.1f, maxcrn=%.1f,%.1f,%.1f\n", crn1.x(), crn1.y(), crn1.z(), crn2.x(),crn2.y(),crn2.z() );
+  #endif
+
+  // Face to store flux in negative z-direction
+  crn1 = mincrn;
+  crn2 = meep::vec( maxcrn.x(), maxcrn.y(), mincrn.z() );
+  faces = new meep::volume_list( meep::volume(crn1, crn2), meep::Sz, -1, faces );
+  #ifdef DEBUG_N2F_INITIALIZATION
+    meep::master_printf( "mincrn:%.1f,%.1f,%.1f, maxcrn=%.1f,%.1f,%.1f\n", crn1.x(), crn1.y(), crn1.z(), crn2.x(),crn2.y(),crn2.z() );
+  #endif
+
+  // Face to store flux in positive z-direction
+  crn1 = meep::vec( mincrn.x(), mincrn.y(), maxcrn.z() );
+  crn2 = maxcrn;
+  faces = new meep::volume_list( meep::volume(crn1, crn2), meep::Sz, 1 , faces);
+  #ifdef DEBUG_N2F_INITIALIZATION
+    meep::master_printf( "mincrn:%.1f,%.1f,%.1f, maxcrn=%.1f,%.1f,%.1f\n", crn1.x(), crn1.y(), crn1.z(), crn2.x(),crn2.y(),crn2.z() );
+  #endif
+
+  n2fBox = new meep::dft_near2far( field->add_dft_near2far(faces, centerFrequency-freqWidth/2.0, centerFrequency+freqWidth/2.0, nfreq ) );
 }
