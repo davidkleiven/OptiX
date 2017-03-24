@@ -40,16 +40,17 @@ class Spectrum:
         ax.xaxis.set_ticks_position("bottom")
         return fig, ax
 
-    def asymmetryFactor( self, color="black", lw=1 ):
+    def asymmetryFactor( self, color="black", lw=1, ax=None, label="" ):
         if ( len(self.asymmetry) == 0 ):
             raise (Exception("Assymmetry not given!"))
         f = f = np.linspace( self.freqmin, self.freqmax(), len(self.asymmetry) )
         wavelength = self.voxelSize/f
-        fig = plt.figure()
-        ax = fig.add_subplot(1,1,1)
-        ax.plot(wavelength, self.asymmetry, color=color, lw=lw)
+        if ( ax is None ):
+            fig = plt.figure()
+            ax = fig.add_subplot(1,1,1)
+        ax.plot(wavelength, self.asymmetry, color=color, lw=lw, label=label)
         ax.set_xlabel("Wavelength (nm)")
-        ax.set_ylabel("Asymmetry factor")
+        ax.set_ylabel("Asymmetry factor, \$g\$")
         return fig, ax
 
     def plotDiff( self ):
@@ -61,7 +62,7 @@ class Spectrum:
         ax.set_ylabel("\$1-T\$")
         return fig, ax
 
-    def scatteringCrossSection( self, color="black", lw=1 ):
+    def scatteringCrossSection( self, color="black", lw=1, asymmetry=False, label="" ):
         fig = plt.figure()
         ax = fig.add_subplot(1,1,1)
         if ( len(self.sourceFluxReference) == 0 ):
@@ -78,12 +79,18 @@ class Spectrum:
 
         wavelength = self.voxelSize/f
         ax.plot( wavelength, intensityRatio*area, color=color, lw=lw)
-        ax.set_ylabel("Scattering cross section (\$\SI{}{\micro\meter\squared}\$)")
+        ax.set_ylabel("Scattering cross section, \$\sigma_s\$ (\$\SI{}{\micro\meter\squared}\$)")
         ax.set_xlabel("Wavelength (nm)")
         ax.spines["right"].set_visible(False)
         ax.spines["top"].set_visible(False)
         ax.xaxis.set_ticks_position("bottom")
         ax.yaxis.set_ticks_position("left")
+
+        if ( asymmetry ):
+            ax2 = ax.twinx()
+            self.asymmetryFactor( color="#377eb8", ax=ax2, label="g" )
+            ax2.plot([],[],color=color, label=label)
+            ax2.legend(loc="lower right", frameon=False, labelspacing=0.02)
         return fig, ax
 
     def getDimlessFreq( self, wavelenthInnm ):
@@ -157,7 +164,7 @@ def main( argv ):
         print (str(exc))
 
     try:
-        fig5, ax5 = specPlot.asymmetryFactor()
+        fig5, ax5 = specPlot.scatteringCrossSection( color="#e41a1c", label="\$\sigma_s\$", asymmetry=True )
     except Exception as exc:
         print (str(exc))
     plt.show()

@@ -84,7 +84,7 @@ public:
   void disableRealTimeVisualization(){ realTimeVisualization = false; };
 
   /** Computes the scattering assymetry factor for each frequency based on fields at distance R */
-  void scatteringAssymmetryFactor( std::vector<double> &g, double R, unsigned int Nsteps ) const;
+  void scatteringAssymmetryFactor( std::vector<double> &g, double R, unsigned int Nsteps );
 
   /** Returns a reference to the structure */
   meep::structure& getStructure(){ return *struc; };
@@ -101,6 +101,9 @@ public:
 
   /** Set to true if the scattering assummetry factor should be computed */
   bool computeAsymmetryFactor{false};
+
+  /** Use an 45 degree polarization in the sources */
+  bool use45DegPolarization{false};
 
   /** Set the order of the Gauss Legendre that is used for the asymmetry function calculation */
   unsigned int gaussLegendreOrder{17};
@@ -161,6 +164,8 @@ protected:
 
   arma::mat bkg1;
   arma::mat bkg2;
+  arma::mat radialPoyntingVector;
+  std::vector<double> thetaValues;
 
 
   // Source corners
@@ -249,7 +254,6 @@ protected:
 
   /** Permute x,y,z given with propagation direction in Z to fit other propgation directions */
   void permumteToFitPropDir( double &x, double &y, double &z ) const;
-
 };
 
 #endif

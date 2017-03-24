@@ -6,6 +6,7 @@
 #include <ctime>
 #include <json/reader.h>
 #include <fstream>
+//#define CHECK_THAT_ALL_WORKS
 
 using namespace std;
 
@@ -52,7 +53,9 @@ int main( int argc, char** argv )
     sim->initSource( centerFreq, freqwidth );
     sim->setPMLInWavelengths( pmlThick );
     sim->disableRealTimeVisualization();
-    //sim->setEndTime( 10.0);
+    #ifdef CHECK_THAT_ALL_WORKS
+      sim->setEndTime( 10.0);
+    #endif
     sim->additionalVaccumLayerPx = 3.0;
     if ( root.isMember("computeAsymmetryFactor") ) sim->computeAsymmetryFactor = root["computeAsymmetryFactor"].asBool();
     sim->runWithoutScatterer();
@@ -82,7 +85,12 @@ int main( int argc, char** argv )
     sim->initSource( centerFreq, freqwidth );
     sim->setPMLInWavelengths( pmlThick );
     sim->disableRealTimeVisualization();
-    //sim->setEndTime( 10.0 );
+
+    #ifdef CHECK_THAT_ALL_WORKS
+      sim->setEndTime( 10.0 );
+      sim->gaussLegendreOrder = 2;
+    #endif
+
     sim->additionalVaccumLayerPx = 3.0;
     if ( root.isMember("computeAsymmetryFactor") ) sim->computeAsymmetryFactor = root["computeAsymmetryFactor"].asBool();
     sim->runWithScatterer();
