@@ -147,20 +147,29 @@ void CoccolithSimulation::addSource()
     throw( runtime_error("A source volume needs to be added before a source is added!\n") );
   }
 
+  meep::component secondComp;
   switch( propagationDir )
   {
     case MainPropDirection_t::X:
       fieldComp = meep::component::Ey;
+      secondComp = meep::Ez;
       break;
     case MainPropDirection_t::Y:
       fieldComp = meep::component::Ez;
+      secondComp = meep::component::Ex;
       break;
     case MainPropDirection_t::Z:
       fieldComp = meep::component::Ex;
+      secondComp = meep::component::Ey;
       break;
   }
 
   field->add_volume_source( fieldComp, *sourceTime, *srcVol, amplitude );
+  if ( use45DegPolarization )
+  {
+    meep::master_printf("Using 45 degree polarization\n");
+    field->add_volume_source( secondComp, *sourceTime, *srcVol, amplitude );
+  }
 }
 
 void CoccolithSimulation::init()
@@ -643,6 +652,15 @@ void CoccolithSimulation::exportResults()
 
       file->write( "Asymmetry", 1, &length, &asym[0], false );
       file->prevent_deadlock();
+
+      int gLgorder = gaussLegendreOrder;
+      int nfreqCast = nfreq;
+      int rank[2] = {gLgorder,nfreqCast};
+      file->write( "Sr", 2, rank, radialPoyntingVector.memptr(), false );
+      file->prevent_deadlock();
+
+      file->write( "SrTheta", 1, &nfreqCast, &thetaValues[0], false );
+      file->prevent_deadlock();
     }
   }
   saveDFTSpectrum();
@@ -996,9 +1014,11 @@ void CoccolithSimulation::addN2FPlanes( const meep::volume &box )
 }
 
 
-void CoccolithSimulation::scatteringAssymmetryFactor( vector<double> &g, double R, unsigned int Nsteps ) const
+void CoccolithSimulation::scatteringAssymmetryFactor( vector<double> &g, double R, unsigned int Nsteps )
 {
   meep::master_printf( "Computing assymmetry factor...\n" );
+  radialPoyntingVector.set_size( Nsteps, nfreq );
+  thetaValues.resize(Nsteps);
   g.resize( nfreq );
   vector<double> normalization(g.size());
   double PI = acos(-1.0);
@@ -1014,10 +1034,12 @@ void CoccolithSimulation::scatteringAssymmetryFactor( vector<double> &g, double 
     int percentageDone = static_cast<int>(i*100.0/Nsteps);
     meep::master_printf("%d done...\r", percentageDone);
     azimuthalIntagration( theta, R, Nsteps, azimInt);
+    thetaValues[i] = theta;
     for ( unsigned int f=0;f<nfreq;f++ )
     {
       g[f] += azimInt[f]*cos(theta)*weight;
       normalization[f] += azimInt[f]*weight;
+      radialPoyntingVector(i,f) = azimInt[f];
     }
   }
   if ( meep::am_master() )
