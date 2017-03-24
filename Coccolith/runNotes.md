@@ -13,3 +13,5 @@ sphereCrossSectionRes8.h5 | Scattering cross secrion for a sphere with resolutio
 20170320_08081 | Steady state of coccolith | Looks OK, used the epsilon for the ordinary axis. MEEP did not resolve all the details of the geometry |
 20170321_1141 | Steady state simulation of coccolith at 30 degree incident angle. Think the threshold for the coccolith should be much nicer now. | Not analysed |
 20170323_1838 | First computation with asymmetry factor | A little few frequencies |
+20170324_1614 | 3 azimuthal angles, 64 theta | Should have more theta values, g factor seems to be wrong |
+20170324_1848 | 3 azimuthal angles, 256 atheta | Oscillates rapidly |

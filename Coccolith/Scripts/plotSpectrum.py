@@ -16,6 +16,8 @@ class Spectrum:
         self.boxReference = []
         self.sourceFluxReference = []
         self.asymmetry = []
+        self.Sr = []
+        self.theta = []
         self.crossSectionInPx = -1.0
         self.freqmin = 0.0
         self.dfreq = 0.0
@@ -110,6 +112,29 @@ class Spectrum:
         ax.set_ylabel("Reflectivity (\$I_r/I_0\$)")
         return fig, ax
 
+    def SrDistribution( self ):
+        if ( len(self.Sr.shape) != 2 ):
+            raise (Exception("Sr not given!"))
+        elif ( len(self.theta) == 0 ):
+            raise (Exception("Theta values not given!"))
+
+        # Was a bug in the storing of theta
+        if ( len(self.theta) != self.Sr.shape[0] ):
+            self.theta = self.theta[:self.Sr.shape[0]]
+
+        f = np.linspace( self.freqmin, self.freqmax(), len( self.ref ) )
+        wavelength = self.voxelSize/f
+        colors = ["#1b9e77", "#d95f02", "#7570b3", "#e7298a", "#66a61e"]
+        N = 3
+        fig = plt.figure()
+        ax = fig.add_subplot(1,1,1, projection="polar")
+        #ax = fig.add_subplot(1,1,1)
+        counter = 0
+        for i in range(0, self.Sr.shape[1], int(self.Sr.shape[1]/N) ):
+            ax.plot(self.theta, np.log(self.Sr[:,i]/np.min(self.Sr[:,i])), color=colors[counter%len(colors)], label="%d nm"%(wavelength[i]))
+            counter += 1
+        return fig, ax
+
 def initSpectrum( fname ):
     specPlot = Spectrum()
     with h5.File( fname, 'r' ) as hf:
@@ -144,6 +169,12 @@ def initSpectrum( fname ):
 
         if ( "Asymmetry" in hf.keys() ):
             specPlot.asymmetry = np.array( hf.get("Asymmetry") )
+
+        if ( "Sr" in hf.keys() ):
+            specPlot.Sr = np.array( hf.get("Sr") )
+
+        if ( "SrTheta" in hf.keys() ):
+            specPlot.theta = np.array( hf.get("SrTheta") )
     return specPlot
 
 def main( argv ):

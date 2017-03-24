@@ -103,15 +103,19 @@ public:
   bool computeAsymmetryFactor{false};
 
   /** Use an 45 degree polarization in the sources */
-  bool use45DegPolarization{false};
+  bool computeStokesParameters{false};
 
   /** Set the order of the Gauss Legendre that is used for the asymmetry function calculation */
   unsigned int gaussLegendreOrder{17};
+
+  /** Number of azimuthal angles to average over */
+  unsigned int numberOfAzimuthalSteps{3};
 protected:
   VoxelMaterial *material{NULL};
   const SellmeierMaterial *sellmeier{NULL};
   MainPropDirection_t propagationDir{MainPropDirection_t::Z};
   meep::component fieldComp{meep::Ex};
+  meep::component secondComp{meep::Ey};
 
   meep::volume* srcVol{NULL};
   meep::structure* struc{NULL};
@@ -165,8 +169,15 @@ protected:
   arma::mat bkg1;
   arma::mat bkg2;
   arma::mat radialPoyntingVector;
+  arma::mat stokesI;
+  arma::mat stokesQ;
+  arma::mat stokesV;
+  arma::mat stokesU;
+  std::vector<double> stokesIAsym;
+  std::vector<double> stokesQAsym;
+  std::vector<double> stokesVAsym;
+  std::vector<double> stokesUAsym;
   std::vector<double> thetaValues;
-
 
   // Source corners
   meep::vec crn1;
@@ -250,10 +261,13 @@ protected:
   void addN2FPlanes( const meep::volume &box );
 
   /** Integrate the radial component of the poyntings vector in the azimuthal direction */
-  void azimuthalIntagration( double R, double theta, unsigned int Nsteps, std::vector<double> &res ) const;
+  void azimuthalIntagration( double R, double theta, unsigned int Nsteps, std::vector<double> &res );
 
   /** Permute x,y,z given with propagation direction in Z to fit other propgation directions */
   void permumteToFitPropDir( double &x, double &y, double &z ) const;
+
+  /** Updates the Stokes parameter array based on the fields, weight is the Legendre-Gauss integration weight */
+  void updateStokesParameters( const cdouble EH[], unsigned int evalPointIndx, double weight );
 };
 
 #endif

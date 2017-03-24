@@ -147,7 +147,6 @@ void CoccolithSimulation::addSource()
     throw( runtime_error("A source volume needs to be added before a source is added!\n") );
   }
 
-  meep::component secondComp;
   switch( propagationDir )
   {
     case MainPropDirection_t::X:
@@ -165,7 +164,7 @@ void CoccolithSimulation::addSource()
   }
 
   field->add_volume_source( fieldComp, *sourceTime, *srcVol, amplitude );
-  if ( use45DegPolarization )
+  if ( computeStokesParameters )
   {
     meep::master_printf("Using 45 degree polarization\n");
     field->add_volume_source( secondComp, *sourceTime, *srcVol, amplitude );
@@ -659,8 +658,51 @@ void CoccolithSimulation::exportResults()
       file->write( "Sr", 2, rank, radialPoyntingVector.memptr(), false );
       file->prevent_deadlock();
 
-      file->write( "SrTheta", 1, &nfreqCast, &thetaValues[0], false );
+      file->write( "SrTheta", 1, &gLgorder, &thetaValues[0], false );
       file->prevent_deadlock();
+
+      if ( computeStokesParameters )
+      {
+        rank[0] = stokesI.n_rows;
+        rank[1] = stokesI.n_cols;
+        bool saveStokesParameters = (stokesI.n_rows == stokesQ.n_rows ) && ( stokesI.n_rows == stokesU.n_rows ) && \
+                                    (stokesI.n_rows == stokesV.n_rows ) && ( stokesI.n_cols == stokesQ.n_cols ) && \
+                                    (stokesI.n_cols == stokesU.n_cols ) && ( stokesI.n_cols == stokesV.n_cols ) && \
+                                    (stokesIAsym.size() == stokesQAsym.size() ) && ( stokesIAsym.size() == stokesUAsym.size() ) && \
+                                    (stokesIAsym.size() == stokesVAsym.size() ) && (stokesI.n_rows>0) && (stokesI.n_cols>0) && \
+                                    (stokesIAsym.size()>0);
+        if ( saveStokesParameters )
+        {
+          int length = stokesIAsym.size();
+          file->write("StokesI", 2, rank, stokesI.memptr(), false );
+          file->prevent_deadlock();
+
+          file->write("StokesQ", 2, rank, stokesQ.memptr(), false );
+          file->prevent_deadlock();
+
+          file->write("StokesU", 2, rank, stokesU.memptr(), false );
+          file->prevent_deadlock();
+
+          file->write("StokesV", 2, rank, stokesV.memptr(), false );
+          file->prevent_deadlock();
+
+          file->write("StokesIAsym", 1, &length, &stokesIAsym[0], false );
+          file->prevent_deadlock();
+
+          file->write("StokesQAsym", 1, &length, &stokesQAsym[0], false );
+          file->prevent_deadlock();
+
+          file->write("StokesUAsym", 1, &length, &stokesUAsym[0], false );
+          file->prevent_deadlock();
+
+          file->write("StokesVAsym", 1, &length, &stokesVAsym[0], false );
+          file->prevent_deadlock();
+        }
+        else
+        {
+          meep::master_printf("Warning! The dimensions of the different Stokes parameters does not match!\n");
+        }
+      }
     }
   }
   saveDFTSpectrum();
@@ -1020,12 +1062,25 @@ void CoccolithSimulation::scatteringAssymmetryFactor( vector<double> &g, double 
   radialPoyntingVector.set_size( Nsteps, nfreq );
   thetaValues.resize(Nsteps);
   g.resize( nfreq );
+
+  if ( computeStokesParameters )
+  {
+    stokesI.set_size(Nsteps, nfreq);
+    stokesQ.set_size(Nsteps, nfreq);
+    stokesU.set_size(Nsteps, nfreq);
+    stokesV.set_size(Nsteps, nfreq);
+    stokesIAsym.resize(nfreq);
+    stokesQAsym.resize(nfreq);
+    stokesUAsym.resize(nfreq);
+    stokesVAsym.resize(nfreq);
+  }
   vector<double> normalization(g.size());
   double PI = acos(-1.0);
   gsl_integration_glfixed_table *gslTab = gsl_integration_glfixed_table_alloc(Nsteps);
 
   vector<double> azimInt;
   fill( g.begin(),g.end(),0.0);
+  fill( normalization.begin(), normalization.end(), 0.0 );
   for ( unsigned int i=0;i<Nsteps;i++ )
   {
     double theta;
@@ -1033,13 +1088,21 @@ void CoccolithSimulation::scatteringAssymmetryFactor( vector<double> &g, double 
     gsl_integration_glfixed_point( 0.0, PI, i, &theta, &weight, gslTab );
     int percentageDone = static_cast<int>(i*100.0/Nsteps);
     meep::master_printf("%d done...\r", percentageDone);
-    azimuthalIntagration( theta, R, Nsteps, azimInt);
+    //azimuthalIntagration( theta, R, Nsteps, azimInt);
+    azimuthalIntagration( theta, R, numberOfAzimuthalSteps, azimInt);
     thetaValues[i] = theta;
     for ( unsigned int f=0;f<nfreq;f++ )
     {
-      g[f] += azimInt[f]*cos(theta)*weight;
-      normalization[f] += azimInt[f]*weight;
+      g[f] += azimInt[f]*cos(theta)*weight*sin(theta);
+      normalization[f] += azimInt[f]*weight*sin(theta);
       radialPoyntingVector(i,f) = azimInt[f];
+      if ( computeStokesParameters )
+      {
+        stokesIAsym[f] += stokesI(i,f)*cos(theta)*weight*sin(theta);
+        stokesQAsym[f] += stokesQ(i,f)*cos(theta)*weight*sin(theta);
+        stokesUAsym[f] += stokesU(i,f)*cos(theta)*weight*sin(theta);
+        stokesVAsym[f] += stokesV(i,f)*cos(theta)*weight*sin(theta);
+      }
     }
   }
   if ( meep::am_master() )
@@ -1056,7 +1119,7 @@ void CoccolithSimulation::scatteringAssymmetryFactor( vector<double> &g, double 
   meep::master_printf( "Finished computing assymmetry factor\n" );
 }
 
-void CoccolithSimulation::azimuthalIntagration( double theta, double R, unsigned int Nsteps, vector<double> &res ) const
+void CoccolithSimulation::azimuthalIntagration( double theta, double R, unsigned int Nsteps, vector<double> &res )
 {
   // Determine the weights and evaluation points for phi [0,2*pi]
   gsl_integration_glfixed_table *gslTab = gsl_integration_glfixed_table_alloc(Nsteps);
@@ -1069,7 +1132,7 @@ void CoccolithSimulation::azimuthalIntagration( double theta, double R, unsigned
   double add = 0.0;
   double PI = acos(-1.0);
 
-  // Apply trapezoidal integration scheme
+  // Apply Gauss-Legendre integation scheme
   for ( unsigned int n=0;n<Nsteps;n++ )
   {
     double phi, weight;
@@ -1084,6 +1147,11 @@ void CoccolithSimulation::azimuthalIntagration( double theta, double R, unsigned
     {
       add = pow(abs(results[6*i]),2) + pow(abs(results[6*i+1]),2) + pow(abs(results[6*i+2]),2);
       res[i] += weight*add;
+    }
+
+    if ( computeStokesParameters )
+    {
+      updateStokesParameters( results, n, weight );
     }
     delete results; results=NULL;
   }
@@ -1109,5 +1177,19 @@ void CoccolithSimulation::permumteToFitPropDir( double &x, double &y, double &z 
       return;
     case MainPropDirection_t::Z:
       return;
+  }
+}
+
+void CoccolithSimulation::updateStokesParameters( const cdouble EH[], unsigned int evalPointIndx, double weight )
+{
+  cdouble E1, E2;
+  for( unsigned int i=0;i<nfreq;i++ )
+  {
+    E1 = EH[6*i+meep::component_index(fieldComp)];
+    E2 = EH[6*i+meep::component_index(secondComp)];
+    stokesI(evalPointIndx, i) += (pow( abs(E1),2 )+pow( abs(E2),2) )*weight;
+    stokesU(evalPointIndx, i) += (pow(abs(E1),2)-pow(abs(E2),2))*weight;
+    stokesQ(evalPointIndx, i) += 2.0*(E1*conj(E2)).real()*weight;
+    stokesV(evalPointIndx, i) -= 2.0*(E1*conj(E2)).imag()*weight;
   }
 }
