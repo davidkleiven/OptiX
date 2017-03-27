@@ -1,0 +1,10 @@
+{
+  "centerFreq":0.045,
+  "fwidth":0.03,
+  "resolution":1.0,
+  "useDispersive":true,
+  "material":"Materials/CaCO3ne.json",
+  "voxels":"data/sphereVoxelGeo_216_50_50_50.raw",
+  "prefix":"sphereVoxelDebug",
+  "computeAsymmetryFactor":true
+}

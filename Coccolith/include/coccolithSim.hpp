@@ -268,6 +268,12 @@ protected:
 
   /** Updates the Stokes parameter array based on the fields, weight is the Legendre-Gauss integration weight */
   void updateStokesParameters( const cdouble EH[], unsigned int evalPointIndx, double weight );
+
+  /** Computes the contribution to the phase function */
+  double phaseFunctionContribution( const cdouble[3] ) const;
+
+  /** Redfine theta be the compliment based on the propagation direction */
+  bool redefineTheta() const;
 };
 
 #endif

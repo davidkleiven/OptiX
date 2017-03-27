@@ -655,7 +655,8 @@ void CoccolithSimulation::exportResults()
       int gLgorder = gaussLegendreOrder;
       int nfreqCast = nfreq;
       int rank[2] = {gLgorder,nfreqCast};
-      file->write( "Sr", 2, rank, radialPoyntingVector.memptr(), false );
+      arma::mat radPoyntingTrans = radialPoyntingVector.t(); // Is MEEP changing the memory layout?
+      file->write( "Sr", 2, rank, radPoyntingTrans.memptr(), false );
       file->prevent_deadlock();
 
       file->write( "SrTheta", 1, &gLgorder, &thetaValues[0], false );
@@ -1086,6 +1087,9 @@ void CoccolithSimulation::scatteringAssymmetryFactor( vector<double> &g, double 
     double theta;
     double weight;
     gsl_integration_glfixed_point( 0.0, PI, i, &theta, &weight, gslTab );
+
+    if ( redefineTheta() ) theta = PI-theta;
+
     int percentageDone = static_cast<int>(i*100.0/Nsteps);
     meep::master_printf("%d done...\r", percentageDone);
     //azimuthalIntagration( theta, R, Nsteps, azimInt);
@@ -1113,7 +1117,7 @@ void CoccolithSimulation::scatteringAssymmetryFactor( vector<double> &g, double 
   // Normalize
   for ( unsigned int i=0;i<g.size();i++ )
   {
-    g[i] /= (normalization[i]);
+    g[i] /= normalization[i];
   }
   gsl_integration_glfixed_table_free( gslTab );
   meep::master_printf( "Finished computing assymmetry factor\n" );
@@ -1145,8 +1149,8 @@ void CoccolithSimulation::azimuthalIntagration( double theta, double R, unsigned
     results = n2fBox->farfield( meep::vec(x,y,z) );
     for ( unsigned int i=0;i<nfreq;i++ )
     {
-      add = pow(abs(results[6*i]),2) + pow(abs(results[6*i+1]),2) + pow(abs(results[6*i+2]),2);
-      res[i] += weight*add;
+      //add = pow(abs(results[6*i]),2) + pow(abs(results[6*i+1]),2) + pow(abs(results[6*i+2]),2);
+      res[i] += weight*phaseFunctionContribution(results+6*i);
     }
 
     if ( computeStokesParameters )
@@ -1192,4 +1196,26 @@ void CoccolithSimulation::updateStokesParameters( const cdouble EH[], unsigned i
     stokesQ(evalPointIndx, i) += 2.0*(E1*conj(E2)).real()*weight;
     stokesV(evalPointIndx, i) -= 2.0*(E1*conj(E2)).imag()*weight;
   }
+}
+
+double CoccolithSimulation::phaseFunctionContribution( const cdouble EH[3] ) const
+{
+  double contribution = 0.0;
+  switch ( propagationDir )
+  {
+    case MainPropDirection_t::X:
+      return pow(abs(EH[1]),2) + pow(abs(EH[2]),2);
+    case MainPropDirection_t::Y:
+      return pow(abs(EH[0]),2) + pow(abs(EH[2]),2);
+    case MainPropDirection_t::Z:
+      return pow(abs(EH[1]),2) + pow(abs(EH[0]),2);
+  }
+}
+
+bool CoccolithSimulation::redefineTheta() const
+{
+  // If the source is at the bottom, the pulse propagates along the negative axis
+  // In this case theta=0 should correspond to propagation along the negative axis
+  // Otherwise, theta=0 should correspond to propagation along the positive axis
+  return srcPos == SourcePosition_t::BOTTOM;
 }

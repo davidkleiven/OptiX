@@ -69,7 +69,8 @@ int main( int argc, char** argv )
     sim->prefix = root["prefix"].asString();
     sim->resolution = root["resolution"].asDouble();
     sim->uid = uid;
-    sim->gaussLegendreOrder = 2048;
+    sim->gaussLegendreOrder = 128;
+    sim->numberOfAzimuthalSteps = 6;
     if ( useDispersive )
     {
       sim->setSellmeierMaterial( sellmeier );
@@ -88,7 +89,7 @@ int main( int argc, char** argv )
 
     #ifdef CHECK_THAT_ALL_WORKS
       sim->setEndTime( 10.0 );
-      sim->gaussLegendreOrder = 2;
+      sim->gaussLegendreOrder = 8;
     #endif
 
     sim->additionalVaccumLayerPx = 3.0;
