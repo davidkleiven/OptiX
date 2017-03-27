@@ -6,6 +6,7 @@ mpl.rcParams["font.size"] = 18
 mpl.rcParams["axes.unicode_minus"]=False
 from matplotlib import pyplot as plt
 import h5py as h5
+from scipy import integrate
 
 class Spectrum:
     def __init__( self ):
@@ -121,7 +122,8 @@ class Spectrum:
         # Was a bug in the storing of theta
         if ( len(self.theta) != self.Sr.shape[0] ):
             self.theta = self.theta[:self.Sr.shape[0]]
-
+        #self.Sr = self.Sr.reshape((-1,64)).T
+        self.theta = np.pi-self.theta # Seems like this is required...
         f = np.linspace( self.freqmin, self.freqmax(), len( self.ref ) )
         wavelength = self.voxelSize/f
         colors = ["#1b9e77", "#d95f02", "#7570b3", "#e7298a", "#66a61e"]
@@ -132,7 +134,9 @@ class Spectrum:
         counter = 0
         for i in range(0, self.Sr.shape[1], int(self.Sr.shape[1]/N) ):
             ax.plot(self.theta, np.log(self.Sr[:,i]/np.min(self.Sr[:,i])), color=colors[counter%len(colors)], label="%d nm"%(wavelength[i]))
+            ax.plot(2.0*np.pi-self.theta, np.log(self.Sr[:,i]/np.min(self.Sr[:,i])), color=colors[counter%len(colors)] )
             counter += 1
+        ax.legend(frameon=False, labelspacing=0.05)
         return fig, ax
 
 def initSpectrum( fname ):
