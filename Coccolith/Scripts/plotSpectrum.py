@@ -122,8 +122,6 @@ class Spectrum:
         # Was a bug in the storing of theta
         if ( len(self.theta) != self.Sr.shape[0] ):
             self.theta = self.theta[:self.Sr.shape[0]]
-        #self.Sr = self.Sr.reshape((-1,64)).T
-        self.theta = np.pi-self.theta # Seems like this is required...
         f = np.linspace( self.freqmin, self.freqmax(), len( self.ref ) )
         wavelength = self.voxelSize/f
         colors = ["#1b9e77", "#d95f02", "#7570b3", "#e7298a", "#66a61e"]
