@@ -1088,24 +1088,32 @@ void CoccolithSimulation::scatteringAssymmetryFactor( vector<double> &g, double 
     double weight;
     gsl_integration_glfixed_point( 0.0, PI, i, &theta, &weight, gslTab );
 
-    if ( redefineTheta() ) theta = PI-theta;
-
     int percentageDone = static_cast<int>(i*100.0/Nsteps);
     meep::master_printf("%d done...\r", percentageDone);
     //azimuthalIntagration( theta, R, Nsteps, azimInt);
     azimuthalIntagration( theta, R, numberOfAzimuthalSteps, azimInt);
-    thetaValues[i] = theta;
+    double cosTheta = 0.0;
+    if ( redefineTheta() )
+    {
+      thetaValues[i] = PI-theta;
+      cosTheta = cos(PI-theta);
+    }
+    else
+    {
+      thetaValues[i] = theta;
+      cosTheta = cos(theta);
+    }
     for ( unsigned int f=0;f<nfreq;f++ )
     {
-      g[f] += azimInt[f]*cos(theta)*weight*sin(theta);
+      g[f] += azimInt[f]*cosTheta*weight*sin(theta);
       normalization[f] += azimInt[f]*weight*sin(theta);
       radialPoyntingVector(i,f) = azimInt[f];
       if ( computeStokesParameters )
       {
-        stokesIAsym[f] += stokesI(i,f)*cos(theta)*weight*sin(theta);
-        stokesQAsym[f] += stokesQ(i,f)*cos(theta)*weight*sin(theta);
-        stokesUAsym[f] += stokesU(i,f)*cos(theta)*weight*sin(theta);
-        stokesVAsym[f] += stokesV(i,f)*cos(theta)*weight*sin(theta);
+        stokesIAsym[f] += stokesI(i,f)*cosTheta*weight*sin(theta);
+        stokesQAsym[f] += stokesQ(i,f)*cosTheta*weight*sin(theta);
+        stokesUAsym[f] += stokesU(i,f)*cosTheta*weight*sin(theta);
+        stokesVAsym[f] += stokesV(i,f)*cosTheta*weight*sin(theta);
       }
     }
   }
