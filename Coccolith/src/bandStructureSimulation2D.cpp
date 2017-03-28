@@ -1,6 +1,8 @@
 #include "bandStructureSimulation2D.hpp"
 #include <iostream>
 #include <cassert>
+#include <ctime>
+#include <iomanip>
 
 using namespace std;
 
@@ -98,11 +100,24 @@ void BandStructure2DSimulation::run()
   }
 }
 
-void BandStructure2DSimulation::save( const char* fname )
+void BandStructure2DSimulation::save()
 {
+  string fname(prefix);
+  if ( addTimestampToFilename )
+  {
+    setTimeStamp();
+    prefix += timestamp;
+  }
+
+  if ( addUIDToFilename )
+  {
+    stringstream uidStr;
+    uidStr << "_" << uid;
+    prefix += uidStr.str();
+  }
   if ( outfile == NULL )
   {
-    outfile = field->open_h5file( fname );
+    outfile = field->open_h5file( fname.c_str() );
   }
   saveParams();
 
@@ -147,4 +162,14 @@ void BandStructure2DSimulation::saveParams()
   double blochVector[size] = {bloch.x(),bloch.y()};
   outfile->write("bloch", 1, &size, blochVector, false );
   outfile->prevent_deadlock();
+}
+
+void BandStructure2DSimulation::setTimeStamp()
+{
+  time_t t = time(NULL);
+  auto tm = *localtime(&t);
+  stringstream ss;
+  // Skip seconds as different processes reach this point slightly different, but a minute change in minutes is more unlikely
+  ss << put_time( &tm, "%Y%m%d_%H%M");
+  timestamp = ss.str();
 }

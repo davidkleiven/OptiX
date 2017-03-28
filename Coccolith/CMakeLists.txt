@@ -157,6 +157,9 @@ set( LIB ${LIB} sourcefiles)
 add_executable( coccolith.out coccolith.cpp )
 target_link_libraries( coccolith.out ${LIB} )
 
+add_executable( bandStructure.out bandStructure.cpp )
+target_link_libraries( bandStructure.out ${LIB} )
+
 add_executable(steadyCoccolith.out steadyCoccolith.cpp )
 target_link_libraries(steadyCoccolith.out ${LIB} )
 

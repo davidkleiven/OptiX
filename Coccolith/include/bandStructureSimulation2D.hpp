@@ -18,7 +18,7 @@ public:
   void run();
 
   /** Save the results */
-  void save( const char* fname );
+  void save();
 // ======================== PUBLIC ATTRIBUTES ==================================
   SellmeierMaterial *sellmeier{NULL};
   unsigned int uid{0};
@@ -30,6 +30,7 @@ public:
   bool useSingleFrequency{false};
   bool addTimestampToFilename{true};
   bool addUIDToFilename{false};
+  std::string prefix{"bandStructureDefault"};
 private:
   std::string timestamp;
   meep::grid_volume gdvol;
@@ -52,6 +53,9 @@ private:
 
   /** Save parameters */
   void saveParams();
+
+  /** Initializes the timestamp string */
+  void setTimeStamp();
 
   meep::structure *struc{NULL};
   meep::fields *field{NULL};
