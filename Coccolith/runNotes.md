@@ -15,3 +15,4 @@ sphereCrossSectionRes8.h5 | Scattering cross secrion for a sphere with resolutio
 20170323_1838 | First computation with asymmetry factor | A little few frequencies |
 20170324_1614 | 3 azimuthal angles, 64 theta | Should have more theta values, g factor seems to be wrong |
 20170324_1848 | 3 azimuthal angles, 256 atheta | Oscillates rapidly |
+20170328_0804 | CaCO3 coccolith scattering, Sr-distribution and asymmetry factor | Good results |
