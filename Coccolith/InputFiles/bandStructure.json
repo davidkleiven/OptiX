@@ -1,6 +1,7 @@
 {
   "description":"Input file for computing the band structure of diatomee",
   "material":"Materials/SiO2.json",
+  "geometry":"data/M1diatomebinningLayerUnitCell_250_55_55.raw",
   "resolution":10.0,
   "uid":0,
   "bloch":[0.0,0.0],

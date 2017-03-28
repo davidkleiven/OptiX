@@ -45,6 +45,8 @@ void BandStructure2DSimulation::init()
     throw (runtime_error("No material is set!") );
   }
 
+  printInfo();
+
   delete struc;
   struc = new meep::structure( gdvol, *material );
 
@@ -86,6 +88,7 @@ void BandStructure2DSimulation::init()
 
 void BandStructure2DSimulation::run()
 {
+  init();
   double endTime = 10.0*material->Nx();
   if ( !useSingleFrequency )
   {

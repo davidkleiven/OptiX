@@ -31,6 +31,12 @@ int main( int argc, char** argv )
     reader.parse( infile, root );
     infile.close();
 
+    VoxelMaterial2D geom;
+    geom.loadRaw( root["geometry"].asString() );
+
+    SellmeierMaterial material;
+    material.load( root["material"].asString().c_str() );
+
     BandStructure2DSimulation sim;
     sim.prefix = root["prefix"].asString();
     sim.uid = root["uid"].asUInt();
@@ -39,6 +45,8 @@ int main( int argc, char** argv )
     sim.freqWidth = root["freqWidth"].asDouble();
     sim.nfreq = root["nfreq"].asUInt();
     sim.bloch = meep::vec( root["bloch"][0].asDouble(), root["bloch"][1].asDouble() );
+    sim.sellmeier = &material;
+    sim.setMaterial( geom );
     sim.run();
     sim.save();
   }
