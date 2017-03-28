@@ -6,7 +6,7 @@ using namespace std;
 
 arma::Mat<unsigned char> VoxelMaterial2D::voxels;
 
-void VoxelMaterial2D::extractInfoFromFilename( const string &fname, FileInfo &info )
+void VoxelMaterial2D::extractInfoFromFilename( const string &fname )
 {
   unsigned int values[3];
   unsigned int pos = 0;
@@ -34,7 +34,7 @@ void VoxelMaterial2D::extractInfoFromFilename( const string &fname, FileInfo &in
     ss >> values[i];
   }
 
-  info.resolutionNM = values[0]/10.0;
+  info.voxelsize = values[0]/10.0;
   info.Nx = values[1];
   info.Ny = values[2];
 }
@@ -42,8 +42,7 @@ void VoxelMaterial2D::extractInfoFromFilename( const string &fname, FileInfo &in
 void VoxelMaterial2D::loadRaw( const string &fname )
 {
   voxels.load( fname.c_str(), arma::raw_binary );
-  FileInfo info;
-  extractInfoFromFilename( fname, info );
+  extractInfoFromFilename( fname );
 
   if ( info.Nx*info.Ny != voxels.n_elem )
   {

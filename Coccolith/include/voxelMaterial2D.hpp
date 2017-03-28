@@ -6,7 +6,7 @@
 
 struct FileInfo
 {
-  double resolutionNM{1.0};
+  double voxelsize{1.0};
   unsigned int Nx{0};
   unsigned int Ny{0};
 };
@@ -46,20 +46,20 @@ public:
   /** True if the vector is inside the structure */
   bool isInside( const meep::vec &r ) const;
 
-  /** Updates the structure if using dispersive materials */
-  virtual void updateStructure(){};
-
   // ====================== PUBLIC ATTRIBUTES ==================================
   /** Threshold when determining if a value is inside the material or not */
   unsigned char threshold{128};
 
   /** This structure occupies the domain described by domain */
   ComputationalDomain domain;
+
+  /** Holds the information extracted from the filename */
+  FileInfo info;
 protected:
   static arma::Mat<unsigned char> voxels;
 
   /** Extracts, resoluion and dimensions from the filename */
-  static void extractInfoFromFilename( const std::string& fname, FileInfo &info );
+  void extractInfoFromFilename( const std::string& fname );
 
   /** Applies threshold. 1 if the voxel value is larger than threshold, zero otherwise */
   void applyThreshold();
