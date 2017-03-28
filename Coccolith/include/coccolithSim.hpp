@@ -83,6 +83,9 @@ public:
   /** Runs without visualization */
   void disableRealTimeVisualization(){ realTimeVisualization = false; };
 
+  /** Computes the scattering assymetry factor for each frequency based on fields at distance R */
+  void scatteringAssymmetryFactor( std::vector<double> &g, double R, unsigned int Nsteps );
+
   /** Returns a reference to the structure */
   meep::structure& getStructure(){ return *struc; };
 
@@ -92,11 +95,27 @@ public:
 
   /** Set a Sellmeier material */
   void setSellmeierMaterial( const SellmeierMaterial &mat ){ sellmeier = &mat; };
+
+  /** Prefix that will be added to the filename */
+  std::string prefix{""};
+
+  /** Set to true if the scattering assummetry factor should be computed */
+  bool computeAsymmetryFactor{false};
+
+  /** Use an 45 degree polarization in the sources */
+  bool computeStokesParameters{false};
+
+  /** Set the order of the Gauss Legendre that is used for the asymmetry function calculation */
+  unsigned int gaussLegendreOrder{17};
+
+  /** Number of azimuthal angles to average over */
+  unsigned int numberOfAzimuthalSteps{3};
 protected:
   VoxelMaterial *material{NULL};
   const SellmeierMaterial *sellmeier{NULL};
   MainPropDirection_t propagationDir{MainPropDirection_t::Z};
   meep::component fieldComp{meep::Ex};
+  meep::component secondComp{meep::Ey};
 
   meep::volume* srcVol{NULL};
   meep::structure* struc{NULL};
@@ -105,7 +124,6 @@ protected:
   meep::src_time *sourceTime{NULL}; // Deleted by MEEP
   meep::gaussian_src_time *source{NULL};
   std::string outdir{"data"};
-  std::string prefix{""};
   unsigned int nSave{30};
   bool isInitialized{false};
   unsigned int plotUpdateFreq{30};
@@ -129,6 +147,7 @@ protected:
   bool geoIsInitialized{false};
   std::string reflFluxPlaneBackup{"reflectedFlux"};
   std::string reflFluxBoxBackup{"reflectedFluxBox"};
+  std::string n2fBoxBackup{"n2fBox"};
 
   /** Visualized intensity */
   void visualize();
@@ -137,9 +156,11 @@ protected:
   meep::volume *dftVolTransmit{NULL};
   meep::volume *dftVolRefl{NULL};
   meep::volume *dftVolBox{NULL};
+  meep::volume_list *faces{NULL}; // N2F faces
   meep::dft_flux *transmitFlux{NULL};
   meep::dft_flux *reflFlux{NULL};
   meep::dft_flux *fluxBox{NULL};
+  meep::dft_near2far *n2fBox{NULL};
 
   // Monitor planes 1
   FieldMonitor *monitor1{NULL};
@@ -147,7 +168,16 @@ protected:
 
   arma::mat bkg1;
   arma::mat bkg2;
-
+  arma::mat radialPoyntingVector;
+  arma::mat stokesI;
+  arma::mat stokesQ;
+  arma::mat stokesV;
+  arma::mat stokesU;
+  std::vector<double> stokesIAsym;
+  std::vector<double> stokesQAsym;
+  std::vector<double> stokesVAsym;
+  std::vector<double> stokesUAsym;
+  std::vector<double> thetaValues;
 
   // Source corners
   meep::vec crn1;
@@ -226,6 +256,24 @@ protected:
 
   /** Adds susceptibilities to the structure */
   void updateStructure();
+
+  /** Adds near to far field planes */
+  void addN2FPlanes( const meep::volume &box );
+
+  /** Integrate the radial component of the poyntings vector in the azimuthal direction */
+  void azimuthalIntagration( double R, double theta, unsigned int Nsteps, std::vector<double> &res );
+
+  /** Permute x,y,z given with propagation direction in Z to fit other propgation directions */
+  void permumteToFitPropDir( double &x, double &y, double &z ) const;
+
+  /** Updates the Stokes parameter array based on the fields, weight is the Legendre-Gauss integration weight */
+  void updateStokesParameters( const cdouble EH[], unsigned int evalPointIndx, double weight );
+
+  /** Computes the contribution to the phase function */
+  double phaseFunctionContribution( const cdouble[3] ) const;
+
+  /** Redfine theta be the compliment based on the propagation direction */
+  bool redefineTheta() const;
 };
 
 #endif

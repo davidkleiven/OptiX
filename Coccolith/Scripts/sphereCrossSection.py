@@ -19,7 +19,7 @@ def cleanFileWebPlotDig( x, y ):
     return xnew[:nInserted], ynew[:nInserted]
 
 def main():
-    fname = "data/sphereCrossSection.h5"
+    fname = "data/sphereCrossSectionRes16.h5"
     with h5.File(fname, 'r') as hf:
         refPlane = np.array( hf.get("refPlaneFlux") )
         boxFluxScat = np.array( hf.get("scatFluxBox") )
@@ -28,7 +28,6 @@ def main():
 
     R = 3.0
     f = np.linspace( freq[0], freq[0]+freq[1]*freq[2], freq[1])
-    print (f)
     k = 2.0*np.pi*f
     ratio = np.abs( boxFluxScat/refPlane )
 
@@ -38,17 +37,14 @@ def main():
         sphere = mie.Mie( x=kRExact[i], eps=2.0 )
         exactScattering[i] = sphere.qsca()*np.pi*R**2
     # Normalize
-    #ratio *= np.sum(data[:,1])*len(ratio)/(np.sum(ratio)*len(data[:,1]))
     ratio *= np.sum(exactScattering)*len(ratio)/( np.sum(ratio)*len(exactScattering) )
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
     ax.plot( k*R, ratio, 'o', color="#e41a1c", label="Simulated")
     ax.plot( kRExact, exactScattering, color="#377eb8", label="Mie")
     ax.legend(loc="lower left", frameon=False, labelspacing=0.05)
-    #ax.set_yscale("log")
     ax.set_xlabel("kR")
     ax.set_ylabel("Scattering cross section")
-    #ax.set_xscale("log")
 
     # Plot projections
     fig2 = plt.figure()

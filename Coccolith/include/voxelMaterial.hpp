@@ -84,9 +84,15 @@ public:
   /** True if the run is a reference run */
   static bool isReferenceRun() { return referenceRun; };
 
+  /** Set an absolute threshold for the masking */
+  static void setThreshold( unsigned char thres );
+
   /** Updates the structure in case of dispersion. Default: do nothing */
   virtual void updateStructure( meep::structure &struc ) const {};
 protected:
+  static unsigned char userSpecifiedThreshold;
+  static bool userSpecifiedAbsoluteThreshold;
+
   /** Extracts the dimension of the data from the filename */
   static void extractDimsFromFilename( const std::string &fname, InfoFromFilename &info );
 

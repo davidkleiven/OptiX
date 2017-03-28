@@ -27,9 +27,10 @@ endif()
 if( USE_MPI )
   #set( HDF5_USE_STATIC_LIBRARIES TRUE )
   MESSAGE( STATUS "Using the openMPI version of HDF5" )
-  find_package( HDF5 REQUIRED COMPONENTS C CXX HL )
-
   #set( HDF5_ROOT "/usr/lib64/openmpi/lib/")
+  #set( HDF5_USE_STATIC_LIBRARIES 1 )
+  find_package( HDF5 REQUIRED COMPONENTS C CXX HL )
+  #find_package( HDF5
   #find_package( HDF5 REQUIRED COMPONENTS C CXX HL )
   #MESSAGE( STATUS ${HDF5_LIBRARIES})
   #if ( NOT HDF5_IS_PARALLEL )
@@ -155,6 +156,9 @@ configure_file( "include/config.h.in" "include/config.h" )
 set( LIB ${LIB} sourcefiles)
 add_executable( coccolith.out coccolith.cpp )
 target_link_libraries( coccolith.out ${LIB} )
+
+add_executable( bandStructure.out bandStructure.cpp )
+target_link_libraries( bandStructure.out ${LIB} )
 
 add_executable(steadyCoccolith.out steadyCoccolith.cpp )
 target_link_libraries(steadyCoccolith.out ${LIB} )

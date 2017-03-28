@@ -14,6 +14,8 @@ arma::Cube<unsigned char> VoxelMaterial::voxels;
 bool VoxelMaterial::materialIsLoaded = false;
 bool VoxelMaterial::referenceRun = false;
 double VoxelMaterial::vxsize = 1.0;
+bool VoxelMaterial::userSpecifiedAbsoluteThreshold = false;
+unsigned char VoxelMaterial::userSpecifiedThreshold = 0;
 DomainSize VoxelMaterial::domain;
 
 void VoxelMaterial::extractDimsFromFilename( const string &fname, InfoFromFilename &info )
@@ -74,12 +76,24 @@ void VoxelMaterial::loadRaw( const string &fname )
 
 void VoxelMaterial::applyThreshold()
 {
-  unsigned char maxval = voxels.max();
+  unsigned char threshold = 0;
+  if ( userSpecifiedAbsoluteThreshold )
+  {
+    meep::master_printf("Applying user defined threshold...\n");
+    threshold = userSpecifiedThreshold;
+  }
+  else
+  {
+    meep::master_printf("Using the 50 percent largest values...\n");
+    unsigned char maxval = voxels.max();
+    threshold = 0.5*maxval;
+  }
+  meep::master_printf("Using theshold: %.2f", threshold);
   for ( unsigned int k=0;k<voxels.n_slices;k++ )
     for ( unsigned int i=0;i<voxels.n_cols;i++ )
       for ( unsigned int j=0;j<voxels.n_rows;j++ )
       {
-        if ( voxels(j,i,k) > 0.5*maxval )
+        if ( voxels(j,i,k) > threshold)
         {
           voxels(j,i,k) = 1;
         }
@@ -297,6 +311,11 @@ void VoxelMaterial::boundingBox( unsigned int lowerCrn[3], unsigned int upperCrn
   }
 }
 
+void VoxelMaterial::setThreshold( unsigned char thres )
+{
+  userSpecifiedThreshold = thres;
+  userSpecifiedAbsoluteThreshold = true;
+}
 ////////////////////////////////////////////////////////////////////////////////
 double CaCO3Cocco::eps( const meep::vec &r )
 {

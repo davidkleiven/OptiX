@@ -6,6 +6,8 @@
 #include <omp.h>
 #include <ctime>
 #include <iomanip>
+#include <gsl/gsl_integration.h>
+#define DEBUG_N2F_INITIALIZATION
 
 using namespace std;
 
@@ -36,6 +38,8 @@ CoccolithSimulation::~CoccolithSimulation()
 
   delete monitor1; monitor1=NULL;
   delete monitor2; monitor2=NULL;
+  delete faces; faces=NULL;
+  delete n2fBox; n2fBox=NULL;
   #ifdef HAVE_LIB_VISA
     if ( plots != NULL ) delete plots; plots=NULL;
   #endif
@@ -147,16 +151,24 @@ void CoccolithSimulation::addSource()
   {
     case MainPropDirection_t::X:
       fieldComp = meep::component::Ey;
+      secondComp = meep::Ez;
       break;
     case MainPropDirection_t::Y:
       fieldComp = meep::component::Ez;
+      secondComp = meep::component::Ex;
       break;
     case MainPropDirection_t::Z:
       fieldComp = meep::component::Ex;
+      secondComp = meep::component::Ey;
       break;
   }
 
   field->add_volume_source( fieldComp, *sourceTime, *srcVol, amplitude );
+  if ( computeStokesParameters )
+  {
+    meep::master_printf("Using 45 degree polarization\n");
+    field->add_volume_source( secondComp, *sourceTime, *srcVol, amplitude );
+  }
 }
 
 void CoccolithSimulation::init()
@@ -251,13 +263,17 @@ void CoccolithSimulation::addFluxPlanes()
   reflFlux = new meep::dft_flux( field->add_dft_flux_plane( *dftVolRefl, centerFrequency-freqWidth/2.0, centerFrequency+freqWidth/2.0, nfreq ) );
   fluxBox = new meep::dft_flux( field->add_dft_flux_box( *dftVolBox, centerFrequency-freqWidth/2.0, centerFrequency+freqWidth/2.0, nfreq ) );
 
+  if ( computeAsymmetryFactor ) addN2FPlanes( *dftVolBox );
+
   if ( !material->isReferenceRun() )
   {
     // There should be a backup file with the fluxes stored from the reference run
     reflFlux->load_hdf5( *field, reflFluxPlaneBackup.c_str() );
     fluxBox->load_hdf5( *field, reflFluxBoxBackup.c_str() );
+    if ( n2fBox != NULL ) n2fBox->load_hdf5( *field, n2fBoxBackup.c_str() );
     reflFlux->scale_dfts(-1.0);
     fluxBox->scale_dfts(-1.0);
+    if ( n2fBox != NULL ) n2fBox->scale_dfts(-1.0);
   }
 }
 
@@ -604,7 +620,11 @@ void CoccolithSimulation::exportResults()
 
   setUID();
   stringstream ss;
-  ss << "voxelMaterialSim_" << uid; // File extension added automatically
+  if ( prefix == "" )
+  {
+    prefix = "defaultFilename";
+  }
+  ss << prefix << "_" << uid; // File extension added automatically
   if ( file == NULL )
   {
     if ( material->isReferenceRun() )
@@ -622,6 +642,69 @@ void CoccolithSimulation::exportResults()
   {
     field->output_hdf5( meep::Dielectric, gdvol.surroundings(), file, false, true );
     file->prevent_deadlock();
+
+    if ( computeAsymmetryFactor )
+    {
+      vector<double> asym;
+      scatteringAssymmetryFactor( asym, 4000.0, gaussLegendreOrder );
+      int length = asym.size();
+
+      file->write( "Asymmetry", 1, &length, &asym[0], false );
+      file->prevent_deadlock();
+
+      int gLgorder = gaussLegendreOrder;
+      int nfreqCast = nfreq;
+      int rank[2] = {gLgorder,nfreqCast};
+      arma::mat radPoyntingTrans = radialPoyntingVector.t(); // Is MEEP changing the memory layout?
+      file->write( "Sr", 2, rank, radPoyntingTrans.memptr(), false );
+      file->prevent_deadlock();
+
+      file->write( "SrTheta", 1, &gLgorder, &thetaValues[0], false );
+      file->prevent_deadlock();
+
+      if ( computeStokesParameters )
+      {
+        rank[0] = stokesI.n_rows;
+        rank[1] = stokesI.n_cols;
+        bool saveStokesParameters = (stokesI.n_rows == stokesQ.n_rows ) && ( stokesI.n_rows == stokesU.n_rows ) && \
+                                    (stokesI.n_rows == stokesV.n_rows ) && ( stokesI.n_cols == stokesQ.n_cols ) && \
+                                    (stokesI.n_cols == stokesU.n_cols ) && ( stokesI.n_cols == stokesV.n_cols ) && \
+                                    (stokesIAsym.size() == stokesQAsym.size() ) && ( stokesIAsym.size() == stokesUAsym.size() ) && \
+                                    (stokesIAsym.size() == stokesVAsym.size() ) && (stokesI.n_rows>0) && (stokesI.n_cols>0) && \
+                                    (stokesIAsym.size()>0);
+        if ( saveStokesParameters )
+        {
+          int length = stokesIAsym.size();
+          file->write("StokesI", 2, rank, stokesI.memptr(), false );
+          file->prevent_deadlock();
+
+          file->write("StokesQ", 2, rank, stokesQ.memptr(), false );
+          file->prevent_deadlock();
+
+          file->write("StokesU", 2, rank, stokesU.memptr(), false );
+          file->prevent_deadlock();
+
+          file->write("StokesV", 2, rank, stokesV.memptr(), false );
+          file->prevent_deadlock();
+
+          file->write("StokesIAsym", 1, &length, &stokesIAsym[0], false );
+          file->prevent_deadlock();
+
+          file->write("StokesQAsym", 1, &length, &stokesQAsym[0], false );
+          file->prevent_deadlock();
+
+          file->write("StokesUAsym", 1, &length, &stokesUAsym[0], false );
+          file->prevent_deadlock();
+
+          file->write("StokesVAsym", 1, &length, &stokesVAsym[0], false );
+          file->prevent_deadlock();
+        }
+        else
+        {
+          meep::master_printf("Warning! The dimensions of the different Stokes parameters does not match!\n");
+        }
+      }
+    }
   }
   saveDFTSpectrum();
   //saveDFTStokes();
@@ -661,6 +744,7 @@ void CoccolithSimulation::saveDFTSpectrum()
     // Save backup fields
     fluxBox->save_hdf5( *field, reflFluxBoxBackup.c_str() );
     reflFlux->save_hdf5( *field, reflFluxPlaneBackup.c_str() );
+    n2fBox->save_hdf5( *field, n2fBoxBackup.c_str() );
   }
   else
   {
@@ -760,23 +844,32 @@ void CoccolithSimulation::saveGeometry()
   file->write( "vxSizeNM", 1, &single, &vxsize, false );
   file->prevent_deadlock();
 
-  meep::vec bCrn1 = dftVolBox->get_min_corner();
-  meep::vec bCrn2 = dftVolBox->get_max_corner();
-  double bxCrn[nCrn] = {bCrn1.x(),bCrn1.y(),bCrn1.z(),bCrn2.x(),bCrn2.y(),bCrn2.z()};
-  file->write("boxGeo", 1,&nCrn,bxCrn,false);
-  file->prevent_deadlock();
+  if ( dftVolBox != NULL )
+  {
+    meep::vec bCrn1 = dftVolBox->get_min_corner();
+    meep::vec bCrn2 = dftVolBox->get_max_corner();
+    double bxCrn[nCrn] = {bCrn1.x(),bCrn1.y(),bCrn1.z(),bCrn2.x(),bCrn2.y(),bCrn2.z()};
+    file->write("boxGeo", 1,&nCrn,bxCrn,false);
+    file->prevent_deadlock();
+  }
 
-  meep::vec refPCrn1 = dftVolRefl->get_min_corner();
-  meep::vec refPCrn2 = dftVolRefl->get_max_corner();
-  double refVolCrn[nCrn] = {refPCrn1.x(),refPCrn1.y(),refPCrn1.z(),refPCrn2.x(),refPCrn2.y(),refPCrn2.z()};
-  file->write("refPGeo", 1, &nCrn, refVolCrn, false );
-  file->prevent_deadlock();
+  if ( dftVolRefl != NULL )
+  {
+    meep::vec refPCrn1 = dftVolRefl->get_min_corner();
+    meep::vec refPCrn2 = dftVolRefl->get_max_corner();
+    double refVolCrn[nCrn] = {refPCrn1.x(),refPCrn1.y(),refPCrn1.z(),refPCrn2.x(),refPCrn2.y(),refPCrn2.z()};
+    file->write("refPGeo", 1, &nCrn, refVolCrn, false );
+    file->prevent_deadlock();
+  }
 
-  meep::vec trPCrn1 = dftVolTransmit->get_min_corner();
-  meep::vec trPCrn2 = dftVolTransmit->get_max_corner();
-  double trVolCrn[nCrn] = {trPCrn1.x(),trPCrn1.y(),trPCrn1.z(),trPCrn2.x(),trPCrn2.y(),trPCrn2.z()};
-  file->write("trPGeo", 1, &nCrn, trVolCrn, false );
-  file->prevent_deadlock();
+  if ( dftVolTransmit != NULL )
+  {
+    meep::vec trPCrn1 = dftVolTransmit->get_min_corner();
+    meep::vec trPCrn2 = dftVolTransmit->get_max_corner();
+    double trVolCrn[nCrn] = {trPCrn1.x(),trPCrn1.y(),trPCrn1.z(),trPCrn2.x(),trPCrn2.y(),trPCrn2.z()};
+    file->write("trPGeo", 1, &nCrn, trVolCrn, false );
+    file->prevent_deadlock();
+  }
 }
 
 void CoccolithSimulation::runWithoutScatterer()
@@ -901,4 +994,236 @@ void CoccolithSimulation::updateStructure()
   {
     clog << "Added " << sellmeier->nLorentzians() << " lorentzian susceptibilities to the MEEP structure...\n";
   }
+}
+
+void CoccolithSimulation::addN2FPlanes( const meep::volume &box )
+{
+  delete faces;
+  delete n2fBox;
+  faces = NULL;
+  n2fBox = NULL;
+  const meep::vec mincrn = box.get_min_corner();
+  const meep::vec maxcrn = box.get_max_corner();
+
+  // Face to store flux in negative x-direction
+  meep::vec crn1 = mincrn;
+  meep::vec crn2( mincrn.x(), maxcrn.y(), maxcrn.z() );
+  faces = new meep::volume_list( meep::volume(crn1, crn2), meep::Sx, -1, faces );
+  #ifdef DEBUG_N2F_INITIALIZATION
+    meep::master_printf( "mincrn:%.1f,%.1f,%.1f, maxcrn=%.1f,%.1f,%.1f\n", crn1.x(), crn1.y(), crn1.z(), crn2.x(),crn2.y(),crn2.z() );
+  #endif
+
+  // Face to store flux in positive x-direction
+  crn1 = meep::vec( maxcrn.x(), mincrn.y(), mincrn.z() );
+  crn2 = maxcrn;
+  faces = new meep::volume_list( meep::volume(crn1, crn2), meep::Sx, 1 , faces);
+  #ifdef DEBUG_N2F_INITIALIZATION
+    meep::master_printf( "mincrn:%.1f,%.1f,%.1f, maxcrn=%.1f,%.1f,%.1f\n", crn1.x(), crn1.y(), crn1.z(), crn2.x(),crn2.y(),crn2.z() );
+  #endif
+
+  // Face to store flux in negative y-direction
+  crn1 = mincrn;
+  crn2 = meep::vec( maxcrn.x(), mincrn.y(), maxcrn.z() );
+  faces = new meep::volume_list( meep::volume(crn1, crn2), meep::Sy, -1, faces );
+  #ifdef DEBUG_N2F_INITIALIZATION
+    meep::master_printf( "mincrn:%.1f,%.1f,%.1f, maxcrn=%.1f,%.1f,%.1f\n", crn1.x(), crn1.y(), crn1.z(), crn2.x(),crn2.y(),crn2.z() );
+  #endif
+
+  // Face to store in positive y-direction
+  crn1 = meep::vec( mincrn.x(), maxcrn.y(), mincrn.z() );
+  crn2 = maxcrn;
+  faces = new meep::volume_list( meep::volume(crn1, crn2), meep::Sy, 1 , faces);
+  #ifdef DEBUG_N2F_INITIALIZATION
+    meep::master_printf( "mincrn:%.1f,%.1f,%.1f, maxcrn=%.1f,%.1f,%.1f\n", crn1.x(), crn1.y(), crn1.z(), crn2.x(),crn2.y(),crn2.z() );
+  #endif
+
+  // Face to store flux in negative z-direction
+  crn1 = mincrn;
+  crn2 = meep::vec( maxcrn.x(), maxcrn.y(), mincrn.z() );
+  faces = new meep::volume_list( meep::volume(crn1, crn2), meep::Sz, -1, faces );
+  #ifdef DEBUG_N2F_INITIALIZATION
+    meep::master_printf( "mincrn:%.1f,%.1f,%.1f, maxcrn=%.1f,%.1f,%.1f\n", crn1.x(), crn1.y(), crn1.z(), crn2.x(),crn2.y(),crn2.z() );
+  #endif
+
+  // Face to store flux in positive z-direction
+  crn1 = meep::vec( mincrn.x(), mincrn.y(), maxcrn.z() );
+  crn2 = maxcrn;
+  faces = new meep::volume_list( meep::volume(crn1, crn2), meep::Sz, 1 , faces);
+  #ifdef DEBUG_N2F_INITIALIZATION
+    meep::master_printf( "mincrn:%.1f,%.1f,%.1f, maxcrn=%.1f,%.1f,%.1f\n", crn1.x(), crn1.y(), crn1.z(), crn2.x(),crn2.y(),crn2.z() );
+  #endif
+
+  n2fBox = new meep::dft_near2far( field->add_dft_near2far(faces, centerFrequency-freqWidth/2.0, centerFrequency+freqWidth/2.0, nfreq ) );
+}
+
+
+void CoccolithSimulation::scatteringAssymmetryFactor( vector<double> &g, double R, unsigned int Nsteps )
+{
+  meep::master_printf( "Computing assymmetry factor...\n" );
+  radialPoyntingVector.set_size( Nsteps, nfreq );
+  thetaValues.resize(Nsteps);
+  g.resize( nfreq );
+
+  if ( computeStokesParameters )
+  {
+    stokesI.set_size(Nsteps, nfreq);
+    stokesQ.set_size(Nsteps, nfreq);
+    stokesU.set_size(Nsteps, nfreq);
+    stokesV.set_size(Nsteps, nfreq);
+    stokesIAsym.resize(nfreq);
+    stokesQAsym.resize(nfreq);
+    stokesUAsym.resize(nfreq);
+    stokesVAsym.resize(nfreq);
+  }
+  vector<double> normalization(g.size());
+  double PI = acos(-1.0);
+  gsl_integration_glfixed_table *gslTab = gsl_integration_glfixed_table_alloc(Nsteps);
+
+  vector<double> azimInt;
+  fill( g.begin(),g.end(),0.0);
+  fill( normalization.begin(), normalization.end(), 0.0 );
+  for ( unsigned int i=0;i<Nsteps;i++ )
+  {
+    double theta;
+    double weight;
+    gsl_integration_glfixed_point( 0.0, PI, i, &theta, &weight, gslTab );
+
+    int percentageDone = static_cast<int>(i*100.0/Nsteps);
+    meep::master_printf("%d done...\r", percentageDone);
+    //azimuthalIntagration( theta, R, Nsteps, azimInt);
+    azimuthalIntagration( theta, R, numberOfAzimuthalSteps, azimInt);
+    double cosTheta = 0.0;
+    if ( redefineTheta() )
+    {
+      thetaValues[i] = PI-theta;
+      cosTheta = cos(PI-theta);
+    }
+    else
+    {
+      thetaValues[i] = theta;
+      cosTheta = cos(theta);
+    }
+    for ( unsigned int f=0;f<nfreq;f++ )
+    {
+      g[f] += azimInt[f]*cosTheta*weight*sin(theta);
+      normalization[f] += azimInt[f]*weight*sin(theta);
+      radialPoyntingVector(i,f) = azimInt[f];
+      if ( computeStokesParameters )
+      {
+        stokesIAsym[f] += stokesI(i,f)*cosTheta*weight*sin(theta);
+        stokesQAsym[f] += stokesQ(i,f)*cosTheta*weight*sin(theta);
+        stokesUAsym[f] += stokesU(i,f)*cosTheta*weight*sin(theta);
+        stokesVAsym[f] += stokesV(i,f)*cosTheta*weight*sin(theta);
+      }
+    }
+  }
+  if ( meep::am_master() )
+  {
+    clog << endl;
+  }
+
+  // Normalize
+  for ( unsigned int i=0;i<g.size();i++ )
+  {
+    g[i] /= normalization[i];
+  }
+  gsl_integration_glfixed_table_free( gslTab );
+  meep::master_printf( "Finished computing assymmetry factor\n" );
+}
+
+void CoccolithSimulation::azimuthalIntagration( double theta, double R, unsigned int Nsteps, vector<double> &res )
+{
+  // Determine the weights and evaluation points for phi [0,2*pi]
+  gsl_integration_glfixed_table *gslTab = gsl_integration_glfixed_table_alloc(Nsteps);
+
+  if ( res.size() != nfreq ) res.resize(nfreq);
+  fill(res.begin(),res.end(),0.0);
+  cdouble *results = NULL;
+  double RsinTheta = R*sin(theta);
+  double RcosTheta = R*cos(theta);
+  double add = 0.0;
+  double PI = acos(-1.0);
+
+  // Apply Gauss-Legendre integation scheme
+  for ( unsigned int n=0;n<Nsteps;n++ )
+  {
+    double phi, weight;
+    gsl_integration_glfixed_point(0.0, 2.0*PI, n, &phi, &weight, gslTab );
+    double x = RsinTheta*cos(phi);
+    double y = RsinTheta*sin(phi);
+    double z = RcosTheta;
+    permumteToFitPropDir(x,y,z);
+
+    results = n2fBox->farfield( meep::vec(x,y,z) );
+    for ( unsigned int i=0;i<nfreq;i++ )
+    {
+      //add = pow(abs(results[6*i]),2) + pow(abs(results[6*i+1]),2) + pow(abs(results[6*i+2]),2);
+      res[i] += weight*phaseFunctionContribution(results+6*i);
+    }
+
+    if ( computeStokesParameters )
+    {
+      updateStokesParameters( results, n, weight );
+    }
+    delete results; results=NULL;
+  }
+  gsl_integration_glfixed_table_free( gslTab );
+}
+
+void CoccolithSimulation::permumteToFitPropDir( double &x, double &y, double &z ) const
+{
+  double copyX = x;
+  double copyY = y;
+  double copyZ = z;
+  switch( propagationDir )
+  {
+    case MainPropDirection_t::X:
+      x = copyZ;
+      y = copyX;
+      z = copyY;
+      return;
+    case MainPropDirection_t::Y:
+      x = copyY;
+      y = copyZ;
+      z = copyX;
+      return;
+    case MainPropDirection_t::Z:
+      return;
+  }
+}
+
+void CoccolithSimulation::updateStokesParameters( const cdouble EH[], unsigned int evalPointIndx, double weight )
+{
+  cdouble E1, E2;
+  for( unsigned int i=0;i<nfreq;i++ )
+  {
+    E1 = EH[6*i+meep::component_index(fieldComp)];
+    E2 = EH[6*i+meep::component_index(secondComp)];
+    stokesI(evalPointIndx, i) += (pow( abs(E1),2 )+pow( abs(E2),2) )*weight;
+    stokesU(evalPointIndx, i) += (pow(abs(E1),2)-pow(abs(E2),2))*weight;
+    stokesQ(evalPointIndx, i) += 2.0*(E1*conj(E2)).real()*weight;
+    stokesV(evalPointIndx, i) -= 2.0*(E1*conj(E2)).imag()*weight;
+  }
+}
+
+double CoccolithSimulation::phaseFunctionContribution( const cdouble EH[3] ) const
+{
+  double contribution = 0.0;
+  switch ( propagationDir )
+  {
+    case MainPropDirection_t::X:
+      return pow(abs(EH[1]),2) + pow(abs(EH[2]),2);
+    case MainPropDirection_t::Y:
+      return pow(abs(EH[0]),2) + pow(abs(EH[2]),2);
+    case MainPropDirection_t::Z:
+      return pow(abs(EH[1]),2) + pow(abs(EH[0]),2);
+  }
+}
+
+bool CoccolithSimulation::redefineTheta() const
+{
+  // If the source is at the bottom, the pulse propagates along the negative axis
+  // In this case theta=0 should correspond to propagation along the negative axis
+  // Otherwise, theta=0 should correspond to propagation along the positive axis
+  return srcPos == SourcePosition_t::BOTTOM;
 }

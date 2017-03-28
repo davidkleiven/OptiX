@@ -16,7 +16,7 @@ class Chlorophyll:
         self.wavelength = []
 
     def load( self, fname ):
-        data = np.loadtxt( fname, delimiter=" " )
+        data = np.loadtxt( fname, delimiter="," )
         self.wavelength = data[:,0]
         self.chla = data[:,1]
         self.chlb = data[:,2]
@@ -29,16 +29,25 @@ def main( argv ):
 
     spec = pspec.initSpectrum( argv[0] )
     fig, ax = spec.scatteringCrossSection( color="#e41a1c", lw=3 )
+    figT, axT = spec.plot( color="#e41a1c", lw=3 )
     chloro = Chlorophyll()
-    chloro.load( "Materials/chlorofyll.txt" )
+    chloro.load( "Materials/chlorophyll.csv" )
     f = spec.getDimlessFreq( chloro.wavelength )
     ax2 = ax.twinx()
+    ax2T = axT.twinx()
     ax2.plot( chloro.wavelength, chloro.chla, color="#377eb8", label="A" )
     ax2.plot( chloro.wavelength, chloro.chlb, color="#4daf4a", label="B")
     ax2.plot( chloro.wavelength, chloro.chlc, color="#984ea3", label="C")
     ax2.set_ylabel("Specific Absorption Coeff. (m\$^2\$/mg)")
     dummy = ax2.plot([],[],color="#e41a1c", lw=3, label="\$\sigma_s\$")
     ax2.legend( loc="center right", frameon=False, labelspacing=0.05 )
+
+    ax2T.plot( chloro.wavelength, chloro.chla, color="#377eb8", label="A" )
+    ax2T.plot( chloro.wavelength, chloro.chlb, color="#4daf4a", label="B")
+    ax2T.plot( chloro.wavelength, chloro.chlc, color="#984ea3", label="C")
+    ax2T.set_ylabel("Specific Absorption Coeff. (m\$^2\$/mg)")
+    dummy = ax2T.plot([],[],color="#e41a1c", lw=3, label="\$T\$")
+    ax2T.legend( loc="center right", frameon=False, labelspacing=0.05 )
     plt.show()
 
 if __name__ == "__main__":

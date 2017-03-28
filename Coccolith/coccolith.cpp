@@ -6,6 +6,7 @@
 #include <ctime>
 #include <json/reader.h>
 #include <fstream>
+//#define CHECK_THAT_ALL_WORKS
 
 using namespace std;
 
@@ -36,6 +37,7 @@ int main( int argc, char** argv )
     double freqwidth = root["fwidth"].asDouble();
     bool useDispersive = root["useDispersive"].asBool();
     CoccolithSimulation *sim = new CoccolithSimulation();
+    sim->prefix = root["prefix"].asString();
     SellmeierMaterial sellmeier;
     sim->resolution = root["resolution"].asDouble();
     sellmeier.load( root["material"].asString().c_str() );
@@ -43,7 +45,7 @@ int main( int argc, char** argv )
     material.loadRaw( root["voxels"].asString().c_str() );
     sim->setMaterial( material );
 
-    unsigned int nFreq = 200;
+    unsigned int nFreq = 150;
     double pmlThick = 2.0;
     sim->setMainPropagationDirection( MainPropDirection_t::X );
     sim->setSourceSide( SourcePosition_t::BOTTOM );
@@ -51,7 +53,11 @@ int main( int argc, char** argv )
     sim->initSource( centerFreq, freqwidth );
     sim->setPMLInWavelengths( pmlThick );
     sim->disableRealTimeVisualization();
-    //sim->setEndTime( 10.0);
+    #ifdef CHECK_THAT_ALL_WORKS
+      sim->setEndTime( 10.0);
+    #endif
+    sim->additionalVaccumLayerPx = 3.0;
+    if ( root.isMember("computeAsymmetryFactor") ) sim->computeAsymmetryFactor = root["computeAsymmetryFactor"].asBool();
     sim->runWithoutScatterer();
     sim->init();
     sim->run();
@@ -60,11 +66,18 @@ int main( int argc, char** argv )
     delete sim;
 
     sim = new CoccolithSimulation();
+    sim->prefix = root["prefix"].asString();
     sim->resolution = root["resolution"].asDouble();
     sim->uid = uid;
+    sim->gaussLegendreOrder = 64;
+    sim->numberOfAzimuthalSteps = 6;
     if ( useDispersive )
     {
       sim->setSellmeierMaterial( sellmeier );
+    }
+    if ( root.isMember("threshold") )
+    {
+      material.setThreshold( root["threshold"].asUInt() );
     }
     sim->setMaterial( material );
     sim->setMainPropagationDirection( MainPropDirection_t::X );
@@ -73,7 +86,14 @@ int main( int argc, char** argv )
     sim->initSource( centerFreq, freqwidth );
     sim->setPMLInWavelengths( pmlThick );
     sim->disableRealTimeVisualization();
-    //sim->setEndTime( 10.0);
+
+    #ifdef CHECK_THAT_ALL_WORKS
+      sim->setEndTime( 10.0 );
+      sim->gaussLegendreOrder = 8;
+    #endif
+
+    sim->additionalVaccumLayerPx = 3.0;
+    if ( root.isMember("computeAsymmetryFactor") ) sim->computeAsymmetryFactor = root["computeAsymmetryFactor"].asBool();
     sim->runWithScatterer();
     sim->init();
     sim->run();

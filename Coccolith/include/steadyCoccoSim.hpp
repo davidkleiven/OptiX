@@ -6,7 +6,6 @@ class SteadyCoccolithSim: public CoccolithSimulation
 {
 public:
   SteadyCoccolithSim(){};
-  virtual ~SteadyCoccolithSim();
 
   /** Initialize the source */
   void initSource( double freq );

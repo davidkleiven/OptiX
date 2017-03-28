@@ -3,7 +3,8 @@
   "fwidth":0.03,
   "resolution":1.0,
   "useDispersive":true,
-  "material":"Materials/CaCO3.json",
+  "material":"Materials/SiO2.json",
   "voxels":"data/cocco8cv4Rotated_216_182_249_253.raw",
-  "prefix":"CaCO3Coccolith"
+  "prefix":"DiatomSiO2",
+  "threshold":122
 }
