@@ -41,6 +41,7 @@ int main( int argc, char** argv )
     sim.prefix = root["prefix"].asString();
     sim.uid = root["uid"].asUInt();
     sim.addUIDToFilename = root["appendUIDToFileName"].asBool();
+    sim.addTimestampToFilename = root["timestampInFilename"].asBool();
     sim.resolution = root["resolution"].asDouble();
     sim.freq = root["freq"].asDouble();
     sim.freqWidth = root["freqWidth"].asDouble();

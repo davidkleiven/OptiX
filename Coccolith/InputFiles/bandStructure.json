@@ -5,6 +5,7 @@
   "resolution":10.0,
   "uid":0,
   "appendUIDToFileName":true,
+  "timestampInFilename":false,
   "bloch":[0.0,0.0],
   "freq":0.125,
   "freqWidth":0.1,
