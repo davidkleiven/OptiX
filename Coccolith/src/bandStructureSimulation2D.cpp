@@ -109,14 +109,14 @@ void BandStructure2DSimulation::save()
   if ( addTimestampToFilename )
   {
     setTimeStamp();
-    prefix += timestamp;
+    fname += timestamp;
   }
 
   if ( addUIDToFilename )
   {
     stringstream uidStr;
     uidStr << "_" << uid;
-    prefix += uidStr.str();
+    fname += uidStr.str();
   }
   if ( outfile == NULL )
   {

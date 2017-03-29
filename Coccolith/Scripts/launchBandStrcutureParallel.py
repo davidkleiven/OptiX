@@ -34,7 +34,7 @@ def computeBandDiagram( bandDiagComp ):
     print ("Job %d finished"%(bandDiagComp.uid))
 
 def collectHDF5():
-    isfirst = True
+    isFirst = True
     tstamp = time.strftime("%Y%m%d_%H%M")
     hfile = h5.File( "data/bandStructure_%s.h5"%(tstamp) )
     counter = 0
@@ -42,7 +42,7 @@ def collectHDF5():
         if ( fn.find(".h5") == -1 ):
             continue
 
-        with h5.File(fn, 'r') as hf:
+        with h5.File(TEMP_DIR+"/"+fn, 'r') as hf:
             if ( isFirst ):
                 # Store some extra datasets here
                 eps = np.array( hf.get("eps") )

@@ -9,6 +9,6 @@
   "bloch":[0.0,0.0],
   "freq":0.125,
   "freqWidth":0.1,
-  "nfreq":200,
+  "nfreq":1000,
   "prefix":"data/bandStructure"
 }
