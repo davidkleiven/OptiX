@@ -5,6 +5,7 @@ import subprocess
 import json
 import os
 import time
+import h5py as h5
 
 TEMP_DIR = "data/temporaryBandStructure"
 
@@ -30,6 +31,7 @@ def computeBandDiagram( bandDiagComp ):
     # Launch the C++ executable with the newly created input file
     subprocess.call( ["./bandStructure.out", outname], stdout=logfile )
     logfile.close()
+    print ("Job %d finished"%(bandDiagComp.uid))
 
 def collectHDF5():
     isfirst = True
