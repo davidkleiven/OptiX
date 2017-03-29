@@ -61,6 +61,9 @@ def collectHDF5():
             group.create_dataset( "ldos", data=ldos)
             ez = np.array( hf.get("Ez") )
             group.create_dataset("Ez", data=ez)
+            bpathPos = fn.find("bpath")
+            pathNum = int(fn[bpathPos+5])
+            group.attrs["blochPath"] = pathNum
     hfile.close()
 
 
