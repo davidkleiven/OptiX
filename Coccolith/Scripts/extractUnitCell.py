@@ -96,7 +96,8 @@ class PlotFrame( tk.Frame ):
         self.canvas.draw()
 
     def getUnitCell( self ):
-        return self.data[self.selectedYmin:self.selectedYmax,self.selectedXmin:self.selectedXmax]
+        ucell = self.data[self.selectedYmin:self.selectedYmax,self.selectedXmin:self.selectedXmax]
+        return ucell
 
     def plot(self):
         if ( len(self.data) == 0 ):
@@ -148,7 +149,9 @@ def main( argv ):
         Nx,Ny,Nz = getSize(argv[0])
         data = data.reshape((Nx,Ny,Nz), order="F")
         app = Application()
-        app.frames[PlotFrame].data = data.sum(axis=1).T
+        proj = data.sum(axis=1).T
+        proj = proj*255/int(proj.max())
+        app.frames[PlotFrame].data = proj.astype(np.uint8)
         app.frames[PlotFrame].oldfname = argv[0]
         del data
         app.frames[PlotFrame].plot()

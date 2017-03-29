@@ -4,6 +4,7 @@
   "geometry":"data/M1diatomebinningLayerUnitCell_250_55_55.raw",
   "resolution":10.0,
   "uid":0,
+  "appendUIDToFileName":true,
   "bloch":[0.0,0.0],
   "freq":0.125,
   "freqWidth":0.1,

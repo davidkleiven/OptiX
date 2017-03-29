@@ -40,6 +40,7 @@ int main( int argc, char** argv )
     BandStructure2DSimulation sim;
     sim.prefix = root["prefix"].asString();
     sim.uid = root["uid"].asUInt();
+    sim.addUIDToFilename = root["appendUIDToFileName"].asBool();
     sim.resolution = root["resolution"].asDouble();
     sim.freq = root["freq"].asDouble();
     sim.freqWidth = root["freqWidth"].asDouble();

@@ -1,0 +1,23 @@
+{
+  "blochPathComment":"In MEEP the wave vectors are given without the 2*PI factor",
+  "blochvectorPath":[
+    {
+      "kx":0.0,
+      "ky":0.0
+    },
+    {
+      "kx":0.019,
+      "ky":0.0
+    },
+    {
+      "kx":0.019,
+      "ky":0.019
+    },
+    {
+      "kx":0.0,
+      "ky":0.0
+    }
+  ],
+  "inputfileTemplate":"InputFiles/bandStructure.json",
+  "numberOfKVecInEachInterval":20
+}
