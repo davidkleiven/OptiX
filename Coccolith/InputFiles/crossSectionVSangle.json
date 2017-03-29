@@ -1,0 +1,20 @@
+{
+  "datasets":[
+    {
+      "file":"data/CaCO3Coccolith_20170328_0804.h5",
+      "angle":0,
+      "color":"#e41a1c"
+    },
+    {
+      "file":"data/CaCO3Coccolith30deg_20170328_1332.h5",
+      "angle":30,
+      "color":"#377eb8"
+    },
+    {
+      "file":"data/CaCO3Coccolith45deg_20170328_1815.h5",
+      "angle":45,
+      "color":"#4daf4a"
+    }
+  ],
+  "propagationDirection":"x"
+}
