@@ -26,7 +26,7 @@ void BandStructure2DSimulation::printInfo() const
     double vxsize = material->info.voxelsize;
     cout << "================= SIMULATION INFORMATION =======================\n";
     cout << "Lx=" << (gdvol.xmax()-gdvol.xmin())*vxsize << " nm. Ly=" << (gdvol.ymax()-gdvol.ymin())*vxsize << " nm.\n";
-    cout << "Lambda0=" << vxsize/freq << " nm. lambdaMin=" << vxsize/(freq+freqWidth) << " nm. lambdaMax=" << vxsize/(freqWidth) << " nm\n";
+    cout << "Lambda0=" << vxsize/freq << " nm. lambdaMin=" << vxsize/(freq+freqWidth) << " nm. lambdaMax=" << vxsize/(freq-freqWidth) << " nm\n";
     cout << "Bloch vector: " << bloch.x() << " " << bloch.y() << endl;
     cout << "Numerical resolution: " << vxsize/resolution << " nm\n";
   }

@@ -77,8 +77,8 @@ bool VoxelMaterial2D::isOutsideComputationalDomain( const meep::vec &r ) const
 unsigned char VoxelMaterial2D::get( const meep::vec &r ) const
 {
   assert( !isOutsideComputationalDomain(r) );
-  unsigned int x = Nx()*( r.x()-domain.xmin)/(domain.xmax-domain.xmin);
-  unsigned int y = Ny()*( r.y()-domain.ymin)/(domain.ymax-domain.ymin);
+  unsigned int x = (Nx()-1)*( r.x()-domain.xmin)/(domain.xmax-domain.xmin);
+  unsigned int y = (Ny()-1)*( r.y()-domain.ymin)/(domain.ymax-domain.ymin);
   return get(x,y);
 }
 
