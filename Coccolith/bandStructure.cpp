@@ -31,11 +31,12 @@ int main( int argc, char** argv )
     reader.parse( infile, root );
     infile.close();
 
-    VoxelMaterial2D geom;
-    geom.loadRaw( root["geometry"].asString() );
-
     SellmeierMaterial material;
     material.load( root["material"].asString().c_str() );
+
+    Voxel2DSusceptibility geom( material.epsInf, 1.0 );
+    geom.threshold = 10;
+    geom.loadRaw( root["geometry"].asString() );
 
     BandStructure2DSimulation sim;
     sim.prefix = root["prefix"].asString();
