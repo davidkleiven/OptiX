@@ -8,8 +8,8 @@ using namespace std;
 
 BandStructure2DSimulation::~BandStructure2DSimulation()
 {
-  delete struc; struc = NULL;
   delete field; field = NULL;
+  delete struc; struc = NULL;
   delete srcTime; srcTime = NULL;
   delete ldos; ldos = NULL;
 }
@@ -122,24 +122,30 @@ void BandStructure2DSimulation::save()
   {
     outfile = field->open_h5file( fname.c_str() );
   }
+  meep::master_printf("Saving parameters...\n");
   saveParams();
 
   if ( ldos != NULL )
   {
+    meep::master_printf("Saving LDOS...\n");
     int size = ldos->Nomega;
     outfile->write("ldos", 1, &size, ldos->ldos(), false );
     outfile->prevent_deadlock();
 
     size = Ez.size();
+    meep::master_printf("Saving Ez...\n");
     outfile->write("Ez", 1, &size, &Ez[0], false );
     outfile->prevent_deadlock();
   }
+  meep::master_printf("Saving epsilon...\n");
   field->output_hdf5( meep::Dielectric, gdvol.surroundings(), outfile, false, true );
 
   if ( useSingleFrequency )
   {
+    meep::master_printf("Saving spatial Ez...\n");
     field->output_hdf5( meep::Ez, gdvol.surroundings(), outfile, false, true );
   }
+  meep::master_printf("All data is saved...\n");
 }
 
 void BandStructure2DSimulation::saveParams()
