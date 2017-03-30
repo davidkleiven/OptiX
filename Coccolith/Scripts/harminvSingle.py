@@ -4,6 +4,11 @@ from matplotlib import pyplot as plt
 import subprocess
 import h5py as h5
 
+class BlochRegion:
+    def __init__( self ):
+        self.k = []
+        self.omega = []
+
 class BlochRun:
     def __init__(self):
         self.Ez = []
@@ -22,6 +27,10 @@ class BlochRun:
         self.amplitude = []
         self.phase = []
         self.error = []
+
+        self.bandDiag = plt.figure()
+        self.bandAx = self.bandDiag.add_subplot(1,1,1)
+        self.blochRegs = []
 
     def extractResonantModes( self ):
         # Export a temporary txt file with white space separated items
@@ -73,6 +82,14 @@ class BlochRun:
         self.phase.extend(data[:,4])
         self.error.extend(data[:,5])
 
+    def clearHarminvData( self ):
+        self.freq = []
+        self.decay = []
+        self.Q = []
+        self.amplitude = []
+        self.phase = []
+        self.error = []
+
     def clean( self ):
         subprocess.call(["rm", self.temporaryFname])
         subprocess.call(["rm", self.resultFile])
@@ -88,6 +105,36 @@ class BlochRun:
         print (self.amplitude)
         print ("Error:")
         print (self.error)
+
+    def buildBlochRegs( self, hfile ):
+        dset = "Run0"
+        counter = 1
+        while( dset in hfile.keys() ):
+            self.clearHarminvData()
+            group = hfile.get(dset)
+            self.Ez = np.array( group.get("Ez") )
+            self.fmin = group.attrs["fmin"]
+            self.fmax = group.attrs["fmax"]
+            self.extractResonantModes()
+            breg = int(group.attrs["blochPath"])
+            while (  breg >= len(self.blochBlochRegs) ):
+                self.blochRegs.append(BlochRegion())
+            k = np.sqrt( group.attrs["kx"]**2 + group.attrs["ky"]**2 )
+            self.blochRegs[breg].k.append(k)
+            self.omega.append( self.freq )
+            dset = "Run%d"%(counter)
+            counter += 1
+
+    def plotBands( self ):
+        assert( len(self.blochRegs) > 0 )
+        klastEnd = 0.0
+        colors = ["#e41a1c", "#377eb8", "#4daf4a", "#984ea3", "#ff7f00", "#ffff33", "#a65628", "#f781bf", "#999999"]
+        for reg in self.blochRegs:
+            for i in range(0, len(reg.k) ):
+                for j in range(0,len(reg.omega[i])):
+                    self.bandAx.plot( reg.k[i], reg.omega[i][j], 'o', color=colors[j%len(colors)] )
+
+
 
 def main( argv ):
     if ( len(argv) != 1 ):

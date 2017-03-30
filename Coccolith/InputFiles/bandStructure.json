@@ -7,8 +7,8 @@
   "appendUIDToFileName":true,
   "timestampInFilename":false,
   "bloch":[0.0,0.0],
-  "freq":0.125,
-  "freqWidth":0.1,
+  "freq":0.01,
+  "freqWidth":0.009999,
   "nfreq":1000,
   "prefix":"data/bandStructure"
 }

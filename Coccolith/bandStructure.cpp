@@ -35,7 +35,7 @@ int main( int argc, char** argv )
     material.load( root["material"].asString().c_str() );
 
     Voxel2DSusceptibility geom( material.epsInf, 1.0 );
-    geom.threshold = 10;
+    geom.threshold = 128;
     geom.loadRaw( root["geometry"].asString() );
 
     BandStructure2DSimulation sim;
@@ -51,6 +51,7 @@ int main( int argc, char** argv )
     sim.sellmeier = &material;
     sim.setMaterial( geom );
     sim.run();
+    sim.findModes();
     sim.save();
   }
   catch( exception &exc )

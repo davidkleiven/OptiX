@@ -6,12 +6,12 @@
       "ky":0.0
     },
     {
-      "kx":0.019,
+      "kx":0.01,
       "ky":0.0
     },
     {
-      "kx":0.019,
-      "ky":0.019
+      "kx":0.01,
+      "ky":0.01
     },
     {
       "kx":0.0,
@@ -19,5 +19,5 @@
     }
   ],
   "inputfileTemplate":"InputFiles/bandStructure.json",
-  "numberOfKVecInEachInterval":20
+  "numberOfKVecInEachInterval":20,
 }

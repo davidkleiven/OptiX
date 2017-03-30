@@ -4,6 +4,20 @@
 #include "voxelMaterial2D.hpp"
 #include "refractiveIndexMaterial.hpp"
 #include <vector>
+#include <complex>
+#include <armadillo>
+typedef std::complex<double> cdouble;
+
+class HarminvRes
+{
+public:
+  HarminvRes( unsigned int nfreq );
+  arma::Col<cdouble> amplitude;
+  arma::vec freqRe;
+  arma::vec freqIm;
+  arma::vec freqErr;
+  int numModesFound{0};
+};
 
 class BandStructure2DSimulation
 {
@@ -19,9 +33,13 @@ public:
 
   /** Save the results */
   void save();
+
+  /** Analyse the results with harminv */
+  void findModes();
 // ======================== PUBLIC ATTRIBUTES ==================================
   SellmeierMaterial *sellmeier{NULL};
   unsigned int uid{0};
+  unsigned int nHarminvFreq{100};
   double resolution{1.0};
   double freq{1.0};
   double freqWidth{0.5};
@@ -37,7 +55,7 @@ private:
   meep::src_time *srcTime{NULL};
   meep::dft_ldos *ldos{NULL};
   meep::vec srcPos;
-  std::vector<double> Ez;
+  std::vector<cdouble> Ez;
 
   VoxelMaterial2D *material{NULL};
   meep::h5file *outfile{NULL};
@@ -59,6 +77,7 @@ private:
 
   meep::structure *struc{NULL};
   meep::fields *field{NULL};
+  HarminvRes *modes{NULL};
 
 };
 #endif

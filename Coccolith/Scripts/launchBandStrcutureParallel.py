@@ -22,6 +22,9 @@ def computeBandDiagram( bandDiagComp ):
     bandDiagComp.jsontemplate["bloch"] = [bandDiagComp.kx,bandDiagComp.ky]
     bandDiagComp.jsontemplate["prefix"] = TEMP_DIR + "/bandStrucPythonParallel_bpath%d"%(bandDiagComp.blochPathIndx)
     bandDiagComp.jsontemplate["uid"] = bandDiagComp.uid
+    k = np.sqrt( bandDiagComp.kx**2 + bandDiagComp.ky**2 )
+    bandDiagComp.jsontemplate["freq"] = 2.5*k
+    bandDiagComp.jsontemplate["freqWidth"] = 4.98*k
     outname = TEMP_DIR+"/inputfile%d.json"%(bandDiagComp.uid)
     ofile = open(outname,'w')
     json.dump( bandDiagComp.jsontemplate, ofile )
@@ -34,6 +37,7 @@ def computeBandDiagram( bandDiagComp ):
     print ("Job %d finished"%(bandDiagComp.uid))
 
 def collectHDF5():
+    print ("Collecting the HDF5 files...")
     isFirst = True
     tstamp = time.strftime("%Y%m%d_%H%M")
     hfile = h5.File( "data/bandStructure_%s.h5"%(tstamp) )
@@ -47,18 +51,20 @@ def collectHDF5():
                 # Store some extra datasets here
                 eps = np.array( hf.get("eps") )
                 hfile.create_dataset("eps", data=eps)
-                specFreqs = np.array( hf.get("freq") )
                 hfile.create_dataset("freq", data=specFreqs )
                 domain = np.array( hf.get("domain") )
                 hfile.create_dataset("domain", data=domain)
                 srcPos = np.array( hf.get("sourcePos") )
                 hfile.create_dataset("sourcePos", data=srcPos)
                 isFirst = False
+            freq = np.array( hf.get("freq") )
             group = hfile.create_group("Run%d"%(counter))
             counter += 1
             bloch = np.array( hf.get("bloch") )
             group.attrs["kx"] = bloch[0]
             group.attrs["ky"] = bloch[1]
+            group.attrs["fmin"] = freq[0]
+            group.attrs["fmax"] = freq[0] + freq[1]*freq[2]
             ldos = np.array( hf.get("ldos") )
             group.create_dataset( "ldos", data=ldos)
             ez = np.array( hf.get("Ez") )
