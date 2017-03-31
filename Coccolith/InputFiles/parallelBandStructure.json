@@ -19,5 +19,5 @@
     }
   ],
   "inputfileTemplate":"InputFiles/bandStructure.json",
-  "numberOfKVecInEachInterval":20,
+  "numberOfKVecInEachInterval":8
 }

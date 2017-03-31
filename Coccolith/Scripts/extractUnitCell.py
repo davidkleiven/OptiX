@@ -135,10 +135,11 @@ def getSize( fname ):
     if ( len(splitted) != 5 ):
         raise (Exception("Filename in wrong format: Expected <somename_resolution_Nx_Ny_Nz.raw") )
 
+    res = int(splitted[-4])
     Nz = int(splitted[-1])
     Ny = int(splitted[-2])
     Nx = int(splitted[-3])
-    return Nx,Ny,Nz
+    return res,Nx,Ny,Nz
 
 def main( argv ):
     if ( len(argv) != 1 ):
@@ -146,7 +147,7 @@ def main( argv ):
         return 1
     data = np.fromfile(argv[0], dtype=np.uint8)
     try:
-        Nx,Ny,Nz = getSize(argv[0])
+        res,Nx,Ny,Nz = getSize(argv[0])
         data = data.reshape((Nx,Ny,Nz), order="F")
         app = Application()
         proj = data.sum(axis=1).T

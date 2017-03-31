@@ -22,9 +22,9 @@ def computeBandDiagram( bandDiagComp ):
     bandDiagComp.jsontemplate["bloch"] = [bandDiagComp.kx,bandDiagComp.ky]
     bandDiagComp.jsontemplate["prefix"] = TEMP_DIR + "/bandStrucPythonParallel_bpath%d"%(bandDiagComp.blochPathIndx)
     bandDiagComp.jsontemplate["uid"] = bandDiagComp.uid
-    k = np.sqrt( bandDiagComp.kx**2 + bandDiagComp.ky**2 )
-    bandDiagComp.jsontemplate["freq"] = 2.5*k
-    bandDiagComp.jsontemplate["freqWidth"] = 4.98*k
+    #k = np.sqrt( bandDiagComp.kx**2 + bandDiagComp.ky**2 )
+    #bandDiagComp.jsontemplate["freq"] = 2.5*k
+    #bandDiagComp.jsontemplate["freqWidth"] = 4.98*k
     outname = TEMP_DIR+"/inputfile%d.json"%(bandDiagComp.uid)
     ofile = open(outname,'w')
     json.dump( bandDiagComp.jsontemplate, ofile )
@@ -51,15 +51,15 @@ def collectHDF5():
                 # Store some extra datasets here
                 eps = np.array( hf.get("eps") )
                 hfile.create_dataset("eps", data=eps)
-                hfile.create_dataset("freq", data=specFreqs )
                 domain = np.array( hf.get("domain") )
                 hfile.create_dataset("domain", data=domain)
                 srcPos = np.array( hf.get("sourcePos") )
                 hfile.create_dataset("sourcePos", data=srcPos)
                 isFirst = False
-            freq = np.array( hf.get("freq") )
             group = hfile.create_group("Run%d"%(counter))
             counter += 1
+            freq = np.array( hf.get("freq") )
+            group.create_dataset( "freq", data=freq)
             bloch = np.array( hf.get("bloch") )
             group.attrs["kx"] = bloch[0]
             group.attrs["ky"] = bloch[1]
@@ -72,6 +72,15 @@ def collectHDF5():
             bpathPos = fn.find("bpath")
             pathNum = int(fn[bpathPos+5])
             group.attrs["blochPath"] = pathNum
+            group.attrs["dt"] = np.array( hf.get("dt") )[0]
+            freqRe = np.array( hf.get("freqRe") )
+            group.create_dataset("freqRe", data=freqRe)
+            freqIm = np.array( hf.get("freqIm") )
+            group.create_dataset("freqIm", data=freqIm)
+            amplitude = np.array( hf.get("amplitude") )
+            group.create_dataset("amplitude", data=amplitude)
+            phase = np.array( hf.get("phase") )
+            group.create_dataset("phase", data=phase)
     hfile.close()
 
 

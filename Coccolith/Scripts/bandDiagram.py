@@ -13,7 +13,7 @@ def main( argv ):
     plotter = hinv.BlochRun()
     with h5.File(argv[0],'r') as hf:
         plotter.buildBlochRegs( hf )
-    plotter.plotBands()
+    plotter.plotBands( maxbands=6 )
     plt.show()
 
 if __name__ == "__main__":

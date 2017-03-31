@@ -112,27 +112,53 @@ class BlochRun:
         while( dset in hfile.keys() ):
             self.clearHarminvData()
             group = hfile.get(dset)
-            self.Ez = np.array( group.get("Ez") )
-            self.fmin = group.attrs["fmin"]
-            self.fmax = group.attrs["fmax"]
-            self.extractResonantModes()
+            omega = np.array( group.get("freqRe") )
             breg = int(group.attrs["blochPath"])
-            while (  breg >= len(self.blochBlochRegs) ):
+            while (  breg >= len(self.blochRegs) ):
                 self.blochRegs.append(BlochRegion())
             k = np.sqrt( group.attrs["kx"]**2 + group.attrs["ky"]**2 )
             self.blochRegs[breg].k.append(k)
-            self.omega.append( self.freq )
+            self.blochRegs[breg].omega.append( omega )
             dset = "Run%d"%(counter)
             counter += 1
 
-    def plotBands( self ):
+    def plotBands( self, maxbands=4 ):
         assert( len(self.blochRegs) > 0 )
         klastEnd = 0.0
         colors = ["#e41a1c", "#377eb8", "#4daf4a", "#984ea3", "#ff7f00", "#ffff33", "#a65628", "#f781bf", "#999999"]
+        counter = 0
+
+        # Locate the start position of each bloch path
+        kstart = np.zeros(len(self.blochRegs))
+        backwards = [2]
+        counter = 0
         for reg in self.blochRegs:
+            kmax = -1E-10
             for i in range(0, len(reg.k) ):
-                for j in range(0,len(reg.omega[i])):
-                    self.bandAx.plot( reg.k[i], reg.omega[i][j], 'o', color=colors[j%len(colors)] )
+                N = len(reg.omega[i])
+                if ( N > maxbands ):
+                    N = maxbands
+                for j in range(0,N):
+                    if ( counter in backwards ):
+                        k = klastEnd+np.max(reg.k)-(reg.k[i]-np.min(reg.k))
+                    else:
+                        k = klastEnd+reg.k[i]-np.min(reg.k)
+                    self.bandAx.plot( k, reg.omega[i][j], 'o', color=colors[j%len(colors)] )
+            #self.bandAx.plot( k, k, color="black")
+                if ( k > kmax ):
+                    kmax = k
+            #if ( counter in backwards ):
+                #self.bandAx.plot( klastEnd+np.array(reg.k)-np.min(reg.k), reg.k[::-1], color="black")
+            #else:
+                #self.bandAx.plot( klastEnd+np.array(reg.k)-np.min(reg.k), reg.k, color="black")
+            klastEnd = kmax
+            self.bandAx.axvline(klastEnd, color="black", ls="--")
+            counter += 1
+        self.bandAx.spines["right"].set_visible(False)
+        self.bandAx.spines["top"].set_visible(False)
+        self.bandAx.yaxis.set_ticks_position("left")
+        #self.bandAx.xaxis.set_ticklabels([])
+        self.bandAx.set_ylabel("Frequency (c/L)")
 
 
 
