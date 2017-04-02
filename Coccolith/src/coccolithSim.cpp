@@ -511,6 +511,8 @@ void CoccolithSimulation::domainInfo() const
     cout << "Main frequency: " << centerFrequency*speedOfLight/(L*1000.0) << " (THz)\n";
     cout << "Frequency width: " << freqWidth*speedOfLight/(L*1000.0) << " (THz)\n";
     cout << "Wavelength: " << getWavelength()*L << " nm\n";
+    cout << "Compute asymmetry factor: " << computeAsymmetryFactor << endl;
+    cout << "Compute Stokes parameters: " << computeStokesParameters << endl;
   }
 }
 
@@ -664,40 +666,40 @@ void CoccolithSimulation::exportResults()
 
       if ( computeStokesParameters )
       {
-        rank[0] = stokesI.n_rows;
-        rank[1] = stokesI.n_cols;
-        bool saveStokesParameters = (stokesI.n_rows == stokesQ.n_rows ) && ( stokesI.n_rows == stokesU.n_rows ) && \
-                                    (stokesI.n_rows == stokesV.n_rows ) && ( stokesI.n_cols == stokesQ.n_cols ) && \
-                                    (stokesI.n_cols == stokesU.n_cols ) && ( stokesI.n_cols == stokesV.n_cols ) && \
-                                    (stokesIAsym.size() == stokesQAsym.size() ) && ( stokesIAsym.size() == stokesUAsym.size() ) && \
-                                    (stokesIAsym.size() == stokesVAsym.size() ) && (stokesI.n_rows>0) && (stokesI.n_cols>0) && \
-                                    (stokesIAsym.size()>0);
+        rank[0] = stokesI[0].n_rows;
+        rank[1] = stokesI[0].n_cols;
+        bool saveStokesParameters = (stokesI[0].n_rows == stokesQ[0].n_rows ) && ( stokesI[0].n_rows == stokesU[0].n_rows ) && \
+                                    (stokesI[0].n_rows == stokesV[0].n_rows ) && ( stokesI[0].n_cols == stokesQ[0].n_cols ) && \
+                                    (stokesI[0].n_cols == stokesU[0].n_cols ) && ( stokesI[0].n_cols == stokesV[0].n_cols );
+
         if ( saveStokesParameters )
         {
-          int length = stokesIAsym.size();
-          file->write("StokesI", 2, rank, stokesI.memptr(), false );
-          file->prevent_deadlock();
+          for ( unsigned int i=0;i<numberOfAzimuthalSteps;i++ )
+          {
+            stringstream name;
+            name << "StokesI" << i;
+            arma::mat stokes = stokesI[i].t();
+            file->write(name.str().c_str(), 2, rank, stokes.memptr(), false );
+            file->prevent_deadlock();
+            name.str("");
 
-          file->write("StokesQ", 2, rank, stokesQ.memptr(), false );
-          file->prevent_deadlock();
+            stokes = stokesQ[i].t();
+            name << "StokesQ" << i;
+            file->write(name.str().c_str(), 2, rank, stokes.memptr(), false );
+            file->prevent_deadlock();
+            name.str("");
 
-          file->write("StokesU", 2, rank, stokesU.memptr(), false );
-          file->prevent_deadlock();
+            stokes = stokesU[i].t();
+            name << "StokesU" << i;
+            file->write(name.str().c_str(), 2, rank, stokes.memptr(), false );
+            file->prevent_deadlock();
+            name.str("");
 
-          file->write("StokesV", 2, rank, stokesV.memptr(), false );
-          file->prevent_deadlock();
-
-          file->write("StokesIAsym", 1, &length, &stokesIAsym[0], false );
-          file->prevent_deadlock();
-
-          file->write("StokesQAsym", 1, &length, &stokesQAsym[0], false );
-          file->prevent_deadlock();
-
-          file->write("StokesUAsym", 1, &length, &stokesUAsym[0], false );
-          file->prevent_deadlock();
-
-          file->write("StokesVAsym", 1, &length, &stokesVAsym[0], false );
-          file->prevent_deadlock();
+            stokes = stokesV[i].t();
+            name << "StokesV" << i;
+            file->write(name.str().c_str(), 2, rank, stokes.memptr(), false );
+            file->prevent_deadlock();
+          }
         }
         else
         {
@@ -777,29 +779,6 @@ void CoccolithSimulation::saveDFTParameters()
   double cornersTrans[nCrns] = {mincrn.x(), mincrn.y(), mincrn.z(), maxcrn.x(), maxcrn.y(), maxcrn.z()};
   file->write( "spectrumCornersTransmit", 1, &nCrns, cornersTrans, false );
   file->prevent_deadlock();
-
-  /*
-  Json::Value dftParams;
-  dftParams["freqmin"] = transmitFlux->freq_min;
-  dftParams["dfreq"] = transmitFlux->dfreq;
-  dftParams["Nfreq"] = transmitFlux->Nfreq;
-
-  // Write geometrical positions
-  meep::vec mincrn = dftVolTransmit->get_min_corner();
-  meep::vec maxcrn = dftVolTransmit->get_max_corner();
-  Json::Value corner(Json::arrayValue);
-  corner.append( mincrn.x() );
-  corner.append( mincrn.y() );
-  corner.append( mincrn.z() );
-  dftParams["corner1"] = corner;
-
-  Json::Value corner2(Json::arrayValue);
-  corner2.append( maxcrn.x() );
-  corner2.append( maxcrn.y() );
-  corner2.append( maxcrn.z() );
-  dftParams["corner2"] = corner2;
-  root["dft"] = dftParams;
-  */
 }
 
 void CoccolithSimulation::saveGeometry()
@@ -1066,14 +1045,17 @@ void CoccolithSimulation::scatteringAssymmetryFactor( vector<double> &g, double 
 
   if ( computeStokesParameters )
   {
-    stokesI.set_size(Nsteps, nfreq);
-    stokesQ.set_size(Nsteps, nfreq);
-    stokesU.set_size(Nsteps, nfreq);
-    stokesV.set_size(Nsteps, nfreq);
-    stokesIAsym.resize(nfreq);
-    stokesQAsym.resize(nfreq);
-    stokesUAsym.resize(nfreq);
-    stokesVAsym.resize(nfreq);
+    stokesI.resize( numberOfAzimuthalSteps );
+    stokesQ.resize( numberOfAzimuthalSteps );
+    stokesU.resize( numberOfAzimuthalSteps );
+    stokesV.resize( numberOfAzimuthalSteps );
+    for ( unsigned int i=0;i<numberOfAzimuthalSteps;i++ )
+    {
+      stokesI[i].set_size(Nsteps, nfreq);
+      stokesQ[i].set_size(Nsteps, nfreq);
+      stokesU[i].set_size(Nsteps, nfreq);
+      stokesV[i].set_size(Nsteps, nfreq);
+    }
   }
   vector<double> normalization(g.size());
   double PI = acos(-1.0);
@@ -1084,6 +1066,7 @@ void CoccolithSimulation::scatteringAssymmetryFactor( vector<double> &g, double 
   fill( normalization.begin(), normalization.end(), 0.0 );
   for ( unsigned int i=0;i<Nsteps;i++ )
   {
+    currentTheta = i;
     double theta;
     double weight;
     gsl_integration_glfixed_point( 0.0, PI, i, &theta, &weight, gslTab );
@@ -1108,13 +1091,6 @@ void CoccolithSimulation::scatteringAssymmetryFactor( vector<double> &g, double 
       g[f] += azimInt[f]*cosTheta*weight*sin(theta);
       normalization[f] += azimInt[f]*weight*sin(theta);
       radialPoyntingVector(i,f) = azimInt[f];
-      if ( computeStokesParameters )
-      {
-        stokesIAsym[f] += stokesI(i,f)*cosTheta*weight*sin(theta);
-        stokesQAsym[f] += stokesQ(i,f)*cosTheta*weight*sin(theta);
-        stokesUAsym[f] += stokesU(i,f)*cosTheta*weight*sin(theta);
-        stokesVAsym[f] += stokesV(i,f)*cosTheta*weight*sin(theta);
-      }
     }
   }
   if ( meep::am_master() )
@@ -1163,7 +1139,16 @@ void CoccolithSimulation::azimuthalIntagration( double theta, double R, unsigned
 
     if ( computeStokesParameters )
     {
-      updateStokesParameters( results, n, weight );
+      LocalStokes locStokes;
+      getLocalStokes( theta, phi, results, locStokes );
+      for ( unsigned int i=0;i<nfreq;i++ )
+      {
+        stokesI[n](currentTheta,i) = locStokes.I[i];
+        stokesQ[n](currentTheta,i) = locStokes.Q[i];
+        stokesU[n](currentTheta,i) = locStokes.U[i];
+        stokesV[n](currentTheta,i) = locStokes.V[i];
+      }
+      //updateStokesParameters( results, currentTheta, weight );
     }
     delete results; results=NULL;
   }
@@ -1194,6 +1179,7 @@ void CoccolithSimulation::permumteToFitPropDir( double &x, double &y, double &z 
 
 void CoccolithSimulation::updateStokesParameters( const cdouble EH[], unsigned int evalPointIndx, double weight )
 {
+  /*
   cdouble E1, E2;
   for( unsigned int i=0;i<nfreq;i++ )
   {
@@ -1203,7 +1189,7 @@ void CoccolithSimulation::updateStokesParameters( const cdouble EH[], unsigned i
     stokesU(evalPointIndx, i) += (pow(abs(E1),2)-pow(abs(E2),2))*weight;
     stokesQ(evalPointIndx, i) += 2.0*(E1*conj(E2)).real()*weight;
     stokesV(evalPointIndx, i) -= 2.0*(E1*conj(E2)).imag()*weight;
-  }
+  }*/
 }
 
 double CoccolithSimulation::phaseFunctionContribution( const cdouble EH[3] ) const
@@ -1226,4 +1212,62 @@ bool CoccolithSimulation::redefineTheta() const
   // In this case theta=0 should correspond to propagation along the negative axis
   // Otherwise, theta=0 should correspond to propagation along the positive axis
   return srcPos == SourcePosition_t::BOTTOM;
+}
+
+void CoccolithSimulation::computeEvectorOrthogonalToPropagation( double theta, double phi, meep::vec &E1hat, meep::vec &E2hat ) const
+{
+  double x = sin(theta)*cos(phi);
+  double y = sin(theta)*sin(phi);
+  double z = cos(theta);
+  permumteToFitPropDir(x,y,z);
+  meep::vec khat( x, y, z );
+
+  // Unit vector for theta hat
+  x = cos(theta)*cos(phi);
+  y = cos(theta)*sin(phi);
+  z = -sin(theta);
+  permumteToFitPropDir(x,y,z);
+  E1hat = meep::vec(x,y,z);
+
+  // Unit vector in phi hat
+  x = -sin(phi);
+  y = cos(phi);
+  z = 0.0;
+  permumteToFitPropDir(x,y,z);
+  E2hat = meep::vec(x,y,z);
+
+  // Some debug assertions, verify that the vectors are orthonormal
+  double E1len = sqrt( E1hat.x()*E1hat.x() + E1hat.y()*E1hat.y() + E1hat.z()*E1hat.z() );
+  double E2len = sqrt( E2hat.x()*E2hat.x() + E2hat.y()*E2hat.y() + E2hat.z()*E2hat.z() );
+  double khatlen = sqrt( khat.x()*khat.x() + khat.y()*khat.y() + khat.z()*khat.z() );
+  //meep::master_printf("%.6f,%.6f,%.6f,%.6f,%.6f,%.6f\n", abs(khat&E1hat), abs(khat&E2hat), abs(E1hat&E2hat), abs(khatlen-1.0), abs(E1len-1.0), abs(E2len-1.0));
+
+  assert( abs(khat&E1hat) < 1E-8 );
+  assert( abs(khat&E2hat) < 1E-8 );
+  assert( abs(E1hat&E2hat) < 1E-8 );
+  assert( abs(khatlen-1.0) < 1E-8 );
+  assert( abs(E1len-1.0) < 1E-8 );
+  assert( abs(E2len-1.0) < 1E-8 );
+}
+
+void CoccolithSimulation::getLocalStokes( double theta, double phi, const cdouble EH[], LocalStokes &locStoke )
+{
+  locStoke.I.resize(nfreq);
+  locStoke.Q.resize(nfreq);
+  locStoke.U.resize(nfreq);
+  locStoke.V.resize(nfreq);
+
+  meep::vec E1hat;
+  meep::vec E2hat;
+  computeEvectorOrthogonalToPropagation( theta, phi, E1hat, E2hat );
+  for ( unsigned int i=0;i<nfreq;i++ )
+  {
+    cdouble E1 = E1hat.x()*EH[6*i] + E1hat.y()*EH[6*i+1] + E1hat.z()*EH[6*i+2];
+    cdouble E2 = E2hat.x()*EH[6*i] + E2hat.y()*EH[6*i+1] + E2hat.z()*EH[6*i+2];
+    locStoke.I[i] = pow(abs(E1),2) + pow(abs(E2),2);
+    locStoke.Q[i] = pow(abs(E1),2) - pow(abs(E2),2);
+    locStoke.U[i] = 2.0*(E1*conj(E2)).real();
+    locStoke.V[i] = -2.0*(E1*conj(E2)).imag();
+  }
+
 }

@@ -134,6 +134,7 @@ class BlochRun:
         counter = 0
         for reg in self.blochRegs:
             kmax = -1E-10
+            print (np.min(reg.k), np.max(reg.k))
             for i in range(0, len(reg.k) ):
                 N = len(reg.omega[i])
                 if ( N > maxbands ):

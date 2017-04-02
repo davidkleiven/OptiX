@@ -7,5 +7,6 @@
   "voxels":"data/cocco8cv4Rotated15deg_216_182_249_253.raw",
   "prefix":"CaCO3Coccolith30deg",
   "threshold":80,
-  "computeAsymmetryFactor":true
+  "computeAsymmetryFactor":true,
+  "computeStokes":true
 }

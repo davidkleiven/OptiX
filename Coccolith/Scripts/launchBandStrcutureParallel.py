@@ -107,8 +107,8 @@ def main( argv ):
         ky = params["blochvectorPath"][i]["ky"]
         kxEnd = params["blochvectorPath"][i+1]["kx"]
         kyEnd = params["blochvectorPath"][i+1]["ky"]
-        dkx = (kxEnd-kx)/params["numberOfKVecInEachInterval"]
-        dky = (kyEnd-ky)/params["numberOfKVecInEachInterval"]
+        dkx = (kxEnd-kx)/(params["numberOfKVecInEachInterval"]-1)
+        dky = (kyEnd-ky)/(params["numberOfKVecInEachInterval"]-1)
         for j in range(0, params["numberOfKVecInEachInterval"]):
             newRun = BandDiagramComputer()
             newRun.jsontemplate = templateInput

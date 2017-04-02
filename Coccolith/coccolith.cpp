@@ -17,6 +17,7 @@ void setupSim( CoccolithSimulation &sim )
 
 int main( int argc, char** argv )
 {
+  srand(time(0));
   try
   {
     meep::initialize mpi( argc, argv );
@@ -58,6 +59,7 @@ int main( int argc, char** argv )
     #endif
     sim->additionalVaccumLayerPx = 3.0;
     if ( root.isMember("computeAsymmetryFactor") ) sim->computeAsymmetryFactor = root["computeAsymmetryFactor"].asBool();
+    if ( root.isMember("computeStokes") ) sim->computeStokesParameters = root["computeStokes"].asBool();
     sim->runWithoutScatterer();
     sim->init();
     sim->run();
@@ -89,11 +91,12 @@ int main( int argc, char** argv )
 
     #ifdef CHECK_THAT_ALL_WORKS
       sim->setEndTime( 10.0 );
-      sim->gaussLegendreOrder = 8;
+      sim->gaussLegendreOrder = 2;
     #endif
 
     sim->additionalVaccumLayerPx = 3.0;
     if ( root.isMember("computeAsymmetryFactor") ) sim->computeAsymmetryFactor = root["computeAsymmetryFactor"].asBool();
+    if ( root.isMember("computeStokes") ) sim->computeStokesParameters = root["computeStokes"].asBool();
     sim->runWithScatterer();
     sim->init();
     sim->run();

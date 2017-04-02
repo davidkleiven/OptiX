@@ -20,6 +20,15 @@ enum class Plane_t{XY, XZ, YZ};
 
 enum class SourcePosition_t{TOP, BOTTOM};
 
+/** Struct for holding the local Stokes parameters */
+struct LocalStokes
+{
+  std::vector<double> I;
+  std::vector<double> Q;
+  std::vector<double> U;
+  std::vector<double> V;
+};
+
 class CoccolithSimulation
 {
 public:
@@ -169,14 +178,11 @@ protected:
   arma::mat bkg1;
   arma::mat bkg2;
   arma::mat radialPoyntingVector;
-  arma::mat stokesI;
-  arma::mat stokesQ;
-  arma::mat stokesV;
-  arma::mat stokesU;
-  std::vector<double> stokesIAsym;
-  std::vector<double> stokesQAsym;
-  std::vector<double> stokesVAsym;
-  std::vector<double> stokesUAsym;
+  std::vector<arma::mat> stokesI;
+  std::vector<arma::mat> stokesQ;
+  std::vector<arma::mat> stokesV;
+  std::vector<arma::mat> stokesU;
+  unsigned int currentTheta{0};
   std::vector<double> thetaValues;
 
   // Source corners
@@ -274,6 +280,12 @@ protected:
 
   /** Redfine theta be the compliment based on the propagation direction */
   bool redefineTheta() const;
+
+  /** Computes the two E-hat vectors orthonormal to the propagation direction given by theta, phi (in radians) */
+  void computeEvectorOrthogonalToPropagation( double theta, double phi, meep::vec &E1hat, meep::vec &E2hat ) const;
+
+  /** Computes the Stokes parameters in the direction given by theta and phi */
+  void getLocalStokes( double theta, double phi, const cdouble EH[], LocalStokes &locStoke );
 };
 
 #endif
