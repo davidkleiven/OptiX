@@ -644,69 +644,7 @@ void CoccolithSimulation::exportResults()
   {
     field->output_hdf5( meep::Dielectric, gdvol.surroundings(), file, false, true );
     file->prevent_deadlock();
-
-    if ( computeAsymmetryFactor )
-    {
-      vector<double> asym;
-      scatteringAssymmetryFactor( asym, 4000.0, gaussLegendreOrder );
-      int length = asym.size();
-
-      file->write( "Asymmetry", 1, &length, &asym[0], false );
-      file->prevent_deadlock();
-
-      int gLgorder = gaussLegendreOrder;
-      int nfreqCast = nfreq;
-      int rank[2] = {gLgorder,nfreqCast};
-      arma::mat radPoyntingTrans = radialPoyntingVector.t(); // Is MEEP changing the memory layout?
-      file->write( "Sr", 2, rank, radPoyntingTrans.memptr(), false );
-      file->prevent_deadlock();
-
-      file->write( "SrTheta", 1, &gLgorder, &thetaValues[0], false );
-      file->prevent_deadlock();
-
-      if ( computeStokesParameters )
-      {
-        rank[0] = stokesI[0].n_rows;
-        rank[1] = stokesI[0].n_cols;
-        bool saveStokesParameters = (stokesI[0].n_rows == stokesQ[0].n_rows ) && ( stokesI[0].n_rows == stokesU[0].n_rows ) && \
-                                    (stokesI[0].n_rows == stokesV[0].n_rows ) && ( stokesI[0].n_cols == stokesQ[0].n_cols ) && \
-                                    (stokesI[0].n_cols == stokesU[0].n_cols ) && ( stokesI[0].n_cols == stokesV[0].n_cols );
-
-        if ( saveStokesParameters )
-        {
-          for ( unsigned int i=0;i<numberOfAzimuthalSteps;i++ )
-          {
-            stringstream name;
-            name << "StokesI" << i;
-            arma::mat stokes = stokesI[i].t();
-            file->write(name.str().c_str(), 2, rank, stokes.memptr(), false );
-            file->prevent_deadlock();
-            name.str("");
-
-            stokes = stokesQ[i].t();
-            name << "StokesQ" << i;
-            file->write(name.str().c_str(), 2, rank, stokes.memptr(), false );
-            file->prevent_deadlock();
-            name.str("");
-
-            stokes = stokesU[i].t();
-            name << "StokesU" << i;
-            file->write(name.str().c_str(), 2, rank, stokes.memptr(), false );
-            file->prevent_deadlock();
-            name.str("");
-
-            stokes = stokesV[i].t();
-            name << "StokesV" << i;
-            file->write(name.str().c_str(), 2, rank, stokes.memptr(), false );
-            file->prevent_deadlock();
-          }
-        }
-        else
-        {
-          meep::master_printf("Warning! The dimensions of the different Stokes parameters does not match!\n");
-        }
-      }
-    }
+    farFieldQuantities();
   }
   saveDFTSpectrum();
   //saveDFTStokes();
@@ -714,6 +652,75 @@ void CoccolithSimulation::exportResults()
   if (( meep::am_master() ) && (!material->isReferenceRun() ))
   {
     clog << "Results written to " << ss.str() << endl;
+  }
+}
+
+void CoccolithSimulation::farFieldQuantities()
+{
+  if ( file == NULL )
+  {
+    file = file = field->open_h5file( ss.str().c_str() );
+  }
+  if ( computeAsymmetryFactor )
+  {
+    double PI = acos(-1.0);
+    double ffFreq[3] = {n2fBox->omega_min/(2.0*PI), n2fBox->domega/(2.0*PI), n2fBox->Nomega/(2.0*PI)};
+
+    int nFFfreq = 3;
+    file->write("ffFreq", 1, &nFFfreq, ffFreq, false );
+    file->prevent_deadlock();
+    
+    vector<double> asym;
+    scatteringAssymmetryFactor( asym, 4000.0, gaussLegendreOrder );
+    int length = asym.size();
+
+    file->write( "Asymmetry", 1, &length, &asym[0], false );
+    file->prevent_deadlock();
+
+    int gLgorder = gaussLegendreOrder;
+    int nfreqCast = nfreq;
+    int rank[2] = {gLgorder,nfreqCast};
+    arma::mat radPoyntingTrans = radialPoyntingVector.t(); // Is MEEP changing the memory layout?
+    file->write( "Sr", 2, rank, radPoyntingTrans.memptr(), false );
+    file->prevent_deadlock();
+
+    file->write( "SrTheta", 1, &gLgorder, &thetaValues[0], false );
+    file->prevent_deadlock();
+
+    if ( computeStokesParameters )
+    {
+      rank[0] = stokesI[0].n_rows;
+      rank[1] = stokesI[0].n_cols;
+      bool saveStokesParameters = (stokesI[0].n_rows == stokesQ[0].n_rows ) && ( stokesI[0].n_rows == stokesU[0].n_rows ) && \
+                                  (stokesI[0].n_rows == stokesV[0].n_rows ) && ( stokesI[0].n_cols == stokesQ[0].n_cols ) && \
+                                  (stokesI[0].n_cols == stokesU[0].n_cols ) && ( stokesI[0].n_cols == stokesV[0].n_cols );
+
+      if ( saveStokesParameters )
+      {
+        rank[0] = stokesIAzim.n_rows;
+        rank[1] = stokesIAzim.n_cols;
+        arma::mat stokes = stokesIAzim.t();
+        file->write("stokesIAvg", 2, rank, stokes.memptr(), false );
+        file->prevent_deadlock();
+
+        stokes = stokesQAzim.t();
+        file->write("stokesQAvg", 2, rank, stokes.memptr(), false );
+        file->prevent_deadlock();
+
+        stokes = stokesUAzim.t();
+        file->write("stokesUAvg", 2, rank, stokes.memptr(), false );
+        file->prevent_deadlock();
+
+        stokes = stokesVAzim.t();
+        file->write("stokesVAvg", 2, rank, stokes.memptr(), false );
+        file->prevent_deadlock();
+        n2fBox->save_hdf5( *field, "data/nearToFarScattering" );
+      }
+      else
+      {
+        meep::master_printf("Warning! The dimensions of the different Stokes parameters does not match!\n");
+      }
+    }
   }
 }
 
@@ -916,39 +923,6 @@ void CoccolithSimulation::setPMLInWavelengths( double pmlInWav )
   pmlThicknessInWavelengths = pmlInWav;
 }
 
-void CoccolithSimulation::saveDFTStokes()
-{
-  if ( transmitFlux == NULL )
-  {
-    throw( runtime_error("Flux plane needs to be set before saving DFT stokes parameters!") );
-  }
-  stokes.compute( transmitFlux->E );
-  int length = stokes.getI().size();
-  if ( material->isReferenceRun() )
-  {
-    file->write( "stokeRefI", 1, &length, &stokes.getI()[0], false );
-    file->prevent_deadlock();
-    file->write( "stokeRefQ", 1, &length, &stokes.getQ()[0], false );
-    file->prevent_deadlock();
-    file->write( "stokeRefU", 1, &length, &stokes.getU()[0], false );
-    file->prevent_deadlock();
-    file->write( "stokeRefV", 1, &length, &stokes.getV()[0], false );
-    file->prevent_deadlock();
-  }
-  else
-  {
-    file->write( "stokeTransI", 1, &length, &stokes.getI()[0], false );
-    file->prevent_deadlock();
-    file->write( "stokeTransQ", 1, &length, &stokes.getQ()[0], false );
-    file->prevent_deadlock();
-    file->write( "stokeTransU", 1, &length, &stokes.getU()[0], false );
-    file->prevent_deadlock();
-    file->write( "stokeTransV", 1, &length, &stokes.getV()[0], false );
-    file->prevent_deadlock();
-  }
-
-}
-
 void CoccolithSimulation::updateStructure()
 {
   if ( struc == NULL )
@@ -1056,6 +1030,15 @@ void CoccolithSimulation::scatteringAssymmetryFactor( vector<double> &g, double 
       stokesU[i].set_size(Nsteps, nfreq);
       stokesV[i].set_size(Nsteps, nfreq);
     }
+    stokesIAzim.set_size(Nsteps,nfreq);
+    stokesQAzim.set_size(Nsteps,nfreq);
+    stokesUAzim.set_size(Nsteps,nfreq);
+    stokesVAzim.set_size(Nsteps,nfreq);
+
+    stokesIAzim.fill(0.0);
+    stokesQAzim.fill(0.0);
+    stokesUAzim.fill(0.0);
+    stokesVAzim.fill(0.0);
   }
   vector<double> normalization(g.size());
   double PI = acos(-1.0);
@@ -1147,6 +1130,10 @@ void CoccolithSimulation::azimuthalIntagration( double theta, double R, unsigned
         stokesQ[n](currentTheta,i) = locStokes.Q[i];
         stokesU[n](currentTheta,i) = locStokes.U[i];
         stokesV[n](currentTheta,i) = locStokes.V[i];
+        stokesIAzim(currentTheta,i) += locStokes.I[i]*weight;
+        stokesQAzim(currentTheta,i) += locStokes.Q[i]*weight;
+        stokesUAzim(currentTheta,i) += locStokes.U[i]*weight;
+        stokesVAzim(currentTheta,i) += locStokes.V[i]*weight;
       }
       //updateStokesParameters( results, currentTheta, weight );
     }
@@ -1269,5 +1256,17 @@ void CoccolithSimulation::getLocalStokes( double theta, double phi, const cdoubl
     locStoke.U[i] = 2.0*(E1*conj(E2)).real();
     locStoke.V[i] = -2.0*(E1*conj(E2)).imag();
   }
+}
 
+void CoccolithSimulation::loadBoundingCurrents( const char* fname )
+{
+  if ( field == NULL )
+  {
+    throw (runtime_error("Field needs to be initialized before loading currents!") );
+  }
+  else if ( n2fBox == NULL )
+  {
+    throw ( runtime_error("Near to far field box needs to be initialized!"))
+  }
+  n2fBox->load_hdf5( *field, fname );
 }

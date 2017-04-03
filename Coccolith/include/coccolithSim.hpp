@@ -95,6 +95,12 @@ public:
   /** Computes the scattering assymetry factor for each frequency based on fields at distance R */
   void scatteringAssymmetryFactor( std::vector<double> &g, double R, unsigned int Nsteps );
 
+  /** Computes and store the far field quantities */
+  void farFieldQuantities();
+
+  /** Loads previously stored near field currents */
+  void loadBoundingCurrents( const char* fname );
+
   /** Returns a reference to the structure */
   meep::structure& getStructure(){ return *struc; };
 
@@ -147,7 +153,6 @@ protected:
   unsigned int nMonitorY{256};
   unsigned int nMonitorZ{256};
   double tEnd{100.0};
-  StokesParameters stokes;
   #ifdef HAVE_LIB_VISA
     visa::WindowHandler *plots{NULL};
   #endif
@@ -182,6 +187,10 @@ protected:
   std::vector<arma::mat> stokesQ;
   std::vector<arma::mat> stokesV;
   std::vector<arma::mat> stokesU;
+  arma::mat stokesIAzim;
+  arma::mat stokesQAzim;
+  arma::mat stokesUAzim;
+  arma::mat stokesVAzim;
   unsigned int currentTheta{0};
   std::vector<double> thetaValues;
 
@@ -237,9 +246,6 @@ protected:
 
   /** Save DFT parameters */
   void saveDFTParameters();
-
-  /** Save the Fourier transformed Stokes parameters */
-  void saveDFTStokes();
 
   /** Save parameters specific to the geometry and source */
   void saveGeometry();
