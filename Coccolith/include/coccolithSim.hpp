@@ -101,6 +101,9 @@ public:
   /** Loads previously stored near field currents */
   void loadBoundingCurrents( const char* fname );
 
+  /** Evaluate far field */
+  void farFieldOnBox();
+
   /** Returns a reference to the structure */
   meep::structure& getStructure(){ return *struc; };
 

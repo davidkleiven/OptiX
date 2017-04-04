@@ -644,7 +644,7 @@ void CoccolithSimulation::exportResults()
   {
     field->output_hdf5( meep::Dielectric, gdvol.surroundings(), file, false, true );
     file->prevent_deadlock();
-    farFieldQuantities();
+    //farFieldQuantities();
   }
   saveDFTSpectrum();
   //saveDFTStokes();
@@ -1269,4 +1269,46 @@ void CoccolithSimulation::loadBoundingCurrents( const char* fname )
     throw ( runtime_error("Near to far field box needs to be initialized!"));
   }
   n2fBox->load_hdf5( *field, fname );
+}
+
+void CoccolithSimulation::farFieldOnBox()
+{
+  assert( n2fBox != NULL );
+  double L = 10000.0;
+  meep::vec mincrn( -L, -L, -L );
+  meep::vec maxcrn( -L+1.0, L, L );
+  meep::volume vol( mincrn, maxcrn );
+  n2fBox->save_farfields( "farfieldTestmX", NULL, vol, 2.0 );
+  meep::master_printf("1/6 finsished...\n");
+
+  /*
+  mincrn = meep::vec( L,-L-L );
+  maxcrn = meep::vec( L,L,L );
+  vol = meep::volume(mincrn,maxcrn);
+  n2fBox->save_farfields( "farfieldTestX.h5", "far", vol, 2.0 );
+  meep::master_printf("2/6 finsished...\n");
+
+  mincrn = meep::vec( -L,-L-L );
+  maxcrn = meep::vec( L,-L,L );
+  vol = meep::volume(mincrn,maxcrn);
+  n2fBox->save_farfields( "farfieldTestmY.h5", "far", vol, 2.0 );
+  meep::master_printf("3/6 finsished...\n");
+
+  mincrn = meep::vec( -L,L-L );
+  maxcrn = meep::vec( L,L,L );
+  vol = meep::volume(mincrn,maxcrn);
+  n2fBox->save_farfields( "farfieldTestY.h5", "far", vol, 2.0 );
+  meep::master_printf("4/6 finsished...\n");
+
+  mincrn = meep::vec( -L,-L-L );
+  maxcrn = meep::vec( L,L,-L );
+  vol = meep::volume(mincrn,maxcrn);
+  n2fBox->save_farfields( "farfieldTestmZ.h5", "far", vol, 2.0 );
+  meep::master_printf("5/6 finsished...\n");
+
+  mincrn = meep::vec( -L,-L, L );
+  maxcrn = meep::vec( L,L,L );
+  vol = meep::volume(mincrn,maxcrn);
+  n2fBox->save_farfields( "farfieldTestZ.h5", "far", vol, 2.0 );
+  meep::master_printf("6/6 finsished...\n");*/
 }
