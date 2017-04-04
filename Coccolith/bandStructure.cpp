@@ -34,7 +34,8 @@ int main( int argc, char** argv )
     SellmeierMaterial material;
     material.load( root["material"].asString().c_str() );
 
-    Voxel2DSusceptibility geom( material.epsInf, 1.0 );
+    //Voxel2DSusceptibility geom( material.epsInf, 1.0 );
+    Voxel2DSusceptibility geom( 30.0, 1.0 );
     geom.threshold = 128;
     geom.loadRaw( root["geometry"].asString() );
 

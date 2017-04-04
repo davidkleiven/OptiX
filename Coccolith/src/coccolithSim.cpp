@@ -659,17 +659,17 @@ void CoccolithSimulation::farFieldQuantities()
 {
   if ( file == NULL )
   {
-    file = file = field->open_h5file( ss.str().c_str() );
+    file = field->open_h5file( "data/farfield" );
   }
   if ( computeAsymmetryFactor )
   {
     double PI = acos(-1.0);
-    double ffFreq[3] = {n2fBox->omega_min/(2.0*PI), n2fBox->domega/(2.0*PI), n2fBox->Nomega/(2.0*PI)};
+    double ffFreq[3] = {n2fBox->freq_min/(2.0*PI), n2fBox->dfreq/(2.0*PI), n2fBox->Nfreq/(2.0*PI)};
 
     int nFFfreq = 3;
     file->write("ffFreq", 1, &nFFfreq, ffFreq, false );
     file->prevent_deadlock();
-    
+
     vector<double> asym;
     scatteringAssymmetryFactor( asym, 4000.0, gaussLegendreOrder );
     int length = asym.size();
@@ -1266,7 +1266,7 @@ void CoccolithSimulation::loadBoundingCurrents( const char* fname )
   }
   else if ( n2fBox == NULL )
   {
-    throw ( runtime_error("Near to far field box needs to be initialized!"))
+    throw ( runtime_error("Near to far field box needs to be initialized!"));
   }
   n2fBox->load_hdf5( *field, fname );
 }
