@@ -644,7 +644,7 @@ void CoccolithSimulation::exportResults()
   {
     field->output_hdf5( meep::Dielectric, gdvol.surroundings(), file, false, true );
     file->prevent_deadlock();
-    //farFieldQuantities();
+    farFieldQuantities();
   }
   saveDFTSpectrum();
   //saveDFTStokes();
@@ -714,7 +714,10 @@ void CoccolithSimulation::farFieldQuantities()
         stokes = stokesVAzim.t();
         file->write("stokesVAvg", 2, rank, stokes.memptr(), false );
         file->prevent_deadlock();
-        n2fBox->save_hdf5( *field, "data/nearToFarScattering" );
+        //n2fBox->save_hdf5( *field, "data/nearToFarScattering" );
+
+        saveStokesPhiTheta();
+
       }
       else
       {
@@ -1006,16 +1009,16 @@ void CoccolithSimulation::addN2FPlanes( const meep::volume &box )
     meep::master_printf( "mincrn:%.1f,%.1f,%.1f, maxcrn=%.1f,%.1f,%.1f\n", crn1.x(), crn1.y(), crn1.z(), crn2.x(),crn2.y(),crn2.z() );
   #endif
 
-  n2fBox = new meep::dft_near2far( field->add_dft_near2far(faces, centerFrequency-freqWidth/2.0, centerFrequency+freqWidth/2.0, nfreq ) );
+  n2fBox = new meep::dft_near2far( field->add_dft_near2far(faces, centerFrequency-freqWidth/2.0, centerFrequency+freqWidth/2.0, 5 ) );
 }
 
 
 void CoccolithSimulation::scatteringAssymmetryFactor( vector<double> &g, double R, unsigned int Nsteps )
 {
   meep::master_printf( "Computing assymmetry factor...\n" );
-  radialPoyntingVector.set_size( Nsteps, nfreq );
+  radialPoyntingVector.set_size( Nsteps, n2fBox->Nfreq );
   thetaValues.resize(Nsteps);
-  g.resize( nfreq );
+  g.resize( n2fBox->Nfreq );
 
   if ( computeStokesParameters )
   {
@@ -1025,15 +1028,15 @@ void CoccolithSimulation::scatteringAssymmetryFactor( vector<double> &g, double 
     stokesV.resize( numberOfAzimuthalSteps );
     for ( unsigned int i=0;i<numberOfAzimuthalSteps;i++ )
     {
-      stokesI[i].set_size(Nsteps, nfreq);
-      stokesQ[i].set_size(Nsteps, nfreq);
-      stokesU[i].set_size(Nsteps, nfreq);
-      stokesV[i].set_size(Nsteps, nfreq);
+      stokesI[i].set_size(Nsteps, n2fBox->Nfreq);
+      stokesQ[i].set_size(Nsteps, n2fBox->Nfreq);
+      stokesU[i].set_size(Nsteps, n2fBox->Nfreq);
+      stokesV[i].set_size(Nsteps, n2fBox->Nfreq);
     }
-    stokesIAzim.set_size(Nsteps,nfreq);
-    stokesQAzim.set_size(Nsteps,nfreq);
-    stokesUAzim.set_size(Nsteps,nfreq);
-    stokesVAzim.set_size(Nsteps,nfreq);
+    stokesIAzim.set_size(Nsteps,n2fBox->Nfreq);
+    stokesQAzim.set_size(Nsteps,n2fBox->Nfreq);
+    stokesUAzim.set_size(Nsteps,n2fBox->Nfreq);
+    stokesVAzim.set_size(Nsteps,n2fBox->Nfreq);
 
     stokesIAzim.fill(0.0);
     stokesQAzim.fill(0.0);
@@ -1069,7 +1072,7 @@ void CoccolithSimulation::scatteringAssymmetryFactor( vector<double> &g, double 
       thetaValues[i] = theta;
       cosTheta = cos(theta);
     }
-    for ( unsigned int f=0;f<nfreq;f++ )
+    for ( unsigned int f=0;f<n2fBox->Nfreq;f++ )
     {
       g[f] += azimInt[f]*cosTheta*weight*sin(theta);
       normalization[f] += azimInt[f]*weight*sin(theta);
@@ -1095,7 +1098,7 @@ void CoccolithSimulation::azimuthalIntagration( double theta, double R, unsigned
   // Determine the weights and evaluation points for phi [0,2*pi]
   gsl_integration_glfixed_table *gslTab = gsl_integration_glfixed_table_alloc(Nsteps);
 
-  if ( res.size() != nfreq ) res.resize(nfreq);
+  if ( res.size() != n2fBox->Nfreq ) res.resize(n2fBox->Nfreq);
   fill(res.begin(),res.end(),0.0);
   cdouble *results = NULL;
   double RsinTheta = R*sin(theta);
@@ -1114,7 +1117,7 @@ void CoccolithSimulation::azimuthalIntagration( double theta, double R, unsigned
     permumteToFitPropDir(x,y,z);
 
     results = n2fBox->farfield( meep::vec(x,y,z) );
-    for ( unsigned int i=0;i<nfreq;i++ )
+    for ( unsigned int i=0;i<n2fBox->Nfreq;i++ )
     {
       //add = pow(abs(results[6*i]),2) + pow(abs(results[6*i+1]),2) + pow(abs(results[6*i+2]),2);
       res[i] += weight*phaseFunctionContribution(results+6*i);
@@ -1124,7 +1127,7 @@ void CoccolithSimulation::azimuthalIntagration( double theta, double R, unsigned
     {
       LocalStokes locStokes;
       getLocalStokes( theta, phi, results, locStokes );
-      for ( unsigned int i=0;i<nfreq;i++ )
+      for ( unsigned int i=0;i<n2fBox->Nfreq;i++ )
       {
         stokesI[n](currentTheta,i) = locStokes.I[i];
         stokesQ[n](currentTheta,i) = locStokes.Q[i];
@@ -1168,7 +1171,7 @@ void CoccolithSimulation::updateStokesParameters( const cdouble EH[], unsigned i
 {
   /*
   cdouble E1, E2;
-  for( unsigned int i=0;i<nfreq;i++ )
+  for( unsigned int i=0;i<;i++ )
   {
     E1 = EH[6*i+meep::component_index(fieldComp)];
     E2 = EH[6*i+meep::component_index(secondComp)];
@@ -1239,15 +1242,15 @@ void CoccolithSimulation::computeEvectorOrthogonalToPropagation( double theta, d
 
 void CoccolithSimulation::getLocalStokes( double theta, double phi, const cdouble EH[], LocalStokes &locStoke )
 {
-  locStoke.I.resize(nfreq);
-  locStoke.Q.resize(nfreq);
-  locStoke.U.resize(nfreq);
-  locStoke.V.resize(nfreq);
+  locStoke.I.resize(n2fBox->Nfreq);
+  locStoke.Q.resize(n2fBox->Nfreq);
+  locStoke.U.resize(n2fBox->Nfreq);
+  locStoke.V.resize(n2fBox->Nfreq);
 
   meep::vec E1hat;
   meep::vec E2hat;
   computeEvectorOrthogonalToPropagation( theta, phi, E1hat, E2hat );
-  for ( unsigned int i=0;i<nfreq;i++ )
+  for ( unsigned int i=0;i<locStoke.I.size();i++ )
   {
     cdouble E1 = E1hat.x()*EH[6*i] + E1hat.y()*EH[6*i+1] + E1hat.z()*EH[6*i+2];
     cdouble E2 = E2hat.x()*EH[6*i] + E2hat.y()*EH[6*i+1] + E2hat.z()*EH[6*i+2];
@@ -1271,15 +1274,58 @@ void CoccolithSimulation::loadBoundingCurrents( const char* fname )
   n2fBox->load_hdf5( *field, fname );
 }
 
-void CoccolithSimulation::farFieldOnBox()
+void CoccolithSimulation::saveStokesPhiTheta()
 {
+  assert( file != NULL );
+  for ( unsigned int i=0;i<stokesI.size();i++ )
+  {
+    int nrow = stokesI[i].n_rows;
+    int ncol = stokesI[i].n_cols;
+    int rank[2] = {nrow, ncol};
+    arma::mat stokes = stokesI[i].t();
+    {
+      stringstream dset;
+      dset << "stokesI" << i;
+      file->write( dset.str().c_str(), 2, rank, stokes.memptr(), false );
+      file->prevent_deadlock();
+    }
+
+    {
+      stringstream dset;
+      dset << "stokesQ" << i;
+      stokes = stokesQ[i].t();
+      file->write( dset.str().c_str(), 2, rank, stokes.memptr(), false );
+      file->prevent_deadlock();
+    }
+
+    {
+      stringstream dset;
+      dset << "stokesU" << i;
+      stokes = stokesU[i].t();
+      file->write( dset.str().c_str(), 2, rank, stokes.memptr(), false );
+      file->prevent_deadlock();
+    }
+
+    {
+      stringstream dset;
+      dset << "stokesV" << i;
+      stokes = stokesV[i].t();
+      file->write( dset.str().c_str(), 2, rank, stokes.memptr(), false );
+      file->prevent_deadlock();
+    }
+  }
+}
+
+/*void CoccolithSimulation::farFieldOnBox()
+{
+
   assert( n2fBox != NULL );
   double L = 10000.0;
-  meep::vec mincrn( -L, -L, -L );
-  meep::vec maxcrn( -L+1.0, L, L );
+  meep::vec mincrn( -L-1.0, -L, -L );
+  meep::vec maxcrn( -L, L, L );
   meep::volume vol( mincrn, maxcrn );
   n2fBox->save_farfields( "farfieldTestmX", NULL, vol, 2.0 );
-  meep::master_printf("1/6 finsished...\n");
+  meep::master_printf("1/6 finsished...\n");*/
 
   /*
   mincrn = meep::vec( L,-L-L );
@@ -1310,5 +1356,5 @@ void CoccolithSimulation::farFieldOnBox()
   maxcrn = meep::vec( L,L,L );
   vol = meep::volume(mincrn,maxcrn);
   n2fBox->save_farfields( "farfieldTestZ.h5", "far", vol, 2.0 );
-  meep::master_printf("6/6 finsished...\n");*/
-}
+  meep::master_printf("6/6 finsished...\n");
+}*/

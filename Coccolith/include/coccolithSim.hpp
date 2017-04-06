@@ -102,7 +102,7 @@ public:
   void loadBoundingCurrents( const char* fname );
 
   /** Evaluate far field */
-  void farFieldOnBox();
+  //void farFieldOnBox;
 
   /** Returns a reference to the structure */
   meep::structure& getStructure(){ return *struc; };
@@ -295,6 +295,9 @@ protected:
 
   /** Computes the Stokes parameters in the direction given by theta and phi */
   void getLocalStokes( double theta, double phi, const cdouble EH[], LocalStokes &locStoke );
+
+  /** Saves the Stokes parameters in the phi and theta direction */
+  void saveStokesPhiTheta();
 };
 
 #endif

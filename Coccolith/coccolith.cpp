@@ -6,7 +6,7 @@
 #include <ctime>
 #include <json/reader.h>
 #include <fstream>
-#define CHECK_THAT_ALL_WORKS
+//#define CHECK_THAT_ALL_WORKS
 
 using namespace std;
 
@@ -72,7 +72,7 @@ int main( int argc, char** argv )
     sim->resolution = root["resolution"].asDouble();
     sim->uid = uid;
     sim->gaussLegendreOrder = 64;
-    sim->numberOfAzimuthalSteps = 6;
+    sim->numberOfAzimuthalSteps = 100;
     if ( useDispersive )
     {
       sim->setSellmeierMaterial( sellmeier );
@@ -100,7 +100,6 @@ int main( int argc, char** argv )
     sim->runWithScatterer();
     sim->init();
     sim->run();
-    sim->farFieldOnBox();
     sim->exportResults();
     clog << "Process " << meep::my_rank() << " finished\n";
   }
