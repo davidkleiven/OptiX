@@ -6,5 +6,7 @@
   "material":"Materials/CaCO3ne.json",
   "voxels":"data/sphereVoxelGeo_216_50_50_50.raw",
   "prefix":"sphereVoxelDebug",
-  "computeAsymmetryFactor":true
+  "computeAsymmetryFactor":true,
+  "computeStokes":true,
+  "incStokesVector":[1,1,0,0]
 }

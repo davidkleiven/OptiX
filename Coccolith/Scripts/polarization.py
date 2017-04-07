@@ -14,6 +14,11 @@ class Polarization:
         self.Q = []
         self.U = []
         self.V = []
+
+        self.IphiTheta = [] # I as a function of phi and theta
+        self.QphiTheta = [] # Q as a function of phi and theta
+        self.UphiTheta = [] # U as a function of phi and theta
+        self.VphiTheta = [] # V as a function of phi and theta
         self.wavelength = []
         self.theta = []
 
@@ -38,6 +43,7 @@ class Polarization:
         ax.plot( self.theta, self.Q[:,freq]/self.I[:,freq], label="Q")
         ax.plot( self.theta, self.U[:,freq]/self.I[:,freq], label="U")
         ax.plot( self.theta, self.V[:,freq]/self.I[:,freq], label="V")
+        ax.plot( self.theta, self.I[:,freq], label="I")
         ax.legend( loc="best", frameon=False, labelspacing=0.05)
         return fig, ax
 
@@ -121,6 +127,60 @@ class Polarization:
         subprocess.call(["ffmpeg", "-r", "2", "-i", dirname+"/img%d.png", "-r", "10", "data/polarizationEllipse.ogg"])
         subprocess.call(["rm", "-r", dirname])
 
+    def readPhiAndTheta( self, hfile, freqIndx ):
+        # Count how many phi angles there are
+        nphi = 0
+        key = "stokesI%d"%(nphi)
+        ntheta = 0
+        while ( key in hfile.keys() ):
+            if ( nphi == 0 ):
+                ntheta = np.array( hfile.get(key) ).shape[0]
+            nphi += 1
+            key = "stokesI%d"%(nphi)
+
+        # Initialize arrays
+        self.IphiTheta = np.zeros((ntheta,nphi))
+        self.QphiTheta = np.zeros((ntheta,nphi))
+        self.UphiTheta = np.zeros((ntheta,nphi))
+        self.VphiTheta = np.zeros((ntheta,nphi))
+
+        # Read arrays
+        for i in range(0, nphi):
+            self.IphiTheta[:,i] = np.array( hfile.get("stokesI%d"%(i)) )[:,freqIndx]
+            self.QphiTheta[:,i] = np.array( hfile.get("stokesQ%d"%(i)) )[:,freqIndx]
+            self.UphiTheta[:,i] = np.array( hfile.get("stokesU%d"%(i)) )[:,freqIndx]
+            self.VphiTheta[:,i] = np.array( hfile.get("stokesV%d"%(i)) )[:,freqIndx]
+
+    def plotPolarizationPhiTheta( self ):
+        fig = plt.figure()
+        axI = fig.add_subplot(2,2,1)
+        axQ = fig.add_subplot(2,2,2)
+        axU = fig.add_subplot(2,2,3)
+        axV = fig.add_subplot(2,2,4)
+        phi = np.linspace(0,2.0*np.pi,self.IphiTheta.shape[1])
+        PHI, THETA = np.meshgrid(phi, self.theta)
+        cmap ="RdYlBu_r"
+        cmap = "Spectral"
+        figdebug = plt.figure()
+        axdebug = figdebug.add_subplot(1,1,1)
+        inorm = self.IphiTheta/self.IphiTheta.max()
+        axdebug.contourf( THETA, PHI, inorm, cmap=cmap, norm=mpl.colors.LogNorm())
+        extent = [0.0,180,0.0,360]
+        imI = axI.imshow( inorm.T[:,::-1], cmap="inferno", extent=extent, aspect="auto")
+        axI.set_title("I")
+        #fig.colorbar(imI)
+        #imQ = axQ.imshow( self.QphiTheta.T[:,::-1]/self.IphiTheta.T[:,::-1], extent=extent, cmap=cmap, aspect="auto" )
+        imQ = axQ.imshow( self.QphiTheta.T[:,::-1], extent=extent, cmap=cmap, aspect="auto" )
+        axQ.set_title("Q")
+        #fig.colorbar(imQ)
+        imU = axU.imshow( self.UphiTheta.T[:,::-1]/self.IphiTheta.T[:,::-1], extent=extent, cmap=cmap, aspect="auto" )
+        axU.set_title("U")
+        #fig.colorbar(imQ)
+        imV = axV.imshow( self.VphiTheta.T[:,::-1]/self.IphiTheta.T[:,::-1], extent=extent, cmap=cmap, aspect="auto")
+        axV.set_title("V")
+        #fig.colorbar(imV)
+        axV.set_xlabel("Scattering angle, \$\\theta\$ (deg)")
+        axU.set_ylabel("Azimuthal angle, \$\phi\$ (deg)")
 
 def main( argv ):
     if ( len(argv) < 1 ) or (len(argv)>2 ):
@@ -135,13 +195,15 @@ def main( argv ):
     polPlots = Polarization()
     with h5.File( argv[0], 'r' ) as hf:
         polPlots.load(hf)
+        polPlots.readPhiAndTheta( hf, 2 )
 
     try:
         polPlots.plotDistributions()
         polPlots.plotFrequencyAverage()
         polPlots.polarizationEllipse( 0 )
+        polPlots.plotPolarizationPhiTheta()
         if ( createAnimation ):
-            polPlots.animationPolarizationEllipse(freq=75)
+            polPlots.animationPolarizationEllipse(freq=1)
         plt.show()
     except Exception as exc:
         print (str(exc))

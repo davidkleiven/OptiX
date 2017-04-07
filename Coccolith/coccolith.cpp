@@ -33,6 +33,8 @@ int main( int argc, char** argv )
     reader.parse( infile, root );
     infile.close();
 
+    int incidentStokesVector[4]={1,1,0,0};
+
     // Visible light: centerFreq = 0.045, fwidth 0.03 looks good
     double centerFreq = root["centerFreq"].asDouble();
     double freqwidth = root["fwidth"].asDouble();
@@ -54,12 +56,22 @@ int main( int argc, char** argv )
     sim->initSource( centerFreq, freqwidth );
     sim->setPMLInWavelengths( pmlThick );
     sim->disableRealTimeVisualization();
+    
     #ifdef CHECK_THAT_ALL_WORKS
       sim->setEndTime( 10.0);
     #endif
+    
     sim->additionalVaccumLayerPx = 3.0;
     if ( root.isMember("computeAsymmetryFactor") ) sim->computeAsymmetryFactor = root["computeAsymmetryFactor"].asBool();
     if ( root.isMember("computeStokes") ) sim->computeStokesParameters = root["computeStokes"].asBool();
+    if ( root.isMember("incStokesVector") )
+    {
+      for ( unsigned int i=0;i<4;i++ )
+      {
+        incidentStokesVector[i] = root["incStokesVector"][i].asInt();
+      }
+    }
+    sim->setIncStokesVector(incidentStokesVector);
     sim->runWithoutScatterer();
     sim->init();
     sim->run();
@@ -71,7 +83,7 @@ int main( int argc, char** argv )
     sim->prefix = root["prefix"].asString();
     sim->resolution = root["resolution"].asDouble();
     sim->uid = uid;
-    sim->gaussLegendreOrder = 64;
+    sim->gaussLegendreOrder = 128;
     sim->numberOfAzimuthalSteps = 100;
     if ( useDispersive )
     {
@@ -81,6 +93,8 @@ int main( int argc, char** argv )
     {
       material.setThreshold( root["threshold"].asUInt() );
     }
+
+    sim->setIncStokesVector(incidentStokesVector);
     sim->setMaterial( material );
     sim->setMainPropagationDirection( MainPropDirection_t::X );
     sim->setSourceSide( SourcePosition_t::BOTTOM );

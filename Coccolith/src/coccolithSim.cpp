@@ -6,12 +6,16 @@
 #include <omp.h>
 #include <ctime>
 #include <iomanip>
+#include <array>
 #include <gsl/gsl_integration.h>
 #define DEBUG_N2F_INITIALIZATION
 
 using namespace std;
 
 meep::vec CoccolithSimulation::waveVec;
+array<Stokes,6> CoccolithSimulation::supportedStokes({Stokes(1,1,0,0),Stokes(1,-1,0,0),Stokes(1,0,1,0),\
+ Stokes(1,0,-1,0), Stokes(1,0,0,1),Stokes(1,0,0,-1)});
+ Stokes CoccolithSimulation::incStoke;
 
 // Only for debugging
 double sigmaTest( const meep::vec &r )
@@ -48,7 +52,23 @@ CoccolithSimulation::~CoccolithSimulation()
 cdouble CoccolithSimulation::amplitude( const meep::vec &r )
 {
   cdouble im(0.0,1.0);
-  return exp( im*(waveVec&r) ); // In MEEP: & is dot product
+  if ( incStoke.U == -1 ) return -1.0;
+  return 1.0; // In MEEP: & is dot product
+}
+
+cdouble CoccolithSimulation::amplitude2( const meep::vec &r )
+{
+  const double PI = acos(-1.0);
+  cdouble im(0.0,1.0);
+  if ( incStoke.V == 1 )
+  {
+    return exp(im*PI/2.0);
+  }
+  else if ( incStoke.V == -1 )
+  {
+    return exp(-im*PI/2.0);
+  }
+  return 1.0;
 }
 
 void CoccolithSimulation::setMainPropagationDirection( MainPropDirection_t propDir )
@@ -163,11 +183,19 @@ void CoccolithSimulation::addSource()
       break;
   }
 
-  field->add_volume_source( fieldComp, *sourceTime, *srcVol, amplitude );
-  if ( computeStokesParameters )
+  if (( incStoke.Q == 1 ) || ( incStoke.Q == 0 ))
   {
-    meep::master_printf("Using 45 degree polarization\n");
+    field->add_volume_source( fieldComp, *sourceTime, *srcVol, amplitude );
+  }
+  else
+  {
     field->add_volume_source( secondComp, *sourceTime, *srcVol, amplitude );
+  }
+  bool requireTwoSources = ( incStoke.U != 0 ) || ( incStoke.V != 0 );
+  if ( initialStokesVectorSet && requireTwoSources )
+  {
+    meep::master_printf("Using two sources to obtain polarization\n");
+    field->add_volume_source( secondComp, *sourceTime, *srcVol, amplitude2 );
   }
 }
 
@@ -671,15 +699,16 @@ void CoccolithSimulation::farFieldQuantities()
     file->prevent_deadlock();
 
     vector<double> asym;
-    scatteringAssymmetryFactor( asym, 4000.0, gaussLegendreOrder );
+    scatteringAssymmetryFactor( asym, 40000.0, gaussLegendreOrder );
     int length = asym.size();
 
     file->write( "Asymmetry", 1, &length, &asym[0], false );
     file->prevent_deadlock();
 
     int gLgorder = gaussLegendreOrder;
-    int nfreqCast = nfreq;
-    int rank[2] = {gLgorder,nfreqCast};
+    int nfreqCast = radialPoyntingVector.n_cols;
+    int ntheta = radialPoyntingVector.n_rows;
+    int rank[2] = {ntheta, nfreqCast};
     arma::mat radPoyntingTrans = radialPoyntingVector.t(); // Is MEEP changing the memory layout?
     file->write( "Sr", 2, rank, radPoyntingTrans.memptr(), false );
     file->prevent_deadlock();
@@ -831,6 +860,15 @@ void CoccolithSimulation::saveGeometry()
 
   double vxsize = material->getVoxelSize();
   file->write( "vxSizeNM", 1, &single, &vxsize, false );
+  file->prevent_deadlock();
+
+  int stkSize = 4;
+  double incidentStokesVector[stkSize];
+  incidentStokesVector[0] = incStoke.I;
+  incidentStokesVector[1] = incStoke.Q;
+  incidentStokesVector[2] = incStoke.U;
+  incidentStokesVector[3] = incStoke.V;
+  file->write("incStokes", 1, &stkSize, incidentStokesVector, false);
   file->prevent_deadlock();
 
   if ( dftVolBox != NULL )
@@ -1019,6 +1057,8 @@ void CoccolithSimulation::scatteringAssymmetryFactor( vector<double> &g, double 
   radialPoyntingVector.set_size( Nsteps, n2fBox->Nfreq );
   thetaValues.resize(Nsteps);
   g.resize( n2fBox->Nfreq );
+  Ephi.set_size( Nsteps, numberOfAzimuthalSteps );
+  Etheta.set_size( Nsteps, numberOfAzimuthalSteps );
 
   if ( computeStokesParameters )
   {
@@ -1138,6 +1178,10 @@ void CoccolithSimulation::azimuthalIntagration( double theta, double R, unsigned
         stokesUAzim(currentTheta,i) += locStokes.U[i]*weight;
         stokesVAzim(currentTheta,i) += locStokes.V[i]*weight;
       }
+
+      Ephi(currentTheta,n) = locStokes.Ephi;
+      Etheta(currentTheta,n) = locStokes.Etheta;
+
       //updateStokesParameters( results, currentTheta, weight );
     }
     delete results; results=NULL;
@@ -1145,11 +1189,12 @@ void CoccolithSimulation::azimuthalIntagration( double theta, double R, unsigned
   gsl_integration_glfixed_table_free( gslTab );
 }
 
-void CoccolithSimulation::permumteToFitPropDir( double &x, double &y, double &z ) const
+template <class T>
+void CoccolithSimulation::permumteToFitPropDir( T &x, T &y, T &z ) const
 {
-  double copyX = x;
-  double copyY = y;
-  double copyZ = z;
+  T copyX = x;
+  T copyY = y;
+  T copyZ = z;
   switch( propagationDir )
   {
     case MainPropDirection_t::X:
@@ -1166,6 +1211,10 @@ void CoccolithSimulation::permumteToFitPropDir( double &x, double &y, double &z 
       return;
   }
 }
+
+// Explicit initialization of allowed template arguments
+template void CoccolithSimulation::permumteToFitPropDir<double>( double &x, double &y, double &z ) const;
+template void CoccolithSimulation::permumteToFitPropDir<cdouble>( cdouble &x, cdouble &y, cdouble &z ) const;
 
 void CoccolithSimulation::updateStokesParameters( const cdouble EH[], unsigned int evalPointIndx, double weight )
 {
@@ -1240,6 +1289,31 @@ void CoccolithSimulation::computeEvectorOrthogonalToPropagation( double theta, d
   assert( abs(E2len-1.0) < 1E-8 );
 }
 
+void CoccolithSimulation::computeEvectorOrthogonalToPropagation( const meep::vec &r, meep::vec &E1hat, meep::vec &E2hat ) const
+{
+  meep::vec incWave;
+  switch( propagationDir )
+  {
+    case MainPropDirection_t::X:
+      incWave = meep::vec(1.0,0.0,0.0);
+      break;
+    case MainPropDirection_t::Y:
+      incWave = meep::vec(0.0,1.0,0.0);
+      break;
+    case MainPropDirection_t::Z:
+      incWave = meep::vec(0.0,0.0,1.0);
+      break;
+  }
+
+  // Normal to the scattering plane
+  E1hat = cross(r,incWave);
+  E1hat = E1hat/norm(E1hat);
+
+  // Parallel to the scattering plane
+  E2hat = cross(E1hat,r);
+  E2hat = E2hat/norm(E2hat);
+}
+
 void CoccolithSimulation::getLocalStokes( double theta, double phi, const cdouble EH[], LocalStokes &locStoke )
 {
   locStoke.I.resize(n2fBox->Nfreq);
@@ -1249,16 +1323,43 @@ void CoccolithSimulation::getLocalStokes( double theta, double phi, const cdoubl
 
   meep::vec E1hat;
   meep::vec E2hat;
-  computeEvectorOrthogonalToPropagation( theta, phi, E1hat, E2hat );
+
+  double x = sin(theta)*cos(phi);
+  double y = sin(theta)*sin(phi);
+  double z = cos(theta);
+  permumteToFitPropDir(x,y,z);
+  meep::vec rhat(x,y,z);
+  computeEvectorOrthogonalToPropagation( rhat, E1hat, E2hat );
+  bool EfieldWasStored = false;
   for ( unsigned int i=0;i<locStoke.I.size();i++ )
   {
-    cdouble E1 = E1hat.x()*EH[6*i] + E1hat.y()*EH[6*i+1] + E1hat.z()*EH[6*i+2];
-    cdouble E2 = E2hat.x()*EH[6*i] + E2hat.y()*EH[6*i+1] + E2hat.z()*EH[6*i+2];
+    cdouble Ex = EH[6*i];
+    cdouble Ey = EH[6*i+1];
+    cdouble Ez = EH[6*i+2];
+    //permumteToFitPropDir(Ex,Ey,Ez);
+    cdouble E1 = E1hat.x()*Ex + E1hat.y()*Ey + E1hat.z()*Ez;
+    cdouble E2 = E2hat.x()*Ex + E2hat.y()*Ey + E2hat.z()*Ez;
     locStoke.I[i] = pow(abs(E1),2) + pow(abs(E2),2);
     locStoke.Q[i] = pow(abs(E1),2) - pow(abs(E2),2);
     locStoke.U[i] = 2.0*(E1*conj(E2)).real();
     locStoke.V[i] = -2.0*(E1*conj(E2)).imag();
+
+    // Debug: Make sure that there is no field component in the radial direction
+    double intensityPhiTheta = pow(abs(E1),2) + pow(abs(E2),2);
+    double intensityXYZ = pow(abs(EH[6*i]),2) + pow(abs(EH[6*i+1]),2) + pow(abs(EH[6*i+2]),2);
+    double relDev = abs(intensityPhiTheta - intensityXYZ )/intensityXYZ;
+    if ( relDev > relativeRadFieldCompThreshold ) numberOfTimesThereIsRadialFieldComponent++;
+    totalNumberOfFarFieldEvaluations++;
+
+    if ( i==n2fBox->Nfreq/2 )
+    {
+      // Store the electric field for the center frequency only
+      locStoke.Ephi = abs(E2);
+      locStoke.Etheta = abs(E1);
+      EfieldWasStored = true;
+    }
   }
+  assert( EfieldWasStored );
 }
 
 void CoccolithSimulation::loadBoundingCurrents( const char* fname )
@@ -1314,47 +1415,59 @@ void CoccolithSimulation::saveStokesPhiTheta()
       file->prevent_deadlock();
     }
   }
+
+  int nrows = Ephi.n_rows;
+  int ncols = Ephi.n_cols;
+  int rank[2] = {nrows,ncols};
+  arma::mat Etrans = Ephi.t();
+  file->write("Ephi", 2, rank, Etrans.memptr(), false );
+  file->prevent_deadlock();
+
+  Etrans = Etheta.t();
+  file->write("Etheta", 2, rank, Etrans.memptr(), false );
+  file->prevent_deadlock();
+
+  meep::master_printf("In %d of %d of the field evaluations there seem to be a radial field component", numberOfTimesThereIsRadialFieldComponent, totalNumberOfFarFieldEvaluations );
 }
 
-/*void CoccolithSimulation::farFieldOnBox()
+void CoccolithSimulation::setIncStokesVector( const int stk[4] )
 {
+  incStoke.I = stk[0];
+  incStoke.Q = stk[1];
+  incStoke.U = stk[2];
+  incStoke.V = stk[3];
+  bool isASupportedStokesVector = false;
+  for (unsigned int i=0;i<supportedStokes.size();i++ )
+  {
+    if ( incStoke == supportedStokes[i])
+    {
+      isASupportedStokesVector = true;
+      break;
+    }
+  }
 
-  assert( n2fBox != NULL );
-  double L = 10000.0;
-  meep::vec mincrn( -L-1.0, -L, -L );
-  meep::vec maxcrn( -L, L, L );
-  meep::volume vol( mincrn, maxcrn );
-  n2fBox->save_farfields( "farfieldTestmX", NULL, vol, 2.0 );
-  meep::master_printf("1/6 finsished...\n");*/
+  if ( !isASupportedStokesVector )
+  {
+    meep::abort("The supplied stokes vector is not supported!");
+  }
+  initialStokesVectorSet = true;
+}
 
-  /*
-  mincrn = meep::vec( L,-L-L );
-  maxcrn = meep::vec( L,L,L );
-  vol = meep::volume(mincrn,maxcrn);
-  n2fBox->save_farfields( "farfieldTestX.h5", "far", vol, 2.0 );
-  meep::master_printf("2/6 finsished...\n");
+meep::vec CoccolithSimulation::cross( const meep::vec &v1, const meep::vec &v2 )
+{
+  double x = v1.y()*v2.z() - v1.z()*v2.y();
+  double y = v1.z()*v2.x() - v1.x()*v2.z();
+  double z = v1.x()*v2.y() - v1.y()*v2.x();
+  return meep::vec(x,y,z);
+}
 
-  mincrn = meep::vec( -L,-L-L );
-  maxcrn = meep::vec( L,-L,L );
-  vol = meep::volume(mincrn,maxcrn);
-  n2fBox->save_farfields( "farfieldTestmY.h5", "far", vol, 2.0 );
-  meep::master_printf("3/6 finsished...\n");
+double CoccolithSimulation::norm( const meep::vec &vec )
+{
+  return sqrt( pow(vec.x(),2) + pow(vec.y(),2) + pow(vec.z(),2) );
+}
+//============================ STOKES CLASS ====================================
 
-  mincrn = meep::vec( -L,L-L );
-  maxcrn = meep::vec( L,L,L );
-  vol = meep::volume(mincrn,maxcrn);
-  n2fBox->save_farfields( "farfieldTestY.h5", "far", vol, 2.0 );
-  meep::master_printf("4/6 finsished...\n");
-
-  mincrn = meep::vec( -L,-L-L );
-  maxcrn = meep::vec( L,L,-L );
-  vol = meep::volume(mincrn,maxcrn);
-  n2fBox->save_farfields( "farfieldTestmZ.h5", "far", vol, 2.0 );
-  meep::master_printf("5/6 finsished...\n");
-
-  mincrn = meep::vec( -L,-L, L );
-  maxcrn = meep::vec( L,L,L );
-  vol = meep::volume(mincrn,maxcrn);
-  n2fBox->save_farfields( "farfieldTestZ.h5", "far", vol, 2.0 );
-  meep::master_printf("6/6 finsished...\n");
-}*/
+bool Stokes::operator==( const Stokes &other ) const
+{
+  return (this->I==other.I) && (this->Q==other.Q) && (this->U==other.U) && (this->V==other.V);
+}

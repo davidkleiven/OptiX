@@ -65,6 +65,8 @@ void SteadyCoccolithSim::exportResults()
   file->prevent_deadlock();
   field->output_hdf5( fieldComp, gdvol.surroundings(), file, false, true );
   file->prevent_deadlock();
+  field->output_hdf5( secondComp, gdvol.surroundings(), file, false, true );
+  file->prevent_deadlock();
   clog << "Results written to " << ss.str() << endl;
 }
 

@@ -7,6 +7,7 @@
 #include <complex>
 #include <json/writer.h>
 #include "stokesParameters.hpp"
+#include <array>
 #ifdef HAVE_LIB_VISA
   #include <visa/visa.hpp>
 #endif
@@ -27,6 +28,23 @@ struct LocalStokes
   std::vector<double> Q;
   std::vector<double> U;
   std::vector<double> V;
+
+  // Store a value for each of the electric field components as well
+  double Ephi;
+  double Etheta;
+};
+
+class Stokes
+{
+public:
+  Stokes(){};
+  Stokes(int I, int Q, int U, int V):I(I),Q(Q),U(U),V(V){};
+  Stokes( int vec[4] ):I(vec[0]), Q(vec[1]), U(vec[2]), V(vec[3]){};
+  bool operator==(const Stokes &other) const;
+  int I{1};
+  int Q{1};
+  int U{0};
+  int V{0};
 };
 
 class CoccolithSimulation
@@ -40,6 +58,9 @@ public:
 
   /** Set the incident wavevector. Note that this is a static member */
   void setIncWaveVector( const meep::vec &wave ){ waveVec = wave; };
+
+  /** Sets the initial stokes vector */
+  void setIncStokesVector( const int stk[4] );
 
   /** Set the main propagation direction */
   void setMainPropagationDirection( MainPropDirection_t propDir );
@@ -129,6 +150,9 @@ public:
   /** Number of azimuthal angles to average over */
   unsigned int numberOfAzimuthalSteps{3};
 protected:
+  static Stokes incStoke;
+  bool initialStokesVectorSet{false};
+  static std::array<Stokes,6> supportedStokes;
   VoxelMaterial *material{NULL};
   const SellmeierMaterial *sellmeier{NULL};
   MainPropDirection_t propagationDir{MainPropDirection_t::Z};
@@ -190,6 +214,8 @@ protected:
   std::vector<arma::mat> stokesQ;
   std::vector<arma::mat> stokesV;
   std::vector<arma::mat> stokesU;
+  arma::mat Ephi;
+  arma::mat Etheta;
   arma::mat stokesIAzim;
   arma::mat stokesQAzim;
   arma::mat stokesUAzim;
@@ -204,6 +230,10 @@ protected:
   SourcePosition_t srcPos{SourcePosition_t::TOP};
 
   meep::h5file *file{NULL};
+
+  unsigned int totalNumberOfFarFieldEvaluations{0};
+  unsigned int numberOfTimesThereIsRadialFieldComponent{0};
+  double relativeRadFieldCompThreshold{1E-2};
 
   /** Add a source volume */
   void addSourceVolume();
@@ -265,6 +295,7 @@ protected:
   static meep::vec waveVec;
 
   static cdouble amplitude( const meep::vec &r );
+  static cdouble amplitude2( const meep::vec &r );
 
   /** Sets the UID based on local time */
   void setUID();
@@ -279,7 +310,8 @@ protected:
   void azimuthalIntagration( double R, double theta, unsigned int Nsteps, std::vector<double> &res );
 
   /** Permute x,y,z given with propagation direction in Z to fit other propgation directions */
-  void permumteToFitPropDir( double &x, double &y, double &z ) const;
+  template<class T>
+  void permumteToFitPropDir( T &x, T &y, T &z ) const;
 
   /** Updates the Stokes parameter array based on the fields, weight is the Legendre-Gauss integration weight */
   void updateStokesParameters( const cdouble EH[], unsigned int evalPointIndx, double weight );
@@ -293,11 +325,17 @@ protected:
   /** Computes the two E-hat vectors orthonormal to the propagation direction given by theta, phi (in radians) */
   void computeEvectorOrthogonalToPropagation( double theta, double phi, meep::vec &E1hat, meep::vec &E2hat ) const;
 
+  /** Computes the two E-hat vectors orthonormal to the propagation direction */
+  void computeEvectorOrthogonalToPropagation( const meep::vec &r, meep::vec &E1hat, meep::vec &E2hat ) const;
+
   /** Computes the Stokes parameters in the direction given by theta and phi */
   void getLocalStokes( double theta, double phi, const cdouble EH[], LocalStokes &locStoke );
 
   /** Saves the Stokes parameters in the phi and theta direction */
   void saveStokesPhiTheta();
+
+  static meep::vec cross( const meep::vec &v1, const meep::vec &v2 );
+  static double norm( const meep::vec &vec );
 };
 
 #endif

@@ -19,3 +19,7 @@ sphereCrossSectionRes8.h5 | Scattering cross secrion for a sphere with resolutio
 20170328_1332 | CaCO3 30 deg incidence angle | Good results |
 20170328_1815 | CaCO3 45 deg angle | Good results |
 20170329_1332 | Steady state 15 deg | Good results |
+20170407_1329 | Steady 45 deg polarization Stokes vector test | Not analysed |
+20170407_1543 | 45 degree polarization | Looks good |
+20170407_1606 | Horizontal polarization (Ey) | Looks good |
+20170407_1712 | Sphere horizontal polarization | U and V, zero Q/I varies... |
