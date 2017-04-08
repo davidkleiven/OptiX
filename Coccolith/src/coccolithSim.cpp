@@ -1292,19 +1292,62 @@ void CoccolithSimulation::computeEvectorOrthogonalToPropagation( double theta, d
 void CoccolithSimulation::computeEvectorOrthogonalToPropagation( const meep::vec &r, meep::vec &E1hat, meep::vec &E2hat ) const
 {
   meep::vec incWave;
+  RotationAxis_t firstRot;
+  RotationAxis_t secondRot;
   switch( propagationDir )
   {
     case MainPropDirection_t::X:
       incWave = meep::vec(1.0,0.0,0.0);
+      E1hat = meep::vec(0.0,1.0,0.0);
+      E2hat = meep::vec(0.0,0.0,1.0);
+      firstRot = RotationAxis_t::Y;
+      secondRot = RotationAxis_t::Z;
       break;
     case MainPropDirection_t::Y:
       incWave = meep::vec(0.0,1.0,0.0);
+      E1hat = meep::vec(0.0,0.0,1.0);
+      E2hat = meep::vec(1.0,0.0,0.0);
+      firstRot = RotationAxis_t::Z;
+      secondRot = RotationAxis_t::X;
       break;
     case MainPropDirection_t::Z:
       incWave = meep::vec(0.0,0.0,1.0);
+      E1hat = meep::vec(1.0,0.0,0.0);
+      E2hat = meep::vec(0.0,1.0,0.0);
+      firstRot = RotationAxis_t::X;
+      secondRot = RotationAxis_t::Y;
       break;
   }
 
+  static const double PI = acos(-1.0);
+  // Determine the first rotation angle
+  meep::vec rproj = incWave*(incWave&r) + E2hat*(E2hat&r);
+  rproj = rproj/norm(rproj);
+  double alpha = acos(rproj&incWave);
+
+  bool isInThirdOrFourthQuadrant = (rproj&E1hat) < 0.0;
+  if ( isInThirdOrFourthQuadrant ) alpha += PI;
+
+  // Rotate the incident wavevector by alpha around the E1hat
+  double rotationMatrix[3][3];
+  setUpRotationMatrix( firstRot, alpha, rotationMatrix );
+  meep::vec krot = rotateVector( rotationMatrix, incWave );
+
+  // Compute second angle
+  double beta = acos( (krot&r)/norm(r) );
+  isInThirdOrFourthQuadrant = (E2hat&r) < 0.0;
+  if ( isInThirdOrFourthQuadrant ) beta += PI;
+
+  double secondRotMat[3][3];
+  setUpRotationMatrix( secondRot, beta, rotationMatrix );
+
+  double combined[3][3] = {{0.0,0.0,0.0},{0.0,0.0,0.0},{0.0,0.0,0.0}};
+  combineRotationMatrices( rotationMatrix, secondRotMat, combined );
+
+  E1hat = rotateVector( combined, E1hat );
+  E2hat = rotateVector( combined, E2hat );
+
+  /*
   // Normal to the scattering plane
   E1hat = cross(r,incWave);
   E1hat = E1hat/norm(E1hat);
@@ -1312,6 +1355,7 @@ void CoccolithSimulation::computeEvectorOrthogonalToPropagation( const meep::vec
   // Parallel to the scattering plane
   E2hat = cross(E1hat,r);
   E2hat = E2hat/norm(E2hat);
+  */
 }
 
 void CoccolithSimulation::getLocalStokes( double theta, double phi, const cdouble EH[], LocalStokes &locStoke )
@@ -1464,6 +1508,65 @@ meep::vec CoccolithSimulation::cross( const meep::vec &v1, const meep::vec &v2 )
 double CoccolithSimulation::norm( const meep::vec &vec )
 {
   return sqrt( pow(vec.x(),2) + pow(vec.y(),2) + pow(vec.z(),2) );
+}
+
+void CoccolithSimulation::setUpRotationMatrix( RotationAxis_t raxis, double alpha, double matrix[3][3] )
+{
+
+  switch(raxis)
+  {
+    case RotationAxis_t::X:
+      matrix[0][0] = 1.0;
+      matrix[0][1] = 0.0;
+      matrix[0][2] = 0.0;
+      matrix[1][0] = 0.0;
+      matrix[1][1] = cos(alpha);
+      matrix[1][2] = sin(alpha);
+      matrix[2][0] = 0.0;
+      matrix[2][1] = -sin(alpha);
+      matrix[2][2] = cos(alpha);
+      break;
+    case RotationAxis_t::Y:
+      matrix[0][0] = cos(alpha);
+      matrix[0][1] = 0.0;
+      matrix[0][2] = sin(alpha);
+      matrix[1][0] = 0.0;
+      matrix[1][1] = 1.0;
+      matrix[1][2] = 0.0;
+      matrix[2][0] = -sin(alpha);
+      matrix[2][1] = 0.0;
+      matrix[2][2] = cos(alpha);
+      break;
+    case RotationAxis_t::Z:
+      matrix[0][0] = cos(alpha);
+      matrix[0][1] = sin(alpha);
+      matrix[0][2] = 0.0;
+      matrix[1][0] = -sin(alpha);
+      matrix[1][1] = cos(alpha);
+      matrix[1][2] = 0.0;
+      matrix[2][0] = 0.0;
+      matrix[2][1] = 0.0;
+      matrix[2][2] = 0.0;
+      break;
+  }
+}
+
+meep::vec CoccolithSimulation::rotateVector( const double rotMat[3][3], const meep::vec &vec )
+{
+  double x = rotMat[0][0]*vec.x() + rotMat[0][1]*vec.y() + rotMat[0][2]*vec.z();
+  double y = rotMat[1][0]*vec.x() + rotMat[1][1]*vec.y() + rotMat[1][2]*vec.z();
+  double z = rotMat[2][0]*vec.x() + rotMat[2][1]*vec.y() + rotMat[2][2]*vec.z();
+  return meep::vec(x,y,z);
+}
+
+void CoccolithSimulation::combineRotationMatrices( const double firstRot[3][3], const double secondRot[3][3], double combined[3][3] )
+{
+  for ( unsigned int i=0;i<3;i++ )
+  for ( unsigned int j=0;j<3;j++ )
+  for ( unsigned int k=0;k<3;k++ )
+  {
+    combined[i][j] += secondRot[i][k]*firstRot[k][j];
+  }
 }
 //============================ STOKES CLASS ====================================
 

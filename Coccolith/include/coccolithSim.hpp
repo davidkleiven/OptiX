@@ -17,6 +17,7 @@
 typedef std::complex<double> cdouble;
 enum class MainPropDirection_t{ X, Y, Z };
 typedef MainPropDirection_t IntegrationDir_t;
+typedef MainPropDirection_t RotationAxis_t;
 enum class Plane_t{XY, XZ, YZ};
 
 enum class SourcePosition_t{TOP, BOTTOM};
@@ -336,6 +337,11 @@ protected:
 
   static meep::vec cross( const meep::vec &v1, const meep::vec &v2 );
   static double norm( const meep::vec &vec );
+
+  /** Sets up a rotation matrix around axis 0,1,2 */
+  static void setUpRotationMatrix( RotationAxis_t raxis, double alpha, double matrix[3][3] );
+  static meep::vec rotateVector( const double rotMat[3][3], const meep::vec &vec );
+  static void combineRotationMatrices( const double first[3][3], const double second[3][3], double combined[3][3] );
 };
 
 #endif
