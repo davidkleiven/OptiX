@@ -164,7 +164,7 @@ class Polarization:
         figdebug = plt.figure()
         axdebug = figdebug.add_subplot(1,1,1)
         inorm = self.IphiTheta/self.IphiTheta.max()
-        axdebug.contourf( THETA, PHI, inorm, cmap=cmap, norm=mpl.colors.LogNorm())
+        axdebug.contourf( THETA, PHI, inorm, 512, cmap="inferno")#, norm=mpl.colors.LogNorm())
         extent = [0.0,180,0.0,360]
         imI = axI.imshow( inorm.T[:,::-1], cmap="inferno", extent=extent, aspect="auto")
         axI.set_title("I")

@@ -223,6 +223,7 @@ protected:
   arma::mat stokesVAzim;
   unsigned int currentTheta{0};
   std::vector<double> thetaValues;
+  std::vector<double> phiValues;
 
   // Source corners
   meep::vec crn1;
@@ -342,6 +343,7 @@ protected:
   static void setUpRotationMatrix( RotationAxis_t raxis, double alpha, double matrix[3][3] );
   static meep::vec rotateVector( const double rotMat[3][3], const meep::vec &vec );
   static void combineRotationMatrices( const double first[3][3], const double second[3][3], double combined[3][3] );
+  static void printRotationMatrix( const double rotMat[3][3] );
 };
 
 #endif

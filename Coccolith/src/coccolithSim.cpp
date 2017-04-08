@@ -716,6 +716,10 @@ void CoccolithSimulation::farFieldQuantities()
     file->write( "SrTheta", 1, &gLgorder, &thetaValues[0], false );
     file->prevent_deadlock();
 
+    int size = phiValues.size();
+    file->write("phi", 1, &size, &phiValues[0], false );
+    file->prevent_deadlock();
+
     if ( computeStokesParameters )
     {
       rank[0] = stokesI[0].n_rows;
@@ -1151,6 +1155,9 @@ void CoccolithSimulation::azimuthalIntagration( double theta, double R, unsigned
   {
     double phi, weight;
     gsl_integration_glfixed_point(0.0, 2.0*PI, n, &phi, &weight, gslTab );
+
+    if ( currentTheta == 0 ) phiValues.push_back(phi);
+
     double x = RsinTheta*cos(phi);
     double y = RsinTheta*sin(phi);
     double z = RcosTheta;
@@ -1298,22 +1305,22 @@ void CoccolithSimulation::computeEvectorOrthogonalToPropagation( const meep::vec
   {
     case MainPropDirection_t::X:
       incWave = meep::vec(1.0,0.0,0.0);
-      E1hat = meep::vec(0.0,1.0,0.0);
-      E2hat = meep::vec(0.0,0.0,1.0);
+      E1hat   = meep::vec(0.0,1.0,0.0);
+      E2hat   = meep::vec(0.0,0.0,1.0);
       firstRot = RotationAxis_t::Y;
       secondRot = RotationAxis_t::Z;
       break;
     case MainPropDirection_t::Y:
       incWave = meep::vec(0.0,1.0,0.0);
-      E1hat = meep::vec(0.0,0.0,1.0);
-      E2hat = meep::vec(1.0,0.0,0.0);
+      E1hat   = meep::vec(0.0,0.0,1.0);
+      E2hat   = meep::vec(1.0,0.0,0.0);
       firstRot = RotationAxis_t::Z;
       secondRot = RotationAxis_t::X;
       break;
     case MainPropDirection_t::Z:
+      E1hat   = meep::vec(1.0,0.0,0.0);
+      E2hat   = meep::vec(0.0,1.0,0.0);
       incWave = meep::vec(0.0,0.0,1.0);
-      E1hat = meep::vec(1.0,0.0,0.0);
-      E2hat = meep::vec(0.0,1.0,0.0);
       firstRot = RotationAxis_t::X;
       secondRot = RotationAxis_t::Y;
       break;
@@ -1324,28 +1331,45 @@ void CoccolithSimulation::computeEvectorOrthogonalToPropagation( const meep::vec
   meep::vec rproj = incWave*(incWave&r) + E2hat*(E2hat&r);
   rproj = rproj/norm(rproj);
   double alpha = acos(rproj&incWave);
+  //cout << incWave.x() << " " << incWave.y() << " " << incWave.z() << endl;
+  //cout << rproj.x() << " " << rproj.y() << " " << rproj.z() << endl;
+  //cout << "Dotprod: " << (incWave&r) << " " << (E2hat&r) << endl;
+  //cout << alpha*180.0/PI << endl;
 
   bool isInThirdOrFourthQuadrant = (rproj&E1hat) < 0.0;
-  if ( isInThirdOrFourthQuadrant ) alpha += PI;
+  if ( isInThirdOrFourthQuadrant ) alpha=-alpha;
 
   // Rotate the incident wavevector by alpha around the E1hat
   double rotationMatrix[3][3];
-  setUpRotationMatrix( firstRot, alpha, rotationMatrix );
+  setUpRotationMatrix( firstRot, -alpha, rotationMatrix );
+  printRotationMatrix(rotationMatrix);
   meep::vec krot = rotateVector( rotationMatrix, incWave );
 
   // Compute second angle
   double beta = acos( (krot&r)/norm(r) );
+  E2hat = rotateVector( rotationMatrix, E2hat );
   isInThirdOrFourthQuadrant = (E2hat&r) < 0.0;
-  if ( isInThirdOrFourthQuadrant ) beta += PI;
+  if ( isInThirdOrFourthQuadrant ) beta =-beta;
 
   double secondRotMat[3][3];
-  setUpRotationMatrix( secondRot, beta, rotationMatrix );
+  setUpRotationMatrix( secondRot, beta, secondRotMat );
 
   double combined[3][3] = {{0.0,0.0,0.0},{0.0,0.0,0.0},{0.0,0.0,0.0}};
   combineRotationMatrices( rotationMatrix, secondRotMat, combined );
 
-  E1hat = rotateVector( combined, E1hat );
-  E2hat = rotateVector( combined, E2hat );
+  //cout << E1hat.x() << " " << E1hat.y() << " " << E1hat.z() << endl;
+  E1hat = rotateVector( secondRotMat, E1hat );
+  //E2hat = rotateVector( combined, E2hat );
+
+  //cout << E1hat.x() << " " << E1hat.y() << " " << E1hat.z() << endl;
+  cout << E2hat.x() << " " << E2hat.y() << " " << E2hat.z() << endl;
+  cout << r.x() << " " << r.y() << " " << r.z() << endl;
+  cout << (E1hat&r) << endl;
+
+  // Debug: Check that the two vectors are orthogonal to each other and r
+  assert( abs((E2hat&r)/norm(r)) < 1E-7 );
+  assert( abs((E1hat&r)/norm(r)) < 1E-7 );
+  assert( abs(E1hat&E2hat) < 1E-7 );
 
   /*
   // Normal to the scattering plane
@@ -1546,7 +1570,7 @@ void CoccolithSimulation::setUpRotationMatrix( RotationAxis_t raxis, double alph
       matrix[1][2] = 0.0;
       matrix[2][0] = 0.0;
       matrix[2][1] = 0.0;
-      matrix[2][2] = 0.0;
+      matrix[2][2] = 1.0;
       break;
   }
 }
@@ -1567,6 +1591,23 @@ void CoccolithSimulation::combineRotationMatrices( const double firstRot[3][3], 
   {
     combined[i][j] += secondRot[i][k]*firstRot[k][j];
   }
+}
+
+void CoccolithSimulation::printRotationMatrix( const double rotMat[3][3] )
+{
+  cout <<"--------------------------\n";
+  for ( unsigned int i=0;i<3;i++ )
+  {
+    for ( unsigned int j=0;j<3;j++ )
+    {
+      //if ( meep::am_master() )
+      {
+        cout << rotMat[i][j] << " ";
+      }
+    }
+    cout << endl;
+  }
+  cout <<"--------------------------\n";
 }
 //============================ STOKES CLASS ====================================
 
