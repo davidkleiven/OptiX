@@ -6,7 +6,7 @@
 #include <ctime>
 #include <json/reader.h>
 #include <fstream>
-#define CHECK_THAT_ALL_WORKS
+//#define CHECK_THAT_ALL_WORKS
 
 using namespace std;
 
@@ -105,7 +105,7 @@ int main( int argc, char** argv )
 
     #ifdef CHECK_THAT_ALL_WORKS
       sim->setEndTime( 10.0 );
-      sim->gaussLegendreOrder = 2;
+      sim->gaussLegendreOrder = 20;
     #endif
 
     sim->additionalVaccumLayerPx = 3.0;

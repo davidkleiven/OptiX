@@ -338,6 +338,7 @@ double CoccolithSimulation::getSrcPos() const
     case SourcePosition_t::TOP:
       return getLowerBorderInPropDir();
     case SourcePosition_t::BOTTOM:
+      // In this case light propagates in the negative direction
       return getUpperBorderInPropDir();
   }
 }
@@ -1070,6 +1071,10 @@ void CoccolithSimulation::scatteringAssymmetryFactor( vector<double> &g, double 
     stokesQ.resize( numberOfAzimuthalSteps );
     stokesU.resize( numberOfAzimuthalSteps );
     stokesV.resize( numberOfAzimuthalSteps );
+    stokesIInc.resize( numberOfAzimuthalSteps );
+    stokesQInc.resize( numberOfAzimuthalSteps );
+    stokesUInc.resize( numberOfAzimuthalSteps );
+    stokesVInc.resize( numberOfAzimuthalSteps );
     for ( unsigned int i=0;i<numberOfAzimuthalSteps;i++ )
     {
       stokesI[i].set_size(Nsteps, n2fBox->Nfreq);
@@ -1173,7 +1178,8 @@ void CoccolithSimulation::azimuthalIntagration( double theta, double R, unsigned
     if ( computeStokesParameters )
     {
       LocalStokes locStokes;
-      getLocalStokes( theta, phi, results, locStokes );
+      Stokes incTransformed;
+      getLocalStokes( theta, phi, results, locStokes, incTransformed );
       for ( unsigned int i=0;i<n2fBox->Nfreq;i++ )
       {
         stokesI[n](currentTheta,i) = locStokes.I[i];
@@ -1184,6 +1190,13 @@ void CoccolithSimulation::azimuthalIntagration( double theta, double R, unsigned
         stokesQAzim(currentTheta,i) += locStokes.Q[i]*weight;
         stokesUAzim(currentTheta,i) += locStokes.U[i]*weight;
         stokesVAzim(currentTheta,i) += locStokes.V[i]*weight;
+      }
+      if ( currentTheta == 0 )
+      {
+        stokesIInc[n] = incTransformed.I;
+        stokesQInc[n] = incTransformed.Q;
+        stokesUInc[n] = incTransformed.U;
+        stokesVInc[n] = incTransformed.V;
       }
 
       Ephi(currentTheta,n) = locStokes.Ephi;
@@ -1296,93 +1309,58 @@ void CoccolithSimulation::computeEvectorOrthogonalToPropagation( double theta, d
   assert( abs(E2len-1.0) < 1E-8 );
 }
 
-void CoccolithSimulation::computeEvectorOrthogonalToPropagation( const meep::vec &r, meep::vec &E1hat, meep::vec &E2hat ) const
+void CoccolithSimulation::computeEvectorOrthogonalToPropagation( const meep::vec &r, meep::vec &Eperp, meep::vec &Epar )
 {
   meep::vec incWave;
-  RotationAxis_t firstRot;
-  RotationAxis_t secondRot;
+  RotationAxis_t rotAx;
+  meep::vec EperpInc;
+  meep::vec EparInc;
   switch( propagationDir )
   {
     case MainPropDirection_t::X:
       incWave = meep::vec(1.0,0.0,0.0);
-      E1hat   = meep::vec(0.0,1.0,0.0);
-      E2hat   = meep::vec(0.0,0.0,1.0);
-      firstRot = RotationAxis_t::Y;
-      secondRot = RotationAxis_t::Z;
+      EperpInc   = meep::vec(0.0,1.0,0.0);
+      EparInc  = meep::vec(0.0,0.0,1.0);
+      rotAx = RotationAxis_t::Z;
       break;
     case MainPropDirection_t::Y:
       incWave = meep::vec(0.0,1.0,0.0);
-      E1hat   = meep::vec(0.0,0.0,1.0);
-      E2hat   = meep::vec(1.0,0.0,0.0);
-      firstRot = RotationAxis_t::Z;
-      secondRot = RotationAxis_t::X;
+      EperpInc   = meep::vec(0.0,0.0,1.0);
+      EparInc   = meep::vec(1.0,0.0,0.0);
+      rotAx = RotationAxis_t::X;
       break;
     case MainPropDirection_t::Z:
-      E1hat   = meep::vec(1.0,0.0,0.0);
-      E2hat   = meep::vec(0.0,1.0,0.0);
+      EperpInc   = meep::vec(1.0,0.0,0.0);
+      EparInc   = meep::vec(0.0,1.0,0.0);
       incWave = meep::vec(0.0,0.0,1.0);
-      firstRot = RotationAxis_t::X;
-      secondRot = RotationAxis_t::Y;
+      rotAx = RotationAxis_t::Y;
       break;
   }
 
   static const double PI = acos(-1.0);
-  // Determine the first rotation angle
-  meep::vec rproj = incWave*(incWave&r) + E2hat*(E2hat&r);
-  rproj = rproj/norm(rproj);
-  double alpha = acos(rproj&incWave);
-  //cout << incWave.x() << " " << incWave.y() << " " << incWave.z() << endl;
-  //cout << rproj.x() << " " << rproj.y() << " " << rproj.z() << endl;
-  //cout << "Dotprod: " << (incWave&r) << " " << (E2hat&r) << endl;
-  //cout << alpha*180.0/PI << endl;
+  if ( srcPos == SourcePosition_t::BOTTOM )
+  {
+    // Rotate PI around the first axis
+    double rotMat[3][3];
+    setUpRotationMatrix(rotAx, PI, rotMat );
+    incWave = rotateVector( rotMat, incWave );
+    EperpInc = rotateVector( rotMat, EperpInc );
+    EparInc = rotateVector( rotMat, EparInc );
+  }
 
-  bool isInThirdOrFourthQuadrant = (rproj&E1hat) < 0.0;
-  if ( isInThirdOrFourthQuadrant ) alpha=-alpha;
+  Eperp = cross(incWave,r);
+  Eperp = Eperp/norm(Eperp);
+  Epar = cross(r,Eperp);
+  Epar = Epar/norm(Epar);
+  assert( abs((Epar&r)/norm(r)) < 1E-6 );
+  assert( abs((Eperp&r)/norm(r)) < 1E-6 );
+  assert( abs(Eperp&Epar) < 1E-6 );
 
-  // Rotate the incident wavevector by alpha around the E1hat
-  double rotationMatrix[3][3];
-  setUpRotationMatrix( firstRot, -alpha, rotationMatrix );
-  printRotationMatrix(rotationMatrix);
-  meep::vec krot = rotateVector( rotationMatrix, incWave );
-
-  // Compute second angle
-  double beta = acos( (krot&r)/norm(r) );
-  E2hat = rotateVector( rotationMatrix, E2hat );
-  isInThirdOrFourthQuadrant = (E2hat&r) < 0.0;
-  if ( isInThirdOrFourthQuadrant ) beta =-beta;
-
-  double secondRotMat[3][3];
-  setUpRotationMatrix( secondRot, beta, secondRotMat );
-
-  double combined[3][3] = {{0.0,0.0,0.0},{0.0,0.0,0.0},{0.0,0.0,0.0}};
-  combineRotationMatrices( rotationMatrix, secondRotMat, combined );
-
-  //cout << E1hat.x() << " " << E1hat.y() << " " << E1hat.z() << endl;
-  E1hat = rotateVector( secondRotMat, E1hat );
-  //E2hat = rotateVector( combined, E2hat );
-
-  //cout << E1hat.x() << " " << E1hat.y() << " " << E1hat.z() << endl;
-  cout << E2hat.x() << " " << E2hat.y() << " " << E2hat.z() << endl;
-  cout << r.x() << " " << r.y() << " " << r.z() << endl;
-  cout << (E1hat&r) << endl;
-
-  // Debug: Check that the two vectors are orthogonal to each other and r
-  assert( abs((E2hat&r)/norm(r)) < 1E-7 );
-  assert( abs((E1hat&r)/norm(r)) < 1E-7 );
-  assert( abs(E1hat&E2hat) < 1E-7 );
-
-  /*
-  // Normal to the scattering plane
-  E1hat = cross(r,incWave);
-  E1hat = E1hat/norm(E1hat);
-
-  // Parallel to the scattering plane
-  E2hat = cross(E1hat,r);
-  E2hat = E2hat/norm(E2hat);
-  */
+  // Set the current rotation angle
+  currentStokesVectorRotationAngleRad = acos(Eperp&EperpInc);
 }
 
-void CoccolithSimulation::getLocalStokes( double theta, double phi, const cdouble EH[], LocalStokes &locStoke )
+void CoccolithSimulation::getLocalStokes( double theta, double phi, const cdouble EH[], LocalStokes &locStoke, Stokes &inc )
 {
   locStoke.I.resize(n2fBox->Nfreq);
   locStoke.Q.resize(n2fBox->Nfreq);
@@ -1399,6 +1377,8 @@ void CoccolithSimulation::getLocalStokes( double theta, double phi, const cdoubl
   meep::vec rhat(x,y,z);
   computeEvectorOrthogonalToPropagation( rhat, E1hat, E2hat );
   bool EfieldWasStored = false;
+  inc = incStoke;
+  inc.rotate( currentStokesVectorRotationAngleRad );
   for ( unsigned int i=0;i<locStoke.I.size();i++ )
   {
     cdouble Ex = EH[6*i];
@@ -1493,6 +1473,19 @@ void CoccolithSimulation::saveStokesPhiTheta()
 
   Etrans = Etheta.t();
   file->write("Etheta", 2, rank, Etrans.memptr(), false );
+  file->prevent_deadlock();
+
+  int size = stokesIInc.size();
+  file->write("StokesIInc", 1, &size, &stokesIInc[0], false );
+  file->prevent_deadlock();
+
+  file->write("StokesQInc", 1, &size, &stokesQInc[0], false );
+  file->prevent_deadlock();
+
+  file->write("StokesUInc", 1, &size, &stokesUInc[0], false );
+  file->prevent_deadlock();
+
+  file->write("StokesVInc", 1, &size, &stokesVInc[0], false );
   file->prevent_deadlock();
 
   meep::master_printf("In %d of %d of the field evaluations there seem to be a radial field component", numberOfTimesThereIsRadialFieldComponent, totalNumberOfFarFieldEvaluations );
@@ -1613,5 +1606,15 @@ void CoccolithSimulation::printRotationMatrix( const double rotMat[3][3] )
 
 bool Stokes::operator==( const Stokes &other ) const
 {
-  return (this->I==other.I) && (this->Q==other.Q) && (this->U==other.U) && (this->V==other.V);
+  double EPS=1E-10;
+  return (abs(this->I-other.I)<EPS) && (abs(this->Q-other.Q)<EPS) && \
+  (abs(this->U-other.U)<EPS) && (abs(this->V-other.V)<EPS);
+}
+
+void Stokes::rotate( double angleRad )
+{
+  double Q0 = Q;
+  double U0 = U;
+  Q = cos(2.0*angleRad)*Q0 + sin(2.0*angleRad)*U0;
+  U = cos(2.0*angleRad)*U0 - sin(2.0*angleRad)*Q0;
 }

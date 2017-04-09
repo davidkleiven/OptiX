@@ -151,6 +151,13 @@ class Polarization:
             self.UphiTheta[:,i] = np.array( hfile.get("stokesU%d"%(i)) )[:,freqIndx]
             self.VphiTheta[:,i] = np.array( hfile.get("stokesV%d"%(i)) )[:,freqIndx]
 
+    def degreeOfLinearPolarization( self ):
+        deg = np.sqrt(self.QphiTheta.T[:,::-1]**2 + self.UphiTheta.T[:,::-1]**2)/self.IphiTheta.T[:,::-1]
+        fig = plt.figure()
+        ax = fig.add_subplot(1,1,1)
+        im = ax.imshow( deg, cmap="gist_heat", extent=[0,180,0,360], aspect="auto")
+        fig.colorbar(im)
+
     def plotPolarizationPhiTheta( self ):
         fig = plt.figure()
         axI = fig.add_subplot(2,2,1)
@@ -167,18 +174,20 @@ class Polarization:
         axdebug.contourf( THETA, PHI, inorm, 512, cmap="inferno")#, norm=mpl.colors.LogNorm())
         extent = [0.0,180,0.0,360]
         imI = axI.imshow( inorm.T[:,::-1], cmap="inferno", extent=extent, aspect="auto")
+        Q = self.QphiTheta.T[:,::-1]/self.IphiTheta.T[:,::-1]
+        U = self.UphiTheta.T[:,::-1]/self.IphiTheta.T[:,::-1]
+        V = self.VphiTheta.T[:,::-1]/self.IphiTheta.T[:,::-1]
+        maxval = np.max([Q.max(),U.max(),V.max()])
+        minval = np.max([Q.min(),U.min(),V.min()])
         axI.set_title("I")
         #fig.colorbar(imI)
-        imQ = axQ.imshow( self.QphiTheta.T[:,::-1]/self.IphiTheta.T[:,::-1], extent=extent, cmap=cmap, aspect="auto" )
+        imQ = axQ.imshow( Q, extent=extent, cmap=cmap, aspect="auto", vmin=minval, vmax=maxval )
         #imQ = axQ.imshow( self.QphiTheta.T[:,::-1], extent=extent, cmap=cmap, aspect="auto" )
         axQ.set_title("Q")
-        #fig.colorbar(imQ)
-        imU = axU.imshow( self.UphiTheta.T[:,::-1]/self.IphiTheta.T[:,::-1], extent=extent, cmap=cmap, aspect="auto" )
+        imU = axU.imshow( U, extent=extent, cmap=cmap, aspect="auto", vmin=minval, vmax=maxval )
         axU.set_title("U")
-        #fig.colorbar(imQ)
-        imV = axV.imshow( self.VphiTheta.T[:,::-1]/self.IphiTheta.T[:,::-1], extent=extent, cmap=cmap, aspect="auto")
+        imV = axV.imshow( V, extent=extent, cmap=cmap, aspect="auto", vmin=minval, vmax=maxval)
         axV.set_title("V")
-        #fig.colorbar(imV)
         axV.set_xlabel("Scattering angle, \$\\theta\$ (deg)")
         axU.set_ylabel("Azimuthal angle, \$\phi\$ (deg)")
 
@@ -199,9 +208,10 @@ def main( argv ):
 
     try:
         polPlots.plotDistributions()
-        polPlots.plotFrequencyAverage()
-        polPlots.polarizationEllipse( 0 )
+        #polPlots.plotFrequencyAverage()
+        #polPlots.polarizationEllipse( 0 )
         polPlots.plotPolarizationPhiTheta()
+        polPlots.degreeOfLinearPolarization()
         if ( createAnimation ):
             polPlots.animationPolarizationEllipse(freq=1)
         plt.show()
