@@ -55,7 +55,7 @@ public:
 class CoccolithSimulation
 {
 public:
-  CoccolithSimulation(){};
+  CoccolithSimulation();
   virtual ~CoccolithSimulation();
 
   /** LSet voxel material to use in the simulation */
@@ -75,6 +75,9 @@ public:
 
   /** Set the PML thickness in number of wavelengths */
   void setPMLInWavelengths( double newThick );
+
+  /** Adds an additional identifiers to the backup filenames */
+  void addIdentifierToBackups( const char* extra );
 
   /** Run the simulation */
   virtual void run();
@@ -191,9 +194,9 @@ protected:
   bool userOverridedEndTime{false};
   bool realTimeVisualization{true};
   bool geoIsInitialized{false};
-  std::string reflFluxPlaneBackup{"reflectedFlux"};
-  std::string reflFluxBoxBackup{"reflectedFluxBox"};
-  std::string n2fBoxBackup{"n2fBox"};
+  std::string reflFluxPlaneBackup{"reflectedFluxBackup"};
+  std::string reflFluxBoxBackup{"reflectedFluxBoxBackup"};
+  std::string n2fBoxBackup{"n2fBoxBackup"};
 
   /** Visualized intensity */
   void visualize();

@@ -8,6 +8,8 @@
 #include <iomanip>
 #include <array>
 #include <gsl/gsl_integration.h>
+#include <mpi.h>
+#include <cstring>
 #define DEBUG_N2F_INITIALIZATION
 
 using namespace std;
@@ -23,6 +25,7 @@ double sigmaTest( const meep::vec &r )
   return 1.0;
 }
 
+CoccolithSimulation::CoccolithSimulation(){};
 CoccolithSimulation::~CoccolithSimulation()
 {
   delete srcVol; srcVol=NULL;
@@ -656,17 +659,24 @@ void CoccolithSimulation::exportResults()
     prefix = "defaultFilename";
   }
   ss << prefix << "_" << uid; // File extension added automatically
+
+  // Send the filename to the other processes
+  int root = 0;
+  int size = ss.str().size();
+  char buffer[size];
+  memcpy(buffer, ss.str().c_str(),size);
+  meep::broadcast(root, buffer, size );
   if ( file == NULL )
   {
     if ( material->isReferenceRun() )
     {
-      file = field->open_h5file( ss.str().c_str() );
+      file = field->open_h5file( buffer );
       saveGeometry();
       saveDFTParameters();
     }
     else
     {
-      file = field->open_h5file( ss.str().c_str(), meep::h5file::READWRITE );
+      file = field->open_h5file( buffer, meep::h5file::READWRITE );
     }
   }
   if ( !material->isReferenceRun() )
@@ -693,7 +703,8 @@ void CoccolithSimulation::farFieldQuantities()
   if ( computeAsymmetryFactor )
   {
     double PI = acos(-1.0);
-    double ffFreq[3] = {n2fBox->freq_min/(2.0*PI), n2fBox->dfreq/(2.0*PI), n2fBox->Nfreq/(2.0*PI)};
+    double nFreq = n2fBox->Nfreq;
+    double ffFreq[3] = {n2fBox->freq_min/(2.0*PI), n2fBox->dfreq/(2.0*PI), nFreq};
 
     int nFFfreq = 3;
     file->write("ffFreq", 1, &nFFfreq, ffFreq, false );
@@ -1601,6 +1612,13 @@ void CoccolithSimulation::printRotationMatrix( const double rotMat[3][3] )
     cout << endl;
   }
   cout <<"--------------------------\n";
+}
+
+void CoccolithSimulation::addIdentifierToBackups( const char* extra )
+{
+  n2fBoxBackup += extra;
+  reflFluxBoxBackup += extra;
+  reflFluxPlaneBackup += extra;
 }
 //============================ STOKES CLASS ====================================
 
