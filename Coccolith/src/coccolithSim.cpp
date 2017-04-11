@@ -1369,6 +1369,7 @@ void CoccolithSimulation::computeEvectorOrthogonalToPropagation( const meep::vec
 
   // Set the current rotation angle
   currentStokesVectorRotationAngleRad = acos(Eperp&EperpInc);
+  if ( (Eperp&EparInc) < 0.0 ) currentStokesVectorRotationAngleRad = -currentStokesVectorRotationAngleRad;
 }
 
 void CoccolithSimulation::getLocalStokes( double theta, double phi, const cdouble EH[], LocalStokes &locStoke, Stokes &inc )
@@ -1402,7 +1403,7 @@ void CoccolithSimulation::getLocalStokes( double theta, double phi, const cdoubl
     locStoke.Q[i] = pow(abs(E1),2) - pow(abs(E2),2);
     locStoke.U[i] = 2.0*(E1*conj(E2)).real();
     locStoke.V[i] = -2.0*(E1*conj(E2)).imag();
-
+    //locStoke.V[i] = 2.0*(E1*conj(E2)).imag();
     // Debug: Make sure that there is no field component in the radial direction
     double intensityPhiTheta = pow(abs(E1),2) + pow(abs(E2),2);
     double intensityXYZ = pow(abs(EH[6*i]),2) + pow(abs(EH[6*i+1]),2) + pow(abs(EH[6*i+2]),2);
