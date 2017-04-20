@@ -8,6 +8,8 @@
 #include <iomanip>
 #include <array>
 #include <gsl/gsl_integration.h>
+#include <mpi.h>
+#include <cstring>
 #define DEBUG_N2F_INITIALIZATION
 
 using namespace std;
@@ -23,6 +25,7 @@ double sigmaTest( const meep::vec &r )
   return 1.0;
 }
 
+CoccolithSimulation::CoccolithSimulation(){};
 CoccolithSimulation::~CoccolithSimulation()
 {
   delete srcVol; srcVol=NULL;
@@ -338,6 +341,7 @@ double CoccolithSimulation::getSrcPos() const
     case SourcePosition_t::TOP:
       return getLowerBorderInPropDir();
     case SourcePosition_t::BOTTOM:
+      // In this case light propagates in the negative direction
       return getUpperBorderInPropDir();
   }
 }
@@ -655,17 +659,24 @@ void CoccolithSimulation::exportResults()
     prefix = "defaultFilename";
   }
   ss << prefix << "_" << uid; // File extension added automatically
+
+  // Send the filename to the other processes
+  int root = 0;
+  int size = ss.str().size();
+  char buffer[size];
+  memcpy(buffer, ss.str().c_str(),size);
+  meep::broadcast(root, buffer, size );
   if ( file == NULL )
   {
     if ( material->isReferenceRun() )
     {
-      file = field->open_h5file( ss.str().c_str() );
+      file = field->open_h5file( buffer );
       saveGeometry();
       saveDFTParameters();
     }
     else
     {
-      file = field->open_h5file( ss.str().c_str(), meep::h5file::READWRITE );
+      file = field->open_h5file( buffer, meep::h5file::READWRITE );
     }
   }
   if ( !material->isReferenceRun() )
@@ -692,7 +703,8 @@ void CoccolithSimulation::farFieldQuantities()
   if ( computeAsymmetryFactor )
   {
     double PI = acos(-1.0);
-    double ffFreq[3] = {n2fBox->freq_min/(2.0*PI), n2fBox->dfreq/(2.0*PI), n2fBox->Nfreq/(2.0*PI)};
+    double nFreq = n2fBox->Nfreq;
+    double ffFreq[3] = {n2fBox->freq_min/(2.0*PI), n2fBox->dfreq/(2.0*PI), nFreq};
 
     int nFFfreq = 3;
     file->write("ffFreq", 1, &nFFfreq, ffFreq, false );
@@ -714,6 +726,10 @@ void CoccolithSimulation::farFieldQuantities()
     file->prevent_deadlock();
 
     file->write( "SrTheta", 1, &gLgorder, &thetaValues[0], false );
+    file->prevent_deadlock();
+
+    int size = phiValues.size();
+    file->write("phi", 1, &size, &phiValues[0], false );
     file->prevent_deadlock();
 
     if ( computeStokesParameters )
@@ -1066,6 +1082,10 @@ void CoccolithSimulation::scatteringAssymmetryFactor( vector<double> &g, double 
     stokesQ.resize( numberOfAzimuthalSteps );
     stokesU.resize( numberOfAzimuthalSteps );
     stokesV.resize( numberOfAzimuthalSteps );
+    stokesIInc.resize( numberOfAzimuthalSteps );
+    stokesQInc.resize( numberOfAzimuthalSteps );
+    stokesUInc.resize( numberOfAzimuthalSteps );
+    stokesVInc.resize( numberOfAzimuthalSteps );
     for ( unsigned int i=0;i<numberOfAzimuthalSteps;i++ )
     {
       stokesI[i].set_size(Nsteps, n2fBox->Nfreq);
@@ -1151,6 +1171,9 @@ void CoccolithSimulation::azimuthalIntagration( double theta, double R, unsigned
   {
     double phi, weight;
     gsl_integration_glfixed_point(0.0, 2.0*PI, n, &phi, &weight, gslTab );
+
+    if ( currentTheta == 0 ) phiValues.push_back(phi);
+
     double x = RsinTheta*cos(phi);
     double y = RsinTheta*sin(phi);
     double z = RcosTheta;
@@ -1166,7 +1189,8 @@ void CoccolithSimulation::azimuthalIntagration( double theta, double R, unsigned
     if ( computeStokesParameters )
     {
       LocalStokes locStokes;
-      getLocalStokes( theta, phi, results, locStokes );
+      Stokes incTransformed;
+      getLocalStokes( theta, phi, results, locStokes, incTransformed );
       for ( unsigned int i=0;i<n2fBox->Nfreq;i++ )
       {
         stokesI[n](currentTheta,i) = locStokes.I[i];
@@ -1177,6 +1201,13 @@ void CoccolithSimulation::azimuthalIntagration( double theta, double R, unsigned
         stokesQAzim(currentTheta,i) += locStokes.Q[i]*weight;
         stokesUAzim(currentTheta,i) += locStokes.U[i]*weight;
         stokesVAzim(currentTheta,i) += locStokes.V[i]*weight;
+      }
+      if ( currentTheta == 0 )
+      {
+        stokesIInc[n] = incTransformed.I;
+        stokesQInc[n] = incTransformed.Q;
+        stokesUInc[n] = incTransformed.U;
+        stokesVInc[n] = incTransformed.V;
       }
 
       Ephi(currentTheta,n) = locStokes.Ephi;
@@ -1289,32 +1320,59 @@ void CoccolithSimulation::computeEvectorOrthogonalToPropagation( double theta, d
   assert( abs(E2len-1.0) < 1E-8 );
 }
 
-void CoccolithSimulation::computeEvectorOrthogonalToPropagation( const meep::vec &r, meep::vec &E1hat, meep::vec &E2hat ) const
+void CoccolithSimulation::computeEvectorOrthogonalToPropagation( const meep::vec &r, meep::vec &Eperp, meep::vec &Epar )
 {
   meep::vec incWave;
+  RotationAxis_t rotAx;
+  meep::vec EperpInc;
+  meep::vec EparInc;
   switch( propagationDir )
   {
     case MainPropDirection_t::X:
       incWave = meep::vec(1.0,0.0,0.0);
+      EperpInc   = meep::vec(0.0,1.0,0.0);
+      EparInc  = meep::vec(0.0,0.0,1.0);
+      rotAx = RotationAxis_t::Z;
       break;
     case MainPropDirection_t::Y:
       incWave = meep::vec(0.0,1.0,0.0);
+      EperpInc   = meep::vec(0.0,0.0,1.0);
+      EparInc   = meep::vec(1.0,0.0,0.0);
+      rotAx = RotationAxis_t::X;
       break;
     case MainPropDirection_t::Z:
+      EperpInc   = meep::vec(1.0,0.0,0.0);
+      EparInc   = meep::vec(0.0,1.0,0.0);
       incWave = meep::vec(0.0,0.0,1.0);
+      rotAx = RotationAxis_t::Y;
       break;
   }
 
-  // Normal to the scattering plane
-  E1hat = cross(r,incWave);
-  E1hat = E1hat/norm(E1hat);
+  static const double PI = acos(-1.0);
+  if ( srcPos == SourcePosition_t::BOTTOM )
+  {
+    // Rotate PI around the first axis
+    double rotMat[3][3];
+    setUpRotationMatrix(rotAx, PI, rotMat );
+    incWave = rotateVector( rotMat, incWave );
+    EperpInc = rotateVector( rotMat, EperpInc );
+    EparInc = rotateVector( rotMat, EparInc );
+  }
 
-  // Parallel to the scattering plane
-  E2hat = cross(E1hat,r);
-  E2hat = E2hat/norm(E2hat);
+  Eperp = cross(incWave,r);
+  Eperp = Eperp/norm(Eperp);
+  Epar = cross(r,Eperp);
+  Epar = Epar/norm(Epar);
+  assert( abs((Epar&r)/norm(r)) < 1E-6 );
+  assert( abs((Eperp&r)/norm(r)) < 1E-6 );
+  assert( abs(Eperp&Epar) < 1E-6 );
+
+  // Set the current rotation angle
+  currentStokesVectorRotationAngleRad = acos(Eperp&EperpInc);
+  if ( (Eperp&EparInc) < 0.0 ) currentStokesVectorRotationAngleRad = -currentStokesVectorRotationAngleRad;
 }
 
-void CoccolithSimulation::getLocalStokes( double theta, double phi, const cdouble EH[], LocalStokes &locStoke )
+void CoccolithSimulation::getLocalStokes( double theta, double phi, const cdouble EH[], LocalStokes &locStoke, Stokes &inc )
 {
   locStoke.I.resize(n2fBox->Nfreq);
   locStoke.Q.resize(n2fBox->Nfreq);
@@ -1331,6 +1389,8 @@ void CoccolithSimulation::getLocalStokes( double theta, double phi, const cdoubl
   meep::vec rhat(x,y,z);
   computeEvectorOrthogonalToPropagation( rhat, E1hat, E2hat );
   bool EfieldWasStored = false;
+  inc = incStoke;
+  inc.rotate( currentStokesVectorRotationAngleRad );
   for ( unsigned int i=0;i<locStoke.I.size();i++ )
   {
     cdouble Ex = EH[6*i];
@@ -1343,7 +1403,7 @@ void CoccolithSimulation::getLocalStokes( double theta, double phi, const cdoubl
     locStoke.Q[i] = pow(abs(E1),2) - pow(abs(E2),2);
     locStoke.U[i] = 2.0*(E1*conj(E2)).real();
     locStoke.V[i] = -2.0*(E1*conj(E2)).imag();
-
+    //locStoke.V[i] = 2.0*(E1*conj(E2)).imag();
     // Debug: Make sure that there is no field component in the radial direction
     double intensityPhiTheta = pow(abs(E1),2) + pow(abs(E2),2);
     double intensityXYZ = pow(abs(EH[6*i]),2) + pow(abs(EH[6*i+1]),2) + pow(abs(EH[6*i+2]),2);
@@ -1427,6 +1487,19 @@ void CoccolithSimulation::saveStokesPhiTheta()
   file->write("Etheta", 2, rank, Etrans.memptr(), false );
   file->prevent_deadlock();
 
+  int size = stokesIInc.size();
+  file->write("StokesIInc", 1, &size, &stokesIInc[0], false );
+  file->prevent_deadlock();
+
+  file->write("StokesQInc", 1, &size, &stokesQInc[0], false );
+  file->prevent_deadlock();
+
+  file->write("StokesUInc", 1, &size, &stokesUInc[0], false );
+  file->prevent_deadlock();
+
+  file->write("StokesVInc", 1, &size, &stokesVInc[0], false );
+  file->prevent_deadlock();
+
   meep::master_printf("In %d of %d of the field evaluations there seem to be a radial field component", numberOfTimesThereIsRadialFieldComponent, totalNumberOfFarFieldEvaluations );
 }
 
@@ -1465,9 +1538,102 @@ double CoccolithSimulation::norm( const meep::vec &vec )
 {
   return sqrt( pow(vec.x(),2) + pow(vec.y(),2) + pow(vec.z(),2) );
 }
+
+void CoccolithSimulation::setUpRotationMatrix( RotationAxis_t raxis, double alpha, double matrix[3][3] )
+{
+
+  switch(raxis)
+  {
+    case RotationAxis_t::X:
+      matrix[0][0] = 1.0;
+      matrix[0][1] = 0.0;
+      matrix[0][2] = 0.0;
+      matrix[1][0] = 0.0;
+      matrix[1][1] = cos(alpha);
+      matrix[1][2] = sin(alpha);
+      matrix[2][0] = 0.0;
+      matrix[2][1] = -sin(alpha);
+      matrix[2][2] = cos(alpha);
+      break;
+    case RotationAxis_t::Y:
+      matrix[0][0] = cos(alpha);
+      matrix[0][1] = 0.0;
+      matrix[0][2] = sin(alpha);
+      matrix[1][0] = 0.0;
+      matrix[1][1] = 1.0;
+      matrix[1][2] = 0.0;
+      matrix[2][0] = -sin(alpha);
+      matrix[2][1] = 0.0;
+      matrix[2][2] = cos(alpha);
+      break;
+    case RotationAxis_t::Z:
+      matrix[0][0] = cos(alpha);
+      matrix[0][1] = sin(alpha);
+      matrix[0][2] = 0.0;
+      matrix[1][0] = -sin(alpha);
+      matrix[1][1] = cos(alpha);
+      matrix[1][2] = 0.0;
+      matrix[2][0] = 0.0;
+      matrix[2][1] = 0.0;
+      matrix[2][2] = 1.0;
+      break;
+  }
+}
+
+meep::vec CoccolithSimulation::rotateVector( const double rotMat[3][3], const meep::vec &vec )
+{
+  double x = rotMat[0][0]*vec.x() + rotMat[0][1]*vec.y() + rotMat[0][2]*vec.z();
+  double y = rotMat[1][0]*vec.x() + rotMat[1][1]*vec.y() + rotMat[1][2]*vec.z();
+  double z = rotMat[2][0]*vec.x() + rotMat[2][1]*vec.y() + rotMat[2][2]*vec.z();
+  return meep::vec(x,y,z);
+}
+
+void CoccolithSimulation::combineRotationMatrices( const double firstRot[3][3], const double secondRot[3][3], double combined[3][3] )
+{
+  for ( unsigned int i=0;i<3;i++ )
+  for ( unsigned int j=0;j<3;j++ )
+  for ( unsigned int k=0;k<3;k++ )
+  {
+    combined[i][j] += secondRot[i][k]*firstRot[k][j];
+  }
+}
+
+void CoccolithSimulation::printRotationMatrix( const double rotMat[3][3] )
+{
+  cout <<"--------------------------\n";
+  for ( unsigned int i=0;i<3;i++ )
+  {
+    for ( unsigned int j=0;j<3;j++ )
+    {
+      //if ( meep::am_master() )
+      {
+        cout << rotMat[i][j] << " ";
+      }
+    }
+    cout << endl;
+  }
+  cout <<"--------------------------\n";
+}
+
+void CoccolithSimulation::addIdentifierToBackups( const char* extra )
+{
+  n2fBoxBackup += extra;
+  reflFluxBoxBackup += extra;
+  reflFluxPlaneBackup += extra;
+}
 //============================ STOKES CLASS ====================================
 
 bool Stokes::operator==( const Stokes &other ) const
 {
-  return (this->I==other.I) && (this->Q==other.Q) && (this->U==other.U) && (this->V==other.V);
+  double EPS=1E-10;
+  return (abs(this->I-other.I)<EPS) && (abs(this->Q-other.Q)<EPS) && \
+  (abs(this->U-other.U)<EPS) && (abs(this->V-other.V)<EPS);
+}
+
+void Stokes::rotate( double angleRad )
+{
+  double Q0 = Q;
+  double U0 = U;
+  Q = cos(2.0*angleRad)*Q0 + sin(2.0*angleRad)*U0;
+  U = cos(2.0*angleRad)*U0 - sin(2.0*angleRad)*Q0;
 }

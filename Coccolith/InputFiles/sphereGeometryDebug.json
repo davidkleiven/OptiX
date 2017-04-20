@@ -8,5 +8,6 @@
   "prefix":"sphereVoxelDebug",
   "computeAsymmetryFactor":true,
   "computeStokes":true,
-  "incStokesVector":[1,1,0,0]
+  "incStokesVector":[1,1,0,0],
+  "uid":0
 }

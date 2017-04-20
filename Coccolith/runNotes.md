@@ -23,3 +23,4 @@ sphereCrossSectionRes8.h5 | Scattering cross secrion for a sphere with resolutio
 20170407_1543 | 45 degree polarization | Looks good |
 20170407_1606 | Horizontal polarization (Ey) | Looks good |
 20170407_1712 | Sphere horizontal polarization | U and V, zero Q/I varies... |
+20170408_1620 | Sphere horizontal polarization | Q/I = 1 as it should be |

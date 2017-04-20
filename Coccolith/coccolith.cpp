@@ -12,12 +12,13 @@ using namespace std;
 
 void setupSim( CoccolithSimulation &sim )
 {
-
+  //
 }
 
 int main( int argc, char** argv )
 {
   srand(time(0));
+  int randNum = rand()%10000000;
   try
   {
     meep::initialize mpi( argc, argv );
@@ -50,17 +51,18 @@ int main( int argc, char** argv )
 
     unsigned int nFreq = 150;
     double pmlThick = 2.0;
+    if ( root.isMember("uid") ) sim->addIdentifierToBackups(root["uid"].asString().c_str());
     sim->setMainPropagationDirection( MainPropDirection_t::X );
     sim->setSourceSide( SourcePosition_t::BOTTOM );
     sim->setNfreqFT( nFreq );
     sim->initSource( centerFreq, freqwidth );
     sim->setPMLInWavelengths( pmlThick );
     sim->disableRealTimeVisualization();
-    
+
     #ifdef CHECK_THAT_ALL_WORKS
       sim->setEndTime( 10.0);
     #endif
-    
+
     sim->additionalVaccumLayerPx = 3.0;
     if ( root.isMember("computeAsymmetryFactor") ) sim->computeAsymmetryFactor = root["computeAsymmetryFactor"].asBool();
     if ( root.isMember("computeStokes") ) sim->computeStokesParameters = root["computeStokes"].asBool();
@@ -80,6 +82,7 @@ int main( int argc, char** argv )
     delete sim;
 
     sim = new CoccolithSimulation();
+    if ( root.isMember("uid") ) sim->addIdentifierToBackups( root["uid"].asString().c_str() );
     sim->prefix = root["prefix"].asString();
     sim->resolution = root["resolution"].asDouble();
     sim->uid = uid;
@@ -105,7 +108,7 @@ int main( int argc, char** argv )
 
     #ifdef CHECK_THAT_ALL_WORKS
       sim->setEndTime( 10.0 );
-      sim->gaussLegendreOrder = 2;
+      sim->gaussLegendreOrder = 20;
     #endif
 
     sim->additionalVaccumLayerPx = 3.0;

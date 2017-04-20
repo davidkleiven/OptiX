@@ -17,6 +17,7 @@
 typedef std::complex<double> cdouble;
 enum class MainPropDirection_t{ X, Y, Z };
 typedef MainPropDirection_t IntegrationDir_t;
+typedef MainPropDirection_t RotationAxis_t;
 enum class Plane_t{XY, XZ, YZ};
 
 enum class SourcePosition_t{TOP, BOTTOM};
@@ -40,17 +41,21 @@ public:
   Stokes(){};
   Stokes(int I, int Q, int U, int V):I(I),Q(Q),U(U),V(V){};
   Stokes( int vec[4] ):I(vec[0]), Q(vec[1]), U(vec[2]), V(vec[3]){};
+
+  /** Rotate the stokes vector by angle in radians */
+  void rotate( double angleRad );
+
   bool operator==(const Stokes &other) const;
-  int I{1};
-  int Q{1};
-  int U{0};
-  int V{0};
+  double I{1};
+  double Q{1};
+  double U{0};
+  double V{0};
 };
 
 class CoccolithSimulation
 {
 public:
-  CoccolithSimulation(){};
+  CoccolithSimulation();
   virtual ~CoccolithSimulation();
 
   /** LSet voxel material to use in the simulation */
@@ -70,6 +75,9 @@ public:
 
   /** Set the PML thickness in number of wavelengths */
   void setPMLInWavelengths( double newThick );
+
+  /** Adds an additional identifiers to the backup filenames */
+  void addIdentifierToBackups( const char* extra );
 
   /** Run the simulation */
   virtual void run();
@@ -186,9 +194,9 @@ protected:
   bool userOverridedEndTime{false};
   bool realTimeVisualization{true};
   bool geoIsInitialized{false};
-  std::string reflFluxPlaneBackup{"reflectedFlux"};
-  std::string reflFluxBoxBackup{"reflectedFluxBox"};
-  std::string n2fBoxBackup{"n2fBox"};
+  std::string reflFluxPlaneBackup{"reflectedFluxBackup"};
+  std::string reflFluxBoxBackup{"reflectedFluxBoxBackup"};
+  std::string n2fBoxBackup{"n2fBoxBackup"};
 
   /** Visualized intensity */
   void visualize();
@@ -214,6 +222,10 @@ protected:
   std::vector<arma::mat> stokesQ;
   std::vector<arma::mat> stokesV;
   std::vector<arma::mat> stokesU;
+  std::vector<double> stokesIInc;
+  std::vector<double> stokesQInc;
+  std::vector<double> stokesUInc;
+  std::vector<double> stokesVInc;
   arma::mat Ephi;
   arma::mat Etheta;
   arma::mat stokesIAzim;
@@ -222,6 +234,7 @@ protected:
   arma::mat stokesVAzim;
   unsigned int currentTheta{0};
   std::vector<double> thetaValues;
+  std::vector<double> phiValues;
 
   // Source corners
   meep::vec crn1;
@@ -234,6 +247,7 @@ protected:
   unsigned int totalNumberOfFarFieldEvaluations{0};
   unsigned int numberOfTimesThereIsRadialFieldComponent{0};
   double relativeRadFieldCompThreshold{1E-2};
+  double currentStokesVectorRotationAngleRad{0.0};
 
   /** Add a source volume */
   void addSourceVolume();
@@ -326,16 +340,22 @@ protected:
   void computeEvectorOrthogonalToPropagation( double theta, double phi, meep::vec &E1hat, meep::vec &E2hat ) const;
 
   /** Computes the two E-hat vectors orthonormal to the propagation direction */
-  void computeEvectorOrthogonalToPropagation( const meep::vec &r, meep::vec &E1hat, meep::vec &E2hat ) const;
+  void computeEvectorOrthogonalToPropagation( const meep::vec &r, meep::vec &E1hat, meep::vec &E2hat );
 
   /** Computes the Stokes parameters in the direction given by theta and phi */
-  void getLocalStokes( double theta, double phi, const cdouble EH[], LocalStokes &locStoke );
+  void getLocalStokes( double theta, double phi, const cdouble EH[], LocalStokes &locStoke, Stokes &incTransformed );
 
   /** Saves the Stokes parameters in the phi and theta direction */
   void saveStokesPhiTheta();
 
   static meep::vec cross( const meep::vec &v1, const meep::vec &v2 );
   static double norm( const meep::vec &vec );
+
+  /** Sets up a rotation matrix around axis 0,1,2 */
+  static void setUpRotationMatrix( RotationAxis_t raxis, double alpha, double matrix[3][3] );
+  static meep::vec rotateVector( const double rotMat[3][3], const meep::vec &vec );
+  static void combineRotationMatrices( const double first[3][3], const double second[3][3], double combined[3][3] );
+  static void printRotationMatrix( const double rotMat[3][3] );
 };
 
 #endif
