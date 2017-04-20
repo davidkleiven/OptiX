@@ -58,7 +58,7 @@ def plot2D(data, xmin, xmax, zmin, zmax, uid, borders, control, field=None, phas
     maxval = np.max(np.abs(data)**2)
     #maxval=1E-1
     minval = frac*maxval
-    #minval=1E-6
+    #minval=1E-4
     #maxval = 1E-3 # T. Salditt et. al maxwav
 
     fig2 = plt.figure()

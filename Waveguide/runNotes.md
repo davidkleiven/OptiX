@@ -208,3 +208,6 @@
 873353 | SiO2 sphere, Au shell, r=500 nm, d=50 nm | Looks good, a bit softer in the zeros |
 620657 | SiO2 sphere, Au shell, r=50 nm, d=5 nm | Looks very good |
 764726 | 2D WG conformal map, verify Salditt | Spikes not present in 2D |
+193245 | Curved WG R=40mm, L = 0.4 mm | Looks good |
+765460 | Transparent boundary conditions, for demonstration | Looks good |
+615880 | Dirichlet boundary conditions, for demonstration | Looks good |

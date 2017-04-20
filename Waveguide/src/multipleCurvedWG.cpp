@@ -6,7 +6,7 @@
 #include <cassert>
 #include "curvedWGConfMap.hpp"
 using namespace std;
-//#define PRINT_OUT_CONNECTION
+#define PRINT_OUT_CONNECTION
 
 const double PI = acos(-1.0);
 MultipleCurvedWG::~MultipleCurvedWG()
@@ -221,8 +221,9 @@ void MultipleCurvedWG::processSolution( CurvedWGConfMap &wg )
   }
 
   #ifdef PRINT_OUT_CONNECTION
-    cout << intensitySolution.col(0) << endl;
-    cout << intensity->col(NzNextFillStartIntensity) << endl;
+    //cout << intensitySolution.col(0) << endl;
+    //cout << intensity->col(NzNextFillStartIntensity) << endl;
+    cout << NzNextFillStartIntensity << endl;
   #endif
 
   // Copy intensity
