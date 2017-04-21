@@ -19,3 +19,4 @@ src/libsrc.a
 Makefile
 *.csv
 InputFiles/waveguideGeometry*.json
+inc/config.h
