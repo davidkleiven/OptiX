@@ -19,6 +19,8 @@ array<Stokes,6> CoccolithSimulation::supportedStokes({Stokes(1,1,0,0),Stokes(1,-
  Stokes(1,0,-1,0), Stokes(1,0,0,1),Stokes(1,0,0,-1)});
  Stokes CoccolithSimulation::incStoke;
 
+double CoccolithSimulation::amplitudeScalingFactor = 1.0;
+
 // Only for debugging
 double sigmaTest( const meep::vec &r )
 {
@@ -55,8 +57,8 @@ CoccolithSimulation::~CoccolithSimulation()
 cdouble CoccolithSimulation::amplitude( const meep::vec &r )
 {
   cdouble im(0.0,1.0);
-  if ( incStoke.U == -1 ) return -1.0;
-  return 1.0; // In MEEP: & is dot product
+  if ( incStoke.U == -1 ) return -1.0*amplitudeScalingFactor;
+  return 1.0*amplitudeScalingFactor; // In MEEP: & is dot product
 }
 
 cdouble CoccolithSimulation::amplitude2( const meep::vec &r )
@@ -65,13 +67,15 @@ cdouble CoccolithSimulation::amplitude2( const meep::vec &r )
   cdouble im(0.0,1.0);
   if ( incStoke.V == 1 )
   {
-    return exp(im*PI/2.0);
+    //return exp(im*PI/2.0)*amplitudeScalingFactor;
+    return exp(-im*PI/2.0)*amplitudeScalingFactor;
   }
   else if ( incStoke.V == -1 )
   {
-    return exp(-im*PI/2.0);
+    //return exp(-im*PI/2.0)*amplitudeScalingFactor;
+    return exp(+im*PI/2.0)*amplitudeScalingFactor;
   }
-  return 1.0;
+  return -1.0*amplitudeScalingFactor;
 }
 
 void CoccolithSimulation::setMainPropagationDirection( MainPropDirection_t propDir )
@@ -186,6 +190,14 @@ void CoccolithSimulation::addSource()
       break;
   }
 
+  bool requireTwoSources = ( incStoke.U != 0 ) || ( incStoke.V != 0 );
+  if ( initialStokesVectorSet && requireTwoSources )
+  {
+    meep::master_printf("Using two sources to obtain polarization\n");
+    field->add_volume_source( secondComp, *sourceTime, *srcVol, amplitude2 );
+    amplitudeScalingFactor = 1.0/sqrt(2.0);
+  }
+
   if (( incStoke.Q == 1 ) || ( incStoke.Q == 0 ))
   {
     field->add_volume_source( fieldComp, *sourceTime, *srcVol, amplitude );
@@ -193,12 +205,6 @@ void CoccolithSimulation::addSource()
   else
   {
     field->add_volume_source( secondComp, *sourceTime, *srcVol, amplitude );
-  }
-  bool requireTwoSources = ( incStoke.U != 0 ) || ( incStoke.V != 0 );
-  if ( initialStokesVectorSet && requireTwoSources )
-  {
-    meep::master_printf("Using two sources to obtain polarization\n");
-    field->add_volume_source( secondComp, *sourceTime, *srcVol, amplitude2 );
   }
 }
 

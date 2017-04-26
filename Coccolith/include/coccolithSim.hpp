@@ -161,6 +161,7 @@ protected:
   static Stokes incStoke;
   bool initialStokesVectorSet{false};
   static std::array<Stokes,6> supportedStokes;
+  static double amplitudeScalingFactor;
   VoxelMaterial *material{NULL};
   const SellmeierMaterial *sellmeier{NULL};
   MainPropDirection_t propagationDir{MainPropDirection_t::Z};

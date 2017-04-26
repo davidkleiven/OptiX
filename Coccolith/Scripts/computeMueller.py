@@ -61,6 +61,13 @@ class MuellerMatrix:
         Sscat = self.getScatteredStokesMatrix( thetaIndx, phiIndx )
         return Sscat.dot( np.linalg.inv(Sinc) )
 
+    def projectionMatrix( self, thetaIndx, phiIndx ):
+        Sinc = self.getIncStokesMatrix(phiIndx)
+        Sscat = self.getScatteredStokesMatrix( thetaIndx, phiIndx )
+        for i in range(0,4):
+            Sscat[:,i] /= Sscat[0,i]
+        return 0.5*(Sscat.T).dot( Sinc )
+
     def plot( self ):
         ntheta = self.pol[0].IphiTheta.shape[0]
         nphi = self.pol[0].IphiTheta.shape[1]
@@ -83,7 +90,7 @@ class MuellerMatrix:
             axes.append( fig.add_subplot(4,4,i+1) )
 
         cmap = "Spectral_r"
-        cmap = "ocean"
+        #cmap = "coolwarm"
         maxval = -1E30
         minval = 1E30
         # Locate max and min value for colorbar scaling
@@ -94,13 +101,34 @@ class MuellerMatrix:
                 if ( muellerAng[i][j].min() < minval ):
                     minval = muellerAng[i][j].min()
 
+        THETA, PHI = np.meshgrid( self.theta, self.phi )
         for i in range(0,4):
             for j in range(0,4):
-                axes[i*4+j].imshow( muellerAng[i][j].T[:,::-1], cmap=cmap, aspect="auto", vmin=minval, vmax=maxval)
+                im = axes[i*4+j].imshow( muellerAng[i][j].T[:,::-1], cmap=cmap, aspect="auto", vmin=minval, vmax=maxval)
 
         for i in range(0,16):
             axes[i].xaxis.set_ticks([])
             axes[i].yaxis.set_ticks([])
+
+        cbar_ax = fig.add_axes([0.15, 0.95, 0.7, 0.05])
+        fig.colorbar( im, orientation="horizontal", cax=cbar_ax )
+
+    def plotStokesVectorVSPhi( self, runIndx, thetaIndx ):
+        fig = plt.figure()
+        ax1 = fig.add_subplot(1,2,1)
+        ax1.plot( self.pol[runIndx].IphiTheta[thetaIndx,:], label="I")
+        ax1.plot( self.pol[runIndx].QphiTheta[thetaIndx,:], label="Q")
+        ax1.plot( self.pol[runIndx].UphiTheta[thetaIndx,:], label="U")
+        ax1.plot( self.pol[runIndx].VphiTheta[thetaIndx,:], label="V")
+        ax1.legend()
+
+        ax2 = fig.add_subplot(1,2,2)
+        ax2.plot( self.stokesInc[runIndx].Iinc, label="I")
+        ax2.plot( self.stokesInc[runIndx].Qinc, label="Q")
+        ax2.plot( self.stokesInc[runIndx].Uinc, label="U")
+        ax2.plot( self.stokesInc[runIndx].Vinc, label="V")
+        ax2.legend()
+        plt.show()
 
 def main( argv ):
     if ( len(argv) != 1 ):
@@ -112,6 +140,8 @@ def main( argv ):
         mueller.load(hf)
 
     mueller.plot()
+    mueller.plotStokesVectorVSPhi( 3, -1 )
+    print ( mueller.projectionMatrix(-1,-1) )
     plt.show()
 
 if __name__ == "__main__":

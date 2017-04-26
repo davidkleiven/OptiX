@@ -5,6 +5,7 @@
 #include "gaussianBeam.hpp"
 #include "waveguideShapes.hpp"
 #include "waveguide3DPaths.hpp"
+#include <PaxPro/alternatingDirectionSolver.hpp>
 #include <iostream>
 #include <visa/visa.hpp>
 #include <pei/dialogBox.hpp>
@@ -17,6 +18,7 @@ enum class Wg_t{ STRAIGHT, CURVED};
 
 int main( int argc, char** argv )
 {
+
   string imgStoring("");
   if ( argc > 1 )
   {
@@ -80,8 +82,8 @@ int main( int argc, char** argv )
   switch ( wgtype )
   {
     case Wg_t::STRAIGHT:
-      xmin = -6.0*width;
-      xmax = 7.0*width;
+      xmin = -1.0*width;
+      xmax = 2.0*width;
       break;
     case Wg_t::CURVED:
       xmin = -pow( params.at("zmax"), 2)/(2.0*params.at("radiusInmm")*1E6 ) - width;
@@ -91,7 +93,9 @@ int main( int argc, char** argv )
 
   // Post processing modules
   //post::Phase phase;
-  //post::Intensity amplitude;
+  post::IntensityUint8 amplitude;
+  post::LogIntensityUint8 logAmp;
+  logAmp.setMinValue( 1E-7 );
   post::ExitField ef;
   post::ExitIntensity ei;
   post::ExitPhase ep;
@@ -109,6 +113,7 @@ int main( int argc, char** argv )
   squareShape.setDepth( params.at("depth") );
 
   StraightPath strPath;
+  strPath.R = 40.0;
   ParabolicPath parPath;
   parPath.setRadius( params.at("radiusInmm") );
 
@@ -129,9 +134,10 @@ int main( int argc, char** argv )
     double dy = (ymax-ymin)/params.at("Nt");
     double dz = params.at("zmax")/params.at("Nz");
 
-
     FFTSolver3D solver;
     solver.overlayGeometry();
+
+    ADI alternatingDirection;
 
     if ( imgStoring != "" )
     {
@@ -144,26 +150,34 @@ int main( int argc, char** argv )
     gbeam.setWaist( params.at("gaussianWaistInWidths")*params.at("width") );
     gbeam.setCenter( 0.0, 0.5*params.at("depth")/2.0 );
 
-    solver.visualizeRealSpace();
-    solver.setIntensityMinMax( 0.0, 2.0 );
+    //solver.visualizeRealSpace();
+    //solver.setIntensityMinMax( 0.0, 2.0 );
+
+    //alternatingDirection.realTimeVisualization();
+    //alternatingDirection.setPlotLimits( 0.0, 2.0, -3.1459, 3.14159 );
+    alternatingDirection.useTBC = true; // Use transparent boundary conditions
 
     ControlFile ctl( "data/waveguide3D" );
+
     switch ( wgtype )
     {
       case Wg_t::STRAIGHT:
       {
         clog << "Running straight waveguide...\n";
-        straightWG << ef << ei << ep << ff;
+        straightWG << ef << ei << ep << ff << amplitude << logAmp;
         straightWG.setWaveLength( params.at("wavelength") );
         straightWG.setTransverseDiscretization( xmin, xmax, dx, params.at("downSampleT") );
         straightWG.setVerticalDiscretization( ymin, ymax, dy );
         straightWG.setLongitudinalDiscretization( 0.0, params.at("zmax"), dz, params.at("downSampleZ") );
+        //straightWG.setCladdingMaterial( "Ta" );
         straightWG.setCladdingMaterial( "MatProp/indexRefrTa.txt" );
-        straightWG.setSolver( solver );
+
+        //straightWG.setSolver( solver );
+        straightWG.setSolver( alternatingDirection );
 
         double absorbWidth = params.at("absorberWidthInWavelengths")*params.at("wavelength");
         double damping = params.at("absorberDampingInWavelengths")*params.at("wavelength");
-        solver.absorbingBC( absorbWidth, damping );
+        //solver.absorbingBC( absorbWidth, damping );
 
         straightWG.setBoundaryConditions( gbeam );
         straightWG.solve();
@@ -172,11 +186,11 @@ int main( int argc, char** argv )
       }
       case Wg_t::CURVED:
         clog << "Running curved waveguide...\n";
-        curvedWG << ef << ei << ep << ff;
+        curvedWG << ef << ei << ep << ff << amplitude;
         curvedWG.setTransverseDiscretization( xmin, xmax, dx, params.at("downSampleT") );
         curvedWG.setVerticalDiscretization( ymin, ymax, dy );
         curvedWG.setLongitudinalDiscretization( 0.0, params.at("zmax"), dz, params.at("downSampleZ") );
-        curvedWG.setCladdingMaterial( "MatProp/indexRefrTa.txt" );
+        curvedWG.setCladdingMaterial( "Ta" );
         curvedWG.setSolver( solver );
 
         double absorbWidth = params.at("absorberWidthInWavelengths")*params.at("wavelength");

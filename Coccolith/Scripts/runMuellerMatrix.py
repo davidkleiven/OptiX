@@ -46,6 +46,8 @@ def mergeHDF5s():
         with h5.File(tempDir+"/"+fname) as hf:
             if ( isFirst ):
                 hfile.create_dataset("eps", data=np.array(hf.get("eps")))
+                hfile.create_dataset("theta", data=np.array(hf.get("SrTheta")))
+                hfile.create_dataset("phi", data=np.array(hf.get("phi")))
                 isFirst = False
 
             group = hfile.create_group("Run%d"%(counter))
