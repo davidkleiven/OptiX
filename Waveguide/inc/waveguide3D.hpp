@@ -2,6 +2,7 @@
 #define WAVEGUIDE_3D_H
 #include "paraxialSimulation.hpp"
 #include "refractiveIndex.hpp"
+#include "waveguide3DPaths.hpp"
 
 /**
 Class for simulating 3D waveguides.
@@ -41,6 +42,19 @@ private:
     bool shapeIsSet{false};
 
     bool isReady() const;
+};
+
+
+template <class path>
+double waveguidePotential( double x, const path &wgpath ){ return 0.0; };
+
+
+template <>
+double waveguidePotential<StraightPath>( double x, const StraightPath &path )
+{
+  if ( path.R > 0.0 ) return x/(path.R*1E6);
+
+  return 0.0;
 };
 
 // Include the implementation

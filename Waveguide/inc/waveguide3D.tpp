@@ -59,4 +59,5 @@ void Waveguide3D<wgPath,wgShape>::getXrayMatProp( double x, double y, double z, 
     matDelta = delta;
     matBeta = beta;
   }
+  matDelta -= waveguidePotential( x+centerX/2.0, center );
 }
