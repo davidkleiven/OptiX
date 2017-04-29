@@ -86,7 +86,7 @@ int main( int argc, char** argv )
     sim->prefix = root["prefix"].asString();
     sim->resolution = root["resolution"].asDouble();
     sim->uid = uid;
-    sim->gaussLegendreOrder = 128;
+    sim->gaussLegendreOrder = 512;
     sim->numberOfAzimuthalSteps = 100;
     if ( useDispersive )
     {

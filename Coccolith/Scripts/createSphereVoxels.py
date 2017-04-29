@@ -1,8 +1,8 @@
 import numpy as np
 
 def main():
-    N = 50
-    R = 20
+    N = 200
+    R = 80
     data = np.zeros((N,N,N), dtype=np.uint8)
     for i in range(0,N):
         for j in range(0,N):

@@ -17,13 +17,17 @@ class MuellerMatrix:
     def __init__( self ):
         self.pol = []
         self.stokesInc = []
+        self.theta = []
+        self.phi = []
 
     def load( self, hfile ):
         counter = 0
+        self.theta = np.array( hfile.get("theta") )
+        self.phi = np.array( hfile.get("phi") )
         key = "Run%d"%(counter)
         while (key in hfile.keys() ):
             pol = plz.Polarization()
-            pol.readPhiAndTheta( hfile.get(key), 2 )
+            pol.readPhiAndTheta( hfile.get(key), 1 )
             self.pol.append(pol)
             incStk = IncidentStokes()
             incStk.Iinc = np.array( hfile.get(key).get("StokesIInc") )
@@ -104,8 +108,8 @@ class MuellerMatrix:
         THETA, PHI = np.meshgrid( self.theta, self.phi )
         for i in range(0,4):
             for j in range(0,4):
-                im = axes[i*4+j].imshow( muellerAng[i][j].T[:,::-1], cmap=cmap, aspect="auto", vmin=minval, vmax=maxval)
-
+                #im = axes[i*4+j].imshow( muellerAng[i][j].T[:,::-1], cmap=cmap, aspect="auto", vmin=minval, vmax=maxval)
+                im = axes[i*4+j].contourf( THETA, PHI, muellerAng[i][j].T, 256, cmap=cmap, vmin=minval, vmax=maxval)
         for i in range(0,16):
             axes[i].xaxis.set_ticks([])
             axes[i].yaxis.set_ticks([])
@@ -116,10 +120,10 @@ class MuellerMatrix:
     def plotStokesVectorVSPhi( self, runIndx, thetaIndx ):
         fig = plt.figure()
         ax1 = fig.add_subplot(1,2,1)
-        ax1.plot( self.pol[runIndx].IphiTheta[thetaIndx,:], label="I")
-        ax1.plot( self.pol[runIndx].QphiTheta[thetaIndx,:], label="Q")
-        ax1.plot( self.pol[runIndx].UphiTheta[thetaIndx,:], label="U")
-        ax1.plot( self.pol[runIndx].VphiTheta[thetaIndx,:], label="V")
+        ax1.plot( self.phi, self.pol[runIndx].IphiTheta[thetaIndx,:], label="I")
+        ax1.plot( self.phi, self.pol[runIndx].QphiTheta[thetaIndx,:], label="Q")
+        ax1.plot( self.phi, self.pol[runIndx].UphiTheta[thetaIndx,:], label="U")
+        ax1.plot( self.phi, self.pol[runIndx].VphiTheta[thetaIndx,:], label="V")
         ax1.legend()
 
         ax2 = fig.add_subplot(1,2,2)
@@ -128,7 +132,26 @@ class MuellerMatrix:
         ax2.plot( self.stokesInc[runIndx].Uinc, label="U")
         ax2.plot( self.stokesInc[runIndx].Vinc, label="V")
         ax2.legend()
-        plt.show()
+
+
+    def degreeOfLinearPolarizationUnpolarized( self, phi ):
+        fig = plt.figure()
+        ax = fig.add_subplot(1,1,1)
+        colors = ["#e41a1c", "#377eb8", "#4daf4a", "#984ea3", "#ff7f00"]
+        for j in range(0,len(phi)):
+            phiIndx = np.argmin( np.abs(self.phi-phi[j]) )
+            degreeLinPol = np.zeros( len(self.theta) )
+            for i in range(0,len(self.theta) ):
+                mueller = self.mueller(i,phiIndx)
+                degreeLinPol[i] = np.sqrt( mueller[1,0]**2 + mueller[2,0]**2 )
+                degreeLinPol[i] /= mueller[0,0]
+
+            ax.plot( self.theta*180.0/np.pi, degreeLinPol, color=colors[j%len(colors)],
+            label="\$\SI{%d}{\degree}\$"%(phi[j]*180.0/np.pi) )
+        ax.set_xlabel("\$Scattering angle, \\theta \$ (deg)")
+        ax.set_ylabel( "\$\\frac{\sqrt{M_{21}^2+M_{31}^2}}{M_{11}}\$" )
+        ax.legend( loc="best", frameon=False, labelspacing=0.05 )
+
 
 def main( argv ):
     if ( len(argv) != 1 ):
@@ -141,7 +164,7 @@ def main( argv ):
 
     mueller.plot()
     mueller.plotStokesVectorVSPhi( 3, -1 )
-    print ( mueller.projectionMatrix(-1,-1) )
+    mueller.degreeOfLinearPolarizationUnpolarized( [0, np.pi/4.0, np.pi/2.0] )
     plt.show()
 
 if __name__ == "__main__":

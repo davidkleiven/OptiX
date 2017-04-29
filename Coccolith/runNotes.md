@@ -24,3 +24,6 @@ sphereCrossSectionRes8.h5 | Scattering cross secrion for a sphere with resolutio
 20170407_1606 | Horizontal polarization (Ey) | Looks good |
 20170407_1712 | Sphere horizontal polarization | U and V, zero Q/I varies... |
 20170408_1620 | Sphere horizontal polarization | Q/I = 1 as it should be |
+20170427_1007 | Sphere with mueller matrix | Looks OK, it shows a small azimuthal dependencies |
+20170428_0732 | Coccoloith with mueller matrix | Strong peak effects |
+20170428_2130 | Sphere better resolution, freq 0.03 +- 0.045 | OK, try with larger wavelength |

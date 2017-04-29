@@ -35,8 +35,8 @@ def launch( muellerSim ):
 
 def mergeHDF5s():
     tstamp = time.strftime("%Y%m%d_%H%M")
-    fname = "data/muellerMatrix_%s.h5"%(tstamp)
-    hfile = h5.File( fname )
+    ofname = "data/muellerMatrix_%s.h5"%(tstamp)
+    hfile = h5.File( ofname )
     isFirst = True
     counter = 0
     for fname in os.listdir(tempDir):
@@ -62,7 +62,7 @@ def mergeHDF5s():
 
     # Clean up
     subprocess.call(["rm", "-r", tempDir])
-    print ("Data written to %s"%(fname))
+    print ("Data written to %s"%(ofname))
 
 def main( argv ):
     global templateInputFile
