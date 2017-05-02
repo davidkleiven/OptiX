@@ -148,9 +148,140 @@ class MuellerMatrix:
 
             ax.plot( self.theta*180.0/np.pi, degreeLinPol, color=colors[j%len(colors)],
             label="\$\SI{%d}{\degree}\$"%(phi[j]*180.0/np.pi) )
-        ax.set_xlabel("\$Scattering angle, \\theta \$ (deg)")
+        ax.set_xlabel("Scattering angle, \$\\theta \$ (deg)")
         ax.set_ylabel( "\$\\frac{\sqrt{M_{21}^2+M_{31}^2}}{M_{11}}\$" )
         ax.legend( loc="best", frameon=False, labelspacing=0.05 )
+        ax.spines["right"].set_visible(False)
+        ax.spines["top"].set_visible(False)
+        ax.xaxis.set_ticks_position("bottom")
+        ax.yaxis.set_ticks_position("left")
+
+    def degreeOfLinPolPhiAveraged( self ):
+        degreeLinPol = np.zeros( len(self.theta) )
+        for j in range(0,len(self.phi)):
+            for i in range(0,len(self.theta) ):
+                mueller = self.mueller(i,j)
+                degreeLinPol[i] += np.sqrt( mueller[1,0]**2 + mueller[2,0]**2 )/mueller[0,0]
+        degreeLinPol /= len(self.phi)
+        fig = plt.figure()
+        ax = fig.add_subplot(1,1,1)
+        ax.plot( self.theta*180.0/np.pi, degreeLinPol, color="black" )
+        ax.set_xlabel("Scattering angle, \$\\theta \$ (deg)")
+        ax.set_ylabel( "\$\Big\langle \\frac{\sqrt{M_{21}^2+M_{31}^2}}{M_{11}} \Big\\rangle_\phi\$" )
+        ax.spines["right"].set_visible(False)
+        ax.spines["top"].set_visible(False)
+        ax.xaxis.set_ticks_position("bottom")
+        ax.yaxis.set_ticks_position("left")
+
+    def muellerMatrixSingleElements( self, phi ):
+        fig = plt.figure()
+        ax1 = fig.add_subplot(2,2,1)
+        ax2 = fig.add_subplot(2,2,2)
+        ax3 = fig.add_subplot(2,2,3)
+        ax4 = fig.add_subplot(2,2,4)
+        phiIndx = np.argmin( np.abs(self.phi-phi) )
+        M11 = np.zeros(len(self.theta))
+        M12 = np.zeros(len(self.theta))
+        M13 = np.zeros(len(self.theta))
+        M14 = np.zeros(len(self.theta))
+        M21 = np.zeros(len(self.theta))
+        M22 = np.zeros(len(self.theta))
+        M23 = np.zeros(len(self.theta))
+        M24 = np.zeros(len(self.theta))
+        M31 = np.zeros(len(self.theta))
+        M32 = np.zeros(len(self.theta))
+        M33 = np.zeros(len(self.theta))
+        M34 = np.zeros(len(self.theta))
+        M41 = np.zeros(len(self.theta))
+        M42 = np.zeros(len(self.theta))
+        M43 = np.zeros(len(self.theta))
+        M44 = np.zeros(len(self.theta))
+        for i in range(0,len(self.theta) ):
+            M = self.mueller(i,phiIndx)
+            M11[i] = M[0,0]
+            M12[i] = M[0,1]
+            M13[i] = M[0,2]
+            M14[i] = M[0,3]
+            M21[i] = M[1,0]
+            M22[i] = M[1,1]
+            M23[i] = M[1,2]
+            M24[i] = M[1,3]
+            M31[i] = M[2,0]
+            M32[i] = M[2,1]
+            M33[i] = M[2,2]
+            M34[i] = M[2,3]
+            M41[i] = M[3,0]
+            M42[i] = M[3,1]
+            M43[i] = M[3,2]
+            M44[i] = M[3,3]
+        angle = self.theta*180.0/np.pi
+
+        # Determine scale
+        maxVals = np.max( [np.max(M11),np.max(M22),np.max(M33),np.max(M44)] )
+        log10 = int( np.log10(maxVals) )
+        if ( log10 < 0 ):
+            log10 -= 1
+        scale = 10**log10
+        ax1.plot( angle, M11/scale, label="\$M_{11}\$", color="#e41a1c")
+        ax1.plot( angle, M22/scale, label="\$M_{22}\$", color="#377eb8")
+        ax1.plot( angle, M33/scale, label="\$M_{33}\$", color="#4daf4a")
+        ax1.plot( angle, M44/scale, label="\$M_{44}\$", color="#ff7f00")
+        ax1.set_xlabel("Scattering angle, \$\\theta\$ (deg)")
+        ax1.set_ylabel("\$\\times 10^{%d}\$"%(log10) )
+        ax1.legend(loc="best", frameon=False, labelspacing=0.05)
+        ax1.spines["right"].set_visible(False)
+        ax1.spines["top"].set_visible(False)
+        ax1.xaxis.set_ticks_position("bottom")
+        ax1.yaxis.set_ticks_position("left")
+
+        maxVals = np.max( [np.max(M12),np.max(M21),np.max(M34),np.max(M43)] )
+        log10 = int( np.log10(maxVals) )
+        if ( log10 < 0 ):
+            log10 -= 1
+        scale = 10**log10
+        ax2.plot( angle, M12/scale, label="\$M_{12}\$", color="#e41a1c" )
+        ax2.plot( angle, M21/scale, label="\$M_{21}\$", color="#377eb8" )
+        ax2.plot( angle, M34/scale, label="\$M_{34}\$", color="#4daf4a" )
+        ax2.plot( angle, M43/scale, label="\$M_{43}\$", color="#ff7f00" )
+        ax2.set_ylabel("\$\\times 10^{%d}\$"%(log10) )
+        ax2.legend( loc="best", frameon=False, labelspacing=0.05 )
+        ax2.spines["right"].set_visible(False)
+        ax2.spines["top"].set_visible(False)
+        ax2.xaxis.set_ticks_position("bottom")
+        ax2.yaxis.set_ticks_position("left")
+
+        maxVals = np.max( [np.max(M13),np.max(M31),np.max(M41),np.max(M14)] )
+        log10 = int( np.log10(maxVals) )
+        if ( log10 < 0 ):
+            log10 -= 1
+        scale = 10**log10
+        ax3.plot( angle, M13/scale, label="\$M_{13}\$", color="#e41a1c" )
+        ax3.plot( angle, M31/scale, label="\$M_{31}\$", color="#377eb8" )
+        ax3.plot( angle, M14/scale, label="\$M_{14}\$", color="#4daf4a" )
+        ax3.plot( angle, M41/scale, label="\$M_{41}\$", color="#ff7f00" )
+        ax3.legend( loc="best", frameon=False, labelspacing=0.05 )
+        ax3.set_ylabel("\$\\times 10^{%d}\$"%(log10) )
+        ax3.spines["right"].set_visible(False)
+        ax3.spines["top"].set_visible(False)
+        ax3.xaxis.set_ticks_position("bottom")
+        ax3.yaxis.set_ticks_position("left")
+
+        maxVals = np.max( [np.max(M23),np.max(M32),np.max(M24),np.max(M42)] )
+        log10 = int( np.log10(maxVals) )
+        if ( log10 < 0 ):
+            log10 -= 1
+        scale = 10**log10
+        ax4.plot( angle, M23/scale, label="\$M_{23}\$", color="#e41a1c" )
+        ax4.plot( angle, M32/scale, label="\$M_{32}\$", color="#377eb8" )
+        ax4.plot( angle, M24/scale, label="\$M_{24}\$", color="#4daf4a" )
+        ax4.plot( angle, M42/scale, label="\$M_{42}\$", color="#ff7f00" )
+        ax4.set_ylabel("\$\\times 10^{%d}\$"%(log10) )
+        ax4.legend( loc="best", frameon=False, labelspacing=0.05 )
+        ax4.spines["right"].set_visible(False)
+        ax4.spines["top"].set_visible(False)
+        ax4.xaxis.set_ticks_position("bottom")
+        ax4.yaxis.set_ticks_position("left")
+
 
 
 def main( argv ):
@@ -164,7 +295,9 @@ def main( argv ):
 
     mueller.plot()
     mueller.plotStokesVectorVSPhi( 3, -1 )
-    mueller.degreeOfLinearPolarizationUnpolarized( [0, np.pi/4.0, np.pi/2.0] )
+    mueller.degreeOfLinearPolarizationUnpolarized( [np.pi/4.0, 3.0*np.pi/4.0] )
+    mueller.degreeOfLinPolPhiAveraged()
+    mueller.muellerMatrixSingleElements( np.pi/4.0 )
     plt.show()
 
 if __name__ == "__main__":

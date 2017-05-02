@@ -27,3 +27,5 @@ sphereCrossSectionRes8.h5 | Scattering cross secrion for a sphere with resolutio
 20170427_1007 | Sphere with mueller matrix | Looks OK, it shows a small azimuthal dependencies |
 20170428_0732 | Coccoloith with mueller matrix | Strong peak effects |
 20170428_2130 | Sphere better resolution, freq 0.03 +- 0.045 | OK, try with larger wavelength |
+20170430_0706 | Sphere better resolution, freq 0.02 +0 0.03 | OK, 45 and 135 deg deviates a bit |
+20170502_0200 | Mueller matrix for a coccolith | Looks OK |
