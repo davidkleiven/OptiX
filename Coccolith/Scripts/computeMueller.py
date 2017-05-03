@@ -5,6 +5,7 @@ import matplotlib as mpl
 from matplotlib import pyplot as plt
 import polarization as plz
 import h5py as h5
+from scipy import interpolate as interp
 
 class IncidentStokes:
     def __init__( self ):
@@ -84,6 +85,7 @@ class MuellerMatrix:
         for theta in range(0,ntheta):
             for phi in range(0,nphi):
                 mat = self.mueller(theta,phi)
+                mat /= mat[0,0]
                 for i in range(0,4):
                     for j in range(0,4):
                         muellerAng[i][j][theta,phi] = mat[i,j]
@@ -108,8 +110,16 @@ class MuellerMatrix:
         THETA, PHI = np.meshgrid( self.theta, self.phi )
         for i in range(0,4):
             for j in range(0,4):
-                #im = axes[i*4+j].imshow( muellerAng[i][j].T[:,::-1], cmap=cmap, aspect="auto", vmin=minval, vmax=maxval)
-                im = axes[i*4+j].contourf( THETA, PHI, muellerAng[i][j].T, 256, cmap=cmap, vmin=minval, vmax=maxval)
+                rectInterp = interp.RectBivariateSpline( self.theta[::-1], self.phi, muellerAng[i][j][::-1,:] )
+                imgsize = 128
+                thetaInterp = np.linspace( self.theta.min(), self.theta.max(), imgsize )
+                phiInterp = np.linspace( self.phi.min(), self.phi.max(), imgsize )
+                img = np.zeros((imgsize,imgsize))
+                for th in range(0,len(thetaInterp)):
+                    for ph in range(0,len(phiInterp)):
+                        img[ph,th] = rectInterp(thetaInterp[th],phiInterp[ph])
+                im = axes[i*4+j].imshow( img, cmap=cmap, aspect="auto", vmin=minval, vmax=maxval)
+                #im = axes[i*4+j].contourf( THETA, PHI, muellerAng[i][j].T, 256, cmap=cmap, vmin=minval, vmax=maxval)
         for i in range(0,16):
             axes[i].xaxis.set_ticks([])
             axes[i].yaxis.set_ticks([])
