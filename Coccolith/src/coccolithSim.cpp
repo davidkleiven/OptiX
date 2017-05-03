@@ -692,6 +692,9 @@ void CoccolithSimulation::exportResults()
 
     field->output_hdf5( fieldComp, gdvol.surroundings(), file, false, true );
     file->prevent_deadlock();
+
+    field->output_hdf5( secondComp, gdvol.surroundings(), file, false, true );
+    file->prevent_deadlock();
     farFieldQuantities();
   }
   saveDFTSpectrum();
