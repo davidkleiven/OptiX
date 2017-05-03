@@ -45,8 +45,14 @@ int main( int argc, char** argv )
     SellmeierMaterial sellmeier;
     sim->resolution = root["resolution"].asDouble();
     sellmeier.load( root["material"].asString().c_str() );
+
     VoxelSusceptibility material( sellmeier.epsInf, 1.0 );
+    if ( root.isMember("threshold") )
+    {
+      material.setThreshold( root["threshold"].asUInt() );
+    }
     material.loadRaw( root["voxels"].asString().c_str() );
+    
     sim->setMaterial( material );
 
     unsigned int nFreq = 150;
@@ -91,10 +97,6 @@ int main( int argc, char** argv )
     if ( useDispersive )
     {
       sim->setSellmeierMaterial( sellmeier );
-    }
-    if ( root.isMember("threshold") )
-    {
-      material.setThreshold( root["threshold"].asUInt() );
     }
 
     sim->setIncStokesVector(incidentStokesVector);
