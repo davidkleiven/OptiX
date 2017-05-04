@@ -36,6 +36,11 @@ int main( int argc, char** argv )
     SteadyCoccolithSim sim;
     sim.prefix = "steadyCoccolith";
     CaCO3Cocco material( 2.19 );
+
+    if ( root.isMember("threshold") )
+    {
+      material.setThreshold( root["threshold"].asUInt() );
+    }
     material.loadRaw( root["voxels"].asString().c_str() );
 
     if ( root.isMember("incStokesVector") )
