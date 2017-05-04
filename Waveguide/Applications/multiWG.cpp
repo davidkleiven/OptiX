@@ -1,7 +1,6 @@
 #include <visa/visa.hpp>
 #include <pei/dialogBox.hpp>
 #include "multipleCurvedWG.hpp"
-#include "controlFile.hpp"
 #include <map>
 #include <string>
 #include <chrono>
@@ -64,9 +63,7 @@ int main ( int argc, char** argv )
     simulation.init( params );
     simulation.solve();
 
-    ControlFile ctl("data/multipleWG");
-    simulation.save( ctl );
-    ctl.save();
+    simulation.save( "data/multipleWG.h5" );
     arma::mat intensity = simulation.getIntensity();
     visa::WindowHandler plots;
     plots.addPlot("Intensity");

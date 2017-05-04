@@ -2,6 +2,7 @@
 #include <PaxPro/controlFile.hpp>
 #include <iostream>
 #include <sstream>
+#include <ctime>
 
 using namespace std;
 
@@ -56,6 +57,7 @@ private:
 
 int main( int argc, char **argv )
 {
+  srand(time(0));
   if ( argc != 4 )
   {
     cout << "Usage: ./layeredSphere.out <fft or adim> <Nx> <Nz>\n";
@@ -78,28 +80,32 @@ int main( int argc, char **argv )
   sim.dy = (sim.ymax-sim.ymin)/Nx;
   sim.dz = (sim.zmax-sim.zmin)/Nz;
 
+  // Set size of exported files
+  sim.exportNx = 2048;
+  sim.exportNy = 2048;
+
   unsigned int finalSizeX = 256;
   unsigned int finalSizeZ = 256;
   sim.downSampleX = Nx/finalSizeX;
   sim.downSampleY = sim.downSampleX;
   sim.downSampleZ = Nz/finalSizeZ;
-  sim.setMaxScatteringAngle( 0.01 );
+  sim.setMaxScatteringAngle( 1.0 );
   sim.wavelength = 0.177; // wavelength in nm
 
   string solver(argv[1]);
   sim.useFFTSolver = ( solver == "fft" );
 
-  sim.FFTPadLength = 131072;
+  sim.FFTPadLength = 32768;
   sim.setMaterial( material );
 
   try
   {
     sim.solve();
 
+    stringstream fname;
+    fname << "data/layeredSphere" << rand()%1000000 << ".h5";
     // Save results
-    ControlFile ctl("data/layeredSphere");
-    sim.save( ctl );
-    ctl.save();
+    sim.save( fname.str() );
   }
   catch( exception &exc )
   {

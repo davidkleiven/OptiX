@@ -1,5 +1,4 @@
 #include "waveguide3D.hpp"
-#include "controlFile.hpp"
 #include "postProcessMod.hpp"
 #include "fftSolver3D.hpp"
 #include "gaussianBeam.hpp"
@@ -157,8 +156,6 @@ int main( int argc, char** argv )
     //alternatingDirection.setPlotLimits( 0.0, 2.0, -3.1459, 3.14159 );
     alternatingDirection.useTBC = true; // Use transparent boundary conditions
 
-    ControlFile ctl( "data/waveguide3D" );
-
     switch ( wgtype )
     {
       case Wg_t::STRAIGHT:
@@ -181,7 +178,7 @@ int main( int argc, char** argv )
 
         straightWG.setBoundaryConditions( gbeam );
         straightWG.solve();
-        straightWG.save( ctl );
+        straightWG.save( "data/waveguide3D.h5" );
         break;
       }
       case Wg_t::CURVED:
@@ -199,10 +196,9 @@ int main( int argc, char** argv )
 
         curvedWG.setBoundaryConditions( gbeam );
         curvedWG.solve();
-        curvedWG.save( ctl );
+        curvedWG.save( "data/waeguide3DCurved.h5" );
         break;
     }
-    ctl.save();
   }
   catch ( exception &exc )
   {

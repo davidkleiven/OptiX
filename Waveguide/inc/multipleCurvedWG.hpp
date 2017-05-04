@@ -6,7 +6,6 @@
 #include "planeWave.hpp"
 #include "cladding.hpp"
 #include "arraySource.hpp"
-#include "controlFile.hpp"
 #include "postProcessMod.hpp"
 #include <string>
 #include <vector>
@@ -45,7 +44,7 @@ public:
   virtual void solve() override;
 
   /** Save run */
-  virtual void save( ControlFile &ctl ) override;
+  virtual void save( const char* fname ) override;
 private:
   std::vector<CurvedWGConfMap*> *waveguides{NULL};
   std::vector<double> angles;

@@ -37,8 +37,6 @@ public:
   /** Fill a JSON object with parameters specific to this geometry */
   void fillInfo( Json::Value &obj ) const override;
 
-  /** Initialize the geometry. Only when loading an old simulation for the purpose of running the postprocessing */
-  void init( const ControlFile &ctl ) override;
 protected:
   Coordinate_t crd;
   double separation;

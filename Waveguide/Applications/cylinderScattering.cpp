@@ -2,7 +2,6 @@
 #include "planeWave.hpp"
 #include "paraxialEquation.hpp"
 #include "crankNicholson.hpp"
-#include "controlFile.hpp"
 #include "postProcessMod.hpp"
 #include "fftSolver2D.hpp"
 #include <iostream>
@@ -56,13 +55,11 @@ int main( int argc, char **argv )
     clog << "Solving system...";
     cylinderSim.solve();
     clog << "done\n";
-    ControlFile ctl("data/cylinder");
 
     ff.setAngleRange( -0.1, 0.1 );
     ff.setPadLength( 262144 );
     cylinderSim << amplitude << phase << ef << ei << ep << ff;
-    cylinderSim.save( ctl );
-    ctl.save();
+    cylinderSim.save( "data/cylinderScattering.h5" );
 
     visa::WindowHandler plots;
     plots.addPlot("Intensity");

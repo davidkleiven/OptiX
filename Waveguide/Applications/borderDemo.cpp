@@ -2,7 +2,6 @@
 #include "cladding.hpp"
 #include "curvedWaveGuide2D.hpp"
 #include "crankNicholson.hpp"
-#include "controlFile.hpp"
 #include "straightWG2D.hpp"
 #include "planeWave.hpp"
 #include "paraxialEquation.hpp"

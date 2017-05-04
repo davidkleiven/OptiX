@@ -55,12 +55,3 @@ bool CoupledCurvedWG::isInsideGuide( double x, double z ) const
    obj["separation"] = separation;
    obj["couplerStart"] = startCoupler;
  }
-
-void CoupledCurvedWG::init( const ControlFile &ctl )
-{
-    WaveGuideFDSimulation::init(ctl);
-    wg1->init( ctl );
-    wg2->init( ctl );
-    separation = ctl.get()["separation"].asDouble();
-    startCoupler = ctl.get()["couplerStart"].asDouble();
-}

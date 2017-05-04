@@ -57,7 +57,6 @@ int main( int argc, char **argv )
   stepX = stepX > 1.0 ? 1.0:stepX;
   stepZ = stepZ > 100.0 ? 100.0:stepZ;
 
-  ControlFile ctl("data/coupledCurvedWG"); // File for all parameters and settings
   CoupledCurvedWG wg(CoupledCurvedWG::Coordinate_t::CYLINDRICAL);
   try
   {
@@ -95,9 +94,8 @@ int main( int argc, char **argv )
     clog << "done\n";
     */
     clog << "Exporting results...\n";
-    wg.save( ctl );
+    wg.save( "data/coupledCurvedWG.h5" );
     //wg->saveTransmission( ctl );
-    ctl.save();
     clog << "Finished exporting\n";
   }
   catch ( exception &exc )

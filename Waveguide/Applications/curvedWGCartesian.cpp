@@ -3,7 +3,6 @@
 #include "curvedWaveGuide2D.hpp"
 #include "crankNicholson.hpp"
 #include "fftSolver2D.hpp"
-#include "controlFile.hpp"
 #include "straightWG2D.hpp"
 #include "paraxialSource.hpp"
 #include "planeWave.hpp"
@@ -117,7 +116,7 @@ int main( int argc, char **argv )
   post::FarField ff;
   ff.setPadLength( params["padLength"] );
   ff.setAngleRange( params["ffAngleMin"], params["ffAngleMax"] );
-  ControlFile ctl("data/singleCurvedWG"); // File for all parameters and settings
+
   PlaneWave pw;
   setupPW( pw, params );
   CrankNicholson solver;
@@ -149,8 +148,7 @@ int main( int argc, char **argv )
         clog << "done\n";
 
         clog << "Exporting results...\n";
-        wg.save( ctl );
-        ctl.save();
+        wg.save( "data/curvedWGCartesian.h5" );
         clog << "Finished exporting\n";
         intensity = arma::abs( wg.getSolver().getSolution() );
         break;
@@ -174,8 +172,7 @@ int main( int argc, char **argv )
         wg.solve();
         clog << " done\n";
         clog << "Exporting results...\n";
-        wg.save( ctl );
-        ctl.save();
+        wg.save("data/curvedWGCartesian.h5" );
         clog << "Finished exporting\n";
         intensity = arma::abs( wg.getSolver().getSolution() );
         break;
@@ -200,8 +197,7 @@ int main( int argc, char **argv )
         clog << " done\n";
         clog << "Exporting results...\n";
         if (!useBorderTracker) wg.extractWGBorders();
-        wg.save( ctl );
-        ctl.save();
+        wg.save( "data/curvedWGCartesian.h5" );
         clog << "Finished exporting results\n";
         intensity = arma::abs( wg.getSolver().getSolution() );
         break;
@@ -225,8 +221,7 @@ int main( int argc, char **argv )
         clog << " done\n";
         clog << "Exporting results...\n";
         if (!useBorderTracker) wg.extractWGBorders();
-        wg.save( ctl );
-        ctl.save();
+        wg.save( "data/curvedWGCartesian.h5" );
         clog << "Finished exporting results\n";
         intensity = arma::abs( wg.getSolver().getSolution() );
         break;
@@ -249,8 +244,7 @@ int main( int argc, char **argv )
         clog << " done\n";
         clog << "Exporting results...\n";
         if (!useBorderTracker) wg.extractWGBorders();
-        wg.save( ctl );
-        ctl.save();
+        wg.save( "data/curvedWGCartesian.h5" );
         clog << "Finished exporting results\n";
         intensity = arma::abs( wg.getSolver().getSolution() );
         break;

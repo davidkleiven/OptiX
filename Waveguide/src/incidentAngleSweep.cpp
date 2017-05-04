@@ -125,10 +125,8 @@ void IncidentAngleSweep::solve()
 
     if ( ( saveIter != endIter ) && ( i == *saveIter ) )
     {
-      ControlFile ctl("data/incidentAngleSweep");
       wg.extractWGBorders();
-      wg.save( ctl );
-      ctl.save();
+      wg.save( "data/incidentAngleSweepWG.h5" );
       ++saveIter;
     }
 

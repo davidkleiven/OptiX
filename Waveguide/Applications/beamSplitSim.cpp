@@ -1,7 +1,6 @@
 #include <iostream>
 #include "cladding.hpp"
 #include "crankNicholson.hpp"
-#include "controlFile.hpp"
 #include "straightWG2D.hpp"
 #include "coupledCurvedWG.hpp"
 #include "curvedWGCylCrd.hpp"
@@ -40,7 +39,6 @@ int main( int argc, char **argv )
   double xmax = wgEnd*angleDeg*PI/180.0 + 1.5*width;
   double dx = 1.0;
 
-  ControlFile ctl("data/beamSplitter");
   double wavelength = 0.1569;
   try
   {
@@ -76,8 +74,7 @@ int main( int argc, char **argv )
     farField.setPadLength( 524288 );
     wg << amplitude << phase << farField << ef << ep << ei;
     clog << "Exporting results...\n";
-    wg.save( ctl );
-    ctl.save();
+    wg.save( "data/beamSplitter.h5" );
     clog << "Finished exporting\n";
   }
   catch ( exception &exc )

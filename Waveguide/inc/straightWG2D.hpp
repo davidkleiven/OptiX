@@ -17,9 +17,6 @@ public:
   /** Fill JSON object with parameters relevant to this class */
   void fillInfo( Json::Value &obj ) const override final;
 
-  /** Initialize the waveguide. Relevant if loading an old solution */
-  void init( const ControlFile &ctl ) override final;
-
   /** Extract the wavefield at the edge cooresponding to the x-coordinate wcrd */
   void extractField( double wcrd, std::vector<cdouble> &res ) const override final;
 protected:

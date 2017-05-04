@@ -1,7 +1,6 @@
 #include "paraxialSimulation.hpp"
 #include <armadillo>
 #include <H5Cpp.h>
-#include "controlFile.hpp"
 #include <string>
 #include <iostream>
 
@@ -13,17 +12,16 @@ public:
   SaveTest(): ParaxialSimulation("SaveTest"), matrix(6, 8){};
   arma::mat matrix;
   arma::mat matrix2;
-  virtual void save( ControlFile &ctl ) override;
+  virtual void save( const char* fname ) override;
   void printMatrices() const;
 };
 
 /** Implementation of the member functions */
-void SaveTest::save( ControlFile &ctl )
+void SaveTest::save( const char* fname )
 {
   matrix2 = arma::pow( matrix, 2 );
   printMatrices();
-  string fname("data/testArmaMatrixSave.h5");
-  file = new H5::H5File( fname.c_str(), H5F_ACC_TRUNC );
+  file = new H5::H5File( fname, H5F_ACC_TRUNC );
   saveArray( matrix, "matrix" );
   saveArray( matrix2, "matrix2" );
   clog << "File written to " << fname << endl;
@@ -64,7 +62,6 @@ int main()
     }
   }
 
-  ControlFile ctl;
-  sim.save( ctl );
+  sim.save( "data/armatestsave.h5" );
   return 0;
 }

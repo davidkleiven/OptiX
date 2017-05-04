@@ -281,9 +281,9 @@ void MultipleCurvedWG::flipWrtCenterOfWG( arma::mat &mat ) const
   }
 }
 
-void MultipleCurvedWG::save( ControlFile &ctl )
+void MultipleCurvedWG::save( const char* fname )
 {
-  ParaxialSimulation::save( ctl );
+  ParaxialSimulation::save( fname );
   assert( maingroup != NULL );
 
   // Add radii and angles attributes

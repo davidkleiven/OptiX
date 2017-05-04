@@ -3,7 +3,6 @@
 #include "paraxialEquation.hpp"
 #include "genericScattering.hpp"
 #include "crankNicholson.hpp"
-#include "controlFile.hpp"
 #include <iostream>
 #include <visa/visa.hpp>
 #include <pei/dialogBox.hpp>
@@ -147,9 +146,7 @@ int main( int argc, char **argv )
 
     simulation.description = ss.str();
     simulation.solve();
-    ControlFile ctl("data/sphere");
-    simulation.save( ctl );
-    ctl.save();
+    simulation.save( "data/sphere.h5" );
   }
   catch ( exception &exc )
   {
