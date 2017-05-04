@@ -58,7 +58,7 @@ class Plotter3D:
 
     def projectionXY( self, cg ):
         maxval = np.max( self.data )
-        minval = 1E-8*maxval
+        minval = 1E-14*maxval
         if ( np.min(self.data) > minval ):
             minval = np.min(self.data)
         fig = plt.figure()
@@ -152,3 +152,4 @@ class IntensityPlot(Plotter3D):
         self.ycrdlab = "\$y \SI{}{\micro\meter}\$"
         self.name = "intensity"
         self.quantityLab = "Intensity (a.u.)"
+        self.cbLog = False

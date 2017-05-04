@@ -89,7 +89,7 @@ int main( int argc, char **argv )
   sim.downSampleX = Nx/finalSizeX;
   sim.downSampleY = sim.downSampleX;
   sim.downSampleZ = Nz/finalSizeZ;
-  sim.setMaxScatteringAngle( 1.0 );
+  sim.setMaxScatteringAngle( 0.5 );
   sim.wavelength = 0.177; // wavelength in nm
 
   string solver(argv[1]);
