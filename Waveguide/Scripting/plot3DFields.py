@@ -45,10 +45,10 @@ def main( argv ):
         else:
             lim.ymax = lim.xmax
 
-        ffPlot.uid = group.attrs.get("uid")
-        ampPlot.uid = ffPlot.uid
-        phasePlot.uid = ffPlot.uid
-        intensityPlot.uid = ffPlot.uid
+        #ffPlot.uid = group.attrs.get("uid")
+        #ampPlot.uid = ffPlot.uid
+        #phasePlot.uid = ffPlot.uid
+        #intensityPlot.uid = ffPlot.uid
 
     ampPlot.limits = lim
     ffPlot.limits = lim

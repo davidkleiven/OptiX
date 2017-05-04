@@ -211,3 +211,4 @@
 193245 | Curved WG R=40mm, L = 0.4 mm | Looks good |
 765460 | Transparent boundary conditions, for demonstration | Looks good |
 615880 | Dirichlet boundary conditions, for demonstration | Looks good |
+414644 | Layered sphere ET looks good | OK |
