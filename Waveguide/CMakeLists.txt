@@ -204,6 +204,9 @@ target_link_libraries( sphereScat.out ${LIB} src )
 add_executable( wg3DSim.out Applications/waveguide3Dsim.cpp )
 target_link_libraries( wg3DSim.out ${LIB} src )
 
+add_executable( layeredSphere.out Applications/layeredSphere.cpp )
+target_link_libraries( layeredSphere.out ${LIB} src )
+
 # Compile unittests
 find_package( Boost COMPONENTS system filesystem unit_test_framework )
 include_directories( ${Boost_INCLUDE_DIRS} )
