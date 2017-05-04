@@ -152,6 +152,9 @@ public:
   /** Use an 45 degree polarization in the sources */
   bool computeStokesParameters{false};
 
+  /** Set to true if the 3D fields should be computed */
+  bool save3DFields{true};
+
   /** Set the order of the Gauss Legendre that is used for the asymmetry function calculation */
   unsigned int gaussLegendreOrder{17};
 
