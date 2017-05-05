@@ -153,3 +153,4 @@ class IntensityPlot(Plotter3D):
         self.name = "intensity"
         self.quantityLab = "Intensity (a.u.)"
         self.cbLog = False
+        print (self.cbLog)

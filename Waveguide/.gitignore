@@ -20,3 +20,4 @@ Makefile
 *.csv
 InputFiles/waveguideGeometry*.json
 inc/config.h
+Applications/*.o

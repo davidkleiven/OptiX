@@ -23,6 +23,7 @@ def main( argv ):
     phasePlot = proj3D.Phase()
     ffPlot = proj3D.FarField()
     intensityPlot = proj3D.IntensityPlot()
+    intensityPlot.cbLog = False
 
     with h5.File( fname, 'r' ) as hf:
         group = hf.get("/data")
