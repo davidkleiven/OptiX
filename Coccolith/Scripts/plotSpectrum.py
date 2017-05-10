@@ -65,6 +65,11 @@ class Spectrum:
         ax.set_ylabel("\$1-T\$")
         return fig, ax
 
+    def getScatteringCrossSecion( self ):
+        intensityRatio = np.abs( (self.boxScattered-self.boxFluxRef)/self.sourceFluxReference )
+        area = self.crossSectionInPx*self.voxelSize*self.voxelSize/1E6
+        return intensityRatio*area
+
     def scatteringCrossSection( self, color="black", lw=1, asymmetry=False, label="" ):
         fig = plt.figure()
         ax = fig.add_subplot(1,1,1)
@@ -77,11 +82,11 @@ class Spectrum:
             print ("No cross section in pixels given!")
 
         f = np.linspace( self.freqmin, self.freqmax(), len( self.ref ) )
-        intensityRatio = np.abs( (self.boxScattered-self.boxFluxRef)/self.sourceFluxReference )
-        area = self.crossSectionInPx*self.voxelSize*self.voxelSize/1E6
+        #intensityRatio = np.abs( (self.boxScattered-self.boxFluxRef)/self.sourceFluxReference )
+        #area = self.crossSectionInPx*self.voxelSize*self.voxelSize/1E6
 
         wavelength = self.voxelSize/f
-        ax.plot( wavelength, intensityRatio*area, color=color, lw=lw)
+        ax.plot( wavelength, self.getScatteringCrossSecion(), color=color, lw=lw)
         ax.set_ylabel("Scattering cross section, \$\sigma_s\$ (\$\SI{}{\micro\meter\squared}\$)")
         ax.set_xlabel("Wavelength (nm)")
         ax.spines["right"].set_visible(False)
