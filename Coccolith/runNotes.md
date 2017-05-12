@@ -36,3 +36,4 @@ sphereCrossSectionRes8.h5 | Scattering cross secrion for a sphere with resolutio
 20170510_1921 | Coccolith original steady | OK |
 20170510_2057 | Coccolith filled edges steady | OK |
 20170510_2217 | Coccolith filled center steady | OK |
+20170511_1340 | Small coccolith edges filled | Minimum is not on the same spot |
