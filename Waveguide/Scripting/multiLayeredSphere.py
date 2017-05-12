@@ -27,6 +27,8 @@ def main( argv ):
     q = np.linspace( qmin, qmax, len(ffLine) )
     formfactor = layers.formFactor( q )**2
 
+    np.savetxt( "data/formfactorAbsolutSquared.csv", np.vstack([q,formfactor]).T, delimiter=",")
+
     # Normalize the data
     ffLine *= np.sum(formfactor)/np.sum(ffLine)
 

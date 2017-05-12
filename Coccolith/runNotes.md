@@ -29,3 +29,5 @@ sphereCrossSectionRes8.h5 | Scattering cross secrion for a sphere with resolutio
 20170428_2130 | Sphere better resolution, freq 0.03 +- 0.045 | OK, try with larger wavelength |
 20170430_0706 | Sphere better resolution, freq 0.02 +0 0.03 | OK, 45 and 135 deg deviates a bit |
 20170502_0200 | Mueller matrix for a coccolith | Looks OK |
+20170505_1258 | Filled center | Not analysed |
+20170505_1909 | Steady filled center | Not analysed |
