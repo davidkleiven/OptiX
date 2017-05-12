@@ -28,7 +28,8 @@ class MuellerMatrix:
         key = "Run%d"%(counter)
         while (key in hfile.keys() ):
             pol = plz.Polarization()
-            pol.readPhiAndTheta( hfile.get(key), 1 )
+            freqindx = 1
+            pol.readPhiAndTheta( hfile.get(key), freqindx )
             self.pol.append(pol)
             incStk = IncidentStokes()
             incStk.Iinc = np.array( hfile.get(key).get("StokesIInc") )

@@ -212,3 +212,5 @@
 765460 | Transparent boundary conditions, for demonstration | Looks good |
 615880 | Dirichlet boundary conditions, for demonstration | Looks good |
 414644 | Layered sphere ET looks good | OK |
+294451 | Optimum layeres sphere | Starting to get closer... |
+580364 | Optimum layers sphere | Good for small q |

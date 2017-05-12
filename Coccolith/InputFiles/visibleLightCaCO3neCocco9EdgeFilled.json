@@ -1,0 +1,13 @@
+{
+  "centerFreq":0.045,
+  "fwidth":0.03,
+  "resolution":1.0,
+  "useDispersive":true,
+  "material":"Materials/CaCO3ne.json",
+  "voxels":"data/cocco9RotatedEdgeFilled_216_103_210_204.raw",
+  "prefix":"CaCO3Coccolith9EdgeFilled",
+  "threshold":40,
+  "computeAsymmetryFactor":true,
+  "computeStokes":true,
+  "incStokesVector":[1,1,0,0]
+}

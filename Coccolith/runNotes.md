@@ -31,3 +31,8 @@ sphereCrossSectionRes8.h5 | Scattering cross secrion for a sphere with resolutio
 20170502_0200 | Mueller matrix for a coccolith | Looks OK |
 20170505_1258 | Filled center | Not analysed |
 20170505_1909 | Steady filled center | Not analysed |
+20170505_1028 | Coccolith filled side | Scattering cross section is different form without |
+20170505_1258 | Coccolith filled center | OK |
+20170510_1921 | Coccolith original steady | OK |
+20170510_2057 | Coccolith filled edges steady | OK |
+20170510_2217 | Coccolith filled center steady | OK |
