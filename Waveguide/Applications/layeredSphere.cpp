@@ -243,7 +243,14 @@ int main( int argc, char **argv )
   sim.wavelength = 0.177; // wavelength in nm
 
   string solver(argv[1]);
-  sim.useFFTSolver = ( solver == "fft" );
+  if ( solver == "fft" )
+  {
+    sim.propagator = GenericScattering::SolverType_t::FFT;
+  }
+  else
+  {
+    sim.propagator = GenericScattering::SolverType_t::ADI;
+  }
 
   sim.FFTPadLength = 8092;
   sim.setMaterial( material );
