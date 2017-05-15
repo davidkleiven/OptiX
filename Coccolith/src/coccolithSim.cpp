@@ -1007,7 +1007,7 @@ void CoccolithSimulation::updateStructure()
 
   if ( surroundings != nullptr )
   {
-    for ( unsigned int i=0;i<surroudings->nLorentzians();i++ )
+    for ( unsigned int i=0;i<surroundings->nLorentzians();i++ )
     {
       double sigma, omega0;
       surroundings->getMEEPLorentzian( material->getVoxelSize()*1E-3, i, sigma, omega0 );

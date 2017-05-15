@@ -105,7 +105,7 @@ int main( int argc, char** argv )
     sim->resolution = root["resolution"].asDouble();
     sim->uid = uid;
     sim->gaussLegendreOrder = 512;
-    sim->numberOfAzimuthalSteps = 100;
+    sim->numberOfAzimuthalSteps = 4;
     if ( useDispersive )
     {
       sim->setSellmeierMaterial( sellmeier );

@@ -153,7 +153,7 @@ public:
   virtual double chi3(meep::component c, const meep::vec &r) override { (void)c; return f(r); }
   virtual double chi2(meep::component c, const meep::vec &r) override { (void)c; return f(r); }
 protected:
-  double f( const meep::vec &r );
+  virtual double f( const meep::vec &r );
   double parameter{0.0};
   double referenceReturnVal{0.0};
 };
@@ -163,6 +163,6 @@ class SurroundingVoxelSuscept: public VoxelSusceptibility
 public:
   SurroundingVoxelSuscept( double sigma, double referenceReturnVal ): VoxelSusceptibility(sigma,referenceReturnVal){};
 protected:
-  void f( const meep::vec &r ) override;
+  double f( const meep::vec &r ) override;
 };
 #endif
