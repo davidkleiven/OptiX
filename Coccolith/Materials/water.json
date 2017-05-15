@@ -1,0 +1,24 @@
+{
+ "url":"https://refractiveindex.info/?shelf=main&book=H2O&page=Daimon-19.0C",
+ "variable":"wavelength",
+ "unit":"um",
+ "epsInf":1.0,
+ "lorentzians":[
+   {
+     "prefactor":0.5672526103,
+     "resonance":0.005085550461
+   },
+   {
+     "prefactor":0.1736581125,
+     "resonance":0.01814938654
+   },
+   {
+     "prefactor":0.02121531502,
+     "resonance":0.02617260739
+   },
+   {
+     "prefactor":0.1138493213,
+     "resonance":10.73888649
+   }
+ ]
+}

@@ -160,6 +160,8 @@ public:
 
   /** Number of azimuthal angles to average over */
   unsigned int numberOfAzimuthalSteps{3};
+
+  SellmeierMaterial *surroundings{nullptr};
 protected:
   static Stokes incStoke;
   bool initialStokesVectorSet{false};

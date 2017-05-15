@@ -43,17 +43,29 @@ int main( int argc, char** argv )
     CoccolithSimulation *sim = new CoccolithSimulation();
     sim->prefix = root["prefix"].asString();
     SellmeierMaterial sellmeier;
+    SellmeierMaterial *sellmeierSurr{nullptr};
     sim->resolution = root["resolution"].asDouble();
     sellmeier.load( root["material"].asString().c_str() );
 
-    VoxelSusceptibility material( sellmeier.epsInf, 1.0 );
+    // Load surroudings
+    double epsSurrounding = 1.0;
+    if ( root.isMember("surroudings") )
+    {
+      sellmeierSurr = new SellmeierMaterial();
+      sellmeierSurr->load( root["surroudings"].asString().c_str() );
+      epsSurrounding = sellmeierSurr->epsInf;
+    }
+
+    // Material function that returns the epsilon_inf(x,y,z)
+    VoxelSusceptibility material( sellmeier.epsInf, epsSurrounding );
     if ( root.isMember("threshold") )
     {
       material.setThreshold( root["threshold"].asUInt() );
     }
     material.loadRaw( root["voxels"].asString().c_str() );
-    
+
     sim->setMaterial( material );
+    sim->surroundings = sellmeierSurr;
 
     unsigned int nFreq = 150;
     double pmlThick = 2.0;
@@ -101,6 +113,7 @@ int main( int argc, char** argv )
 
     sim->setIncStokesVector(incidentStokesVector);
     sim->setMaterial( material );
+    sim->surroundings = sellmeierSurr;
     sim->setMainPropagationDirection( MainPropDirection_t::X );
     sim->setSourceSide( SourcePosition_t::BOTTOM );
     sim->setNfreqFT( nFreq );

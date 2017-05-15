@@ -993,18 +993,27 @@ void CoccolithSimulation::updateStructure()
   {
     throw (runtime_error("Structure is not initialized!") );
   }
-
-  if ( sellmeier == NULL )
-  {
-    throw( runtime_error("Sellmeier material not specified!") );
-  }
   const double PI = acos(-1.0);
-  for ( unsigned int i=0;i<sellmeier->nLorentzians();i++ )
+  if ( sellmeier != nullptr )
   {
-    double sigma, omega0;
-    sellmeier->getMEEPLorentzian( material->getVoxelSize()*1E-3, i, sigma, omega0 );
-    VoxelSusceptibility matFunc( sigma, 0.0 );
-    struc->add_susceptibility( matFunc, meep::E_stuff, meep::lorentzian_susceptibility(omega0/(2.0*PI), 0.0) );
+    for ( unsigned int i=0;i<sellmeier->nLorentzians();i++ )
+    {
+      double sigma, omega0;
+      sellmeier->getMEEPLorentzian( material->getVoxelSize()*1E-3, i, sigma, omega0 );
+      VoxelSusceptibility matFunc( sigma, 0.0 );
+      struc->add_susceptibility( matFunc, meep::E_stuff, meep::lorentzian_susceptibility(omega0/(2.0*PI), 0.0) );
+    }
+  }
+
+  if ( surroundings != nullptr )
+  {
+    for ( unsigned int i=0;i<surroudings->nLorentzians();i++ )
+    {
+      double sigma, omega0;
+      surroundings->getMEEPLorentzian( material->getVoxelSize()*1E-3, i, sigma, omega0 );
+      SurroundingVoxelSuscept matFunc(sigma,0.0);
+      struc->add_susceptibility( matFunc, meep::E_stuff, meep::lorentzian_susceptibility(omega0/(2.0*PI), 0.0) );
+    }
   }
 
   if ( meep::am_master() )

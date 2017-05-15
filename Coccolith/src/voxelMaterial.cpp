@@ -371,3 +371,12 @@ double VoxelSusceptibility::f( const meep::vec &r )
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+double SurroundingVoxelSuscept::f( const meep::vec &r )
+{
+  if ( isReferenceRun() ) return parameter;
+
+  unsigned int indx[3];
+  meepVecToIndx( r, indx );
+  if ( voxels(indx[0], indx[1], indx[2]) == 0 ) return parameter;
+  return referenceReturnVal;
+}
