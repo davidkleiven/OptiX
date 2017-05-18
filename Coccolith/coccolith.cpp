@@ -22,6 +22,7 @@ int main( int argc, char** argv )
   try
   {
     meep::initialize mpi( argc, argv );
+    bool usePeriodicBC = true;
     Json::Value root;
     Json::Reader reader;
     ifstream infile;
@@ -41,6 +42,7 @@ int main( int argc, char** argv )
     double freqwidth = root["fwidth"].asDouble();
     bool useDispersive = root["useDispersive"].asBool();
     CoccolithSimulation *sim = new CoccolithSimulation();
+    sim->usePeriodicBoundaryConditions = usePeriodicBC;
     sim->prefix = root["prefix"].asString();
     SellmeierMaterial sellmeier;
     sim->resolution = root["resolution"].asDouble();
@@ -52,7 +54,7 @@ int main( int argc, char** argv )
       material.setThreshold( root["threshold"].asUInt() );
     }
     material.loadRaw( root["voxels"].asString().c_str() );
-    
+
     sim->setMaterial( material );
 
     unsigned int nFreq = 150;
@@ -88,12 +90,13 @@ int main( int argc, char** argv )
     delete sim;
 
     sim = new CoccolithSimulation();
+    sim->usePeriodicBoundaryConditions = usePeriodicBC;
     if ( root.isMember("uid") ) sim->addIdentifierToBackups( root["uid"].asString().c_str() );
     sim->prefix = root["prefix"].asString();
     sim->resolution = root["resolution"].asDouble();
     sim->uid = uid;
-    sim->gaussLegendreOrder = 512;
-    sim->numberOfAzimuthalSteps = 100;
+    sim->gaussLegendreOrder = 2;
+    sim->numberOfAzimuthalSteps = 2;
     if ( useDispersive )
     {
       sim->setSellmeierMaterial( sellmeier );

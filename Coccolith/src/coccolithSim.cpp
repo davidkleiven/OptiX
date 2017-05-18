@@ -119,7 +119,15 @@ void CoccolithSimulation::addStructure()
   }
 
 
-  struc = new meep::structure( gdvol, *material, meep::pml( getPMLThickness() ) );
+  if ( !usePeriodicBoundaryConditions )
+  {
+    struc = new meep::structure( gdvol, *material, meep::pml( getPMLThickness() ) );
+  }
+  else
+  {
+    clog << "Warning! PML is applied in the X direction and periodic boundary conditions are applied in the other!\n";
+    struc = new meep::structure( gdvol, *material, meep::pml( getPMLThickness(), meep::X) );
+  }
   struc->set_output_directory( outdir.c_str() );
   //struc->add_susceptibility( sigmaTest, meep::E_stuff, meep::lorentzian_susceptibility(0.1, 0.0) );
 
@@ -143,6 +151,14 @@ void CoccolithSimulation::addFields()
 
   if ( field != NULL ) delete field;
   field = new meep::fields( struc );
+
+  if ( usePeriodicBoundaryConditions )
+  {
+    clog << "NOTE: The Bloch wave vector is set to (ky,kz) = (0,0)\n";
+    field->use_bloch( meep::Y, 0.0 );
+    meep::vec kBloch(0.0,0.0,0.0);
+    field->use_bloch( kBloch );
+  }
 }
 
 void CoccolithSimulation::initSource( double freq, double fwidth )
@@ -217,7 +233,15 @@ void CoccolithSimulation::init()
   domainInfo();
   initializeGeometry();
 
-  material->setDomainSize( gdvol, getPMLThickness()+additionalVaccumLayerPx );
+  if ( usePeriodicBoundaryConditions )
+  {
+    material->setDomainSize( gdvol, getPMLThickness()+additionalVaccumLayerPx, 0.0, 0.0 );
+  }
+  else
+  {
+    double size = getPMLThickness()+additionalVaccumLayerPx;
+    material->setDomainSize( gdvol, size, size, size );
+  }
   addSourceVolume();
   addStructure();
   addFields();
@@ -665,7 +689,9 @@ void CoccolithSimulation::exportResults()
     prefix = "defaultFilename";
   }
   ss << prefix << "_" << uid; // File extension added automatically
-
+  ss.clear();
+  ss.str("");
+  ss << prefix;
   // Send the filename to the other processes
   int root = 0;
   int size = ss.str().size();
@@ -808,7 +834,7 @@ void CoccolithSimulation::saveDFTSpectrum()
     // Save backup fields
     fluxBox->save_hdf5( *field, reflFluxBoxBackup.c_str() );
     reflFlux->save_hdf5( *field, reflFluxPlaneBackup.c_str() );
-    n2fBox->save_hdf5( *field, n2fBoxBackup.c_str() );
+    if ( n2fBox != nullptr ) n2fBox->save_hdf5( *field, n2fBoxBackup.c_str() );
   }
   else
   {
@@ -1017,8 +1043,8 @@ void CoccolithSimulation::addN2FPlanes( const meep::volume &box )
 {
   delete faces;
   delete n2fBox;
-  faces = NULL;
-  n2fBox = NULL;
+  faces = nullptr;
+  n2fBox = nullptr;
   const meep::vec mincrn = box.get_min_corner();
   const meep::vec maxcrn = box.get_max_corner();
 
@@ -1076,6 +1102,7 @@ void CoccolithSimulation::addN2FPlanes( const meep::volume &box )
 
 void CoccolithSimulation::scatteringAssymmetryFactor( vector<double> &g, double R, unsigned int Nsteps )
 {
+  assert( n2fBox != nullptr );
   meep::master_printf( "Computing assymmetry factor...\n" );
   radialPoyntingVector.set_size( Nsteps, n2fBox->Nfreq );
   thetaValues.resize(Nsteps);
@@ -1162,6 +1189,7 @@ void CoccolithSimulation::scatteringAssymmetryFactor( vector<double> &g, double 
 
 void CoccolithSimulation::azimuthalIntagration( double theta, double R, unsigned int Nsteps, vector<double> &res )
 {
+  assert( n2fBox != nullptr );
   // Determine the weights and evaluation points for phi [0,2*pi]
   gsl_integration_glfixed_table *gslTab = gsl_integration_glfixed_table_alloc(Nsteps);
 

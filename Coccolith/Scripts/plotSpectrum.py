@@ -60,7 +60,9 @@ class Spectrum:
         fig = plt.figure()
         ax = fig.add_subplot(1,1,1)
         f = np.linspace( self.freqmin, self.freqmax(), len( self.ref) )
-        ax.plot( self.voxelSize/f, 1.0-self.trans/self.ref, color="black" )
+        T = self.trans/self.ref
+        R = np.abs( self.reflected/self.ref )
+        ax.plot( self.voxelSize/f, R+T, color="black" )
         ax.set_xlabel( "Wavelength (nm)" )
         ax.set_ylabel("\$1-T\$")
         return fig, ax

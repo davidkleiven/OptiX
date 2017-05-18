@@ -76,7 +76,7 @@ public:
   void boundingBox( unsigned int lowerCrn[3], unsigned int upperCrn[3] ) const;
 
   /** Set the domain size. NOTE: Assumed to correspond to the array */
-  static void setDomainSize( const meep::grid_volume &gvol, double PMLThickInPx );
+  static void setDomainSize( const meep::grid_volume &gvol, double PMLThickInPxX, double PMLThickY, double PMLThickInPxZ );
 
   /** If set to true the refractive index is 1 in the entire domain */
   static void setReferenceRun( bool newval ){ referenceRun = newval; };

@@ -34,6 +34,7 @@ int main( int argc, char** argv )
   try
   {
     SteadyCoccolithSim sim;
+    sim.usePeriodicBoundaryConditions = true;
     sim.prefix = "steadyCoccolith";
     CaCO3Cocco material( 2.19 );
 
@@ -61,7 +62,7 @@ int main( int argc, char** argv )
     sim.BiCStabL = 2; // 2 is default, converges faster with large L, but the memory usage increases
     sim.maxiters = 100000; // 10000 is default
     //sim.run();
-    sim.stepForTime( 2000.0 );
+    sim.stepForTime( 800.0 );
 
     sim.exportResults();
   }

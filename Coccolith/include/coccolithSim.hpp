@@ -155,6 +155,9 @@ public:
   /** Set to true if the 3D fields should be computed */
   bool save3DFields{true};
 
+  /** If true, periodic boundary conditions will be imposed in the transversal direction */
+  bool usePeriodicBoundaryConditions{false};
+
   /** Set the order of the Gauss Legendre that is used for the asymmetry function calculation */
   unsigned int gaussLegendreOrder{17};
 
