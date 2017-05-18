@@ -1000,7 +1000,14 @@ void CoccolithSimulation::initializeGeometry()
 
   double pmlThickPx = getPMLThickness();
   double extra = 2.0*pmlThickPx + 2.0*additionalVaccumLayerPx;
-  gdvol = meep::vol3d( material->sizeX()+extra, material->sizeY()+extra, material->sizeZ()+extra, resolution );
+  if ( usePeriodicBoundaryConditions )
+  {
+    gdvol = meep::vol3d( material->sizeX()+extra, material->sizeY(), material->sizeZ(), resolution );
+  }
+  else
+  {
+    gdvol = meep::vol3d( material->sizeX()+extra, material->sizeY()+extra, material->sizeZ()+extra, resolution );
+  }
   geoIsInitialized = true;
 }
 
