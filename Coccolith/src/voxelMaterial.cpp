@@ -259,17 +259,17 @@ void VoxelMaterial::projectionYZ( arma::mat &matrix ) const
   matrix /= voxels.n_cols;
 }
 
-void VoxelMaterial::setDomainSize( const meep::grid_volume &gvol, double PMLThick )
+void VoxelMaterial::setDomainSize( const meep::grid_volume &gvol, double PMLThickX, double PMLThickY, double PMLThickZ )
 {
   // The bounding box of this domain corresponds to the data read from the file
   // There is one PML layer on all sides, this this is added/subtracted from the
   // max/min values in the simulation volume
-  domain.xmin = gvol.xmin()+PMLThick;
-  domain.xmax = gvol.xmax()-PMLThick;
-  domain.ymin = gvol.ymin()+PMLThick;
-  domain.ymax = gvol.ymax()-PMLThick;
-  domain.zmin = gvol.zmin()+PMLThick;
-  domain.zmax = gvol.zmax()-PMLThick;
+  domain.xmin = gvol.xmin()+PMLThickX;
+  domain.xmax = gvol.xmax()-PMLThickX;
+  domain.ymin = gvol.ymin()+PMLThickY;
+  domain.ymax = gvol.ymax()-PMLThickY;
+  domain.zmin = gvol.zmin()+PMLThickZ;
+  domain.zmax = gvol.zmax()-PMLThickZ;
 }
 
 void VoxelMaterial::meepVecToIndx( const meep::vec &r, unsigned int indx[3] )

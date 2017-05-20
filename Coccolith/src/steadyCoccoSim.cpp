@@ -79,7 +79,14 @@ void SteadyCoccolithSim::init()
   domainInfo();
   initializeGeometry();
 
-  material->setDomainSize( gdvol, getPMLThickness() );
+  if ( usePeriodicBoundaryConditions )
+  {
+    material->setDomainSize( gdvol, getPMLThickness(), 0.0, 0.0 );
+  }
+  else
+  {
+    material->setDomainSize( gdvol, getPMLThickness(), getPMLThickness(), getPMLThickness() );
+  }
   addSourceVolume();
   addStructure();
   addFields();
