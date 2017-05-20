@@ -1,9 +1,10 @@
 {
-  "centerFreq":0.045,
-  "fwidth":0.03,
-  "resolution":1.0,
+  "centerFreq":0.05,
+  "fwidth":0.06,
+  "resolution":2.0,
   "useDispersive":true,
   "material":"Materials/CaCO3ne.json",
+  "surroundingEps":1.7689,
   "voxels":"data/cocco9Rotated_216_103_210_204.raw",
   "prefix":"CaCO3Coccolith9",
   "threshold":40,
