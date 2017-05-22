@@ -48,7 +48,14 @@ int main( int argc, char** argv )
     sim->resolution = root["resolution"].asDouble();
     sellmeier.load( root["material"].asString().c_str() );
 
-    VoxelSusceptibility material( sellmeier.epsInf, 1.0 );
+    double surroundingEps = 1.0;
+    if ( root.isMember("surroundingEps") )
+    {
+      surroundingEps = root["surroundingEps"].asDouble();
+    }
+    meep::master_printf("Using surrounding epsilon: %.2f\n", surroundingEps );
+
+    VoxelSusceptibility material( sellmeier.epsInf, surroundingEps );
     if ( root.isMember("threshold") )
     {
       material.setThreshold( root["threshold"].asUInt() );
@@ -63,7 +70,7 @@ int main( int argc, char** argv )
     sim->setMainPropagationDirection( MainPropDirection_t::X );
     sim->setSourceSide( SourcePosition_t::BOTTOM );
     sim->setNfreqFT( nFreq );
-    sim->initSource( centerFreq, freqwidth );
+    sim->initSource( centerFreq*sqrt(surroundingEps), freqwidth*sqrt(surroundingEps) );
     sim->setPMLInWavelengths( pmlThick );
     sim->disableRealTimeVisualization();
 
@@ -107,7 +114,7 @@ int main( int argc, char** argv )
     sim->setMainPropagationDirection( MainPropDirection_t::X );
     sim->setSourceSide( SourcePosition_t::BOTTOM );
     sim->setNfreqFT( nFreq );
-    sim->initSource( centerFreq, freqwidth );
+    sim->initSource( centerFreq*sqrt(surroundingEps), freqwidth*sqrt(surroundingEps) );
     sim->setPMLInWavelengths( pmlThick );
     sim->disableRealTimeVisualization();
 
