@@ -64,7 +64,7 @@ class Spectrum:
         R = np.abs( self.reflected/self.ref )
         ax.plot( self.voxelSize/f, R+T, color="black" )
         ax.set_xlabel( "Wavelength (nm)" )
-        ax.set_ylabel("\$1-T\$")
+        ax.set_ylabel("\$R+T\$")
         return fig, ax
 
     def getScatteringCrossSecion( self ):

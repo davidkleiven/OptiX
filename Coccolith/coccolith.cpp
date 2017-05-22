@@ -22,7 +22,7 @@ int main( int argc, char** argv )
   try
   {
     meep::initialize mpi( argc, argv );
-    bool usePeriodicBC = true;
+    bool usePeriodicBC = false;
     Json::Value root;
     Json::Reader reader;
     ifstream infile;
@@ -57,8 +57,8 @@ int main( int argc, char** argv )
 
     sim->setMaterial( material );
 
-    unsigned int nFreq = 150;
-    double pmlThick = 2.0;
+    unsigned int nFreq = 300;
+    double pmlThick = 5.0;
     if ( root.isMember("uid") ) sim->addIdentifierToBackups(root["uid"].asString().c_str());
     sim->setMainPropagationDirection( MainPropDirection_t::X );
     sim->setSourceSide( SourcePosition_t::BOTTOM );

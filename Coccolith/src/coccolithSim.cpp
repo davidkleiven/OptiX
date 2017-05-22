@@ -487,7 +487,7 @@ void CoccolithSimulation::run()
   }
 
   unsigned int iter = 0;
-  double simStop = source->last_time() + estimatedTimeToPropagateAcrossDomain();
+  double simStop = source->last_time() + 30.0*estimatedTimeToPropagateAcrossDomain();
 
   if ( userOverridedEndTime )
   {
