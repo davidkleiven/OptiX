@@ -42,6 +42,7 @@ int main( int argc, char** argv )
     double freqwidth = root["fwidth"].asDouble();
     bool useDispersive = root["useDispersive"].asBool();
     CoccolithSimulation *sim = new CoccolithSimulation();
+    sim->saveFluxBoxEvery = 1000.0;
     sim->usePeriodicBoundaryConditions = usePeriodicBC;
     sim->prefix = root["prefix"].asString();
     SellmeierMaterial sellmeier;
@@ -64,8 +65,8 @@ int main( int argc, char** argv )
 
     sim->setMaterial( material );
 
-    unsigned int nFreq = 300;
-    double pmlThick = 5.0;
+    unsigned int nFreq = 150;
+    double pmlThick = 2.0;
     if ( root.isMember("uid") ) sim->addIdentifierToBackups(root["uid"].asString().c_str());
     sim->setMainPropagationDirection( MainPropDirection_t::X );
     sim->setSourceSide( SourcePosition_t::BOTTOM );
@@ -97,6 +98,7 @@ int main( int argc, char** argv )
     delete sim;
 
     sim = new CoccolithSimulation();
+    sim->saveFluxBoxEvery = 1000.0;
     sim->usePeriodicBoundaryConditions = usePeriodicBC;
     if ( root.isMember("uid") ) sim->addIdentifierToBackups( root["uid"].asString().c_str() );
     sim->prefix = root["prefix"].asString();

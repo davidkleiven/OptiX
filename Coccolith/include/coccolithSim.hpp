@@ -8,6 +8,7 @@
 #include <json/writer.h>
 #include "stokesParameters.hpp"
 #include <array>
+#include <armadillo>
 #ifdef HAVE_LIB_VISA
   #include <visa/visa.hpp>
 #endif
@@ -163,6 +164,9 @@ public:
 
   /** Number of azimuthal angles to average over */
   unsigned int numberOfAzimuthalSteps{3};
+
+  /** Store the flux box every second (study convergence of cross section) */
+  double saveFluxBoxEvery{1E30};
 protected:
   static Stokes incStoke;
   bool initialStokesVectorSet{false};
@@ -185,6 +189,8 @@ protected:
   bool isInitialized{false};
   unsigned int plotUpdateFreq{30};
   Json::Value root;
+  arma::mat fluxBoxTimeEvolution;
+  arma::mat referencePlaneTimeEvolution;
 
   double pmlThicknessInWavelengths{3.0};
   double centerFrequency{1.0};

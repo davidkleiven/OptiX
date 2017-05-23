@@ -487,7 +487,7 @@ void CoccolithSimulation::run()
   }
 
   unsigned int iter = 0;
-  double simStop = source->last_time() + 30.0*estimatedTimeToPropagateAcrossDomain();
+  double simStop = source->last_time() + 60.0*estimatedTimeToPropagateAcrossDomain();
 
   if ( userOverridedEndTime )
   {
@@ -499,6 +499,10 @@ void CoccolithSimulation::run()
     clog << "End time: " << simStop << endl;
   }
 
+  unsigned int nTimePointsToSave = simStop/saveFluxBoxEvery;
+  fluxBoxTimeEvolution.set_size( fluxBox->Nfreq, nTimePointsToSave );
+  referencePlaneTimeEvolution.set_size( fluxBox->Nfreq, nTimePointsToSave );
+  unsigned int currentTimeEvolutionPoint = 0;
   while ( field->time() < simStop )
   {
     field->step();
@@ -507,6 +511,40 @@ void CoccolithSimulation::run()
       visualize();
     }
     iter++;
+
+    if ( field->time()- (currentTimeEvolutionPoint-1)*saveFluxBoxEvery > 0.0 )
+    {
+      if ( material->isReferenceRun() )
+      {
+        double *flux = reflFlux->flux();
+        for ( unsigned int i=0;i<reflFlux->Nfreq;i++ )
+        {
+          referencePlaneTimeEvolution(i,currentTimeEvolutionPoint) = flux[i];
+        }
+        delete [] flux;
+      }
+      else
+      {
+        double *flux = fluxBox->flux();
+        for ( unsigned int i=0;i<fluxBox->Nfreq;i++ )
+        {
+          fluxBoxTimeEvolution(i,currentTimeEvolutionPoint) = flux[i];
+        }
+        delete [] flux;
+      }
+      currentTimeEvolutionPoint++;
+    }
+  }
+
+  if ( material->isReferenceRun() && meep::am_master() )
+  {
+    referencePlaneTimeEvolution.save( "data/referencePlaneTimeEvolution.csv", arma::csv_ascii );
+    meep::master_printf("Reference plane time evolution saved to data/referencePlaneTimeEvolution.csv\n");
+  }
+  else if ( meep::am_master() )
+  {
+    fluxBoxTimeEvolution.save( "data/fluxBoxTimeEvolution.csv", arma::csv_ascii );
+    meep::master_printf("Flux box time evolution save to data/fluxBoxTimeEvolution.csv\n" );
   }
 }
 
