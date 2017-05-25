@@ -23,6 +23,13 @@ int main( int argc, char** argv )
   {
     meep::initialize mpi( argc, argv );
     bool usePeriodicBC = false;
+
+    #ifdef CHECK_THAT_ALL_WORKS
+      double saveFluxBoxEvery = 2.0;
+    #else
+      double saveFluxBoxEvery = 500.0;
+    #endif
+
     Json::Value root;
     Json::Reader reader;
     ifstream infile;
@@ -42,7 +49,7 @@ int main( int argc, char** argv )
     double freqwidth = root["fwidth"].asDouble();
     bool useDispersive = root["useDispersive"].asBool();
     CoccolithSimulation *sim = new CoccolithSimulation();
-    sim->saveFluxBoxEvery = 1000.0;
+    sim->saveFluxBoxEvery = saveFluxBoxEvery;
     sim->usePeriodicBoundaryConditions = usePeriodicBC;
     sim->prefix = root["prefix"].asString();
     SellmeierMaterial sellmeier;
@@ -98,7 +105,7 @@ int main( int argc, char** argv )
     delete sim;
 
     sim = new CoccolithSimulation();
-    sim->saveFluxBoxEvery = 1000.0;
+    sim->saveFluxBoxEvery = saveFluxBoxEvery;
     sim->usePeriodicBoundaryConditions = usePeriodicBC;
     if ( root.isMember("uid") ) sim->addIdentifierToBackups( root["uid"].asString().c_str() );
     sim->prefix = root["prefix"].asString();

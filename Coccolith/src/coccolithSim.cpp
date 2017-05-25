@@ -487,7 +487,7 @@ void CoccolithSimulation::run()
   }
 
   unsigned int iter = 0;
-  double simStop = source->last_time() + 60.0*estimatedTimeToPropagateAcrossDomain();
+  double simStop = source->last_time() + 13.0*estimatedTimeToPropagateAcrossDomain();
 
   if ( userOverridedEndTime )
   {
@@ -499,10 +499,10 @@ void CoccolithSimulation::run()
     clog << "End time: " << simStop << endl;
   }
 
-  unsigned int nTimePointsToSave = simStop/saveFluxBoxEvery;
+  unsigned int nTimePointsToSave = simStop/saveFluxBoxEvery + 1;
   fluxBoxTimeEvolution.set_size( fluxBox->Nfreq, nTimePointsToSave );
   referencePlaneTimeEvolution.set_size( fluxBox->Nfreq, nTimePointsToSave );
-  unsigned int currentTimeEvolutionPoint = 0;
+  int currentTimeEvolutionPoint = 0;
   while ( field->time() < simStop )
   {
     field->step();
@@ -514,6 +514,7 @@ void CoccolithSimulation::run()
 
     if ( field->time()- (currentTimeEvolutionPoint-1)*saveFluxBoxEvery > 0.0 )
     {
+      meep::master_printf("Saving flux at timestep: %.2f\n", field->time() );
       if ( material->isReferenceRun() )
       {
         double *flux = reflFlux->flux();
@@ -533,6 +534,7 @@ void CoccolithSimulation::run()
         delete [] flux;
       }
       currentTimeEvolutionPoint++;
+      if ( currentTimeEvolutionPoint == fluxBoxTimeEvolution.n_cols ) break;
     }
   }
 
