@@ -38,9 +38,9 @@ class MultiWGPlot:
         if ( scale == "log" ):
             maxval = np.max(intensity)
             minval = 1E-5*maxval
-            im = ax.imshow( intensity, extent=extent, origin="lower", cmap=self.cmap, norm=mpl.colors.LogNorm(minval,maxval) )
+            im = ax.imshow( intensity, extent=extent, aspect="auto", origin="lower", cmap=self.cmap, norm=mpl.colors.LogNorm(minval,maxval) )
         else:
-            im = ax.imshow( intensity, extent=extent, origin="lower", cmap=self.cmap )
+            im = ax.imshow( intensity, extent=extent, aspect="auto", origin="lower", cmap=self.cmap )
 
         ax.set_aspect( (extent[1]-extent[0])/(extent[3]-extent[2]) )
         ax.autoscale(False)

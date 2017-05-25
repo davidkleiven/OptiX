@@ -100,8 +100,8 @@ void MultipleCurvedWG::init( const map<string,double> &params )
 
   PlaneWave* pw = new PlaneWave();
 
-  double xmin = -2.0*params.at("width");
-  double xmax = 2.0*params.at("width");
+  double xmin = -3.0*params.at("width");
+  double xmax = 3.0*params.at("width");
   double zmin = 0.0;
   double length = 0.0;
   const double PI = acos(-1.0);

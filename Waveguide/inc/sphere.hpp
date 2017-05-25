@@ -29,11 +29,12 @@ public:
 
   /** Returns beta */
   double getBeta() const { return beta; };
+
+  double delta{0.0};
+  double beta{0.0};
 protected:
   Point3D center;
   double radius{1.0};
-  double delta{0.0};
-  double beta{0.0};
   bool withAbsorption{true};
 };
 

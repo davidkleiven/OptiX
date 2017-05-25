@@ -34,6 +34,7 @@ def main( argv ):
         multiplot.R = np.array( group.attrs.get("radius") )
         multiplot.angles = np.array( group.attrs.get("angles"))
         uid = group.attrs.get("uid")
+        uid = 0
 
         intensity = np.array( hf.get("/data/amplitude") ).T
         transmittivity = np.array( hf.get("/data/transmittivity") )

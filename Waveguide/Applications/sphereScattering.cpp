@@ -82,6 +82,8 @@ int main( int argc, char **argv )
   center.z = (zmax+zmin)/2.0;
 
   GenericScattering simulation("sphere");
+  post::IntensityUint8 intensity;
+  simulation.addPostProcessing( intensity );
   stringstream ss;
   ss << "Simulation of a SiO2 sphere of radius " << r << " nm. ";
   simulation.setBeamWaist( 400.0*r );
@@ -129,9 +131,11 @@ int main( int argc, char **argv )
 
   try
   {
-    sphere.setMaterial( "SiO2", simulation.getEnergy() );
-    coated.setMaterial( "SiO2", simulation.getEnergy() );
-    coated.setCoatingMaterial( "Au", simulation.getEnergy() );
+    //sphere.setMaterial( "SiO2", simulation.getEnergy() );
+    sphere.delta = 4.9E-5;
+    //sphere.setMaterial( "Au", simulation.getEnergy() );
+    //coated.setMaterial( "SiO2", simulation.getEnergy() );
+    //coated.setCoatingMaterial( "Au", simulation.getEnergy() );
 
     ss << "Delta sphere: " << sphere.getDelta() << ". Beta sphere: " << sphere.getBeta();
     if ( geom == Geometry_t::COATED_SPHERE )

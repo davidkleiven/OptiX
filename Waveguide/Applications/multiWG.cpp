@@ -64,18 +64,6 @@ int main ( int argc, char** argv )
     simulation.solve();
 
     simulation.save( "data/multipleWG.h5" );
-    arma::mat intensity = simulation.getIntensity();
-    visa::WindowHandler plots;
-    plots.addPlot("Intensity");
-    plots.get("Intensity").setCmap( cmap_t::NIPY_SPECTRAL );
-    plots.get("Intensity").fillVertexArray( intensity );
-    plots.show();
-    for ( unsigned int i=0;i<KEEP_PLOT_FOR_SEC;i++ )
-    {
-      plots.show();
-      clog << "Closes in " << KEEP_PLOT_FOR_SEC-i <<  "seconds \r";
-      this_thread::sleep_for( chrono::seconds(1) );
-    }
   }
   catch( exception &exc )
   {
