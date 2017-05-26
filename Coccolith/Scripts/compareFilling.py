@@ -7,13 +7,15 @@ mpl.rcParams["font.size"] = 18
 from matplotlib import pyplot as plt
 
 def main():
-    filledSideFile = "data/CaCO3Coccolith_20170505_1928.h5"
-    filledCenterFile = "data/CaCO3Coccolith_20170505_1258.h5"
-    origFname = "data/CaCO3Coccolith_20170328_0804.h5"
+    #filledSideFile = "data/CaCO3Coccolith_20170505_1928.h5"
+    filledSideFile = "data/CaCO3CoccolithEdgeFilled.h5"
+    #filledCenterFile = "data/CaCO3Coccolith_20170505_1258.h5"
+    #origFname = "data/CaCO3Coccolith_20170328_0804.h5"
+    origFname = "data/CaCO3CrossSectionLong.h5"
 
     spOrg = psp.initSpectrum( origFname )
     spSide = psp.initSpectrum( filledSideFile )
-    spCenter = psp.initSpectrum( filledCenterFile )
+    #spCenter = psp.initSpectrum( filledCenterFile )
 
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
@@ -27,10 +29,12 @@ def main():
     wavelength = spSide.voxelSize/f
     ax.plot( wavelength, scatCross, label="Side", color="#377eb8")
 
+    '''
     scatCross = spCenter.getScatteringCrossSecion()
     f = np.linspace( spCenter.freqmin, spCenter.freqmax(), len( scatCross) )
     wavelength = spCenter.voxelSize/f
     ax.plot( wavelength, scatCross, label="Center", color="#4daf4a")
+    '''
 
     ax.set_xlabel("Wavelength (nm)")
     ax.set_ylabel("Scattering cross section, \$\sigma_s\$ (\$\SI{}{\micro\meter\squared}\$)")

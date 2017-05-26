@@ -16,6 +16,7 @@ class Spectrum:
         self.boxScattered = []
         self.boxReference = []
         self.sourceFluxReference = []
+        self.transFluxReference = []
         self.asymmetry = []
         self.Sr = []
         self.theta = []

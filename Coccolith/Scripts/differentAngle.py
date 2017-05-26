@@ -9,8 +9,9 @@ import plotSpectrum as ps
 from matplotlib import pyplot as plt
 
 def main():
-    fnames = ["data/CaCO3CrossSectionLong.h5", "data/CaCO3Coccolith5degY.h5", "data/CaCO3Coccolith10degY.h5", "data/CaCO3Coccolith15deg.h5"]
-    angles = [0,5,10,15]
+    fnames = ["data/CaCO3CrossSectionLong.h5", "data/CaCO3Coccolith5degY.h5", "data/CaCO3Coccolith10degY.h5", "data/CaCO3Coccolith15deg.h5",
+    "data/CaCO3Coccolith30degY.h5"]
+    angles = [0,5,10,15,30]
     specObjs = []
     maxWavelength = 800.0
 
@@ -19,7 +20,7 @@ def main():
 
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
-    colors = ["#e41a1c", "#377eb8", "#4daf4a", "#984ea3"]
+    colors = ["#e41a1c", "#377eb8", "#4daf4a", "#984ea3", "#ff7f00"]
     for i in range(0, len(fnames)):
         crossSection = specObjs[i].getScatteringCrossSecion()
         f = np.linspace( specObjs[i].freqmin, specObjs[i].freqmax(), len(crossSection) )
