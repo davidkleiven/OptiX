@@ -73,7 +73,7 @@ int main( int argc, char** argv )
     sim->setMaterial( material );
 
     unsigned int nFreq = 150;
-    double pmlThick = 2.0;
+    double pmlThick = 3.0;
     if ( root.isMember("uid") ) sim->addIdentifierToBackups(root["uid"].asString().c_str());
     sim->setMainPropagationDirection( MainPropDirection_t::X );
     sim->setSourceSide( SourcePosition_t::BOTTOM );
