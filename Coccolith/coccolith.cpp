@@ -111,8 +111,8 @@ int main( int argc, char** argv )
     sim->prefix = root["prefix"].asString();
     sim->resolution = root["resolution"].asDouble();
     sim->uid = uid;
-    sim->gaussLegendreOrder = 2;
-    sim->numberOfAzimuthalSteps = 2;
+    sim->gaussLegendreOrder = 50;
+    sim->numberOfAzimuthalSteps = 50;
     if ( useDispersive )
     {
       sim->setSellmeierMaterial( sellmeier );

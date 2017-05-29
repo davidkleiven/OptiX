@@ -11,8 +11,8 @@ def main():
     filledSideFile = "data/CaCO3CoccolithEdgeFilled.h5"
     #filledCenterFile = "data/CaCO3Coccolith_20170505_1258.h5"
     filledCenterFile = "data/CaCO3Filled.h5"
-    origFname = "data/CaCO3Coccolith_20170328_0804.h5"
-    #origFname = "data/CaCO3CrossSectionLong.h5"
+    #origFname = "data/CaCO3Coccolith_20170328_0804.h5"
+    origFname = "data/CaCO3CrossSectionLong.h5"
 
     spOrg = psp.initSpectrum( origFname )
     spSide = psp.initSpectrum( filledSideFile )

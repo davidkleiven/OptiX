@@ -30,6 +30,8 @@ def main( argv ):
     spec = pspec.initSpectrum( argv[0] )
     fig, ax = spec.scatteringCrossSection( color="#e41a1c", lw=3 )
     figT, axT = spec.plot( color="#e41a1c", lw=3 )
+    ax.set_xlim(right=800.0)
+    axT.set_xlim(right=800.0)
     chloro = Chlorophyll()
     chloro.load( "Materials/chlorophyll.csv" )
     f = spec.getDimlessFreq( chloro.wavelength )
